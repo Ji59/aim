@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class EdgeTest {
+
    @Test
    public void testReverse() {
       Edge e = new Edge(new Vertex(0), new Vertex(11), null);
