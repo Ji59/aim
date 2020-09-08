@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.frontend;
+package cz.cuni.mff.kotal.frontend.menu;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -11,11 +11,14 @@ public class FXMLController implements Initializable {
 
    @FXML
    private Label label;
+   @FXML
+   private Label l0;
 
    @Override
    public void initialize(URL url, ResourceBundle rb) {
       String javaVersion = System.getProperty("java.version");
       String javafxVersion = System.getProperty("javafx.version");
       label.setText("Hello, JavaFX " + javafxVersion + "\nRunning on Java " + javaVersion + ".");
+      l0.setText("Test");
    }
 }
