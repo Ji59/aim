@@ -1,6 +1,6 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
-import cz.cuni.mff.kotal.frontend.menu.MenuApp;
+import cz.cuni.mff.kotal.frontend.menu.MyApplication;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
@@ -122,7 +122,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
       fileChooser.setTitle("Select agents file input");
       Button fileButton = new Button("Select file");
       fileButton.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
-         File file = fileChooser.showOpenDialog(MenuApp.getStage());
+         File file = fileChooser.showOpenDialog(MyApplication.getMenuStage());
          if (file != null && file.isFile()) {
             filePath.setText(file.getAbsolutePath());
          }

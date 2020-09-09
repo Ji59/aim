@@ -1,17 +1,22 @@
 package cz.cuni.mff.kotal.frontend.menu;
 
-import cz.cuni.mff.kotal.frontend.menu.scenes.MenuScene;
 import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-public class MenuApp extends Application {
+import javax.swing.*;
 
-   private static Window stage;
+public class MyApplication extends Application {
+
+   private static Window menuStage;
+
+   private static final double HEIGHT = 9. / 10;
 
    @Override
-   public void start(Stage stage) throws Exception {
+   public void start(Stage primaryStage) throws Exception {
 //      Parent root = FXMLLoader.load(getClass().getResource("scene.fxml"));
 
 //      Group root = new Group();
@@ -29,28 +34,34 @@ public class MenuApp extends Application {
 //         @Override
 //         public void handle(MouseEvent event) {
 //            Scene s = new Scene(new Group(), 200, 200);
-//            stage.setScene(s);
+//            primaryStage.setScene(s);
 //         }
 //      });
 //
 //      root.getChildren().add(b);
 
-      MenuApp.stage = stage;
 
-      stage.setTitle("Autonomous Intersection Management");
+      primaryStage.setTitle("Autonomous Intersection Management");
 
       // TODO udelat velikost poradne
 
       double width = Screen.getPrimary().getBounds().getWidth();
-      double height = Screen.getPrimary().getBounds().getHeight();
+      double height = Screen.getPrimary().getBounds().getHeight() * HEIGHT;
 
-      stage.setScene(new MenuScene(width * (1./4), height * (9./10)));
-      stage.setX(0);
-      stage.setY(0);
-      stage.show();
+      menuStage = new MenuStage(width - height, height);
+
+      Scene scene = new Scene(new Group(), height, height);
+      primaryStage.setScene(scene);
+      primaryStage.setX(height);
+      primaryStage.setY(0);
+      primaryStage.show();
    }
 
-   public static Window getStage() {
-      return stage;
+   public static Window getMenuStage() {
+      return menuStage;
+   }
+
+   public static double getHEIGHT() {
+      return HEIGHT;
    }
 }
