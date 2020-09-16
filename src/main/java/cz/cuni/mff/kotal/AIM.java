@@ -1,6 +1,6 @@
 package cz.cuni.mff.kotal;
 
-import cz.cuni.mff.kotal.frontend.menu.MyApplication;
+import cz.cuni.mff.kotal.frontend.MyApplication;
 import javafx.application.Application;
 
 public class AIM {

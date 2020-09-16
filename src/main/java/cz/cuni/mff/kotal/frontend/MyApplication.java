@@ -1,5 +1,7 @@
-package cz.cuni.mff.kotal.frontend.menu;
+package cz.cuni.mff.kotal.frontend;
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionGraph;
+import cz.cuni.mff.kotal.frontend.menu.MenuStage;
 import javafx.application.Application;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -48,13 +50,16 @@ public class MyApplication extends Application {
       double width = Screen.getPrimary().getBounds().getWidth();
       double height = Screen.getPrimary().getBounds().getHeight() * HEIGHT;
 
-      menuStage = new MenuStage(width - height, height);
+      menuStage = new MenuStage(width - height - 300, height);
 
-      Scene scene = new Scene(new Group(), height, height);
+      IntersectionGraph graph = new IntersectionGraph(height);
+      Scene scene = new Scene(graph, height, height);
       primaryStage.setScene(scene);
-      primaryStage.setX(height);
+      primaryStage.setX(width - height - 300);
       primaryStage.setY(0);
       primaryStage.show();
+
+      graph.drawSquareModel(4, 1, 1);
    }
 
    public static Window getMenuStage() {

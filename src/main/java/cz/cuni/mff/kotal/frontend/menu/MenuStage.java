@@ -3,8 +3,8 @@ package cz.cuni.mff.kotal.frontend.menu;
 import cz.cuni.mff.kotal.frontend.menu.scenes.MenuScene;
 import javafx.stage.Stage;
 
- class MenuStage extends Stage {
-   MenuStage(double width, double height) {
+ public class MenuStage extends Stage {
+   public MenuStage(double width, double height) {
       setTitle("Settings");
 
       // TODO udelat velikost poradne

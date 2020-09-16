@@ -1,6 +1,6 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
-import cz.cuni.mff.kotal.frontend.menu.MyApplication;
+import cz.cuni.mff.kotal.frontend.MyApplication;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
