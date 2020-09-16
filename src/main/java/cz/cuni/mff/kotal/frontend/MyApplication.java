@@ -2,20 +2,18 @@ package cz.cuni.mff.kotal.frontend;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionGraph;
 import cz.cuni.mff.kotal.frontend.menu.MenuStage;
+import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import javafx.application.Application;
-import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import javax.swing.*;
-
 public class MyApplication extends Application {
+   private static final double HEIGHT_RATIO = 9. / 10;
 
    private static Window menuStage;
-
-   private static final double HEIGHT = 9. / 10;
+   private static final IntersectionGraph graph = new IntersectionGraph(Screen.getPrimary().getBounds().getHeight() * HEIGHT_RATIO);
 
    @Override
    public void start(Stage primaryStage) throws Exception {
@@ -48,25 +46,28 @@ public class MyApplication extends Application {
       // TODO udelat velikost poradne
 
       double width = Screen.getPrimary().getBounds().getWidth();
-      double height = Screen.getPrimary().getBounds().getHeight() * HEIGHT;
+      double height = Screen.getPrimary().getBounds().getHeight() * HEIGHT_RATIO;
 
       menuStage = new MenuStage(width - height - 300, height);
 
-      IntersectionGraph graph = new IntersectionGraph(height);
       Scene scene = new Scene(graph, height, height);
       primaryStage.setScene(scene);
-      primaryStage.setX(width - height - 300);
+      primaryStage.setX(width - height - 220);
       primaryStage.setY(0);
       primaryStage.show();
 
-      graph.drawSquareModel(4, 1, 1);
+      graph.drawSquareModel(IntersectionMenuTab0.getGranularity().getValue(), IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getExits().getValue());
    }
 
    public static Window getMenuStage() {
       return menuStage;
    }
 
-   public static double getHEIGHT() {
-      return HEIGHT;
+   public static IntersectionGraph getIntersectionGraph() {
+      return graph;
+   }
+
+   public static double getHEIGHT_RATIO() {
+      return HEIGHT_RATIO;
    }
 }

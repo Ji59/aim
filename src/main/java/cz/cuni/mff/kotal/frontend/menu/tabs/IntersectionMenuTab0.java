@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
+import cz.cuni.mff.kotal.frontend.MyApplication;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
@@ -19,6 +20,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
       entries = new MySlider(1, granularity.getValue() - 1, 1),
       exits = new MySlider(1, granularity.getValue() - entries.getValue(), 1);
    private static long roads = 4;
+
+   private static int granularityDifference = 0;
 
    public IntersectionMenuTab0() {
       super(Tabs.T0.getText());
@@ -47,6 +50,18 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          }
          assert selected != null;
          roads = selected.getDirections() == null ? 4 : selected.getDirections().size();
+
+         if (selected.equals(Parameters.Models.OCTAGONAL)) {
+            granularityDifference = 2;
+         } else {
+            granularityDifference = 0;
+         }
+         granularity.setMin(2 + granularityDifference);
+         entries.setMax(granularity.getValue() - granularityDifference - 1);
+         exits.setMax(granularity.getValue() - granularityDifference - 1);
+
+         drawGraph();
+
          AgentsMenuTab1.createDirectionsMenuAndAddActions(selected);
 
          AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * entries.getValue());
@@ -54,26 +69,27 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
       });
    }
 
+   // TODO fix slider issue when decreased by one from odd number
+
    private void addGranularityActions() {
       granularity.addAction((observable, oldValue, newValue) -> {
-         long newVal = newValue.longValue() - 1;
-         entries.setMax(newVal);
-         exits.setMax(newVal);
-         if (entries.getValue() + exits.getValue() > newVal) {
-            exits.setValue(newVal - entries.getValue());
+         long newValDecreased = newValue.longValue() - 1;
+         entries.setMax(newValDecreased - granularityDifference);
+         exits.setMax(newValDecreased - granularityDifference);
+         if (entries.getValue() + exits.getValue() + granularityDifference - 1 > newValDecreased) {
+            exits.setValue(newValDecreased - entries.getValue() - granularityDifference);
          }
-         AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal);
-         AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal);
+
+         drawGraph();
+
+         AgentParametersMenuTab4.getMaximalSizeLength().setMax(newValDecreased);
+         AgentParametersMenuTab4.getMinimalSizeLength().setMax(newValDecreased);
       });
    }
 
    private void addEntriesActions() {
       entries.addAction((observable, oldValue, newValue) -> {
-         if (newValue.longValue() + exits.getValue() > granularity.getValue()) {
-            exits.setValue(granularity.getValue() - newValue.longValue());
-         }
-         AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
-         AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
+         adjustAgentsSize(newValue, exits);
          AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * newValue.longValue());
          AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * newValue.longValue());
       });
@@ -81,12 +97,27 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
    private void addExitsActions() {
       exits.addAction((observable, oldValue, newValue) -> {
-         if (newValue.longValue() + entries.getValue() > granularity.getValue()) {
-            entries.setValue(granularity.getValue() - newValue.longValue());
-         }
-         AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
-         AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
+         adjustAgentsSize(newValue, entries);
       });
+   }
+
+   private void adjustAgentsSize(Number newValue, MySlider slider) {
+      if (newValue.longValue() + slider.getValue() + granularityDifference > granularity.getValue()) {
+         slider.setValue(granularity.getValue() - newValue.longValue() - granularityDifference);
+      }
+
+      drawGraph();
+
+      AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
+      AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
+   }
+
+   private static void drawGraph() {
+      if (model.getValue().equals(Parameters.Models.SQUARE.getText())) {
+         MyApplication.getIntersectionGraph().drawSquareModel(granularity.getValue(), entries.getValue(), exits.getValue());
+      } else if (model.getValue().equals(Parameters.Models.OCTAGONAL.getText())) {
+         MyApplication.getIntersectionGraph().drawOctagonalModel(granularity.getValue(), entries.getValue(), exits.getValue());
+      }
    }
 
    public static MyComboBox getModel() {
