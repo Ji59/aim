@@ -151,6 +151,8 @@ public class IntersectionGraph extends Pane {
          entryE.setY((granularity / 2. + index) * shift + PADDING);
          entryE.setStroke(Color.BLACK);
 
+         // TODO dopocitat do i pro leve a prave okraje
+
          double a0x = index * edgeLength * 1.5 - edgeLength / 2 + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
             a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                            // bot right
             a2x = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3x = a2x - 2 * Math.sqrt(3) / 3 * shift;                         // top x
@@ -201,34 +203,71 @@ public class IntersectionGraph extends Pane {
          index++;
       }
 
-      index += padding;
+      index += empty % 3 == 2 ? empty - 2 * padding : padding;
 
-//      while (exits-- > 0) {
-//         index++;
-//
-//         Rectangle exitN = new Rectangle(shift, shift * (1 + OCTAGON_RATIO), Color.GRAY),
-//            exitS = new Rectangle(shift, shift * (1 + OCTAGON_RATIO), Color.GRAY),
-//            exitW = new Rectangle(sidePadding, shift, Color.GRAY),
-//            exitE = new Rectangle(sidePadding, shift, Color.GRAY);
-//
-//         exitN.setX(index * shift + PADDING);
-//         exitN.setY(PADDING);
-//         exitN.setStroke(Color.BLACK);
-//
-//         exitS.setX((granularity - index + 1) * shift + PADDING);
-//         exitS.setY((granularity + 1 - OCTAGON_RATIO) * shift + PADDING);
-//         exitS.setStroke(Color.BLACK);
-//
-//         exitW.setX(PADDING);
-//         exitW.setY((granularity - index + 2) * shift + PADDING);
-//         exitW.setStroke(Color.BLACK);
-//
-//         exitE.setX((granularity + 1 - OCTAGON_RATIO) * shift + PADDING);
-//         exitE.setY(index * shift + PADDING);
-//         exitE.setStroke(Color.BLACK);
-//
-//         getChildren().addAll(exitN, exitS, exitW, exitE);
-//      }
+      // TODO zbavit se duplicit
+
+      while (exits-- > 0) {
+         Rectangle exitB = new Rectangle(sidePadding, shift, Color.GRAY),
+            exitE = new Rectangle(sidePadding, shift, Color.GRAY);
+
+         exitB.setX(PADDING);
+         exitB.setY(getHeight() - (granularity / 2. + index + 1) * shift - PADDING);
+         exitB.setStroke(Color.BLACK);
+
+         exitE.setX(getHeight() - sidePadding - PADDING);
+         exitE.setY((granularity / 2. + index) * shift + PADDING);
+         exitE.setStroke(Color.BLACK);
+
+         double a0x = index * edgeLength * 1.5 - edgeLength / 2 + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
+            a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                            // bot right
+            a2x = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3x = a2x - 2 * Math.sqrt(3) / 3 * shift;                         // top x
+
+         double f0x = getHeight() / 2 + edgeLength * (index * 1.5 + 1), f0y = shift * (index / 2. + 1) + PADDING,    // bot right
+            f1x = f0x - edgeLength * 1.5, f1y = f0y - shift / 2,                                                                                             // bot left
+            f2x = f1x + Math.sqrt(3) / 3 * (f1y - PADDING), f3x = f2x + 2 * Math.sqrt(3) / 3 * shift;                         // top x
+
+         Polygon exitA = new Polygon( // top left entry
+            a0x, a0y,               // bot left
+            a1x, a1y,               // bot right
+            a2x, PADDING,  // top right
+            a3x, PADDING   // top left
+         ),
+            exitC = new Polygon(   // bot left entry
+               getHeight() - f0x, getHeight() - f0y, // top left
+               getHeight() - f1x, getHeight() - f1y,                 // top right
+               getHeight() - f2x, getHeight() - PADDING,    // bot right
+               getHeight() - f3x, getHeight() - PADDING     // bot left
+            ),
+            exitD = new Polygon(
+               getHeight() - a0x, getHeight() - a0y,  // top right
+               getHeight() - a1x, getHeight() - a1y,                    // top left
+               getHeight() - a2x, getHeight() - PADDING,       // bot left
+               getHeight() - a3x, getHeight() - PADDING        // bot right
+            ),
+            exitF = new Polygon( // top right entry
+               f0x, f0y,    // bot left
+               f1x, f1y,                     // bot right
+               f2x, PADDING,        // top right
+               f3x, PADDING         // top left
+            );
+
+         exitA.setFill(Color.GRAY);
+         exitA.setStroke(Color.BLACK);
+
+         exitC.setFill(Color.GRAY);
+         exitC.setStroke(Color.BLACK);
+
+         exitD.setFill(Color.GRAY);
+         exitD.setStroke(Color.BLACK);
+
+         exitF.setFill(Color.GRAY);
+         exitF.setStroke(Color.BLACK);
+
+         getChildren().addAll(exitA, exitB, exitC, exitD, exitE, exitF);
+
+         index++;
+      }
    }
 
    private void createHexagon(double shift, double edgeLength, double x, double y) {
