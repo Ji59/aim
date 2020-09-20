@@ -51,8 +51,12 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          assert selected != null;
          roads = selected.getDirections() == null ? 4 : selected.getDirections().size();
 
+         // TODO fix issue when changed from square model to octagonal, there are added entries and exits
+
          if (selected.equals(Parameters.Models.OCTAGONAL)) {
             granularityDifference = 2;
+         } else if (selected.equals(Parameters.Models.HEXAGONAL)) {
+            granularityDifference = 1;
          } else {
             granularityDifference = 0;
          }
@@ -69,21 +73,19 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
       });
    }
 
-   // TODO fix slider issue when decreased by one from odd number
-
    private void addGranularityActions() {
       granularity.addAction((observable, oldValue, newValue) -> {
-         long newValDecreased = newValue.longValue() - 1;
-         entries.setMax(newValDecreased - granularityDifference);
-         exits.setMax(newValDecreased - granularityDifference);
-         if (entries.getValue() + exits.getValue() + granularityDifference - 1 > newValDecreased) {
-            exits.setValue(newValDecreased - entries.getValue() - granularityDifference);
+         long newVal = newValue.longValue();
+         entries.setMax(newVal - granularityDifference - 1);
+         exits.setMax(newVal - granularityDifference - 1);
+         if (entries.getValue() + exits.getValue() + granularityDifference > newVal) {
+            exits.setValue(newVal - entries.getValue() - granularityDifference);
          }
 
          drawGraph();
 
-         AgentParametersMenuTab4.getMaximalSizeLength().setMax(newValDecreased);
-         AgentParametersMenuTab4.getMinimalSizeLength().setMax(newValDecreased);
+         AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1);
+         AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1);
       });
    }
 
@@ -117,6 +119,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          MyApplication.getIntersectionGraph().drawSquareModel(granularity.getValue(), entries.getValue(), exits.getValue());
       } else if (model.getValue().equals(Parameters.Models.OCTAGONAL.getText())) {
          MyApplication.getIntersectionGraph().drawOctagonalModel(granularity.getValue(), entries.getValue(), exits.getValue());
+      } else if (model.getValue().equals(Parameters.Models.HEXAGONAL.getText())) {
+         MyApplication.getIntersectionGraph().drawHexagonalModel(granularity.getValue(), entries.getValue(), exits.getValue());
       }
    }
 

@@ -26,7 +26,7 @@ public class MySlider extends HBox {
          slider.setMinorTickCount((int) (count - 2));
          slider.setBlockIncrement(1);
       } else {
-         slider.setBlockIncrement(tickUnit);
+         slider.setBlockIncrement(1);
          slider.setMajorTickUnit(tickUnit);
          slider.setMinorTickCount(getSliderMinorTicks(tickUnit));
       }
