@@ -19,7 +19,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
    private static final MySlider granularity = new MySlider(2, 65, 4),
       entries = new MySlider(1, granularity.getValue() - 1, 1),
       exits = new MySlider(1, granularity.getValue() - entries.getValue(), 1);
-   private static long roads = 4;
+   private static long roads = 4, temp = 0;
 
    private static int granularityDifference = 0;
 
@@ -49,6 +49,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
             }
          }
          assert selected != null;
+
+         setSlidersDisable(true);
+
          roads = selected.getDirections() == null ? 4 : selected.getDirections().size();
 
          // TODO fix issue when changed from square model to octagonal, there are added entries and exits
@@ -70,11 +73,15 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
          AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * entries.getValue());
          AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * entries.getValue());
+
+         setSlidersDisable(false);
       });
    }
 
    private void addGranularityActions() {
       granularity.addAction((observable, oldValue, newValue) -> {
+         setSlidersDisable(true);
+
          long newVal = newValue.longValue();
          entries.setMax(newVal - granularityDifference - 1);
          exits.setMax(newVal - granularityDifference - 1);
@@ -86,6 +93,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
          AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1);
          AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1);
+
+         setSlidersDisable(false);
       });
    }
 
@@ -103,7 +112,15 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
       });
    }
 
+   private void setSlidersDisable(boolean b) {
+      granularity.setDisable(b);
+      entries.setDisable(b);
+      exits.setDisable(b);
+   }
+
    private void adjustAgentsSize(Number newValue, MySlider slider) {
+      setSlidersDisable(true);
+
       if (newValue.longValue() + slider.getValue() + granularityDifference > granularity.getValue()) {
          slider.setValue(granularity.getValue() - newValue.longValue() - granularityDifference);
       }
@@ -112,9 +129,12 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
       AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
       AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
+
+      setSlidersDisable(false);
    }
 
    private static void drawGraph() {
+      System.out.println("redraw " + temp++);
       if (model.getValue().equals(Parameters.Models.SQUARE.getText())) {
          MyApplication.getIntersectionGraph().drawSquareModel(granularity.getValue(), entries.getValue(), exits.getValue());
       } else if (model.getValue().equals(Parameters.Models.OCTAGONAL.getText())) {
