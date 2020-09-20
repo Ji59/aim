@@ -19,7 +19,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
    private static final MySlider granularity = new MySlider(2, 65, 4),
       entries = new MySlider(1, granularity.getValue() - 1, 1),
       exits = new MySlider(1, granularity.getValue() - entries.getValue(), 1);
-   private static long roads = 4, temp = 0;
+   private static long roads = 4;
 
    private static int granularityDifference = 0;
 
@@ -42,6 +42,10 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
    private void addModelActions() {
       model.valueProperty().addListener((observable, oldValue, newValue) -> {
+         if (oldValue.equals(newValue)) {
+            return;
+         }
+
          Parameters.Models selected = null;
          for (Parameters.Models model : Parameters.Models.values()) {
             if (model.getText().equals(newValue)) {
@@ -107,9 +111,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
    }
 
    private void addExitsActions() {
-      exits.addAction((observable, oldValue, newValue) -> {
-         adjustAgentsSize(newValue, entries);
-      });
+      exits.addAction((observable, oldValue, newValue) -> adjustAgentsSize(newValue, entries));
    }
 
    private void setSlidersDisable(boolean b) {
@@ -134,7 +136,6 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
    }
 
    private static void drawGraph() {
-      System.out.println("redraw " + temp++);
       if (model.getValue().equals(Parameters.Models.SQUARE.getText())) {
          MyApplication.getIntersectionGraph().drawSquareModel(granularity.getValue(), entries.getValue(), exits.getValue());
       } else if (model.getValue().equals(Parameters.Models.OCTAGONAL.getText())) {

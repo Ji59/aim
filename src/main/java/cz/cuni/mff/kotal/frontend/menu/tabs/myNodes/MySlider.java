@@ -35,12 +35,18 @@ public class MySlider extends HBox {
       textField.setPrefWidth(40);
 
       slider.valueProperty().addListener((observable, oldValue, newValue) -> {
+         setDisable(true);
+
          long roundedValue = Math.round(newValue.doubleValue());
          slider.setValue(roundedValue);
          textField.setText(String.valueOf(roundedValue));
+
+         setDisable(false);
       });
 
       textField.focusedProperty().addListener((observable, oldValue, newValue) -> {
+         setDisable(true);
+
          if (!newValue) {
             String sliderValue = String.valueOf(Math.round(slider.getValue()));
             if (textField.getText().isEmpty()) {
@@ -61,6 +67,8 @@ public class MySlider extends HBox {
                textField.setText(sliderValue);
             }
          }
+
+         setDisable(false);
       });
 
       getChildren().addAll(slider, textField);
