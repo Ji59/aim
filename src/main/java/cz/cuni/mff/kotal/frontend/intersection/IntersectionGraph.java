@@ -8,6 +8,10 @@ import javafx.scene.shape.Rectangle;
 public class IntersectionGraph extends Pane {
    private static final double PADDING = 30;
    private static final double OCTAGON_RATIO = 1 / Math.E;
+   private static final Color ROAD_COLOR = Color.LIGHTGREY,
+      STROKE_COLOR = Color.BLACK,
+      ENTRY_COLOR = Color.LIGHTSLATEGRAY,
+      EXIT_COLOR = Color.GRAY;
 
    public IntersectionGraph(double height) {
       // TODO udelat velikost poradne
@@ -29,10 +33,10 @@ public class IntersectionGraph extends Pane {
 
       for (int i = 1; i <= granularity; i++) {
          for (int j = 1; j <= granularity; j++) {
-            Rectangle square = new Rectangle(shift, shift, Color.LIGHTGRAY);
+            Rectangle square = new Rectangle(shift, shift, ROAD_COLOR);
             square.setX(i * shift + PADDING);
             square.setY(j * shift + PADDING);
-            square.setStroke(Color.BLACK);
+            square.setStroke(STROKE_COLOR);
             getChildren().add(square);
          }
       }
@@ -47,59 +51,13 @@ public class IntersectionGraph extends Pane {
          index = empty % 3 == 2 ? ++padding : padding;
 
       while (entries-- > 0) {
-         index++;
-
-         Rectangle entryN = new Rectangle(shift, shift, Color.LIGHTSLATEGRAY),
-            entryS = new Rectangle(shift, shift, Color.LIGHTSLATEGRAY),
-            entryW = new Rectangle(shift, shift, Color.LIGHTSLATEGRAY),
-            entryE = new Rectangle(shift, shift, Color.LIGHTSLATEGRAY);
-
-         entryN.setX(index * shift + PADDING);
-         entryN.setY(PADDING);
-         entryN.setStroke(Color.BLACK);
-
-         entryS.setX((granularity - index + 1) * shift + PADDING);
-         entryS.setY((granularity + 1) * shift + PADDING);
-         entryS.setStroke(Color.BLACK);
-
-         entryW.setX(PADDING);
-         entryW.setY((granularity - index + 1) * shift + PADDING);
-         entryW.setStroke(Color.BLACK);
-
-         entryE.setX((granularity + 1) * shift + PADDING);
-         entryE.setY(index * shift + PADDING);
-         entryE.setStroke(Color.BLACK);
-
-         getChildren().addAll(entryN, entryS, entryW, entryE);
+         createRectangularEntries(granularity, shift, ++index, true, true);
       }
 
       index += empty - 2 * padding;
 
       while (exits-- > 0) {
-         index++;
-
-         Rectangle exitN = new Rectangle(shift, shift, Color.GRAY),
-            exitS = new Rectangle(shift, shift, Color.GRAY),
-            exitW = new Rectangle(shift, shift, Color.GRAY),
-            exitE = new Rectangle(shift, shift, Color.GRAY);
-
-         exitN.setX(index * shift + PADDING);
-         exitN.setY(PADDING);
-         exitN.setStroke(Color.BLACK);
-
-         exitS.setX((granularity - index + 1) * shift + PADDING);
-         exitS.setY((granularity + 1) * shift + PADDING);
-         exitS.setStroke(Color.BLACK);
-
-         exitW.setX(PADDING);
-         exitW.setY((granularity - index + 1) * shift + PADDING);
-         exitW.setStroke(Color.BLACK);
-
-         exitE.setX((granularity + 1) * shift + PADDING);
-         exitE.setY(index * shift + PADDING);
-         exitE.setStroke(Color.BLACK);
-
-         getChildren().addAll(exitN, exitS, exitW, exitE);
+         createRectangularEntries(granularity, shift, ++index, false, true);
       }
    }
 
@@ -140,16 +98,16 @@ public class IntersectionGraph extends Pane {
          index = empty % 3 == 2 ? ++padding : padding;
 
       while (entries-- > 0) {
-         Rectangle entryB = new Rectangle(sidePadding, shift, Color.LIGHTSLATEGRAY),
-            entryE = new Rectangle(sidePadding, shift, Color.LIGHTSLATEGRAY);
+         Rectangle entryB = new Rectangle(sidePadding, shift, ENTRY_COLOR),
+            entryE = new Rectangle(sidePadding, shift, ENTRY_COLOR);
 
          entryB.setX(PADDING);
          entryB.setY(getHeight() - (granularity / 2. + index + 1) * shift - PADDING);
-         entryB.setStroke(Color.BLACK);
+         entryB.setStroke(STROKE_COLOR);
 
          entryE.setX(getHeight() - sidePadding - PADDING);
          entryE.setY((granularity / 2. + index) * shift + PADDING);
-         entryE.setStroke(Color.BLACK);
+         entryE.setStroke(STROKE_COLOR);
 
          // TODO dopocitat do i pro leve a prave okraje
 
@@ -186,17 +144,17 @@ public class IntersectionGraph extends Pane {
                f3x, PADDING         // top left
             );
 
-         entryA.setFill(Color.LIGHTSLATEGRAY);
-         entryA.setStroke(Color.BLACK);
+         entryA.setFill(ENTRY_COLOR);
+         entryA.setStroke(STROKE_COLOR);
 
-         entryC.setFill(Color.LIGHTSLATEGRAY);
-         entryC.setStroke(Color.BLACK);
+         entryC.setFill(ENTRY_COLOR);
+         entryC.setStroke(STROKE_COLOR);
 
-         entryD.setFill(Color.LIGHTSLATEGRAY);
-         entryD.setStroke(Color.BLACK);
+         entryD.setFill(ENTRY_COLOR);
+         entryD.setStroke(STROKE_COLOR);
 
-         entryF.setFill(Color.LIGHTSLATEGRAY);
-         entryF.setStroke(Color.BLACK);
+         entryF.setFill(ENTRY_COLOR);
+         entryF.setStroke(STROKE_COLOR);
 
          getChildren().addAll(entryA, entryB, entryC, entryD, entryE, entryF);
 
@@ -208,16 +166,16 @@ public class IntersectionGraph extends Pane {
       // TODO zbavit se duplicit
 
       while (exits-- > 0) {
-         Rectangle exitB = new Rectangle(sidePadding, shift, Color.GRAY),
-            exitE = new Rectangle(sidePadding, shift, Color.GRAY);
+         Rectangle exitB = new Rectangle(sidePadding, shift, EXIT_COLOR),
+            exitE = new Rectangle(sidePadding, shift, EXIT_COLOR);
 
          exitB.setX(PADDING);
          exitB.setY(getHeight() - (granularity / 2. + index + 1) * shift - PADDING);
-         exitB.setStroke(Color.BLACK);
+         exitB.setStroke(STROKE_COLOR);
 
          exitE.setX(getHeight() - sidePadding - PADDING);
          exitE.setY((granularity / 2. + index) * shift + PADDING);
-         exitE.setStroke(Color.BLACK);
+         exitE.setStroke(STROKE_COLOR);
 
          double a0x = index * edgeLength * 1.5 - edgeLength / 2 + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
             a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                            // bot right
@@ -252,17 +210,17 @@ public class IntersectionGraph extends Pane {
                f3x, PADDING         // top left
             );
 
-         exitA.setFill(Color.GRAY);
-         exitA.setStroke(Color.BLACK);
+         exitA.setFill(EXIT_COLOR);
+         exitA.setStroke(STROKE_COLOR);
 
-         exitC.setFill(Color.GRAY);
-         exitC.setStroke(Color.BLACK);
+         exitC.setFill(EXIT_COLOR);
+         exitC.setStroke(STROKE_COLOR);
 
-         exitD.setFill(Color.GRAY);
-         exitD.setStroke(Color.BLACK);
+         exitD.setFill(EXIT_COLOR);
+         exitD.setStroke(STROKE_COLOR);
 
-         exitF.setFill(Color.GRAY);
-         exitF.setStroke(Color.BLACK);
+         exitF.setFill(EXIT_COLOR);
+         exitF.setStroke(STROKE_COLOR);
 
          getChildren().addAll(exitA, exitB, exitC, exitD, exitE, exitF);
 
@@ -280,8 +238,8 @@ public class IntersectionGraph extends Pane {
          x - edgeLength * 0.5, y + shift / 2
       );
 
-      hexagon.setFill(Color.LIGHTGRAY);
-      hexagon.setStroke(Color.BLACK);
+      hexagon.setFill(ROAD_COLOR);
+      hexagon.setStroke(STROKE_COLOR);
 
       getChildren().add(hexagon);
    }
@@ -307,26 +265,10 @@ public class IntersectionGraph extends Pane {
 
    private void drawOctagonalLine(long granularity, long row, double shift, boolean notSquares, boolean withCorners) {
       double topY = row * shift + PADDING,
-         midTopY = (row + OCTAGON_RATIO) * shift + PADDING,
-         midBotY = (row + 1 - OCTAGON_RATIO) * shift + PADDING,
-         botY = (row + 1) * shift + PADDING;
+         midTopY = (row + OCTAGON_RATIO) * shift + PADDING;
 
       for (int j = withCorners ? 1 : 2; j <= (withCorners ? granularity : granularity - 1); j++) {
-         Polygon octagon = new Polygon(
-            (j + OCTAGON_RATIO) * shift + PADDING, topY,       // top left
-            (j + 1 - OCTAGON_RATIO) * shift + PADDING, topY,                  // top right
-            (j + 1) * shift + PADDING, midTopY,                                                 // mid-top right
-            (j + 1) * shift + PADDING, midBotY,                                                 // mid-bot right
-            (j + 1 - OCTAGON_RATIO) * shift + PADDING, botY,                  // bot right
-            (j + OCTAGON_RATIO) * shift + PADDING, botY,                       // bot left
-            j * shift + PADDING, midBotY,                                                         // mid-bot left
-            j * shift + PADDING, midTopY                                                          // mid-top left
-         );
-
-         octagon.setFill(Color.LIGHTGREY);
-         octagon.setStroke(Color.BLACK);
-
-         getChildren().add(octagon);
+         createOctagonRoute(shift, topY, midTopY, j);
       }
 
       if (notSquares) {
@@ -335,14 +277,14 @@ public class IntersectionGraph extends Pane {
 
       for (int j = 2; j <= granularity; j++) {
          Polygon square = new Polygon(
-            j * shift + PADDING, midBotY,                                        // top
-            (j - OCTAGON_RATIO) * shift + PADDING, botY,                      // right
-            j * shift + PADDING, midTopY + shift,                                          // bottom
-            (j + OCTAGON_RATIO) * shift + PADDING, botY                      // left
+            j * shift + PADDING, midTopY + (1 - 2* OCTAGON_RATIO) * shift,      // top
+            (j - OCTAGON_RATIO) * shift + PADDING, topY + shift,                                      // right
+            j * shift + PADDING, midTopY + shift,                                                                     // bottom
+            (j + OCTAGON_RATIO) * shift + PADDING, topY + shift                                       // left
          );
 
-         square.setFill(Color.LIGHTGRAY);
-         square.setStroke(Color.BLACK);
+         square.setFill(ROAD_COLOR);
+         square.setStroke(STROKE_COLOR);
 
          getChildren().add(square);
       }
@@ -357,60 +299,62 @@ public class IntersectionGraph extends Pane {
          index = empty % 3 == 2 ? ++padding : padding;
 
       while (entries-- > 0) {
-         index++;
-
-         Rectangle entryN = new Rectangle(shift, shift * (1 + OCTAGON_RATIO), Color.LIGHTSLATEGRAY),
-            entryS = new Rectangle(shift, shift * (1 + OCTAGON_RATIO), Color.LIGHTSLATEGRAY),
-            entryW = new Rectangle(shift * (1 + OCTAGON_RATIO), shift, Color.LIGHTSLATEGRAY),
-            entryE = new Rectangle(shift * (1 + OCTAGON_RATIO), shift, Color.LIGHTSLATEGRAY);
-
-         entryN.setX(index * shift + PADDING);
-         entryN.setY(PADDING);
-         entryN.setStroke(Color.BLACK);
-
-         entryS.setX((granularity - index + 1) * shift + PADDING);
-         entryS.setY((granularity + 1 - OCTAGON_RATIO) * shift + PADDING);
-         entryS.setStroke(Color.BLACK);
-
-         entryW.setX(PADDING);
-         entryW.setY((granularity - index + 1) * shift + PADDING);
-         entryW.setStroke(Color.BLACK);
-
-         entryE.setX((granularity + 1 - OCTAGON_RATIO) * shift + PADDING);
-         entryE.setY(index * shift + PADDING);
-         entryE.setStroke(Color.BLACK);
-
-         getChildren().addAll(entryN, entryS, entryW, entryE);
+         createRectangularEntries(granularity, shift, ++index, true, false);
       }
 
       index += empty - 2 * padding;
 
       while (exits-- > 0) {
-         index++;
-
-         Rectangle exitN = new Rectangle(shift, shift * (1 + OCTAGON_RATIO), Color.GRAY),
-            exitS = new Rectangle(shift, shift * (1 + OCTAGON_RATIO), Color.GRAY),
-            exitW = new Rectangle(shift * (1 + OCTAGON_RATIO), shift, Color.GRAY),
-            exitE = new Rectangle(shift * (1 + OCTAGON_RATIO), shift, Color.GRAY);
-
-         exitN.setX(index * shift + PADDING);
-         exitN.setY(PADDING);
-         exitN.setStroke(Color.BLACK);
-
-         exitS.setX((granularity - index + 1) * shift + PADDING);
-         exitS.setY((granularity + 1 - OCTAGON_RATIO) * shift + PADDING);
-         exitS.setStroke(Color.BLACK);
-
-         exitW.setX(PADDING);
-         exitW.setY((granularity - index + 1) * shift + PADDING);
-         exitW.setStroke(Color.BLACK);
-
-         exitE.setX((granularity + 1 - OCTAGON_RATIO) * shift + PADDING);
-         exitE.setY(index * shift + PADDING);
-         exitE.setStroke(Color.BLACK);
-
-         getChildren().addAll(exitN, exitS, exitW, exitE);
+         createRectangularEntries(granularity, shift,  ++index, false, false);
       }
+   }
+
+   private void createRectangularEntries(long granularity, double shift, long index, boolean entry, boolean square) {
+      double side2 = shift * (1 + (square ? 0 : OCTAGON_RATIO)),
+         endPadding = (granularity + 1 - (square ? 0 : OCTAGON_RATIO)) * shift + PADDING;
+
+      Color color = entry ? ENTRY_COLOR : EXIT_COLOR;
+
+      Rectangle entryN = new Rectangle(shift, side2, color),
+         entryS = new Rectangle(shift, side2, color),
+         entryW = new Rectangle(side2, shift, color),
+         entryE = new Rectangle(side2, shift, color);
+
+      entryN.setX(index * shift + PADDING);
+      entryN.setY(PADDING);
+      entryN.setStroke(STROKE_COLOR);
+
+      entryS.setX((granularity - index + 1) * shift + PADDING);
+      entryS.setY(endPadding);
+      entryS.setStroke(STROKE_COLOR);
+
+      entryW.setX(PADDING);
+      entryW.setY((granularity - index + 1) * shift + PADDING);
+      entryW.setStroke(STROKE_COLOR);
+
+      entryE.setX(endPadding);
+      entryE.setY(index * shift + PADDING);
+      entryE.setStroke(STROKE_COLOR);
+
+      getChildren().addAll(entryN, entryS, entryW, entryE);
+   }
+
+   private void createOctagonRoute(double shift, double topY, double midTopY, int j) {
+      Polygon octagon = new Polygon(
+         (j + OCTAGON_RATIO) * shift + PADDING, topY,                        // top left
+         (j + 1 - OCTAGON_RATIO) * shift + PADDING, topY,                                   // top right
+         (j + 1) * shift + PADDING, midTopY,                                                               // mid-top right
+         (j + 1) * shift + PADDING, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,    // mid-bot right
+         (j + 1 - OCTAGON_RATIO) * shift + PADDING, topY + shift,                       // bot right
+         (j + OCTAGON_RATIO) * shift + PADDING, topY + shift,                            // bot left
+         j * shift + PADDING, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,           // mid-bot left
+         j * shift + PADDING, midTopY                                                                       // mid-top left
+      );
+
+      octagon.setFill(ROAD_COLOR);
+      octagon.setStroke(STROKE_COLOR);
+
+      getChildren().add(octagon);
    }
 
    private void drawBackground(double height) {
