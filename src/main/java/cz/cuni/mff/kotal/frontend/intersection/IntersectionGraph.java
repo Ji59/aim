@@ -7,6 +7,11 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class IntersectionGraph extends Pane {
    private static final double PADDING = 30, GOLDEN_RATIO = (Math.sqrt(5) - 1) / 2;
    private static final double OCTAGON_RATIO = 1 / Math.E, VERTEX_RATIO = GOLDEN_RATIO / 2;
@@ -142,35 +147,49 @@ public class IntersectionGraph extends Pane {
 
          double a0x = index * edgeLength * 1.5 - edgeLength / 2 + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
             a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                            // bot right
-            a2x = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3x = a2x - 2 * Math.sqrt(3) / 3 * shift;                         // top x
+            a2xTemp = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3xTemp = a2xTemp - 2 * Math.sqrt(3) / 3 * shift,                         // top x
+            a2x = Math.max(a2xTemp, PADDING), a2y = a2x == a2xTemp ? PADDING : a1y - Math.sqrt(3) * (a1x - PADDING),
+            a3x = Math.max(a3xTemp, PADDING), a3y = a3x == a3xTemp ? PADDING : a0y - Math.sqrt(3) * (a0x - PADDING);
 
          double f0x = getHeight() / 2 + edgeLength * (index * 1.5 + 1), f0y = shift * (index / 2. + 1) + PADDING,    // bot right
             f1x = f0x - edgeLength * 1.5, f1y = f0y - shift / 2,                                                                                             // bot left
-            f2x = f1x + Math.sqrt(3) / 3 * (f1y - PADDING), f3x = f2x + 2 * Math.sqrt(3) / 3 * shift;                         // top x
+            f2xTemp = f1x + Math.sqrt(3) / 3 * (f1y - PADDING), f3xTemp = f2xTemp + 2 * Math.sqrt(3) / 3 * shift,                         // top x
+            f2x = Math.min(f2xTemp, getHeight() - PADDING), f2y = f2x == f2xTemp ? PADDING : f1y - Math.sqrt(3) * (getHeight() - f1x - PADDING),
+            f3x = Math.min(f3xTemp, getHeight() - PADDING), f3y = f3x == f3xTemp ? PADDING : f0y - Math.sqrt(3) * (getHeight() - f0x - PADDING);
 
-         Polygon entryA = new Polygon( // top left entry
-            a0x, a0y,               // bot left
-            a1x, a1y,               // bot right
-            a2x, PADDING,  // top right
-            a3x, PADDING   // top left
-         ),
+         List<Double> entryAPoints = new ArrayList<>(List.of(
+            a3x, a3y,                // top left
+            a0x, a0y,                // bot left
+            a1x, a1y,                // bot right
+            a2x, a2y                // top right
+         )),
+            entryDPoints = new ArrayList<>(List.of(
+               getHeight() - a3x, getHeight() - a3y,        // bot right
+               getHeight() - a0x, getHeight() - a0y,        // top right
+               getHeight() - a1x, getHeight() - a1y,        // top left
+               getHeight() - a2x, getHeight() - a2y        // bot left
+            ));
+
+         if (a2x != PADDING && a3x == PADDING) {
+            entryAPoints.add(PADDING);
+            entryAPoints.add(PADDING);
+            entryDPoints.add(getHeight() - PADDING);
+            entryDPoints.add(getHeight() - PADDING);
+         }
+
+         Polygon entryA = new Polygon(entryAPoints.stream().mapToDouble(Double::doubleValue).toArray()), // top left entry
             entryC = new Polygon(   // bot left entry
                getHeight() - f0x, getHeight() - f0y, // top left
                getHeight() - f1x, getHeight() - f1y,                 // top right
-               getHeight() - f2x, getHeight() - PADDING,    // bot right
-               getHeight() - f3x, getHeight() - PADDING     // bot left
+               getHeight() - f2x, getHeight() - f2y,    // bot right
+               getHeight() - f3x, getHeight() - f3y     // bot left
             ),
-            entryD = new Polygon(
-               getHeight() - a0x, getHeight() - a0y,  // top right
-               getHeight() - a1x, getHeight() - a1y,                    // top left
-               getHeight() - a2x, getHeight() - PADDING,       // bot left
-               getHeight() - a3x, getHeight() - PADDING        // bot right
-            ),
+            entryD = new Polygon(entryDPoints.stream().mapToDouble(Double::doubleValue).toArray()),
             entryF = new Polygon( // top right entry
                f0x, f0y,    // bot left
                f1x, f1y,                     // bot right
-               f2x, PADDING,        // top right
-               f3x, PADDING         // top left
+               f2x, f2y,        // top right
+               f3x, f3y         // top left
             );
 
          entryA.setFill(ENTRY_COLOR);
