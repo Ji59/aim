@@ -9,7 +9,6 @@ import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class IntersectionGraph extends Pane {
@@ -123,160 +122,7 @@ public class IntersectionGraph extends Pane {
       drawHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding - PADDING);
    }
 
-   private void drawHexagonalEntriesAndExits(long granularity, long entries, long exits, double shift, double edgeLength, double sidePadding) {
-
-      // TODO udelej to poradne!
-
-      long empty = granularity - entries - exits,
-         padding = empty / 3,
-         index = empty % 3 == 2 ? ++padding : padding;
-
-      while (entries-- > 0) {
-         Rectangle entryB = new Rectangle(sidePadding, shift, ENTRY_COLOR),
-            entryE = new Rectangle(sidePadding, shift, ENTRY_COLOR);
-
-         entryB.setX(PADDING);
-         entryB.setY(getHeight() - (granularity / 2. + index + 1) * shift - PADDING);
-         entryB.setStroke(STROKE_COLOR);
-
-         entryE.setX(getHeight() - sidePadding - PADDING);
-         entryE.setY((granularity / 2. + index) * shift + PADDING);
-         entryE.setStroke(STROKE_COLOR);
-
-         // TODO dopocitat do i pro leve a prave okraje
-
-         double a0x = index * edgeLength * 1.5 - edgeLength / 2 + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
-            a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                            // bot right
-            a2xTemp = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3xTemp = a2xTemp - 2 * Math.sqrt(3) / 3 * shift,                         // top x
-            a2x = Math.max(a2xTemp, PADDING), a2y = a2x == a2xTemp ? PADDING : a1y - Math.sqrt(3) * (a1x - PADDING),
-            a3x = Math.max(a3xTemp, PADDING), a3y = a3x == a3xTemp ? PADDING : a0y - Math.sqrt(3) * (a0x - PADDING);
-
-         double f0x = getHeight() / 2 + edgeLength * (index * 1.5 + 1), f0y = shift * (index / 2. + 1) + PADDING,    // bot right
-            f1x = f0x - edgeLength * 1.5, f1y = f0y - shift / 2,                                                                                             // bot left
-            f2xTemp = f1x + Math.sqrt(3) / 3 * (f1y - PADDING), f3xTemp = f2xTemp + 2 * Math.sqrt(3) / 3 * shift,                         // top x
-            f2x = Math.min(f2xTemp, getHeight() - PADDING), f2y = f2x == f2xTemp ? PADDING : f1y - Math.sqrt(3) * (getHeight() - f1x - PADDING),
-            f3x = Math.min(f3xTemp, getHeight() - PADDING), f3y = f3x == f3xTemp ? PADDING : f0y - Math.sqrt(3) * (getHeight() - f0x - PADDING);
-
-         List<Double> entryAPoints = new ArrayList<>(List.of(
-            a3x, a3y,                // top left
-            a0x, a0y,                // bot left
-            a1x, a1y,                // bot right
-            a2x, a2y                // top right
-         )),
-            entryDPoints = new ArrayList<>(List.of(
-               getHeight() - a3x, getHeight() - a3y,        // bot right
-               getHeight() - a0x, getHeight() - a0y,        // top right
-               getHeight() - a1x, getHeight() - a1y,        // top left
-               getHeight() - a2x, getHeight() - a2y        // bot left
-            ));
-
-         if (a2x != PADDING && a3x == PADDING) {
-            entryAPoints.add(PADDING);
-            entryAPoints.add(PADDING);
-            entryDPoints.add(getHeight() - PADDING);
-            entryDPoints.add(getHeight() - PADDING);
-         }
-
-         Polygon entryA = new Polygon(entryAPoints.stream().mapToDouble(Double::doubleValue).toArray()), // top left entry
-            entryC = new Polygon(   // bot left entry
-               getHeight() - f0x, getHeight() - f0y, // top left
-               getHeight() - f1x, getHeight() - f1y,                 // top right
-               getHeight() - f2x, getHeight() - f2y,    // bot right
-               getHeight() - f3x, getHeight() - f3y     // bot left
-            ),
-            entryD = new Polygon(entryDPoints.stream().mapToDouble(Double::doubleValue).toArray()),
-            entryF = new Polygon( // top right entry
-               f0x, f0y,    // bot left
-               f1x, f1y,                     // bot right
-               f2x, f2y,        // top right
-               f3x, f3y         // top left
-            );
-
-         entryA.setFill(ENTRY_COLOR);
-         entryA.setStroke(STROKE_COLOR);
-
-         entryC.setFill(ENTRY_COLOR);
-         entryC.setStroke(STROKE_COLOR);
-
-         entryD.setFill(ENTRY_COLOR);
-         entryD.setStroke(STROKE_COLOR);
-
-         entryF.setFill(ENTRY_COLOR);
-         entryF.setStroke(STROKE_COLOR);
-
-         getChildren().addAll(entryA, entryB, entryC, entryD, entryE, entryF);
-
-         index++;
-      }
-
-      index += empty % 3 == 2 ? empty - 2 * padding : padding;
-
-      // TODO zbavit se duplicit
-
-      while (exits-- > 0) {
-         Rectangle exitB = new Rectangle(sidePadding, shift, EXIT_COLOR),
-            exitE = new Rectangle(sidePadding, shift, EXIT_COLOR);
-
-         exitB.setX(PADDING);
-         exitB.setY(getHeight() - (granularity / 2. + index + 1) * shift - PADDING);
-         exitB.setStroke(STROKE_COLOR);
-
-         exitE.setX(getHeight() - sidePadding - PADDING);
-         exitE.setY((granularity / 2. + index) * shift + PADDING);
-         exitE.setStroke(STROKE_COLOR);
-
-         double a0x = index * edgeLength * 1.5 - edgeLength / 2 + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
-            a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                            // bot right
-            a2x = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3x = a2x - 2 * Math.sqrt(3) / 3 * shift;                         // top x
-
-         double f0x = getHeight() / 2 + edgeLength * (index * 1.5 + 1), f0y = shift * (index / 2. + 1) + PADDING,    // bot right
-            f1x = f0x - edgeLength * 1.5, f1y = f0y - shift / 2,                                                                                             // bot left
-            f2x = f1x + Math.sqrt(3) / 3 * (f1y - PADDING), f3x = f2x + 2 * Math.sqrt(3) / 3 * shift;                         // top x
-
-         Polygon exitA = new Polygon( // top left entry
-            a0x, a0y,               // bot left
-            a1x, a1y,               // bot right
-            a2x, PADDING,  // top right
-            a3x, PADDING   // top left
-         ),
-            exitC = new Polygon(   // bot left entry
-               getHeight() - f0x, getHeight() - f0y, // top left
-               getHeight() - f1x, getHeight() - f1y,                 // top right
-               getHeight() - f2x, getHeight() - PADDING,    // bot right
-               getHeight() - f3x, getHeight() - PADDING     // bot left
-            ),
-            exitD = new Polygon(
-               getHeight() - a0x, getHeight() - a0y,  // top right
-               getHeight() - a1x, getHeight() - a1y,                    // top left
-               getHeight() - a2x, getHeight() - PADDING,       // bot left
-               getHeight() - a3x, getHeight() - PADDING        // bot right
-            ),
-            exitF = new Polygon( // top right entry
-               f0x, f0y,    // bot left
-               f1x, f1y,                     // bot right
-               f2x, PADDING,        // top right
-               f3x, PADDING         // top left
-            );
-
-         exitA.setFill(EXIT_COLOR);
-         exitA.setStroke(STROKE_COLOR);
-
-         exitC.setFill(EXIT_COLOR);
-         exitC.setStroke(STROKE_COLOR);
-
-         exitD.setFill(EXIT_COLOR);
-         exitD.setStroke(STROKE_COLOR);
-
-         exitF.setFill(EXIT_COLOR);
-         exitF.setStroke(STROKE_COLOR);
-
-         getChildren().addAll(exitA, exitB, exitC, exitD, exitE, exitF);
-
-         index++;
-      }
-   }
-
-   private void drawHexagon(double shift, double edgeLength, double x, double y) {
+      private void drawHexagon(double shift, double edgeLength, double x, double y) {
       Polygon hexagon = new Polygon(
          x, y,                                  // top left
          x + edgeLength, y,                                      // top right
@@ -290,6 +136,103 @@ public class IntersectionGraph extends Pane {
       hexagon.setStroke(STROKE_COLOR);
 
       getChildren().add(hexagon);
+   }
+
+   private void drawHexagonalEntriesAndExits(long granularity, long entries, long exits, double shift, double edgeLength, double sidePadding) {
+      long empty = granularity - entries - exits,
+         padding = empty / 3,
+         index = empty % 3 == 2 ? ++padding : padding;
+
+      while (entries-- > 0) {
+         drawHexagonalEntry(granularity, shift, edgeLength, sidePadding, true, index++);
+      }
+
+      index += empty % 3 == 2 ? empty - 2 * padding : padding;
+
+
+      while (exits-- > 0) {
+         drawHexagonalEntry(granularity, shift, edgeLength, sidePadding, false, index++);
+      }
+   }
+
+      private void drawHexagonalEntry(long granularity, double shift, double edgeLength, double sidePadding, boolean entry, long index) {
+      Color color = entry ? ENTRY_COLOR : EXIT_COLOR;
+      Rectangle entryB = new Rectangle(sidePadding, shift, color),
+         entryE = new Rectangle(sidePadding, shift, color);
+
+      entryB.setX(PADDING);
+      entryB.setY(getHeight() - (granularity / 2. + index + 1) * shift - PADDING);
+      entryB.setStroke(STROKE_COLOR);
+
+      entryE.setX(getHeight() - sidePadding - PADDING);
+      entryE.setY((granularity / 2. + index) * shift + PADDING);
+      entryE.setStroke(STROKE_COLOR);
+
+      double a0x = index * edgeLength * 1.5 - edgeLength / 2 + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
+         a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                                                                                       // bot right
+         a2xTemp = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3xTemp = a2xTemp - 2 * Math.sqrt(3) / 3 * shift,                         // top x
+         a2x = Math.max(a2xTemp, PADDING), a2y = a2x == a2xTemp ? PADDING : a1y - Math.sqrt(3) * (a1x - PADDING),
+         a3x = Math.max(a3xTemp, PADDING), a3y = a3x == a3xTemp ? PADDING : a0y - Math.sqrt(3) * (a0x - PADDING);
+
+      double f0x = getHeight() / 2 + edgeLength * (index * 1.5 + 1), f0y = shift * (index / 2. + 1) + PADDING,                // bot right
+         f1x = f0x - edgeLength * 1.5, f1y = f0y - shift / 2,                                                                                                        // bot left
+         f2xTemp = f1x + Math.sqrt(3) / 3 * (f1y - PADDING), f3xTemp = f2xTemp + 2 * Math.sqrt(3) / 3 * shift,        // top x
+         f2x = Math.min(f2xTemp, getHeight() - PADDING), f2y = f2x == f2xTemp ? PADDING : f1y - Math.sqrt(3) * (getHeight() - f1x - PADDING),
+         f3x = Math.min(f3xTemp, getHeight() - PADDING), f3y = f3x == f3xTemp ? PADDING : f0y - Math.sqrt(3) * (getHeight() - f0x - PADDING);
+
+      List<Double> entryAPoints = new ArrayList<>(List.of(
+         a3x, a3y,                // top left
+         a0x, a0y,                // bot left
+         a1x, a1y,                // bot right
+         a2x, a2y                // top right
+      )), entryCPoints = new ArrayList<>(List.of(
+         getHeight() - f3x, getHeight() - f3y,     // bot left
+         getHeight() - f0x, getHeight() - f0y,     // top left
+         getHeight() - f1x, getHeight() - f1y,      // top right
+         getHeight() - f2x, getHeight() - f2y      // bot right
+      )),
+         entryDPoints = new ArrayList<>(List.of(
+            getHeight() - a3x, getHeight() - a3y,        // bot right
+            getHeight() - a0x, getHeight() - a0y,        // top right
+            getHeight() - a1x, getHeight() - a1y,        // top left
+            getHeight() - a2x, getHeight() - a2y        // bot left
+         )), entryFPoints = new ArrayList<>(List.of(
+         f3x, f3y,         // top right
+         f0x, f0y,         // bot right
+         f1x, f1y,          // bot left
+         f2x, f2y          // top left
+      ));
+
+      // if polygons over vertex
+
+      if (a2x != PADDING && a3x == PADDING) {
+         entryAPoints.add(PADDING);
+         entryAPoints.add(PADDING);
+         entryDPoints.add(getHeight() - PADDING);
+         entryDPoints.add(getHeight() - PADDING);
+      }
+      if (f2x != getHeight() - PADDING && f3x == getHeight() - PADDING) {
+         entryCPoints.add(PADDING);
+         entryCPoints.add(getHeight() - PADDING);
+         entryFPoints.add(getHeight() - PADDING);
+         entryFPoints.add(PADDING);
+      }
+
+      Polygon entryA = new Polygon(getHexagonalEntryPoints(entryAPoints)),    // top left entry
+         entryC = new Polygon(getHexagonalEntryPoints(entryCPoints)),                // bot left entry
+         entryD = new Polygon(getHexagonalEntryPoints(entryDPoints)),               // bot right entry
+         entryF = new Polygon(getHexagonalEntryPoints(entryFPoints));                // top right entry
+
+      for (Polygon polygon : Arrays.asList(entryA, entryC, entryD, entryF)) {
+         polygon.setFill(color);
+         polygon.setStroke(STROKE_COLOR);
+      }
+
+      getChildren().addAll(entryA, entryB, entryC, entryD, entryE, entryF);
+   }
+
+         private double[] getHexagonalEntryPoints(List<Double> entryAPoints) {
+      return entryAPoints.stream().mapToDouble(Double::doubleValue).toArray();
    }
 
    public void drawOctagonalModel(long granularity, long entries, long exits) {
