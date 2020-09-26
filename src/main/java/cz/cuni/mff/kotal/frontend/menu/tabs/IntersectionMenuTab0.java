@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
-import cz.cuni.mff.kotal.frontend.MyApplication;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionGraph;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
@@ -71,7 +72,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          entries.setMax(granularity.getValue() - granularityDifference - 1);
          exits.setMax(granularity.getValue() - granularityDifference - 1);
 
-         drawGraph();
+         IntersectionScene.getIntersectionGraph().setModel(selected);
+         IntersectionScene.getIntersectionGraph().redraw();
 
          AgentsMenuTab1.createDirectionsMenuAndAddActions(selected);
 
@@ -87,31 +89,42 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          setSlidersDisable(true);
 
          long newVal = newValue.longValue();
-         entries.setMax(newVal - granularityDifference - 1);
-         exits.setMax(newVal - granularityDifference - 1);
-         if (entries.getValue() + exits.getValue() + granularityDifference > newVal) {
-            exits.setValue(newVal - entries.getValue() - granularityDifference);
+         if (newVal != IntersectionScene.getIntersectionGraph().getGranularity()) {
+            entries.setMax(newVal - granularityDifference - 1);
+            exits.setMax(newVal - granularityDifference - 1);
+            if (entries.getValue() + exits.getValue() + granularityDifference > newVal) {
+               exits.setValue(newVal - entries.getValue() - granularityDifference);
+            }
+
+            IntersectionScene.getIntersectionGraph().setGranularity(newVal);
+            IntersectionScene.getIntersectionGraph().redraw();
+
+            AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1);
+            AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1);
+
          }
-
-         drawGraph();
-
-         AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1);
-         AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1);
-
          setSlidersDisable(false);
       });
    }
 
    private void addEntriesActions() {
       entries.addAction((observable, oldValue, newValue) -> {
-         adjustAgentsSize(newValue, exits);
-         AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * newValue.longValue());
-         AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * newValue.longValue());
+         if (newValue.longValue() != IntersectionScene.getIntersectionGraph().getEntries()) {
+            IntersectionScene.getIntersectionGraph().setEntries(newValue.longValue());
+            adjustAgentsSize(newValue, exits);
+            AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * newValue.longValue());
+            AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * newValue.longValue());
+         }
       });
    }
 
    private void addExitsActions() {
-      exits.addAction((observable, oldValue, newValue) -> adjustAgentsSize(newValue, entries));
+      exits.addAction((observable, oldValue, newValue) -> {
+         if (newValue.longValue() != IntersectionScene.getIntersectionGraph().getExits()) {
+            IntersectionScene.getIntersectionGraph().setExits(newValue.longValue());
+            adjustAgentsSize(newValue, entries);
+         }
+      });
    }
 
    private void setSlidersDisable(boolean b) {
@@ -127,22 +140,12 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          slider.setValue(granularity.getValue() - newValue.longValue() - granularityDifference);
       }
 
-      drawGraph();
+      IntersectionScene.getIntersectionGraph().redraw();
 
       AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
       AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
 
       setSlidersDisable(false);
-   }
-
-   private static void drawGraph() {
-      if (model.getValue().equals(Parameters.Models.SQUARE.getText())) {
-         MyApplication.getIntersectionGraph().drawSquareModel(granularity.getValue(), entries.getValue(), exits.getValue());
-      } else if (model.getValue().equals(Parameters.Models.OCTAGONAL.getText())) {
-         MyApplication.getIntersectionGraph().drawOctagonalModel(granularity.getValue(), entries.getValue(), exits.getValue());
-      } else if (model.getValue().equals(Parameters.Models.HEXAGONAL.getText())) {
-         MyApplication.getIntersectionGraph().drawHexagonalModel(granularity.getValue(), entries.getValue(), exits.getValue());
-      }
    }
 
    public static MyComboBox getModel() {
