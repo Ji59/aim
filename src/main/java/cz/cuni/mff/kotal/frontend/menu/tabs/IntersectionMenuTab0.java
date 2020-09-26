@@ -1,6 +1,5 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionGraph;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
@@ -72,7 +71,6 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          entries.setMax(granularity.getValue() - granularityDifference - 1);
          exits.setMax(granularity.getValue() - granularityDifference - 1);
 
-         IntersectionScene.getIntersectionGraph().setModel(selected);
          IntersectionScene.getIntersectionGraph().redraw();
 
          AgentsMenuTab1.createDirectionsMenuAndAddActions(selected);
@@ -89,42 +87,30 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
          setSlidersDisable(true);
 
          long newVal = newValue.longValue();
-         if (newVal != IntersectionScene.getIntersectionGraph().getGranularity()) {
-            entries.setMax(newVal - granularityDifference - 1);
-            exits.setMax(newVal - granularityDifference - 1);
-            if (entries.getValue() + exits.getValue() + granularityDifference > newVal) {
-               exits.setValue(newVal - entries.getValue() - granularityDifference);
-            }
-
-            IntersectionScene.getIntersectionGraph().setGranularity(newVal);
-            IntersectionScene.getIntersectionGraph().redraw();
-
-            AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1);
-            AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1);
-
+         entries.setMax(newVal - granularityDifference - 1);
+         exits.setMax(newVal - granularityDifference - 1);
+         if (entries.getValue() + exits.getValue() + granularityDifference > newVal) {
+            exits.setValue(newVal - entries.getValue() - granularityDifference);
          }
+
+         IntersectionScene.getIntersectionGraph().redraw();
+
+         AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1);
+         AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1);
          setSlidersDisable(false);
       });
    }
 
    private void addEntriesActions() {
       entries.addAction((observable, oldValue, newValue) -> {
-         if (newValue.longValue() != IntersectionScene.getIntersectionGraph().getEntries()) {
-            IntersectionScene.getIntersectionGraph().setEntries(newValue.longValue());
-            adjustAgentsSize(newValue, exits);
-            AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * newValue.longValue());
-            AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * newValue.longValue());
-         }
+         adjustAgentsSize(newValue, exits);
+         AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * newValue.longValue());
+         AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * newValue.longValue());
       });
    }
 
    private void addExitsActions() {
-      exits.addAction((observable, oldValue, newValue) -> {
-         if (newValue.longValue() != IntersectionScene.getIntersectionGraph().getExits()) {
-            IntersectionScene.getIntersectionGraph().setExits(newValue.longValue());
-            adjustAgentsSize(newValue, entries);
-         }
-      });
+      exits.addAction((observable, oldValue, newValue) -> adjustAgentsSize(newValue, entries));
    }
 
    private void setSlidersDisable(boolean b) {
@@ -148,8 +134,13 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
       setSlidersDisable(false);
    }
 
-   public static MyComboBox getModel() {
-      return model;
+   public static Parameters.Models getModel() {
+      for (Parameters.Models model : Parameters.Models.values()) {
+         if (model.getText().equals(IntersectionMenuTab0.model.getValue())) {
+            return model;
+         }
+      }
+      return Parameters.Models.SQUARE;
    }
 
    public static MyComboBox getRestriction() {

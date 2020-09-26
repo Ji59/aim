@@ -2,7 +2,6 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 import cz.cuni.mff.kotal.frontend.MyApplication;
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
-import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -16,11 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class IntersectionGraph extends Pane {
-   private Models model = Models.SQUARE;
-   private long granularity = IntersectionMenuTab0.getGranularity().getValue(), entries = IntersectionMenuTab0.getEntries().getValue(), exits = IntersectionMenuTab0.getExits().getValue();
-   
    private static double preferredHeight = Screen.getPrimary().getBounds().getHeight() * MyApplication.getHEIGHT_RATIO() - IntersectionScene.PADDING * 2;
-   private static final double PADDING = /* IntersectionScene.PADDING*/ 0, GOLDEN_RATIO = (Math.sqrt(5) - 1) / 2;
+   private static final double GOLDEN_RATIO = (Math.sqrt(5) - 1) / 2;
    private static final double OCTAGON_RATIO = 1 / Math.E, VERTEX_RATIO = GOLDEN_RATIO / 2;
    private static final Color ROAD_COLOR = Color.LIGHTGREY,
       STROKE_COLOR = Color.BLACK,
@@ -32,14 +28,14 @@ public class IntersectionGraph extends Pane {
       setPrefWidth(height);
       setPrefHeight(height);
 
-      drawBackground(height - 2 * PADDING);
+      drawBackground(height);
    }
 
    private void drawSquareModel(long granularity, long entries, long exits) {
       getChildren().clear();
 
       // TODO udelat velikost poradne
-      double height = preferredHeight - 2 * PADDING, shift = height / (granularity + 2);
+      double height = preferredHeight, shift = height / (granularity + 2);
 
       // TODO add real / abstract model button
 
@@ -47,8 +43,8 @@ public class IntersectionGraph extends Pane {
 
       for (int i = 1; i <= granularity; i++) {
          for (int j = 1; j <= granularity; j++) {
-//            drawSquareRoad(shift, i * shift + PADDING, j * shift + PADDING);
-            drawAbstractSquareRoad(shift, (i + 0.5) * shift + PADDING, (j + 0.5) * shift + PADDING, i < granularity, j < granularity);
+//            drawSquareRoad(shift, i * shift , j * shift );
+            drawAbstractSquareRoad(shift, (i + 0.5) * shift, (j + 0.5) * shift, i < granularity, j < granularity);
          }
       }
 
@@ -106,31 +102,31 @@ public class IntersectionGraph extends Pane {
       getChildren().clear();
 
       // TODO udelat velikost poradne
-      double height = preferredHeight - 2 * PADDING, shift = height / (2 * granularity + 1);
+      double height = preferredHeight, shift = height / (2 * granularity + 1);
 
 
       double edgeLength = Math.sqrt(3) * shift / 3;
-      double sidePadding = (height - edgeLength * (3 * granularity - 2)) / 2 + PADDING;
+      double sidePadding = (height - edgeLength * (3 * granularity - 2)) / 2;
       for (int i = 0; i < granularity; i++) {
          double x = sidePadding,
-            y = (granularity / 2. + i + 0.5) * shift + PADDING;
+            y = (granularity / 2. + i + 0.5) * shift;
          for (int j = 0; j < i + granularity; j++, x += edgeLength * 1.5, y -= shift / 2) {
-//            drawHexagon(shift, edgeLength, x, y);
-
-            drawAbstractHexagon(shift, edgeLength, x, y, j < i + granularity - 1, i < granularity - 1 || j < i + granularity - 1, j > 1 || i < granularity - 1);
+            drawHexagon(shift, edgeLength, x, y);
+//            drawAbstractHexagon(shift, edgeLength, x, y, j < i + granularity - 1, i < granularity - 1 || j < i + granularity - 1, j > 1 || i < granularity - 1);
          }
       }
 
       for (int i = 1; i < granularity; i++) {
          double x = sidePadding + 1.5 * i * edgeLength,
-            y = (granularity * 3 + i - 1) * shift / 2 + PADDING;
+            y = (granularity * 3 + i - 1) * shift / 2;
          for (int j = 0; j < granularity * 2 - i - 1; j++, x += edgeLength * 1.5, y -= shift / 2) {
-//            drawHexagon(shift, edgeLength, x, y);
-            drawAbstractHexagon(shift, edgeLength, x, y, j < granularity * 2 - i - 2, j < granularity * 2 - i - 2 && i < granularity - 1, i < granularity - 1 && j > 0);
+            drawHexagon(shift, edgeLength, x, y);
+//            drawAbstractHexagon(shift, edgeLength, x, y, j < granularity * 2 - i - 2, j < granularity * 2 - i - 2 && i < granularity - 1, i < granularity - 1 && j > 0);
          }
       }
 
-      drawAbstractHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding - PADDING);
+//      drawAbstractHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding );
+      drawHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding);
 
       drawBackground(height);
    }
@@ -211,25 +207,25 @@ public class IntersectionGraph extends Pane {
       Rectangle entryB = new Rectangle(sidePadding, shift, color),
          entryE = new Rectangle(sidePadding, shift, color);
 
-      entryB.setX(PADDING);
-      entryB.setY(preferredHeight - (granularity / 2. + index + 1) * shift - PADDING);
+      entryB.setX(0);
+      entryB.setY(preferredHeight - (granularity / 2. + index + 1.5) * shift);
       entryB.setStroke(STROKE_COLOR);
 
-      entryE.setX(preferredHeight - sidePadding - PADDING);
-      entryE.setY((granularity / 2. + index) * shift + PADDING);
+      entryE.setX(preferredHeight - sidePadding);
+      entryE.setY((granularity / 2. + index + 0.5) * shift);
       entryE.setStroke(STROKE_COLOR);
 
-      double a0x = (1.5 * index - 0.5) * edgeLength + sidePadding + PADDING, a0y = (granularity - index + 1) * shift / 2 + PADDING,     // bot left
+      double a0x = (1.5 * index - 0.5) * edgeLength + sidePadding, a0y = (granularity - index + 2) * shift / 2,     // bot left
          a1x = a0x + edgeLength * 1.5, a1y = a0y - shift / 2,                                                                                                                                                       // bot right
-         a2xTemp = a1x - Math.sqrt(3) / 3 * (a1y - PADDING), a3xTemp = a2xTemp - 2 * Math.sqrt(3) / 3 * shift,                         // top x
-         a2x = Math.max(a2xTemp, PADDING), a2y = a2x == a2xTemp ? PADDING : a1y - Math.sqrt(3) * (a1x - PADDING),
-         a3x = Math.max(a3xTemp, PADDING), a3y = a3x == a3xTemp ? PADDING : a0y - Math.sqrt(3) * (a0x - PADDING);
+         a2xTemp = a1x - Math.sqrt(3) / 3 * (a1y), a3xTemp = a2xTemp - 2 * Math.sqrt(3) / 3 * shift,                         // top x
+         a2x = Math.max(a2xTemp, 0), a2y = a2x == a2xTemp ? 0 : a1y - Math.sqrt(3) * (a1x),
+         a3x = Math.max(a3xTemp, 0), a3y = a3x == a3xTemp ? 0 : a0y - Math.sqrt(3) * (a0x);
 
-      double f0x = preferredHeight / 2 + edgeLength * (index * 1.5 + 1), f0y = shift * (index / 2. + 1) + PADDING,                // bot right
+      double f0x = preferredHeight / 2 + edgeLength * (index * 1.5 + 1), f0y = shift * (index / 2. + 1.5),                // bot right
          f1x = f0x - edgeLength * 1.5, f1y = f0y - shift / 2,                                                                                                        // bot left
-         f2xTemp = f1x + Math.sqrt(3) / 3 * (f1y - PADDING), f3xTemp = f2xTemp + 2 * Math.sqrt(3) / 3 * shift,        // top x
-         f2x = Math.min(f2xTemp, preferredHeight - PADDING), f2y = f2x == f2xTemp ? PADDING : f1y - Math.sqrt(3) * (preferredHeight - f1x - PADDING),
-         f3x = Math.min(f3xTemp, preferredHeight - PADDING), f3y = f3x == f3xTemp ? PADDING : f0y - Math.sqrt(3) * (preferredHeight - f0x - PADDING);
+         f2xTemp = f1x + Math.sqrt(3) / 3 * (f1y), f3xTemp = f2xTemp + 2 * Math.sqrt(3) / 3 * shift,        // top x
+         f2x = Math.min(f2xTemp, preferredHeight), f2y = f2x == f2xTemp ? 0 : f1y - Math.sqrt(3) * (preferredHeight - f1x),
+         f3x = Math.min(f3xTemp, preferredHeight), f3y = f3x == f3xTemp ? 0 : f0y - Math.sqrt(3) * (preferredHeight - f0x);
 
       List<Double> entryAPoints = new ArrayList<>(List.of(
          a3x, a3y,                // top left
@@ -256,17 +252,17 @@ public class IntersectionGraph extends Pane {
 
       // if polygons over vertex
 
-      if (a2x != PADDING && a3x == PADDING) {
-         entryAPoints.add(PADDING);
-         entryAPoints.add(PADDING);
-         entryDPoints.add(preferredHeight - PADDING);
-         entryDPoints.add(preferredHeight - PADDING);
+      if (a2x != 0 && a3x == 0) {
+         entryAPoints.add(0.);
+         entryAPoints.add(0.);
+         entryDPoints.add(preferredHeight);
+         entryDPoints.add(preferredHeight);
       }
-      if (f2x != preferredHeight - PADDING && f3x == preferredHeight - PADDING) {
-         entryCPoints.add(PADDING);
-         entryCPoints.add(preferredHeight - PADDING);
-         entryFPoints.add(preferredHeight - PADDING);
-         entryFPoints.add(PADDING);
+      if (f2x != preferredHeight && f3x == preferredHeight) {
+         entryCPoints.add(0.);
+         entryCPoints.add(preferredHeight);
+         entryFPoints.add(preferredHeight);
+         entryFPoints.add(0.);
       }
 
       Polygon entryA = new Polygon(getHexagonalEntryPoints(entryAPoints)),    // top left entry
@@ -288,25 +284,25 @@ public class IntersectionGraph extends Pane {
       double xShift = shift / 2, yShift = Math.sqrt(3) / 2 * shift,
          radius = 2 * edgeLength * VERTEX_RATIO;
 
-      double a0x = (1.5 * index + 0.5) * edgeLength + sidePadding + PADDING, a0y = (granularity - index + 2) * shift / 2 + PADDING,     // top left road center
-         f0x = preferredHeight / 2 + edgeLength * index * 1.5, f0y = shift * (index / 2. + 1.5) + PADDING,                                     // top right road center
+      double a0x = (1.5 * index + 0.5) * edgeLength + sidePadding, a0y = (granularity - index + 2) * shift / 2,     // top left road center
+         f0x = preferredHeight / 2 + edgeLength * index * 1.5, f0y = shift * (index / 2. + 1.5),                                     // top right road center
          c0x = preferredHeight - f0x, c0y = preferredHeight - f0y,
          d0x = preferredHeight - a0x, d0y = preferredHeight - a0y,
-         b0x = sidePadding + PADDING + edgeLength / 2, e0y = (granularity / 2. + index + 1) * shift + PADDING,
+         b0x = sidePadding + edgeLength / 2, e0y = (granularity / 2. + index + 1) * shift,
          e0x = preferredHeight - b0x, b0y = preferredHeight - e0y;
 
       Line entryALine = new Line(a0x - xShift, a0y - yShift, a0x, a0y),
          entryBLine = new Line(b0x - shift, b0y, b0x, b0y),
-         entryCLine = new Line(preferredHeight - f0x - xShift, preferredHeight - f0y + yShift, preferredHeight - f0x, preferredHeight - f0y),
-         entryDLine = new Line(preferredHeight - a0x + xShift, preferredHeight - a0y + yShift, preferredHeight - a0x, preferredHeight - a0y),
+         entryCLine = new Line(c0x - xShift, c0y + yShift, c0x, c0y),
+         entryDLine = new Line(d0x + xShift, d0y + yShift, d0x, d0y),
          entryELine = new Line(e0x + shift, e0y, e0x, e0y),
          entryFLine = new Line(f0x + xShift, f0y - yShift, f0x, f0y);
 
 
       Circle entryA = new Circle(a0x - xShift, a0y - yShift, radius),                                       // top left entry
          entryB = new Circle(b0x - shift, b0y, radius),                                                                               // mid left entry
-         entryC = new Circle(preferredHeight - f0x - xShift, preferredHeight - f0y + yShift, radius),   // bot left entry
-         entryD = new Circle(preferredHeight - a0x + xShift, preferredHeight - a0y + yShift, radius),   // bot right entry
+         entryC = new Circle(c0x - xShift, c0y + yShift, radius),   // bot left entry
+         entryD = new Circle(d0x + xShift, d0y + yShift, radius),   // bot right entry
          entryE = new Circle(e0x + shift, e0y, radius),                                                                               // mid right entry
          entryF = new Circle(f0x + xShift, f0y - yShift, radius);                                               // top right entry
 
@@ -334,7 +330,7 @@ public class IntersectionGraph extends Pane {
       getChildren().clear();
 
       // TODO udelat velikost poradne
-      double height = preferredHeight - 2 * PADDING, shift = height / (granularity + 2);
+      double height = preferredHeight, shift = height / (granularity + 2);
 
       drawBackground(height);
 
@@ -346,13 +342,13 @@ public class IntersectionGraph extends Pane {
    }
 
    private void drawOctagonalLine(long granularity, long row, double shift, boolean withSquares, boolean withCorners) {
-      double topY = row * shift + PADDING;
+      double topY = row * shift;
 
       // TODO add real / abstract model button
 
       for (int j = withCorners ? 1 : 2; j <= (withCorners ? granularity : granularity - 1); j++) {
-//         drawOctagonRoad(shift, topY, (row + OCTAGON_RATIO) * shift + PADDING, j);
-         drawAbstractOctagonRoad(shift, (j + 0.5) * shift + PADDING, topY + shift / 2, granularity, row, j);
+//         drawOctagonRoad(shift, topY, (row + OCTAGON_RATIO) * shift , j);
+         drawAbstractOctagonRoad(shift, (j + 0.5) * shift, topY + shift / 2, granularity, row, j);
       }
 
       if (!withSquares) {
@@ -360,17 +356,17 @@ public class IntersectionGraph extends Pane {
       }
 
       for (int j = 2; j <= granularity; j++) {
-//         drawOctagonalSquareRoad(shift, topY, (row + OCTAGON_RATIO) * shift + PADDING, j);
-         drawAbstractOctagonalSquareRoad(shift, j * shift + PADDING, topY + shift, row < granularity - 1 || j > 2, row < granularity - 1 || j < granularity);
+//         drawOctagonalSquareRoad(shift, topY, (row + OCTAGON_RATIO) * shift , j);
+         drawAbstractOctagonalSquareRoad(shift, j * shift, topY + shift, row < granularity - 1 || j > 2, row < granularity - 1 || j < granularity);
       }
    }
 
    private void drawOctagonalSquareRoad(double shift, double topY, double midTopY, int j) {
       Polygon square = new Polygon(
-         j * shift + PADDING, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,      // top
-         (j - OCTAGON_RATIO) * shift + PADDING, topY + shift,                                      // right
-         j * shift + PADDING, midTopY + shift,                                                                     // bottom
-         (j + OCTAGON_RATIO) * shift + PADDING, topY + shift                                       // left
+         j * shift, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,      // top
+         (j - OCTAGON_RATIO) * shift, topY + shift,                                      // right
+         j * shift, midTopY + shift,                                                                     // bottom
+         (j + OCTAGON_RATIO) * shift, topY + shift                                       // left
       );
 
       square.setFill(ROAD_COLOR);
@@ -422,7 +418,7 @@ public class IntersectionGraph extends Pane {
 
    private void drawRectangularEntries(long granularity, double shift, long index, boolean entry, boolean square) {
       double side2 = shift * (1 + (square ? 0 : OCTAGON_RATIO)),
-         endPadding = (granularity + 1 - (square ? 0 : OCTAGON_RATIO)) * shift + PADDING;
+         endPadding = (granularity + 1 - (square ? 0 : OCTAGON_RATIO)) * shift;
 
       Color color = entry ? ENTRY_COLOR : EXIT_COLOR;
 
@@ -431,31 +427,30 @@ public class IntersectionGraph extends Pane {
          entryW = new Rectangle(side2, shift, color),
          entryE = new Rectangle(side2, shift, color);
 
-      entryN.setX(index * shift + PADDING);
-      entryN.setY(PADDING);
+      entryN.setX(index * shift);
+      entryN.setY(0);
       entryN.setStroke(STROKE_COLOR);
 
-      entryS.setX((granularity - index + 1) * shift + PADDING);
+      entryS.setX((granularity - index + 1) * shift);
       entryS.setY(endPadding);
       entryS.setStroke(STROKE_COLOR);
 
-      entryW.setX(PADDING);
-      entryW.setY((granularity - index + 1) * shift + PADDING);
+      entryW.setX(0);
+      entryW.setY((granularity - index + 1) * shift);
       entryW.setStroke(STROKE_COLOR);
 
       entryE.setX(endPadding);
-      entryE.setY(index * shift + PADDING);
+      entryE.setY(index * shift);
       entryE.setStroke(STROKE_COLOR);
 
       getChildren().addAll(entryN, entryS, entryW, entryE);
    }
 
    private void drawAbstractRectangularEntries(long granularity, double shift, long index, boolean entry) {
-      double length = shift * (1 + OCTAGON_RATIO),
-         centerNX = (index + 0.5) * shift + PADDING,
-         centerNY = shift * 0.5 + PADDING,
-         centerSX = (granularity - index + 1.5) * shift + PADDING,
-         centerSY = (granularity + 1 + 0.5) * shift + PADDING;
+      double centerNX = (index + 0.5) * shift,
+         centerNY = shift * 0.5,
+         centerSX = (granularity - index + 1.5) * shift,
+         centerSY = (granularity + 1 + 0.5) * shift;
 
       Line entryNLine = new Line(centerNX, centerNY, centerNX, centerNY + shift),
          entrySLine = new Line(centerSX, centerSY - shift, centerSX, centerSY),
@@ -486,14 +481,14 @@ public class IntersectionGraph extends Pane {
 
    private void drawOctagonRoad(double shift, double topY, double midTopY, int j) {
       Polygon octagon = new Polygon(
-         (j + OCTAGON_RATIO) * shift + PADDING, topY,                        // top left
-         (j + 1 - OCTAGON_RATIO) * shift + PADDING, topY,                                   // top right
-         (j + 1) * shift + PADDING, midTopY,                                                               // mid-top right
-         (j + 1) * shift + PADDING, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,    // mid-bot right
-         (j + 1 - OCTAGON_RATIO) * shift + PADDING, topY + shift,                       // bot right
-         (j + OCTAGON_RATIO) * shift + PADDING, topY + shift,                            // bot left
-         j * shift + PADDING, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,           // mid-bot left
-         j * shift + PADDING, midTopY                                                                       // mid-top left
+         (j + OCTAGON_RATIO) * shift, topY,                        // top left
+         (j + 1 - OCTAGON_RATIO) * shift, topY,                                   // top right
+         (j + 1) * shift, midTopY,                                                               // mid-top right
+         (j + 1) * shift, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,    // mid-bot right
+         (j + 1 - OCTAGON_RATIO) * shift, topY + shift,                       // bot right
+         (j + OCTAGON_RATIO) * shift, topY + shift,                            // bot left
+         j * shift, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,           // mid-bot left
+         j * shift, midTopY                                                                       // mid-top left
       );
 
       octagon.setFill(ROAD_COLOR);
@@ -522,7 +517,7 @@ public class IntersectionGraph extends Pane {
    }
 
    private void drawBackground(double height) {
-      Rectangle backgroundSquare = new Rectangle(PADDING, PADDING, height, height);
+      Rectangle backgroundSquare = new Rectangle(0, 0, height, height);
       backgroundSquare.setFill(Color.LAWNGREEN);
 
       getChildren().add(backgroundSquare);
@@ -530,7 +525,9 @@ public class IntersectionGraph extends Pane {
    }
 
    public void redraw() {
-      switch (model) {
+      long granularity = IntersectionMenuTab0.getGranularity().getValue(), entries = IntersectionMenuTab0.getEntries().getValue(), exits = IntersectionMenuTab0.getExits().getValue();
+
+      switch (IntersectionMenuTab0.getModel()) {
          case SQUARE:
             drawSquareModel(granularity, entries, exits);
             break;
@@ -543,42 +540,6 @@ public class IntersectionGraph extends Pane {
          case CUSTOM:
             break;
       }
-   }
-
-   public Models getModel() {
-      return model;
-   }
-
-   public IntersectionGraph setModel(Models model) {
-      this.model = model;
-      return this;
-   }
-
-   public long getGranularity() {
-      return granularity;
-   }
-
-   public IntersectionGraph setGranularity(long granularity) {
-      this.granularity = granularity;
-      return this;
-   }
-
-   public long getEntries() {
-      return entries;
-   }
-
-   public IntersectionGraph setEntries(long entries) {
-      this.entries = entries;
-      return this;
-   }
-
-   public long getExits() {
-      return exits;
-   }
-
-   public IntersectionGraph setExits(long exits) {
-      this.exits = exits;
-      return this;
    }
 
    public static double getPreferredHeight() {
