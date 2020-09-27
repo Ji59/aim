@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -11,6 +12,7 @@ import javafx.scene.layout.TilePane;
 
 public class SimulationMenuTab3 extends MyTabTemplate {
 
+   // TODO extract constants
    private static final Slider speed = new Slider(0, 1, 0),
       timeline = new Slider(0, 1, 0);
    private static final Label stepsLabel = new Label("#n"),
@@ -18,6 +20,9 @@ public class SimulationMenuTab3 extends MyTabTemplate {
       rejectionsLabel = new Label("#n"),
       collisionsLabel = new Label("#n"),
       remainingLabel = new Label();
+   private static final Button PLAY_BUTTON = new Button("Play"),
+      RESTART_BUTTON = new Button("Restart"),
+      SAVE_AGENTS_BUTTON = new Button("Save agents");
 
    public SimulationMenuTab3() {
       super(Tabs.T3.getText());
@@ -77,11 +82,23 @@ public class SimulationMenuTab3 extends MyTabTemplate {
       return remainingLabel;
    }
 
+   public static Button getPlayButton() {
+      return PLAY_BUTTON;
+   }
+
+   public static Button getRestartButton() {
+      return RESTART_BUTTON;
+   }
+
+   public static Button getSaveAgentsButton() {
+      return SAVE_AGENTS_BUTTON;
+   }
+
    private enum Parameters {
       SPEED("Speed:", speed),
       TIMELINE("Timeline:", timeline),
       // TODO remove constants
-      BUTTONS(null, new TilePane(Orientation.HORIZONTAL, 20, 0, new Button("Play"), new Button("Restart"), new Button("Save agents"))),
+      BUTTONS(null, new TilePane(Orientation.HORIZONTAL, 20, 0, PLAY_BUTTON, RESTART_BUTTON, SAVE_AGENTS_BUTTON)),
       STATISTICS("Statistics:", new GridPane()),
       ;
 

@@ -28,7 +28,8 @@ public class MyApplication extends Application {
       primaryStage.setScene(scene);
       primaryStage.setX(width - height - 300);
       primaryStage.setY(0);
-      primaryStage.setMinWidth(220 + IntersectionScene.PADDING * 4.5);
+      primaryStage.setMinWidth(220 + IntersectionScene.PADDING * 2.5);
+      primaryStage.setMinHeight(IntersectionScene.PADDING * 2 + 37);
       primaryStage.show();
 
       IntersectionScene.getIntersectionGraph().redraw();

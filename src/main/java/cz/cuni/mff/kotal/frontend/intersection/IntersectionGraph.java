@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class IntersectionGraph extends Pane {
-   private static double preferredHeight = Screen.getPrimary().getBounds().getHeight() * MyApplication.getHEIGHT_RATIO() - IntersectionScene.PADDING * 2;
+   private static double preferredHeight = Screen.getPrimary().getBounds().getHeight() * MyApplication.getHEIGHT_RATIO();
    private static final double GOLDEN_RATIO = (Math.sqrt(5) - 1) / 2;
    private static final double OCTAGON_RATIO = 1 / Math.E, VERTEX_RATIO = GOLDEN_RATIO / 2;
    private static final Color ROAD_COLOR = Color.LIGHTGREY,
@@ -27,6 +27,7 @@ public class IntersectionGraph extends Pane {
       // TODO udelat velikost poradne
       setPrefWidth(height);
       setPrefHeight(height);
+      preferredHeight = height;
 
       drawBackground(height);
    }
