@@ -1,9 +1,7 @@
 package cz.cuni.mff.kotal.frontend;
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionGraph;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.MenuStage;
-import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
@@ -16,7 +14,7 @@ public class MyApplication extends Application {
    private static Window menuStage;
 
    @Override
-   public void start(Stage primaryStage) throws Exception {
+   public void start(Stage primaryStage) {
       primaryStage.setTitle("Autonomous Intersection Management");
 
       // TODO udelat velikost poradne
@@ -30,6 +28,7 @@ public class MyApplication extends Application {
       primaryStage.setScene(scene);
       primaryStage.setX(width - height - 300);
       primaryStage.setY(0);
+      primaryStage.setMinWidth(220 + IntersectionScene.PADDING * 4.5);
       primaryStage.show();
 
       IntersectionScene.getIntersectionGraph().redraw();

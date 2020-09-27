@@ -43,15 +43,18 @@ public class IntersectionGraph extends Pane {
 
       for (int i = 1; i <= granularity; i++) {
          for (int j = 1; j <= granularity; j++) {
-//            drawSquareRoad(shift, i * shift , j * shift );
-            drawAbstractSquareRoad(shift, (i + 0.5) * shift, (j + 0.5) * shift, i < granularity, j < granularity);
+            if (IntersectionMenu.isAbstract()) {
+               drawAbstractSquareRoad(shift, (i + 0.5) * shift, (j + 0.5) * shift, i < granularity, j < granularity);
+            } else {
+               drawRealSquareRoad(shift, i * shift, j * shift);
+            }
          }
       }
 
       drawBackground(height);
    }
 
-   private void drawSquareRoad(double shift, double x, double y) {
+   private void drawRealSquareRoad(double shift, double x, double y) {
       Rectangle square = new Rectangle(shift, shift, ROAD_COLOR);
       square.setX(x);
       square.setY(y);
@@ -86,15 +89,21 @@ public class IntersectionGraph extends Pane {
          index = empty % 3 == 2 ? ++padding : padding;
 
       while (entries-- > 0) {
-//         drawRectangularEntries(granularity, shift, ++index, true, true);
-         drawAbstractRectangularEntries(granularity, shift, ++index, true);
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractRectangularEntries(granularity, shift, ++index, true);
+         } else {
+            drawRectangularEntries(granularity, shift, ++index, true, true);
+         }
       }
 
       index += empty - 2 * padding;
 
       while (exits-- > 0) {
-//         drawRectangularEntries(granularity, shift, ++index, false, true);
-         drawAbstractRectangularEntries(granularity, shift, ++index, false);
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractRectangularEntries(granularity, shift, ++index, false);
+         } else {
+            drawRectangularEntries(granularity, shift, ++index, false, true);
+         }
       }
    }
 
@@ -111,8 +120,11 @@ public class IntersectionGraph extends Pane {
          double x = sidePadding,
             y = (granularity / 2. + i + 0.5) * shift;
          for (int j = 0; j < i + granularity; j++, x += edgeLength * 1.5, y -= shift / 2) {
-            drawHexagon(shift, edgeLength, x, y);
-//            drawAbstractHexagon(shift, edgeLength, x, y, j < i + granularity - 1, i < granularity - 1 || j < i + granularity - 1, j > 1 || i < granularity - 1);
+            if (IntersectionMenu.isAbstract()) {
+               drawAbstractHexagon(shift, edgeLength, x, y, j < i + granularity - 1, i < granularity - 1 || j < i + granularity - 1, j > 1 || i < granularity - 1);
+            } else {
+               drawRealHexagon(shift, edgeLength, x, y);
+            }
          }
       }
 
@@ -120,13 +132,15 @@ public class IntersectionGraph extends Pane {
          double x = sidePadding + 1.5 * i * edgeLength,
             y = (granularity * 3 + i - 1) * shift / 2;
          for (int j = 0; j < granularity * 2 - i - 1; j++, x += edgeLength * 1.5, y -= shift / 2) {
-            drawHexagon(shift, edgeLength, x, y);
-//            drawAbstractHexagon(shift, edgeLength, x, y, j < granularity * 2 - i - 2, j < granularity * 2 - i - 2 && i < granularity - 1, i < granularity - 1 && j > 0);
+            if (IntersectionMenu.isAbstract()) {
+               drawAbstractHexagon(shift, edgeLength, x, y, j < granularity * 2 - i - 2, j < granularity * 2 - i - 2 && i < granularity - 1, i < granularity - 1 && j > 0);
+            } else {
+               drawRealHexagon(shift, edgeLength, x, y);
+            }
          }
       }
 
-//      drawAbstractHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding );
-      drawHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding);
+      drawRealHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding);
 
       drawBackground(height);
    }
@@ -152,7 +166,7 @@ public class IntersectionGraph extends Pane {
       getChildren().add(vertex);
    }
 
-   private void drawHexagon(double shift, double edgeLength, double x, double y) {
+   private void drawRealHexagon(double shift, double edgeLength, double x, double y) {
       Polygon hexagon = new Polygon(
          x, y,                                  // top left
          x + edgeLength, y,                                      // top right
@@ -168,41 +182,32 @@ public class IntersectionGraph extends Pane {
       getChildren().add(hexagon);
    }
 
-   private void drawHexagonalEntriesAndExits(long granularity, long entries, long exits, double shift, double edgeLength, double sidePadding) {
+   private void drawRealHexagonalEntriesAndExits(long granularity, long entries, long exits, double shift, double edgeLength, double sidePadding) {
       long empty = granularity - entries - exits,
          padding = empty / 3,
          index = empty % 3 == 2 ? ++padding : padding;
 
       while (entries-- > 0) {
-         drawHexagonalEntry(granularity, shift, edgeLength, sidePadding, true, index++);
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractHexagonalEntry(granularity, shift, edgeLength, sidePadding, true, index++);
+         } else {
+            drawRealHexagonalEntry(granularity, shift, edgeLength, sidePadding, true, index++);
+         }
       }
 
       index += empty % 3 == 2 ? empty - 2 * padding : padding;
 
-
       while (exits-- > 0) {
-         drawHexagonalEntry(granularity, shift, edgeLength, sidePadding, false, index++);
+
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractHexagonalEntry(granularity, shift, edgeLength, sidePadding, false, index++);
+         } else {
+            drawRealHexagonalEntry(granularity, shift, edgeLength, sidePadding, false, index++);
+         }
       }
    }
 
-   private void drawAbstractHexagonalEntriesAndExits(long granularity, long entries, long exits, double shift, double edgeLength, double sidePadding) {
-      long empty = granularity - entries - exits,
-         padding = empty / 3,
-         index = empty % 3 == 2 ? ++padding : padding;
-
-      while (entries-- > 0) {
-         drawAbstractHexagonalEntry(granularity, shift, edgeLength, sidePadding, true, index++);
-      }
-
-      index += empty % 3 == 2 ? empty - 2 * padding : padding;
-
-
-      while (exits-- > 0) {
-         drawAbstractHexagonalEntry(granularity, shift, edgeLength, sidePadding, false, index++);
-      }
-   }
-
-   private void drawHexagonalEntry(long granularity, double shift, double edgeLength, double sidePadding, boolean entry, long index) {
+   private void drawRealHexagonalEntry(long granularity, double shift, double edgeLength, double sidePadding, boolean entry, long index) {
       Color color = entry ? ENTRY_COLOR : EXIT_COLOR;
       Rectangle entryB = new Rectangle(sidePadding, shift, color),
          entryE = new Rectangle(sidePadding, shift, color);
@@ -347,8 +352,11 @@ public class IntersectionGraph extends Pane {
       // TODO add real / abstract model button
 
       for (int j = withCorners ? 1 : 2; j <= (withCorners ? granularity : granularity - 1); j++) {
-//         drawOctagonRoad(shift, topY, (row + OCTAGON_RATIO) * shift , j);
-         drawAbstractOctagonRoad(shift, (j + 0.5) * shift, topY + shift / 2, granularity, row, j);
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractOctagonalRoad(shift, (j + 0.5) * shift, topY + shift / 2, granularity, row, j);
+         } else {
+            drawRealOctagonalRoad(shift, topY, (row + OCTAGON_RATIO) * shift, j);
+         }
       }
 
       if (!withSquares) {
@@ -356,12 +364,15 @@ public class IntersectionGraph extends Pane {
       }
 
       for (int j = 2; j <= granularity; j++) {
-//         drawOctagonalSquareRoad(shift, topY, (row + OCTAGON_RATIO) * shift , j);
-         drawAbstractOctagonalSquareRoad(shift, j * shift, topY + shift, row < granularity - 1 || j > 2, row < granularity - 1 || j < granularity);
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractOctagonalSquareRoad(shift, j * shift, topY + shift, row < granularity - 1 || j > 2, row < granularity - 1 || j < granularity);
+         } else {
+            drawRealOctagonalSquareRoad(shift, topY, (row + OCTAGON_RATIO) * shift, j);
+         }
       }
    }
 
-   private void drawOctagonalSquareRoad(double shift, double topY, double midTopY, int j) {
+   private void drawRealOctagonalSquareRoad(double shift, double topY, double midTopY, int j) {
       Polygon square = new Polygon(
          j * shift, midTopY + (1 - 2 * OCTAGON_RATIO) * shift,      // top
          (j - OCTAGON_RATIO) * shift, topY + shift,                                      // right
@@ -404,15 +415,21 @@ public class IntersectionGraph extends Pane {
          index = empty % 3 == 2 ? ++padding : padding;
 
       while (entries-- > 0) {
-//         drawRectangularEntries(granularity, shift, ++index, true, false);
-         drawAbstractRectangularEntries(granularity, shift, ++index, true);
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractRectangularEntries(granularity, shift, ++index, true);
+         } else {
+            drawRectangularEntries(granularity, shift, ++index, true, false);
+         }
       }
 
       index += empty - 2 * padding;
 
       while (exits-- > 0) {
-//         drawRectangularEntries(granularity, shift, ++index, false, false);
-         drawAbstractRectangularEntries(granularity, shift, ++index, false);
+         if (IntersectionMenu.isAbstract()) {
+            drawAbstractRectangularEntries(granularity, shift, ++index, false);
+         } else {
+            drawRectangularEntries(granularity, shift, ++index, false, false);
+         }
       }
    }
 
@@ -479,7 +496,7 @@ public class IntersectionGraph extends Pane {
       getChildren().addAll(entryNLine, entrySLine, entryWLine, entryELine, entryNVertex, entrySVertex, entryWVertex, entryEVertex);
    }
 
-   private void drawOctagonRoad(double shift, double topY, double midTopY, int j) {
+   private void drawRealOctagonalRoad(double shift, double topY, double midTopY, int j) {
       Polygon octagon = new Polygon(
          (j + OCTAGON_RATIO) * shift, topY,                        // top left
          (j + 1 - OCTAGON_RATIO) * shift, topY,                                   // top right
@@ -497,7 +514,7 @@ public class IntersectionGraph extends Pane {
       getChildren().add(octagon);
    }
 
-   private void drawAbstractOctagonRoad(double shift, double x, double y, long granularity, long row, long column) {
+   private void drawAbstractOctagonalRoad(double shift, double x, double y, long granularity, long row, long column) {
       boolean withRightRoad = (row > 1 && row < granularity && column < granularity) || column < granularity - 1,
          withDownRoad = row < granularity - 1 || (row == granularity - 1 && column > 1 && column < granularity);
 
