@@ -27,7 +27,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
    public SimulationMenuTab3() {
       super(Tabs.T3.getText());
 
-      createStatisticsGrid();
+      createStatisticsGrid((GridPane) Parameters.STATISTICS.getParameter());
 
       // TODO pridat akce na tlacitka a slidery
 
@@ -42,13 +42,12 @@ public class SimulationMenuTab3 extends MyTabTemplate {
       }
    }
 
-   private void createStatisticsGrid() {
-      GridPane statisticsGrid = (GridPane) Parameters.STATISTICS.getParameter();
-      statisticsGrid.setHgap(20);
+   public static void createStatisticsGrid(GridPane grid) {
+      grid.setHgap(20);
       int row = 0;
       for (Parameters.Statistics statistic : Parameters.Statistics.values()) {
          Label label = new Label(statistic.getText());
-         statisticsGrid.getChildren().addAll(label, statistic.getValue());
+         grid.getChildren().addAll(label, statistic.getValue());
          GridPane.setConstraints(label, 0, row);
          GridPane.setConstraints(statistic.getValue(), 1, row++);
       }
@@ -94,7 +93,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
       return SAVE_AGENTS_BUTTON;
    }
 
-   private enum Parameters {
+   public enum Parameters {
       SPEED("Speed:", speed),
       TIMELINE("Timeline:", timeline),
       // TODO remove constants
@@ -118,7 +117,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
          return parameter;
       }
 
-      private enum Statistics {
+      public enum Statistics {
          STEPS("Steps:", stepsLabel),
          DELAY("Total delay:", delayLabel),
          REJECTIONS("Rejections:", rejectionsLabel),

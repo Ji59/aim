@@ -18,12 +18,16 @@ public class IntersectionScene extends Scene {
       super(ROOT, width, height);
 
       heightProperty().addListener((observable, oldValue, newValue) -> {
-         IntersectionGraph.setPreferredHeight(Math.min(newValue.doubleValue(), getWidth() - MENU.getWidth()));
+         double newHeight = Math.min(newValue.doubleValue(), getWidth() - MENU.getMinWidth());
+         IntersectionGraph.setPreferredHeight(newHeight);
+         MENU.setPrefWidth(getWidth() - newHeight);
          GRAPH.redraw();
       });
 
       widthProperty().addListener((observable, oldValue, newValue) -> {
-         IntersectionGraph.setPreferredHeight(Math.min(getHeight(), newValue.doubleValue() - MENU.getWidth()));
+         double newHeight = Math.min(getHeight(), newValue.doubleValue() - MENU.getMinWidth());
+         IntersectionGraph.setPreferredHeight(newHeight);
+         MENU.setPrefWidth(newValue.doubleValue() - newHeight - 1);
          GRAPH.redraw();
       });
 
@@ -33,8 +37,12 @@ public class IntersectionScene extends Scene {
       MENU.setMinWidth(menuWidth);
       MENU.setPadding(new Insets(PADDING, PADDING, PADDING, PADDING));
 
-      IntersectionMenu.getPlayButton().setPrefWidth(menuWidth / 2);
-      IntersectionMenu.getRestartButton().setPrefWidth(menuWidth / 2);
+//      IntersectionMenu.getPlayButton().setPrefWidth(menuWidth / 2 - PADDING / 2);
+      IntersectionMenu.getPlayButton().setMinWidth(menuWidth / 2 - PADDING);
+      IntersectionMenu.getPlayButton().setPrefWidth(Double.MAX_VALUE);
+//      IntersectionMenu.getRestartButton().setPrefWidth(menuWidth / 2 - PADDING / 2);
+      IntersectionMenu.getRestartButton().setMinWidth(menuWidth / 2 - PADDING);
+      IntersectionMenu.getRestartButton().setPrefWidth(Double.MAX_VALUE);
    }
 
    public static IntersectionGraph getIntersectionGraph() {
