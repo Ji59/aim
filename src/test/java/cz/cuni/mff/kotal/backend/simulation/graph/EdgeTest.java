@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.backend.graph;
+package cz.cuni.mff.kotal.backend.simulation.graph;
 
 import org.junit.jupiter.api.Test;
 

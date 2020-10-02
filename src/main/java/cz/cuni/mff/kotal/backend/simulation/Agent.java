@@ -1,6 +1,6 @@
-package cz.cuni.mff.kotal.backend;
+package cz.cuni.mff.kotal.backend.simulation;
 
-import cz.cuni.mff.kotal.backend.graph.Vertex;
+import cz.cuni.mff.kotal.backend.simulation.graph.Vertex;
 
 public class Agent {
    private final int id;

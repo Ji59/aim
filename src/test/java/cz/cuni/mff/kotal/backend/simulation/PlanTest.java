@@ -1,17 +1,16 @@
 package cz.cuni.mff.kotal.backend.simulation;
 
-import cz.cuni.mff.kotal.backend.Agent;
-import cz.cuni.mff.kotal.backend.graph.Edge;
-import cz.cuni.mff.kotal.backend.graph.Vertex;
-import cz.cuni.mff.kotal.backend.simulation.event.EventArrivalLeaving;
-import cz.cuni.mff.kotal.backend.simulation.event.EventCollision;
-import cz.cuni.mff.kotal.backend.simulation.event.EventOnWay;
+import cz.cuni.mff.kotal.backend.simulation.graph.Edge;
+import cz.cuni.mff.kotal.backend.simulation.graph.Vertex;
+import cz.cuni.mff.kotal.simulation.event.EventArrivalLeaving;
+import cz.cuni.mff.kotal.simulation.event.EventCollision;
+import cz.cuni.mff.kotal.simulation.event.EventOnWay;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.Objects;
 
-import static cz.cuni.mff.kotal.backend.simulation.event.Action.*;
+import static cz.cuni.mff.kotal.simulation.event.Action.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PlanTest {

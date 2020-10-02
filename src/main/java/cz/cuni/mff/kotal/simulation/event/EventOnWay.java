@@ -1,7 +1,7 @@
-package cz.cuni.mff.kotal.backend.simulation.event;
+package cz.cuni.mff.kotal.simulation.event;
 
-import cz.cuni.mff.kotal.backend.Agent;
-import cz.cuni.mff.kotal.backend.graph.Edge;
+import cz.cuni.mff.kotal.backend.simulation.Agent;
+import cz.cuni.mff.kotal.backend.simulation.graph.Edge;
 
 import java.math.BigInteger;
 

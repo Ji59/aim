@@ -1,14 +1,11 @@
 package cz.cuni.mff.kotal.backend.simulation;
 
-import cz.cuni.mff.kotal.backend.Agent;
-import cz.cuni.mff.kotal.backend.graph.Vertex;
-import cz.cuni.mff.kotal.backend.simulation.event.Action;
-import cz.cuni.mff.kotal.backend.simulation.event.Event;
-import cz.cuni.mff.kotal.backend.simulation.event.EventCollision;
-import cz.cuni.mff.kotal.backend.simulation.event.EventOnWay;
+import cz.cuni.mff.kotal.backend.simulation.graph.Vertex;
+import cz.cuni.mff.kotal.simulation.event.Action;
+import cz.cuni.mff.kotal.simulation.event.Event;
+import cz.cuni.mff.kotal.simulation.event.EventCollision;
 
 import java.math.BigInteger;
-import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.stream.Collectors;

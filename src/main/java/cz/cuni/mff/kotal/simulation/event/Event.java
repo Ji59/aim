@@ -1,9 +1,8 @@
-package cz.cuni.mff.kotal.backend.simulation.event;
+package cz.cuni.mff.kotal.simulation.event;
 
-import cz.cuni.mff.kotal.backend.Agent;
+import cz.cuni.mff.kotal.backend.simulation.Agent;
 
 import java.math.BigInteger;
-import java.util.Comparator;
 
 public abstract class Event implements Comparable<Event> {
    private final Action action;

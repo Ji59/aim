@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.backend.simulation.event;
+package cz.cuni.mff.kotal.simulation.event;
 
 public enum Action {
    ON_WAY(2),

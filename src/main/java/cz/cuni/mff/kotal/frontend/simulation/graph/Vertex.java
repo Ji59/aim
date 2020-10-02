@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.frontend.simulation;
+package cz.cuni.mff.kotal.frontend.simulation.graph;
 
 public class Vertex {
    private final int id;

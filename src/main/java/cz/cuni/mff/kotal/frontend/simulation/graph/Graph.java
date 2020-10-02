@@ -1,6 +1,5 @@
-package cz.cuni.mff.kotal.frontend.simulation;
+package cz.cuni.mff.kotal.frontend.simulation.graph;
 
-import java.util.Map;
 import java.util.Set;
 
 public class Graph {
