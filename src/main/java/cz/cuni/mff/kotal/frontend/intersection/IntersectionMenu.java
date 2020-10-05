@@ -31,10 +31,6 @@ public class IntersectionMenu extends VBox {
    public IntersectionMenu(double padding) {
       super(padding);
 
-      TextField test = new TextField("Test");
-      test.setPrefWidth(Double.MAX_VALUE);
-      test.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderStroke.DEFAULT_WIDTHS)));
-
       Button intersectionMode = new Button("Real");
       intersectionMode.setPrefWidth(Double.MAX_VALUE);
       intersectionMode.setOnMouseClicked(event -> {
@@ -43,7 +39,7 @@ public class IntersectionMenu extends VBox {
          IntersectionScene.getIntersectionGraph().redraw();
       });
 
-      getChildren().addAll(test, intersectionMode);
+      getChildren().add(intersectionMode);
 
       createControlNodes(padding);
    }
