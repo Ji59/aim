@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.backend.simulation.graph;
+package cz.cuni.mff.kotal.simulation.graph;
 
 import java.math.BigDecimal;
 import java.util.Objects;

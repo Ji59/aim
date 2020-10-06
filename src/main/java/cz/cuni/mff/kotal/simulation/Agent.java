@@ -1,16 +1,16 @@
-package cz.cuni.mff.kotal.backend.simulation;
+package cz.cuni.mff.kotal.simulation;
 
-import cz.cuni.mff.kotal.backend.simulation.graph.Vertex;
+import cz.cuni.mff.kotal.simulation.graph.Edge;
 
 public class Agent {
    private final int id;
-   private Vertex location = null;
+   private Edge location = null;
 
    public Agent(int id) {
       this.id = id;
    }
 
-   public Agent(int id, Vertex v) {
+   public Agent(int id, Edge v) {
       this.id = id;
       location = v;
    }
@@ -19,11 +19,11 @@ public class Agent {
       return id;
    }
 
-   public Vertex getLocation() {
+   public Edge getLocation() {
       return location;
    }
 
-   public Agent setLocation(Vertex location) {
+   public Agent setLocation(Edge location) {
       this.location = location;
       return this;
    }

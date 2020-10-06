@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.backend.simulation;
 
-import cz.cuni.mff.kotal.backend.simulation.graph.Vertex;
+import cz.cuni.mff.kotal.simulation.Agent;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import cz.cuni.mff.kotal.simulation.event.Action;
 import cz.cuni.mff.kotal.simulation.event.Event;
 import cz.cuni.mff.kotal.simulation.event.EventCollision;

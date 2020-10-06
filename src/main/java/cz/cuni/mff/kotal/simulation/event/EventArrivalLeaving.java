@@ -1,7 +1,7 @@
 package cz.cuni.mff.kotal.simulation.event;
 
-import cz.cuni.mff.kotal.backend.simulation.Agent;
-import cz.cuni.mff.kotal.backend.simulation.graph.Vertex;
+import cz.cuni.mff.kotal.simulation.Agent;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.math.BigInteger;
 

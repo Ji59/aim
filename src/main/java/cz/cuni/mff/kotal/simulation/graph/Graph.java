@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.backend.simulation.graph;
+package cz.cuni.mff.kotal.simulation.graph;
 
 import java.util.HashSet;
 import java.util.Set;

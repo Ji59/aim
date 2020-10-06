@@ -1,7 +1,8 @@
 package cz.cuni.mff.kotal.backend.simulation;
 
-import cz.cuni.mff.kotal.backend.simulation.graph.Edge;
-import cz.cuni.mff.kotal.backend.simulation.graph.Vertex;
+import cz.cuni.mff.kotal.simulation.Agent;
+import cz.cuni.mff.kotal.simulation.graph.Edge;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import cz.cuni.mff.kotal.simulation.event.EventArrivalLeaving;
 import cz.cuni.mff.kotal.simulation.event.EventCollision;
 import cz.cuni.mff.kotal.simulation.event.EventOnWay;
