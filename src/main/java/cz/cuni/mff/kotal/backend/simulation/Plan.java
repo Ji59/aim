@@ -14,10 +14,11 @@ import java.util.stream.Collectors;
 public class Plan {
    private Queue<Event> heap = new PriorityQueue<>();
 
-   public boolean collision(BigInteger time, Agent a0, Agent a1, Vertex v) {
-      heap = heap.parallelStream().filter(event -> !(event.getAgent().equals(a0) && event.getAgent().equals(a1))).collect(Collectors.toCollection(PriorityQueue::new));
-      return heap.add(new EventCollision(Action.COLLISION, time, a0, a1, v));
-   }
+   // TODO fix after refactoring
+//   public boolean collision(BigInteger time, Agent a0, Agent a1, Vertex v) {
+//      heap = heap.parallelStream().filter(event -> !(event.getAgents().equals(a0) && event.getAgents().equals(a1))).collect(Collectors.toCollection(PriorityQueue::new));
+//      return heap.add(new EventCollision(Action.COLLISION, time, a0, a1, v));
+//   }
 
    public Queue<Event> getHeap() {
       return heap;
