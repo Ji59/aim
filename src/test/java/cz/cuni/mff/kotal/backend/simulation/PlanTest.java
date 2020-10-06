@@ -26,11 +26,11 @@ class PlanTest {
       s.getHeap().add(new EventArrivalLeaving(LEAVING, BigInteger.ONE, a, v));          // 5
       s.getHeap().add(new EventArrivalLeaving(ARRIVAL, BigInteger.ZERO, a, v));         // 2
       s.getHeap().add(new EventOnWay(ON_WAY, BigInteger.TWO, a, e));                   // 8
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.TWO, a1, a, v));          // 6
+      s.getHeap().add(new EventCollision(COLLISION, BigInteger.TWO, a1, a, e));          // 6
       s.getHeap().add(new EventOnWay(ON_WAY, BigInteger.ZERO, a, e));                  // 1
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ZERO, a1, a, v));         // 0
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ONE, a, a1, v));          // 3
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ONE, a, a1, v));          // 4
+      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ZERO, a1, a, e));         // 0
+      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ONE, a, a1, e));          // 3
+      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ONE, a, a1, e));          // 4
       s.getHeap().add(new EventArrivalLeaving(LEAVING, BigInteger.TWO, a, v));        // 7
 
       assert s.getHeap().size() == 9;
