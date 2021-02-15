@@ -1,29 +1,46 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 public class Graph {
 
-   private final Set<Vertex> v;
-   private final Set<Edge> e;
+	private final boolean oriented;
+	private final Set<Vertex> vertices;
+	private final Set<Edge> edges;
 
-   public Graph(boolean oriented, Set<Vertex> vertices, Set<Edge> edges) {
-      v = vertices;
-      if (oriented) {
-         e = edges;
-      } else {
-         e = new HashSet<>(edges);
-         e.addAll(edges.parallelStream().map(Edge::reverse).collect(Collectors.toSet())); // add reversed edges
-      }
-   }
+	/**
+	 * Create graph with provided vertices and edges. If not oriented, add edges with reversed orientation too.
+	 *
+	 * @param oriented If graph edges are oriented.
+	 * @param vertices Set of vertices.
+	 * @param edges    Set of edges.
+	 */
+	public Graph(boolean oriented, Set<Vertex> vertices, Set<Edge> edges) {
+		this.oriented = oriented;
+		this.vertices = vertices;
+		if (oriented) {
+			this.edges = edges;
+		} else {
+			this.edges = new HashSet<>(edges);
+			this.edges.addAll(edges.parallelStream().map(Edge::reverse).collect(Collectors.toSet())); // add reversed edges
+		}
+	}
 
-   public Set<Vertex> getVertices() {
-      return v;
-   }
+	/**
+	 * @return Set of vertices of the graph.
+	 */
+	public Set<Vertex> getVertices() {
+		return vertices;
+	}
 
-   public Set<Edge> getEdges() {
-      return e;
-   }
+	/**
+	 * @return Set of edges of the graph.
+	 */
+	public Set<Edge> getEdges() {
+		return edges;
+	}
 }
