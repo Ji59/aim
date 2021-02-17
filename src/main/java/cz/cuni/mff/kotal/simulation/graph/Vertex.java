@@ -7,6 +7,8 @@ import java.util.Objects;
 
 
 public class Vertex {
+	private static final Color ENTRY_COLOR = Color.LIGHTSLATEGRAY;
+	private static final Color EXIT_COLOR = Color.GRAY;
 
 	private final long id;
 	private final Type type;
@@ -59,18 +61,45 @@ public class Vertex {
 
 	public enum Type {
 		ROAD(Color.LIGHTGREY),
-		ENTRY(Color.LIGHTSLATEGRAY),
-		EXIT(Color.GRAY),
+		ENTRY0(ENTRY_COLOR, 0), // top / top left entry
+		ENTRY1(ENTRY_COLOR, 1), // left / left entry
+		ENTRY2(ENTRY_COLOR, 2), // bottom / bottom left entry
+		ENTRY3(ENTRY_COLOR, 3), // right / bottom right entry
+		ENTRY4(ENTRY_COLOR, 4), // X / right entry
+		ENTRY5(ENTRY_COLOR, 5), // X / top right entry
+		EXIT0(EXIT_COLOR, 0), // top / top left exit
+		EXIT1(EXIT_COLOR, 1), // left / left exit
+		EXIT2(EXIT_COLOR, 2), // bottom / bottom left exit
+		EXIT3(EXIT_COLOR, 3), // right / bottom right exit
+		EXIT4(EXIT_COLOR, 4), // X / right exit
+		EXIT5(EXIT_COLOR, 5), // X / top right exit
 		;
 
 		private final Color color;
+		private final int direction;
 
 		Type(Color color) {
 			this.color = color;
+			direction = -1;
 		}
 
+		Type(Color color, int direction) {
+			this.color = color;
+			this.direction = direction;
+		}
+
+		/**
+		 * @return Color of the vertex type.
+		 */
 		public Color getColor() {
 			return color;
+		}
+
+		/**
+		 * @return Direction of the vertex entry / exit type.
+		 */
+		public int getDirection() {
+			return direction;
 		}
 	}
 }

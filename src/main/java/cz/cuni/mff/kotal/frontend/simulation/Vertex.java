@@ -2,7 +2,6 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,7 +18,9 @@ public class Vertex extends cz.cuni.mff.kotal.simulation.graph.Vertex {
 	}
 
 	public boolean addNeighbourID(Long... ids) {
-
+		if (ids.length == 1) {
+			return neighbour_ids.add(ids[0]);
+		}
 		return neighbour_ids.addAll(Arrays.asList(ids));
 	}
 
@@ -29,5 +30,9 @@ public class Vertex extends cz.cuni.mff.kotal.simulation.graph.Vertex {
 
 	public double getY() {
 		return y;
+	}
+
+	public Set<Long> getNeighbour_ids() {
+		return neighbour_ids;
 	}
 }

@@ -5,6 +5,10 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.frontend.simulation.Vertex;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
+import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
+import javafx.geometry.Pos;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -13,13 +17,16 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.OCTAGONAL;
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.SQUARE;
 
 
@@ -70,7 +77,7 @@ public class IntersectionGraph extends Pane {
 
 		if (!IntersectionMenu.isAbstract()) {
 			for (Vertex v : graph.getVertices()) {
-				drawRealSquareRoad(shift, v.getX() - shift / 2, v.getY() - shift / 2, String.valueOf(v.getID()), v.getType().getColor());
+				drawSquare(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
 			}
 		} else {
 			for (Edge e : graph.getEdges()) {
@@ -89,57 +96,140 @@ public class IntersectionGraph extends Pane {
 				getChildren().add(stack);
 			}
 		}
-		return;
-
-////		drawSquareEntriesAndExits(granularity, entries, exits, shift);
-////
-////		for (int i = 1; i <= granularity; i++) {
-////			for (int j = 1; j <= granularity; j++) {
-////				if (IntersectionMenu.isAbstract()) {
-////					drawAbstractSquareRoad(shift, (i + 0.5) * shift, (j + 0.5) * shift, i < granularity, j < granularity);
-////				} else {
-////					drawRealSquareRoad(shift, i * shift, j * shift);
-////				}
-////			}
-////		}
-//
-//		drawBackground(height);
 	}
 
 	/**
-	 * Draw vertex in between square grid with roads to lower neighbours.
+	 * Draw square at specified location.
 	 *
-	 * @param shift Distance between 2 vertices.
-	 * @param x     Coordinate X of the highest leftest vertex of the square.
-	 * @param y     Coordinate Y of the highest leftest vertex of the square.
+	 * @param size  Size of the square side.
+	 * @param x     Coordinate X of center of the square.
+	 * @param y     Coordinate Y of center of the square.
+	 * @param text  The text inside of the square.
+	 * @param color Color of the square.
 	 */
-	private void drawRealSquareRoad(double shift, double x, double y) {
-		Rectangle square = new Rectangle(shift, shift, ROAD_COLOR);
-		square.setX(x);
-		square.setY(y);
-		square.setStroke(STROKE_COLOR);
+	private void drawSquare(double size, double x, double y, String text, Color color) {
+		double halfSize = size / 2;
 
+		Rectangle square = new Rectangle(size, size, color);
+		square.setStroke(STROKE_COLOR);
+		square.setX(x - halfSize);
+		square.setY(y - halfSize);
 		getChildren().add(square);
+
+		addTextField(x - halfSize, y - halfSize, size, size, text);
 	}
 
 	/**
-	 * Draw vertex in between square grid with roads to lower neighbours.
+	 * Draw square at specified location rotated 45 deg.
 	 *
-	 * @param shift Distance between 2 vertices.
-	 * @param x     Coordinate X of the highest leftest vertex of the square.
-	 * @param y     Coordinate Y of the highest leftest vertex of the square.
+	 * @param size  Distance between opposite vertices.
+	 * @param x     Coordinate X of center of the square.
+	 * @param y     Coordinate Y of center of the square.
+	 * @param text  The text inside of the square.
+	 * @param color Color of the square.
 	 */
-	private void drawRealSquareRoad(double shift, double x, double y, String text, Color color) {
-		Rectangle square = new Rectangle(shift, shift, color);
+	private void drawObliqueSquare(double size, double x, double y, String text, Color color) {
+		double halfSize = size / 2;
+
+		// create square
+		Polygon square = new Polygon(
+			x, y - halfSize, // top
+			x - halfSize, y, // left
+			x, y + halfSize, // bottom
+			x + halfSize, y  // right
+		);
+		square.setFill(color);
 		square.setStroke(STROKE_COLOR);
+		getChildren().add(square);
 
-		Text t = new Text(text);
+		addTextField(x - halfSize, y - halfSize, size, size, text);
+	}
 
-		StackPane stack = new StackPane(square, t);
-		stack.setLayoutX(x);
-		stack.setLayoutY(y);
+	/**
+	 * Draw octagon at specified location.
+	 *
+	 * @param size  Distance between opposite sides.
+	 * @param x     Coordinate X of center of the octagon.
+	 * @param y     Coordinate Y of center of the octagon.
+	 * @param text  The text inside of the octagon.
+	 * @param color Color of the octagon.
+	 */
+	private void drawOctagon(double size, double x, double y, String text, Color color) {
+		double halfSize = size / 2,
+			shorterSize = OCTAGON_RATIO * halfSize;
 
-		getChildren().add(stack);
+		// create polygon
+		Polygon octagon = new Polygon(
+			x - shorterSize, y - halfSize, // top left
+			x + shorterSize, y - halfSize, // top right
+			x + halfSize, y - shorterSize, // mid-top right
+			x + halfSize, y + shorterSize, // mid-bot right
+			x + shorterSize, y + halfSize, // bot right
+			x - shorterSize, y + halfSize, // bot left
+			x - halfSize, y + shorterSize, // mid-bot left
+			x - halfSize, y - shorterSize  // mid-top left);
+		);
+		octagon.setFill(color);
+		octagon.setStroke(STROKE_COLOR);
+		getChildren().add(octagon);
+
+		addTextField(x - halfSize, y - halfSize, size, size, text);
+	}
+
+	/**
+	 * Create rectangular entry / exit for octagonal model.
+	 *
+	 * @param size      "Width" of the road.
+	 * @param x         Coordination X of the entry / exit in graph.
+	 * @param y         Coordination Y of the entry / exit in graph.
+	 * @param text      The text inside the entry / exit.
+	 * @param color     Color of the rectangle.
+	 * @param direction Direction of the entry / exit. (See Vertex object for more details).
+	 */
+	private void drawOctagonalEntry(double size, double x, double y, String text, Color color, int direction) {
+		assert (direction < 4);
+		// create rectangle
+		Rectangle rectangle = new Rectangle();
+		rectangle.setFill(color);
+		rectangle.setStroke(STROKE_COLOR);
+
+		// compute location and size
+		double halfSize = size / 2,
+			xLocation = x - (direction == 3 ? (2 - OCTAGON_RATIO) * halfSize : halfSize),
+			yLocation = y - (direction == 1 ? (2 - OCTAGON_RATIO) * halfSize : halfSize),
+			width = direction < 2 ? size : (3 - OCTAGON_RATIO) * halfSize,
+			height = direction < 2 ? (3 - OCTAGON_RATIO) * halfSize : size;
+
+		// set rectangle location and size
+		rectangle.setX(xLocation);
+		rectangle.setY(yLocation);
+		rectangle.setWidth(width);
+		rectangle.setHeight(height);
+		getChildren().add(rectangle);
+
+		// add text
+		addTextField(xLocation, yLocation, width, height, text);
+	}
+
+	/**
+	 * Adds rectangular text field.
+	 *
+	 * @param x      Coordination X of the text field.
+	 * @param y      Coordination Y of the text field.
+	 * @param width  Width of the text field.
+	 * @param height Height of the text field.
+	 * @param text   Text of the text field.
+	 */
+	private void addTextField(double x, double y, double width, double height, String text) {
+		TextField t = new TextField(text);
+		t.setBackground(Background.EMPTY);
+		t.setLayoutX(x);
+		t.setLayoutY(y);
+		t.setPrefWidth(width);
+		t.setPrefHeight(height);
+		t.setAlignment(Pos.CENTER);
+		t.setEditable(false);
+		getChildren().add(t);
 	}
 
 	/**
@@ -511,17 +601,40 @@ public class IntersectionGraph extends Pane {
 	 * @param exits       Number of exits.
 	 */
 	private void drawOctagonalModel(long granularity, long entries, long exits) {
+		graph = new SimulationGraph(granularity, OCTAGONAL, entries, exits);
 		getChildren().clear();
 
 		// TODO udelat velikost poradne
 		double height = preferredHeight, shift = height / (granularity + 2);
 
-		drawBackground(height);
-
-		drawOctagonalEntriesAndExits(granularity, entries, exits, shift);
-
-		for (int i = 1; i <= granularity; i++) {
-			drawOctagonalLine(granularity, i, shift, i < granularity, i < granularity && i != 1);
+		if (!IntersectionMenu.isAbstract()) {
+			for (Vertex v : graph.getVertices()) {
+				if (v.getType() == Type.ROAD) {
+					if (v.getID() < granularity * granularity - 4) {
+						drawOctagon(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
+					} else if (v.getID() < 2 * granularity * (granularity - 1) - 3) {
+						drawObliqueSquare((1 - OCTAGON_RATIO) * shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
+					}
+				} else {
+					drawOctagonalEntry(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor(), v.getType().getDirection());
+				}
+			}
+		} else {
+			for (Edge e : graph.getEdges()) {
+				Vertex u = (Vertex) e.getU(),
+					v = (Vertex) e.getV();
+				Line l = new Line(u.getX(), u.getY(), v.getX(), v.getY());
+				getChildren().add(l);
+			}
+			for (Vertex v : graph.getVertices()) {
+				Circle c = new Circle(shift * VERTEX_RATIO, v.getType().getColor());
+				Text t = new Text(String.valueOf(v.getID()));
+				t.setBoundsType(TextBoundsType.VISUAL);
+				StackPane stack = new StackPane(c, t);
+				stack.setLayoutX(v.getX() - shift * VERTEX_RATIO);
+				stack.setLayoutY(v.getY() - shift * VERTEX_RATIO);
+				getChildren().add(stack);
+			}
 		}
 	}
 

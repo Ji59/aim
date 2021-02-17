@@ -2,10 +2,8 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionGraph;
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
-import javafx.scene.paint.Color;
 
 import java.util.*;
 
@@ -38,18 +36,42 @@ public class SimulationGraph {
 
 		switch (model) {
 			case SQUARE -> createSquareGraph(entries, exits);
+			case OCTAGONAL -> createOctagonalGraph(entries, exits);
 		}
 	}
 
+	/**
+	 * Create graph for square model.
+	 *
+	 * @param entries Number of entries.
+	 * @param exits   Number of exits.
+	 */
 	private void createSquareGraph(long entries, long exits) {
 		double height = IntersectionGraph.getPreferredHeight(),
 			shift = height / (granularity + 2);
 
-		long g = granularity;
+		createSquareGraphVertices(shift, false);
 
+		createSquareGraphEntryVertices(entries, exits, shift, false);
+	}
+
+	/**
+	 * Create intersection verticies with edges between them.
+	 *
+	 * @param shift Distance between 2 vertices.
+	 */
+	private void createSquareGraphVertices(double shift, boolean withoutCorners) {
+		long g = granularity;
+		long id = vertices.size();
 		for (long i = 0; i < granularity; i++) {
 			for (long j = 0; j < granularity; j++) {
-				long id = i * granularity + j;
+				// check if in corner
+				if ((i == 0 || i == g - 1) &&
+					((j == 0) || (j == granularity - 1)) &&
+					withoutCorners) {
+					continue;
+				}
+
 				// create vertex
 				Vertex vertex = new Vertex(id, (i + 1.5) * shift, (j + 1.5) * shift, Type.ROAD);
 				vertices.put(id, vertex);
@@ -57,83 +79,217 @@ public class SimulationGraph {
 				long gs = g * g;
 
 				// add neighbours ids
-				vertex.addNeighbourID((id - 1) % gs, (id + 1) % gs, (id - g) % g, (id + 1) % g);
+				createSquareGraphAddNeighbours(vertex, withoutCorners);
 
 				// create edges
-				squareGraphCreateEdges(i, j, id);
+				addGraphEdges(id++);
 			}
 		}
+	}
+
+	/**
+	 * Compute neighbour IDs.
+	 *
+	 * @param vertex         Vertex whose neighbours are computed.
+	 * @param withoutCorners Denotes, if The graph is with corners or not.
+	 */
+	private void createSquareGraphAddNeighbours(Vertex vertex, boolean withoutCorners) {
+		long g = granularity,
+			id = vertex.getID(),
+			i = id / granularity,
+			j = id % granularity;
+
+		if (withoutCorners) {
+			int id_offset = id < g - 2 ? 1 : id >= g * (g - 1) - 2 ? 3 : 2;
+			i = (id + id_offset) / g;
+			j = (j + id_offset) % g;
+		}
+		if (i == 0 || i == g - 1) {
+			vertex.addNeighbourID(id + (i == 0 ? g : -g) + (withoutCorners ? 1 : 0));
+			if (j > (withoutCorners ? 1 : 0)) {
+				vertex.addNeighbourID(id - 1);
+			}
+			if (j < (withoutCorners ? g - 1 : g)) {
+				vertex.addNeighbourID(id + 1);
+			}
+		} else if (j == 0 || j == g - 1) {
+			vertex.addNeighbourID(id + (j == 0 ? 1 : -1));
+			if (!withoutCorners) {
+				vertex.addNeighbourID(id - g, id + g);
+			} else {
+				if (i > 1) {
+					vertex.addNeighbourID(id - g);
+				}
+				if (i < g - 2) {
+					vertex.addNeighbourID(id + g);
+				}
+			}
+		} else {
+			if (withoutCorners) {
+				vertex.addNeighbourID(id - 1, id + 1, id - g + (i == 1 ? 1 : 0), id + g - (i == g - 2 ? 1 : 0));
+			} else {
+				vertex.addNeighbourID(id - 1, id + 1, id - g, id + g);
+			}
+		}
+	}
+
+	/**
+	 * Create entries and exits vertices with edges connecting them to graph.
+	 *
+	 * @param entries        Number of entries.
+	 * @param exits          Number of exits.
+	 * @param shift          distance between 2 neighbour vertices.
+	 * @param withoutCorners Denotes, if The graph is with corners or not.
+	 */
+	private void createSquareGraphEntryVertices(long entries, long exits, double shift, boolean withoutCorners) {
+		assert (entries + exits <= granularity - (withoutCorners ? 2 : 0));
 
 		// compute outer empty spaces
 		long empty = granularity - entries - exits,
 			padding = empty / 3,
 			index = empty % 3 == 2 ? ++padding + 1 : padding + 1,
-			id = granularity * granularity;
+			id = vertices.size();
 
 		// draw all of the entries
-		double topX = (index + 0.5) * shift,
-			topY = shift * 0.5,
-			botX = (granularity - index + 1.5) * shift,
-			botY = (granularity + 1 + 0.5) * shift;
-
-		squareGraphCreateEntries(entries, shift, topX, topY, botX, botY, index, Type.ENTRY);
+		createSquareGraphEntries(entries, shift, index, withoutCorners, true);
 		index += entries;
 
 		// skip middle empty space
 		index += empty - 2 * padding;
 
 		// draw all of the exits
-		topX = (index + 0.5) * shift;
-		botX = (granularity - index + 1.5) * shift;
-		squareGraphCreateEntries(exits, shift, topX, topY, botX, botY, index, Type.EXIT);
+		createSquareGraphEntries(exits, shift, index, withoutCorners, false);
 	}
 
 	/**
-	 * Create edges to neighbours with lower IDs for vertex at specified coordinations.
+	 * Create entries / exits from all sides at specified location.
 	 *
-	 * @param i  Number of vertex in row (X).
-	 * @param j  Number of vertex in column (Y).
-	 * @param id ID of the vertex.
+	 * @param entries        Number of entries on one side.
+	 * @param shift          Distance between 2 vertices.
+	 * @param index          Number of square from side where entries should be created from.
+	 * @param withoutCorners Denotes, if The graph is with corners or not.
+	 * @param entry          Define if creating entries or exits.
 	 */
-	private void squareGraphCreateEdges(long i, long j, long id) {
-		Vertex vertex = vertices.get(id);
-		if (i > 0) {
-			edges.add(new Edge(vertex, vertices.get(id - granularity)));
-			// if last row
-			if (i == this.granularity - 1) {
-				edges.add(new Edge(vertex, vertices.get(j)));
-			}
-		}
-		if (j > 0) {
-			edges.add(new Edge(vertex, vertices.get(id - 1)));
-			if (j == this.granularity - 1) {
-				edges.add(new Edge(vertex, vertices.get(i * this.granularity)));
-			}
-		}
-	}
+	private void createSquareGraphEntries(long entries, double shift, long index, boolean withoutCorners, boolean entry) {
+		double topX = (index + 0.5) * shift,
+			topY = shift * 0.5,
+			botX = (granularity - index + 1.5) * shift,
+			botY = (granularity + 1 + 0.5) * shift;
 
-	private void squareGraphCreateEntries(long entries, double shift, double topX, double topY, double botX, double botY, long index, Type type) {
+		// find first unused id
 		long id = vertices.size();
 
 		for (int i = 0; i < entries; i++) {
-			Vertex vTop = new Vertex(id++, topX, topY, type),
-				vBot = new Vertex(id++, botX, botY, type),
-				vLeft = new Vertex(id++, topY, botX, type),
-				vRight = new Vertex(id++, botY, topX, type);
+			// create vertices
+			Vertex vTop = new Vertex(id++, topX, topY, entry ? Type.ENTRY0 : Type.EXIT0),
+				vBot = new Vertex(id++, botX, botY, entry ? Type.ENTRY1 : Type.EXIT1),
+				vLeft = new Vertex(id++, topY, botX, entry ? Type.ENTRY2 : Type.EXIT2),
+				vRight = new Vertex(id++, botY, topX, entry ? Type.ENTRY3 : Type.EXIT3);
 
 			vertices.put(vTop.getID(), vTop);
 			vertices.put(vBot.getID(), vBot);
 			vertices.put(vLeft.getID(), vLeft);
 			vertices.put(vRight.getID(), vRight);
 
-			edges.add(new Edge(vTop, vertices.get((index - 1) * granularity)));
-			edges.add(new Edge(vBot, vertices.get((granularity + 1 - index) * granularity - 1)));
-			edges.add(new Edge(vLeft, vertices.get(granularity - index)));
-			edges.add(new Edge(vRight, vertices.get((granularity - 1) * granularity + index - 1)));
+			// create edges
+			Vertex topN = vertices.get((index - 1) * granularity - (withoutCorners ? 2 : 0)),
+				botN = vertices.get((granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)),
+				leftN = vertices.get(granularity - index - (withoutCorners ? 1 : 0)),
+				rightN = vertices.get((granularity - 1) * granularity + index - (withoutCorners ? 4 : 1));
+			assert (topN != null && botN != null && leftN != null && rightN != null);
+			edges.add(new Edge(vTop, topN));
+			edges.add(new Edge(vBot, botN));
+			edges.add(new Edge(vLeft, leftN));
+			edges.add(new Edge(vRight, rightN));
 
 			index++;
 			topX += shift;
 			botX -= shift;
+		}
+	}
+
+	/**
+	 * Create graph for octagonal model.
+	 * First of all create grid vertices (like in square model), then the in between vertices and finally entries and exits.
+	 *
+	 * @param entries Number of entries.
+	 * @param exits   Number of exits.
+	 */
+	private void createOctagonalGraph(long entries, long exits) {
+		double height = IntersectionGraph.getPreferredHeight(),
+			shift = height / (granularity + 2);
+
+		// create main grid
+		createSquareGraphVertices(shift, true);
+
+		long id = vertices.size();
+
+		// create first column
+		for (long j = 0; j < granularity - 1; j++, id++) {
+			Vertex v = new Vertex(id, 2 * shift, (j + 2) * shift, Type.ROAD);
+
+			long rightTopNeighbourID = granularity - 2 + j;
+			v.addNeighbourID(rightTopNeighbourID, rightTopNeighbourID + 1);
+			if (j > 0) {
+				v.addNeighbourID(j - 1);
+			}
+			if (j < granularity - 2) {
+				v.addNeighbourID(j);
+			}
+
+			vertices.put(id, v);
+			addGraphEdges(id);
+		}
+
+		// create vertices in second, ..., last but one column
+		for (long i = 1; i < granularity - 2; i++) {
+			for (long j = 0; j < granularity - 1; j++, id++) {
+				Vertex v = new Vertex(id, (i + 2) * shift, (j + 2) * shift, Type.ROAD);
+
+				long leftTopNeighbourID = i * granularity - 2 + j;
+				long rightTopNeighbourID = leftTopNeighbourID + granularity;
+				v.addNeighbourID(leftTopNeighbourID, leftTopNeighbourID + 1, rightTopNeighbourID, rightTopNeighbourID + 1);
+
+				vertices.put(id, v);
+				addGraphEdges(id);
+			}
+		}
+
+		// create last column
+		long lastColumnIDStartMinusTwo = (granularity - 1) * granularity - 2,
+			lastButOneColumnIDStartMinusTwo = lastColumnIDStartMinusTwo - granularity;
+		for (long j = 0; j < granularity - 1; j++, id++) {
+			Vertex v = new Vertex(id, granularity * shift, (j + 2) * shift, Type.ROAD);
+
+			long leftTopNeighbourID = lastButOneColumnIDStartMinusTwo + j;
+			v.addNeighbourID(leftTopNeighbourID, leftTopNeighbourID + 1);
+			if (j > 0) {
+				v.addNeighbourID(lastColumnIDStartMinusTwo + j - 1);
+			}
+			if (j < granularity - 2) {
+				v.addNeighbourID(lastColumnIDStartMinusTwo + j);
+			}
+
+			vertices.put(id, v);
+			addGraphEdges(id);
+		}
+
+		createSquareGraphEntryVertices(entries, exits, shift, true);
+	}
+
+	/**
+	 * Create edges to neighbours with lower IDs.
+	 *
+	 * @param id ID of the vertex.
+	 */
+	private void addGraphEdges(long id) {
+		Vertex vertex = vertices.get(id);
+		for (Long neighbourID : vertex.getNeighbour_ids()) {
+			if (neighbourID < id) {
+				Vertex neighbour = vertices.get(neighbourID);
+				assert (neighbour != null);
+				edges.add(new Edge(vertex, neighbour));
+			}
 		}
 	}
 
@@ -151,10 +307,16 @@ public class SimulationGraph {
 		return edges;
 	}
 
+	/**
+	 * @return Granularity of the graph.
+	 */
 	public long getGranularity() {
 		return granularity;
 	}
 
+	/**
+	 * @return Model Type of the graph.
+	 */
 	public Parameters.Models getModel() {
 		return model;
 	}
