@@ -26,8 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.OCTAGONAL;
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.SQUARE;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.*;
 
 
 public class IntersectionGraph extends Pane {
@@ -302,41 +301,71 @@ public class IntersectionGraph extends Pane {
 	 * @param exits       Number of exits.
 	 */
 	private void drawHexagonalModel(long granularity, long entries, long exits) {
+		graph = new SimulationGraph(granularity, HEXAGONAL, entries, exits);
 		getChildren().clear();
 
-		// TODO udelat velikost a dokumentaci poradne
-		double height = preferredHeight, shift = height / (2 * granularity + 1);
+		// TODO udelat velikost poradne
+
+		if (IntersectionMenu.isAbstract()) {
+			double height = preferredHeight, shift = height / (2 * granularity);
+			for (Edge e : graph.getEdges()) {
+				Vertex u = (Vertex) e.getU(),
+					v = (Vertex) e.getV();
+				Line l = new Line(u.getX(), u.getY(), v.getX(), v.getY());
+				getChildren().add(l);
+			}
+			for (Vertex v : graph.getVertices()) {
+				Circle c = new Circle(shift * VERTEX_RATIO, v.getType().getColor());
+				Text t = new Text(String.valueOf(v.getID()));
+				t.setBoundsType(TextBoundsType.VISUAL);
+				StackPane stack = new StackPane(c, t);
+				stack.setLayoutX(v.getX() - shift * VERTEX_RATIO);
+				stack.setLayoutY(v.getY() - shift * VERTEX_RATIO);
+				getChildren().add(stack);
+			}
+		} else {
+//			for (Vertex v : graph.getVertices()) {
+//				drawSquare(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
+//			}
+//		}
 
 
-		double edgeLength = Math.sqrt(3) * shift / 3;
-		double sidePadding = (height - edgeLength * (3 * granularity - 2)) / 2;
-		for (int i = 0; i < granularity; i++) {
-			double x = sidePadding,
-				y = (granularity / 2. + i + 0.5) * shift;
-			for (int j = 0; j < i + granularity; j++, x += edgeLength * 1.5, y -= shift / 2) {
-				if (IntersectionMenu.isAbstract()) {
-					drawAbstractHexagon(shift, edgeLength, x, y, j < i + granularity - 1, i < granularity - 1 || j < i + granularity - 1, j > 1 || i < granularity - 1);
-				} else {
-					drawRealHexagon(shift, edgeLength, x, y);
+//		getChildren().clear();
+//
+//		// TODO udelat velikost a dokumentaci poradne
+			double height = preferredHeight, shift = height / (2 * granularity + 1);
+
+
+			double edgeLength = Math.sqrt(3) * shift / 3;
+			double sidePadding = (height - edgeLength * (3 * granularity - 2)) / 2;
+			for (int i = 0; i < granularity; i++) {
+				double x = sidePadding,
+					y = (granularity / 2. + i + 0.5) * shift;
+				for (int j = 0; j < i + granularity; j++, x += edgeLength * 1.5, y -= shift / 2) {
+					if (IntersectionMenu.isAbstract()) {
+						drawAbstractHexagon(shift, edgeLength, x, y, j < i + granularity - 1, i < granularity - 1 || j < i + granularity - 1, j > 1 || i < granularity - 1);
+					} else {
+						drawRealHexagon(shift, edgeLength, x, y);
+					}
 				}
 			}
-		}
 
-		for (int i = 1; i < granularity; i++) {
-			double x = sidePadding + 1.5 * i * edgeLength,
-				y = (granularity * 3 + i - 1) * shift / 2;
-			for (int j = 0; j < granularity * 2 - i - 1; j++, x += edgeLength * 1.5, y -= shift / 2) {
-				if (IntersectionMenu.isAbstract()) {
-					drawAbstractHexagon(shift, edgeLength, x, y, j < granularity * 2 - i - 2, j < granularity * 2 - i - 2 && i < granularity - 1, i < granularity - 1 && j > 0);
-				} else {
-					drawRealHexagon(shift, edgeLength, x, y);
+			for (int i = 1; i < granularity; i++) {
+				double x = sidePadding + 1.5 * i * edgeLength,
+					y = (granularity * 3 + i - 1) * shift / 2;
+				for (int j = 0; j < granularity * 2 - i - 1; j++, x += edgeLength * 1.5, y -= shift / 2) {
+					if (IntersectionMenu.isAbstract()) {
+						drawAbstractHexagon(shift, edgeLength, x, y, j < granularity * 2 - i - 2, j < granularity * 2 - i - 2 && i < granularity - 1, i < granularity - 1 && j > 0);
+					} else {
+						drawRealHexagon(shift, edgeLength, x, y);
+					}
 				}
 			}
+
+			drawRealHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding);
 		}
-
-		drawRealHexagonalEntriesAndExits(granularity, entries, exits, shift, edgeLength, sidePadding);
-
-		drawBackground(height);
+//
+//		drawBackground(height);
 	}
 
 	/**

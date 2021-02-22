@@ -14,13 +14,24 @@ public class Vertex {
 	private final Type type;
 
 	/**
-	 * Create vertex with special ID.
+	 * Create vertex with specified ID and type.
 	 *
-	 * @param id Desired ID of the vertex.
+	 * @param id   Desired ID of the vertex.
+	 * @param type Desired type of the vertex.
 	 */
 	public Vertex(long id, Type type) {
 		this.id = id;
 		this.type = type;
+	}
+
+	/**
+	 * Create vertex with specified ID and road type.
+	 *
+	 * @param id Desired ID of the vertex.
+	 */
+	public Vertex(long id) {
+		this.id = id;
+		this.type = Type.ROAD;
 	}
 
 	/**

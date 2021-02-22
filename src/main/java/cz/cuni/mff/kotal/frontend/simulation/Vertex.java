@@ -17,6 +17,12 @@ public class Vertex extends cz.cuni.mff.kotal.simulation.graph.Vertex {
 		this.y = y;
 	}
 
+	public Vertex(long id, double x, double y) {
+		super(id);
+		this.x = x;
+		this.y = y;
+	}
+
 	public boolean addNeighbourID(Long... ids) {
 		if (ids.length == 1) {
 			return neighbour_ids.add(ids[0]);
@@ -32,7 +38,7 @@ public class Vertex extends cz.cuni.mff.kotal.simulation.graph.Vertex {
 		return y;
 	}
 
-	public Set<Long> getNeighbour_ids() {
+	public Set<Long> getNeighbourIDs() {
 		return neighbour_ids;
 	}
 }
