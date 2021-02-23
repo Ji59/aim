@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.frontend.simulation.Vertex;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
@@ -20,9 +21,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
 
-import java.util.Arrays;
-
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.*;
+import java.lang.reflect.GenericArrayType;
+import java.util.*;
 
 
 public class IntersectionModel extends Pane {
@@ -32,6 +32,10 @@ public class IntersectionModel extends Pane {
 
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
+	private static List<Node> nodes = new ArrayList<>();
+	private static final Map<SimulationGraph, List<Node>> createdGraphs = new HashMap<>();
+	private static final Stack<SimulationGraph> historyPrevious = new Stack<>(),
+		historyNext = new Stack<>();
 
 
 	/**
@@ -44,7 +48,6 @@ public class IntersectionModel extends Pane {
 		setPrefWidth(height);
 		setPrefHeight(height);
 		preferredHeight = height;
-
 		drawBackground(height);
 	}
 
@@ -58,7 +61,7 @@ public class IntersectionModel extends Pane {
 			Vertex u = (Vertex) e.getU(),
 				v = (Vertex) e.getV();
 			Line l = new Line(u.getX(), u.getY(), v.getX(), v.getY());
-			getChildren().add(l);
+			nodes.add(l);
 		}
 		for (Vertex v : graph.getVertices()) {
 			Circle c = new Circle(shift * VERTEX_RATIO, v.getType().getColor());
@@ -67,7 +70,7 @@ public class IntersectionModel extends Pane {
 			StackPane stack = new StackPane(c, t);
 			stack.setLayoutX(v.getX() - shift * VERTEX_RATIO);
 			stack.setLayoutY(v.getY() - shift * VERTEX_RATIO);
-			getChildren().add(stack);
+			nodes.add(stack);
 		}
 	}
 
@@ -78,10 +81,7 @@ public class IntersectionModel extends Pane {
 	 * @param entries     Number of entries.
 	 * @param exits       Number of exits.
 	 */
-	private void drawSquareModel(long granularity, long entries, long exits) {
-		graph = new SimulationGraph(granularity, SQUARE, entries, exits);
-		getChildren().clear();
-
+	private Node[] drawSquareModel(long granularity, long entries, long exits) {
 		// TODO udelat velikost poradne
 		double height = preferredHeight, shift = height / (granularity + 2);
 
@@ -92,6 +92,7 @@ public class IntersectionModel extends Pane {
 		} else {
 			drawAbstractModel(shift);
 		}
+		return nodes.toArray(Node[]::new);
 	}
 
 	/**
@@ -102,9 +103,6 @@ public class IntersectionModel extends Pane {
 	 * @param exits       Number of exits.
 	 */
 	private void drawHexagonalModel(long granularity, long entries, long exits) {
-		graph = new SimulationGraph(granularity, HEXAGONAL, entries, exits);
-		getChildren().clear();
-
 		// TODO udelat velikost poradne
 
 		double height = preferredHeight, shift = height / (2 * granularity + 1);
@@ -129,9 +127,6 @@ public class IntersectionModel extends Pane {
 	 * @param exits       Number of exits.
 	 */
 	private void drawOctagonalModel(long granularity, long entries, long exits) {
-		graph = new SimulationGraph(granularity, OCTAGONAL, entries, exits);
-		getChildren().clear();
-
 		// TODO udelat velikost poradne
 		double height = preferredHeight, shift = height / (granularity + 2);
 
@@ -168,7 +163,7 @@ public class IntersectionModel extends Pane {
 		square.setStroke(STROKE_COLOR);
 		square.setX(x - halfSize);
 		square.setY(y - halfSize);
-		getChildren().add(square);
+		nodes.add(square);
 
 		addTextField(x - halfSize, y - halfSize, size, size, text);
 	}
@@ -187,7 +182,7 @@ public class IntersectionModel extends Pane {
 		Rectangle rectangle = new Rectangle(x, y, width, height);
 		rectangle.setStroke(STROKE_COLOR);
 		rectangle.setFill(color);
-		getChildren().add(rectangle);
+		nodes.add(rectangle);
 
 		addTextField(x, y, width, height, text);
 	}
@@ -215,7 +210,7 @@ public class IntersectionModel extends Pane {
 		);
 		hexagon.setFill(color);
 		hexagon.setStroke(STROKE_COLOR);
-		getChildren().add(hexagon);
+		nodes.add(hexagon);
 
 		addTextField(x - 2 * tan30HalfShift, y - shift / 2, 4 * tan30HalfShift, shift, text);
 	}
@@ -246,7 +241,7 @@ public class IntersectionModel extends Pane {
 		);
 		octagon.setFill(color);
 		octagon.setStroke(STROKE_COLOR);
-		getChildren().add(octagon);
+		nodes.add(octagon);
 
 		addTextField(x - halfSize, y - halfSize, size, size, text);
 	}
@@ -272,7 +267,7 @@ public class IntersectionModel extends Pane {
 		);
 		square.setFill(color);
 		square.setStroke(STROKE_COLOR);
-		getChildren().add(square);
+		nodes.add(square);
 
 		addTextField(x - halfSize, y - halfSize, size, size, text);
 	}
@@ -348,7 +343,7 @@ public class IntersectionModel extends Pane {
 		}
 		polygon.setStroke(STROKE_COLOR);
 		polygon.setFill(color);
-		getChildren().add(polygon);
+		nodes.add(polygon);
 
 		// create opposite entry
 		Polygon polygon1 = new Polygon(
@@ -362,7 +357,7 @@ public class IntersectionModel extends Pane {
 		}
 		polygon1.setStroke(STROKE_COLOR);
 		polygon1.setFill(color);
-		getChildren().add(polygon1);
+		nodes.add(polygon1);
 	}
 
 	/**
@@ -394,7 +389,7 @@ public class IntersectionModel extends Pane {
 		rectangle.setY(yLocation);
 		rectangle.setWidth(width);
 		rectangle.setHeight(height);
-		getChildren().add(rectangle);
+		nodes.add(rectangle);
 
 		// add text
 		addTextField(xLocation, yLocation, width, height, text);
@@ -418,7 +413,7 @@ public class IntersectionModel extends Pane {
 		t.setPrefHeight(height);
 		t.setAlignment(Pos.CENTER);
 		t.setEditable(false);
-		getChildren().add(t);
+		nodes.add(t);
 	}
 
 	/**
@@ -426,21 +421,66 @@ public class IntersectionModel extends Pane {
 	 */
 	public void redraw() {
 		long granularity = IntersectionMenuTab0.getGranularity().getValue(), entries = IntersectionMenuTab0.getEntries().getValue(), exits = IntersectionMenuTab0.getExits().getValue();
+		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
-		switch (IntersectionMenuTab0.getModel()) {
-			case SQUARE:
-				drawSquareModel(granularity, entries, exits);
-				break;
-			case HEXAGONAL:
-				drawHexagonalModel(granularity, entries, exits);
-				break;
-			case OCTAGONAL:
-				drawOctagonalModel(granularity, entries, exits);
-				break;
-			case CUSTOM:
-				break;
+		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, preferredHeight);
+
+		if (graph != null && preferredHeight != graph.getSize()) {
+			createdGraphs.clear();
+			historyNext.clear();
+			historyPrevious.clear();
+		} else if (!historyPrevious.empty() && historyPrevious.peek().equals(graphAbstract)) {
+			return;
+		} else if (graph != null) {
+			historyPrevious.push(graph);
 		}
+
+		if (createdGraphs.containsKey(graphAbstract)) {
+			getChildren().setAll(createdGraphs.get(graphAbstract));
+		} else {
+			historyNext.clear();
+			graph = new SimulationGraph(granularity, model, entries, exits, preferredHeight);
+			nodes = new ArrayList<>();
+
+			switch (model) {
+				case SQUARE:
+					drawSquareModel(granularity, entries, exits);
+					break;
+				case HEXAGONAL:
+					drawHexagonalModel(granularity, entries, exits);
+					break;
+				case OCTAGONAL:
+					drawOctagonalModel(granularity, entries, exits);
+					break;
+				case CUSTOM:
+					break;
+			}
+
+			createdGraphs.put(graph, nodes);
+			getChildren().setAll(nodes);
+		}
+
 		drawBackground(preferredHeight);
+	}
+
+	public void drawPreviousGraph() {
+		if (!historyPrevious.empty()) {
+			SimulationGraph graphAbstract = historyPrevious.pop();
+			historyNext.push(graph);
+			graph = graphAbstract;
+			getChildren().setAll(createdGraphs.get(graphAbstract));
+			drawBackground(preferredHeight);
+		}
+	}
+
+	public void drawNextGraph() {
+		if (!historyNext.empty()) {
+			SimulationGraph graphAbstract = historyNext.pop();
+			historyPrevious.push(graph);
+			graph = graphAbstract;
+			getChildren().setAll(createdGraphs.get(graphAbstract));
+			drawBackground(preferredHeight);
+		}
 	}
 
 	/**

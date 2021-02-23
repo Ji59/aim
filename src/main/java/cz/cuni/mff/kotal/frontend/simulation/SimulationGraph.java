@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 
@@ -14,31 +13,42 @@ public class SimulationGraph {
 	private final boolean oriented;
 	private final Map<Long, Vertex> vertices;
 	private final Set<Edge> edges;
-	private final long granularity;
+	private final long granularity, entries, exits;
+	private final double size;
 	private final Parameters.Models model;
 
-	public SimulationGraph(long granularity, Parameters.Models model, boolean oriented, Set<Vertex> vertices, Set<Edge> edges) {
+	public SimulationGraph(long granularity, long entries, long exits, Parameters.Models model, boolean oriented, Set<Vertex> vertices, Set<Edge> edges, double size) {
 		this.oriented = oriented;
+		this.size = size;
 		this.vertices = new HashMap<>();
 		this.edges = edges;
 		this.granularity = granularity;
+		this.entries = entries;
+		this.exits = exits;
 		this.model = model;
 
-		vertices.forEach(vertex -> this.vertices.put(vertex.getID(), vertex));
+		if (vertices != null) {
+			vertices.forEach(vertex -> this.vertices.put(vertex.getID(), vertex));
+		}
 	}
 
 	/**
 	 * Create graph for simulation.
+	 *
 	 * @param granularity Granularity of the graph.
-	 * @param model Model type.
-	 * @param entries Number of entries.
-	 * @param exits Number of exits.
+	 * @param model       Model type.
+	 * @param entries     Number of entries.
+	 * @param exits       Number of exits.
+	 * @param size
 	 */
-	public SimulationGraph(long granularity, Parameters.Models model, long entries, long exits) {
+	public SimulationGraph(long granularity, Parameters.Models model, long entries, long exits, double size) {
+		this.size = size;
 		this.oriented = false;
 		this.vertices = new HashMap<>();
 		this.edges = new HashSet<>();
 		this.granularity = granularity;
+		this.entries = entries;
+		this.exits = exits;
 		this.model = model;
 
 		switch (model) {
@@ -55,12 +65,44 @@ public class SimulationGraph {
 	 * @param exits   Number of exits.
 	 */
 	private void createSquareGraph(long entries, long exits) {
-		double height = IntersectionModel.getPreferredHeight(),
-			shift = height / (granularity + 2);
+		double shift = size / (granularity + 2);
 
 		createSquareGraphVertices(shift, false);
 
 		createSquareGraphEntryVertices(entries, exits, shift, false);
+	}
+
+	/**
+	 * Create graph for hexagonal model.
+	 * First of all crate center vertex, then all the other from inside to outside.
+	 *
+	 * @param entries Number of entries.
+	 * @param exits   Number of exits.
+	 */
+	private void createHexagonalGraph(long entries, long exits) {
+		double shift = size / (2 * granularity + 1);
+
+		createHexagonalGraphRoadVertices(shift);
+
+		createHexagonalGraphEntriesExits(entries, exits, shift);
+	}
+
+	/**
+	 * Create graph for octagonal model.
+	 * First of all create grid vertices (like in square model), then the in between vertices and finally entries and exits.
+	 *
+	 * @param entries Number of entries.
+	 * @param exits   Number of exits.
+	 */
+	private void createOctagonalGraph(long entries, long exits) {
+		double shift = size / (granularity + 2);
+
+		// create main grid
+		createSquareGraphVertices(shift, true);
+
+		createOctagonalGraphInBetweenVertices(shift);
+
+		createSquareGraphEntryVertices(entries, exits, shift, true);
 	}
 
 	/**
@@ -222,30 +264,13 @@ public class SimulationGraph {
 	}
 
 	/**
-	 * Create graph for hexagonal model.
-	 * First of all crate center vertex, then all the other from inside to outside.
-	 *
-	 * @param entries Number of entries.
-	 * @param exits   Number of exits.
-	 */
-	private void createHexagonalGraph(long entries, long exits) {
-		double height = IntersectionModel.getPreferredHeight(),
-			shift = height / (2 * granularity + 1);
-
-		createHexagonalGraphRoadVertices(height, shift);
-
-		createHexagonalGraphEntriesExits(entries, exits, height, shift);
-	}
-
-	/**
 	 * Create all roads for hexagonal model.
 	 *
-	 * @param height Size of the graph.
-	 * @param shift  Distance between 2 vertices.
+	 * @param shift Distance between 2 vertices.
 	 */
-	private void createHexagonalGraphRoadVertices(double height, double shift) {
-		double centerX = height / 2,
-			centerY = height / 2;
+	private void createHexagonalGraphRoadVertices(double shift) {
+		double centerX = size / 2,
+			centerY = size / 2;
 
 		// create center vertex
 		long id = vertices.size();
@@ -367,10 +392,9 @@ public class SimulationGraph {
 	 *
 	 * @param entries Number of entries.
 	 * @param exits   Number of exits.
-	 * @param height  Height of the graph.
 	 * @param shift   Distance between 2 vertices.
 	 */
-	private void createHexagonalGraphEntriesExits(long entries, long exits, double height, double shift) {
+	private void createHexagonalGraphEntriesExits(long entries, long exits, double shift) {
 		// compute outer empty spaces
 		long empty = granularity - entries - exits,
 			padding = empty / 3,
@@ -382,11 +406,11 @@ public class SimulationGraph {
 		// draw all of the entries
 		double e0x = shift * (granularity + Math.sqrt(3) * (index - granularity + 1) / 2),
 			e0y = (granularity + 2 - index - Math.sqrt(3)) * shift / 2,     // top left road center
-			e1x = height / 2 + shift * (index * Math.sqrt(3) / 2 + 0.5),
+			e1x = size / 2 + shift * (index * Math.sqrt(3) / 2 + 0.5),
 			e1y = shift * (index / 2. + 1.5 - Math.sqrt(3) / 2),                     // top right road center
 			e5x = shift * (granularity - Math.sqrt(3) * (granularity - 1) / 2 - 0.5),
 			e2y = ((granularity) / 2. + index + 1) * shift;
-		createHexagonalGraphEntries(entries, height, shift, index, id, e0x, e0y, e1x, e1y, e5x, e2y, true);
+		createHexagonalGraphEntries(entries, size, shift, index, id, e0x, e0y, e1x, e1y, e5x, e2y, true);
 
 		// skip middle empty space
 		long middleEmpty = empty % 3 == 2 ? empty - 2 * padding : padding,
@@ -400,7 +424,7 @@ public class SimulationGraph {
 		e1x += indexShift * Math.sqrt(3) * shift / 2;
 		e1y += indexShift * shift / 2;
 		e2y += indexShift * shift;
-		createHexagonalGraphEntries(exits, height, shift, index, id, e0x, e0y, e1x, e1y, e5x, e2y, false);
+		createHexagonalGraphEntries(exits, size, shift, index, id, e0x, e0y, e1x, e1y, e5x, e2y, false);
 	}
 
 	/**
@@ -482,25 +506,6 @@ public class SimulationGraph {
 		vertices.get(id).addNeighbourID(idn);
 		vertices.get(idn).addNeighbourID(id);
 		addGraphEdges(id);
-	}
-
-	/**
-	 * Create graph for octagonal model.
-	 * First of all create grid vertices (like in square model), then the in between vertices and finally entries and exits.
-	 *
-	 * @param entries Number of entries.
-	 * @param exits   Number of exits.
-	 */
-	private void createOctagonalGraph(long entries, long exits) {
-		double height = IntersectionModel.getPreferredHeight(),
-			shift = height / (granularity + 2);
-
-		// create main grid
-		createSquareGraphVertices(shift, true);
-
-		createOctagonalGraphInBetweenVertices(shift);
-
-		createSquareGraphEntryVertices(entries, exits, shift, true);
 	}
 
 	/**
@@ -621,6 +626,31 @@ public class SimulationGraph {
 	}
 
 	/**
+	 * Check if the graph is same as another graph.
+	 * That means they are same model, have same granularity, size and orientation and same number of entries and exits.
+	 *
+	 * @param o Compared object.
+	 * @return True if the object is graph and has same key features.
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		SimulationGraph that = (SimulationGraph) o;
+		return oriented == that.oriented && granularity == that.granularity && entries == that.entries && exits == that.exits && Double.compare(that.size, size) == 0 && model == that.model;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(oriented, granularity, entries, exits, size, model);
+	}
+
+
+	public boolean isOriented() {
+		return oriented;
+	}
+
+	/**
 	 * @return Set of vertices of the graph.
 	 */
 	public Collection<Vertex> getVertices() {
@@ -639,6 +669,18 @@ public class SimulationGraph {
 	 */
 	public long getGranularity() {
 		return granularity;
+	}
+
+	public long getEntries() {
+		return entries;
+	}
+
+	public long getExits() {
+		return exits;
+	}
+
+	public double getSize() {
+		return size;
 	}
 
 	/**
