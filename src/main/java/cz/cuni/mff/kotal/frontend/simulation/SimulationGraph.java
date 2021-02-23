@@ -1,7 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionGraph;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 
@@ -55,7 +55,7 @@ public class SimulationGraph {
 	 * @param exits   Number of exits.
 	 */
 	private void createSquareGraph(long entries, long exits) {
-		double height = IntersectionGraph.getPreferredHeight(),
+		double height = IntersectionModel.getPreferredHeight(),
 			shift = height / (granularity + 2);
 
 		createSquareGraphVertices(shift, false);
@@ -229,7 +229,7 @@ public class SimulationGraph {
 	 * @param exits   Number of exits.
 	 */
 	private void createHexagonalGraph(long entries, long exits) {
-		double height = IntersectionGraph.getPreferredHeight(),
+		double height = IntersectionModel.getPreferredHeight(),
 			shift = height / (2 * granularity + 1);
 
 		createHexagonalGraphRoadVertices(height, shift);
@@ -492,7 +492,7 @@ public class SimulationGraph {
 	 * @param exits   Number of exits.
 	 */
 	private void createOctagonalGraph(long entries, long exits) {
-		double height = IntersectionGraph.getPreferredHeight(),
+		double height = IntersectionModel.getPreferredHeight(),
 			shift = height / (granularity + 2);
 
 		// create main grid

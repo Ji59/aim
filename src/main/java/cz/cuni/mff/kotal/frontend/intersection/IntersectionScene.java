@@ -12,7 +12,7 @@ public class IntersectionScene extends Scene {
 	public static final double PADDING = 15;
 
 	private static final VBox MENU = new IntersectionMenu(PADDING);
-	private static final IntersectionGraph GRAPH = new IntersectionGraph(Screen.getPrimary().getVisualBounds().getHeight());
+	private static final IntersectionModel GRAPH = new IntersectionModel(Screen.getPrimary().getVisualBounds().getHeight());
 	private static final HBox ROOT = new HBox(MENU, GRAPH);
 
 
@@ -28,14 +28,14 @@ public class IntersectionScene extends Scene {
 
 		heightProperty().addListener((observable, oldValue, newValue) -> {
 			double newHeight = Math.min(newValue.doubleValue(), getWidth() - MENU.getMinWidth());
-			IntersectionGraph.setPreferredHeight(newHeight);
+			IntersectionModel.setPreferredHeight(newHeight);
 			MENU.setPrefWidth(getWidth() - newHeight);
 			GRAPH.redraw();
 		});
 
 		widthProperty().addListener((observable, oldValue, newValue) -> {
 			double newHeight = Math.min(getHeight(), newValue.doubleValue() - MENU.getMinWidth());
-			IntersectionGraph.setPreferredHeight(newHeight);
+			IntersectionModel.setPreferredHeight(newHeight);
 			MENU.setPrefWidth(newValue.doubleValue() - newHeight - 1);
 			GRAPH.redraw();
 		});
@@ -77,7 +77,7 @@ public class IntersectionScene extends Scene {
 	 *
 	 * @return Graph constant.
 	 */
-	public static IntersectionGraph getIntersectionGraph() {
+	public static IntersectionModel getIntersectionGraph() {
 		return GRAPH;
 	}
 
