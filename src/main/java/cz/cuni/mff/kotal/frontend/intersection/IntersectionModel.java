@@ -418,26 +418,29 @@ public class IntersectionModel extends Pane {
 
 	/**
 	 * Redraw graph based on selected properties in menu window.
+	 * If the graph was not changed, do nothing.
 	 */
 	public void redraw() {
+		// get graph properties
 		long granularity = IntersectionMenuTab0.getGranularity().getValue(), entries = IntersectionMenuTab0.getEntries().getValue(), exits = IntersectionMenuTab0.getExits().getValue();
 		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
+		// create graph with key properties set
 		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, preferredHeight);
 
-		if (graph != null && preferredHeight != graph.getSize()) {
+		if (graph != null && preferredHeight != graph.getSize()) { // if size of the model changed, discard all saved graphs
 			createdGraphs.clear();
 			historyNext.clear();
 			historyPrevious.clear();
-		} else if (!historyPrevious.empty() && historyPrevious.peek().equals(graphAbstract)) {
+		} else if (!historyPrevious.empty() && graph.equals(graphAbstract)) { // if last graph is the same, return
 			return;
-		} else if (graph != null) {
+		} else if (graph != null) { // else add graph to previous stack
 			historyPrevious.push(graph);
 		}
 
-		if (createdGraphs.containsKey(graphAbstract)) {
+		if (createdGraphs.containsKey(graphAbstract)) { // if graph already exists and model objects already exist
 			getChildren().setAll(createdGraphs.get(graphAbstract));
-		} else {
+		} else { // create new graph and all the model nodes.
 			historyNext.clear();
 			graph = new SimulationGraph(granularity, model, entries, exits, preferredHeight);
 			nodes = new ArrayList<>();
@@ -463,6 +466,9 @@ public class IntersectionModel extends Pane {
 		drawBackground(preferredHeight);
 	}
 
+	/**
+	 * Draw last saved different model.
+	 */
 	public void drawPreviousGraph() {
 		if (!historyPrevious.empty()) {
 			SimulationGraph graphAbstract = historyPrevious.pop();
@@ -473,6 +479,9 @@ public class IntersectionModel extends Pane {
 		}
 	}
 
+	/**
+	 * Draw first graph created after the current.
+	 */
 	public void drawNextGraph() {
 		if (!historyNext.empty()) {
 			SimulationGraph graphAbstract = historyNext.pop();
@@ -510,5 +519,12 @@ public class IntersectionModel extends Pane {
 	 */
 	public static void setPreferredHeight(double preferredHeight) {
 		IntersectionModel.preferredHeight = preferredHeight;
+	}
+
+	/**
+	 * @return Currently shown graph.
+	 */
+	public static SimulationGraph getGraph() {
+		return graph;
 	}
 }
