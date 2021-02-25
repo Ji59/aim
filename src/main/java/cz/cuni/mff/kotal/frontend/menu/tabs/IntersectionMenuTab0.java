@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
@@ -141,6 +142,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		granularity.setValue(graph.getGranularity());
 		entries.setValue(graph.getEntries());
 		exits.setValue(graph.getExits());
+		IntersectionMenu.setAbstractMode(graph.isAbstractGraph());
 	}
 
 	private void setSlidersDisable(boolean b) {

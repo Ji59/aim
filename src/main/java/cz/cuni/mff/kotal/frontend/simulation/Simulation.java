@@ -8,20 +8,17 @@ import cz.cuni.mff.kotal.simulation.graph.Graph;
 import java.math.BigInteger;
 import java.util.*;
 
-public class Simulation {
-   private final Graph intersectionGraph;
-   private final Queue<Event> heap = new PriorityQueue<>();
-   private final Set<Agent> agents = new HashSet<>();
+public class Simulation extends cz.cuni.mff.kotal.simulation.Simulation {
 
    Simulation(Graph intersectionGraph) {
-      this.intersectionGraph = intersectionGraph;
+      super(intersectionGraph);
    }
 
    private boolean collisionCheck() {
       List<Path> paths = new ArrayList<>();
       Map<Agent, Event> agentEventMap = new HashMap<>();
 
-      Event e = new EventOnWay(Action.COLLISION, BigInteger.ONE, new Agent(5, 1, 5, 4, 8, null, null), null);
+      Event e = new EventOnWay(Action.COLLISION, 1, new Agent(5, 1, 5, 4, 8, null, 0, 0), 0, 0);
 
       Set<Agent> agentsTemp = new HashSet<>(agents);
 
@@ -44,8 +41,8 @@ public class Simulation {
 
          assert agentEvent instanceof EventOnWay;
 
-         Vertex from = (Vertex) ((EventOnWay) agentEvent).getEdge().getU(),
-            to = (Vertex) ((EventOnWay) agentEvent).getEdge().getV();
+         Vertex from = (Vertex) intersectionGraph.getVertices().stream().filter(v -> v.getID() == ((EventOnWay) agentEvent).getFromID()).findFirst().orElse(null),
+            to = (Vertex) intersectionGraph.getVertices().stream().filter(v -> v.getID() == ((EventOnWay) agentEvent).getToID()).findFirst().orElse(null);
          paths.add(new Path(agent, new Point(from.getX(), from.getY()), new Point(to.getX(), to.getY())));
       }
 

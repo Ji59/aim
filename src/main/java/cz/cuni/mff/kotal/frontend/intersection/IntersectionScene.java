@@ -1,9 +1,11 @@
 package cz.cuni.mff.kotal.frontend.intersection;
 
 
+import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 
@@ -13,7 +15,8 @@ public class IntersectionScene extends Scene {
 
 	private static final VBox MENU = new IntersectionMenu(PADDING);
 	private static final IntersectionModel GRAPH = new IntersectionModel(Screen.getPrimary().getVisualBounds().getHeight());
-	private static final HBox ROOT = new HBox(MENU, GRAPH);
+	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight());
+	private static final HBox ROOT = new HBox(MENU, new StackPane(GRAPH, AGENTS));
 
 
 	/**

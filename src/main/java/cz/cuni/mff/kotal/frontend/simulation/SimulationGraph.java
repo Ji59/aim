@@ -16,8 +16,9 @@ public class SimulationGraph {
 	private final long granularity, entries, exits;
 	private final double size;
 	private final Parameters.Models model;
+	private final boolean abstractGraph;
 
-	public SimulationGraph(long granularity, long entries, long exits, Parameters.Models model, boolean oriented, Set<Vertex> vertices, Set<Edge> edges, double size) {
+	public SimulationGraph(long granularity, long entries, long exits, Parameters.Models model, boolean oriented, Set<Vertex> vertices, Set<Edge> edges, double size, boolean abstractGraph) {
 		this.oriented = oriented;
 		this.size = size;
 		this.vertices = new HashMap<>();
@@ -26,6 +27,7 @@ public class SimulationGraph {
 		this.entries = entries;
 		this.exits = exits;
 		this.model = model;
+		this.abstractGraph = abstractGraph;
 
 		if (vertices != null) {
 			vertices.forEach(vertex -> this.vertices.put(vertex.getID(), vertex));
@@ -35,13 +37,14 @@ public class SimulationGraph {
 	/**
 	 * Create graph for simulation.
 	 *
-	 * @param granularity Granularity of the graph.
-	 * @param model       Model type.
-	 * @param entries     Number of entries.
-	 * @param exits       Number of exits.
+	 * @param granularity   Granularity of the graph.
+	 * @param model         Model type.
+	 * @param entries       Number of entries.
+	 * @param exits         Number of exits.
 	 * @param size
+	 * @param abstractGraph
 	 */
-	public SimulationGraph(long granularity, Parameters.Models model, long entries, long exits, double size) {
+	public SimulationGraph(long granularity, Parameters.Models model, long entries, long exits, double size, boolean abstractGraph) {
 		this.size = size;
 		this.oriented = false;
 		this.vertices = new HashMap<>();
@@ -50,6 +53,7 @@ public class SimulationGraph {
 		this.entries = entries;
 		this.exits = exits;
 		this.model = model;
+		this.abstractGraph = abstractGraph;
 
 		switch (model) {
 			case SQUARE -> createSquareGraph(entries, exits);
@@ -636,13 +640,13 @@ public class SimulationGraph {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		SimulationGraph that = (SimulationGraph) o;
-		return oriented == that.oriented && granularity == that.granularity && entries == that.entries && exits == that.exits && Double.compare(that.size, size) == 0 && model == that.model;
+		SimulationGraph graph = (SimulationGraph) o;
+		return oriented == graph.oriented && granularity == graph.granularity && entries == graph.entries && exits == graph.exits && Double.compare(graph.size, size) == 0 && abstractGraph == graph.abstractGraph && model == graph.model;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(oriented, granularity, entries, exits, size, model);
+		return Objects.hash(oriented, granularity, entries, exits, size, model, abstractGraph);
 	}
 
 
@@ -688,5 +692,9 @@ public class SimulationGraph {
 	 */
 	public Parameters.Models getModel() {
 		return model;
+	}
+
+	public boolean isAbstractGraph() {
+		return abstractGraph;
 	}
 }

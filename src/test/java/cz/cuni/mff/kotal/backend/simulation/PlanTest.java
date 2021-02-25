@@ -12,7 +12,7 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import static cz.cuni.mff.kotal.simulation.event.Action.*;
-import static org.junit.jupiter.api.Assertions.*;
+
 
 class PlanTest {
 
@@ -20,18 +20,18 @@ class PlanTest {
    public void testHeap() {
       Vertex v = new Vertex(0);
       Edge e = new Edge(v, v, null);
-      Agent a = new Agent(0), a1 = new Agent(1);
+      Agent a = new Agent(0,0, 0), a1 = new Agent(1, 0, 0);
 
       Plan s = new Plan();
-      s.getHeap().add(new EventArrivalLeaving(LEAVING, BigInteger.ONE, a, v));          // 5
-      s.getHeap().add(new EventArrivalLeaving(ARRIVAL, BigInteger.ZERO, a, v));         // 2
-      s.getHeap().add(new EventOnWay(ON_WAY, BigInteger.TWO, a, e));                   // 8
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.TWO, a1, a, e));          // 6
-      s.getHeap().add(new EventOnWay(ON_WAY, BigInteger.ZERO, a, e));                  // 1
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ZERO, a1, a, e));         // 0
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ONE, a, a1, e));          // 3
-      s.getHeap().add(new EventCollision(COLLISION, BigInteger.ONE, a, a1, e));          // 4
-      s.getHeap().add(new EventArrivalLeaving(LEAVING, BigInteger.TWO, a, v));        // 7
+      s.getHeap().add(new EventArrivalLeaving(LEAVING, 1, a, 0));          // 5
+      s.getHeap().add(new EventArrivalLeaving(ARRIVAL, 0, a, 0));         // 2
+      s.getHeap().add(new EventOnWay(ON_WAY, 2, a, 0, 0));                   // 8
+      s.getHeap().add(new EventCollision(COLLISION, 2, a1, a, e));          // 6
+      s.getHeap().add(new EventOnWay(ON_WAY, 0, a, 0, 0));                  // 1
+      s.getHeap().add(new EventCollision(COLLISION, 0, a1, a, e));         // 0
+      s.getHeap().add(new EventCollision(COLLISION, 1, a, a1, e));          // 3
+      s.getHeap().add(new EventCollision(COLLISION, 1, a, a1, e));          // 4
+      s.getHeap().add(new EventArrivalLeaving(LEAVING, 2, a, 0));        // 7
 
       assert s.getHeap().size() == 9;
       assert Objects.requireNonNull(s.getHeap().poll()).getAction() == COLLISION;

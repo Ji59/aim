@@ -1,21 +1,31 @@
 package cz.cuni.mff.kotal.simulation.event;
 
 import cz.cuni.mff.kotal.simulation.Agent;
-import cz.cuni.mff.kotal.simulation.graph.Edge;
 
-import java.math.BigInteger;
 
 public class EventOnWay extends Event {
 
-   private final Edge edge;
+   private final long fromID,
+     toID;
 
-   public EventOnWay(Action action, BigInteger time, Agent agent, Edge edge) {
+   public EventOnWay(Action action, double time, Agent agent, long fromID, long toID) {
       super(action, time, agent);
+      this.fromID = fromID;
+      this.toID = toID;
       assert action == Action.ON_WAY;
-      this.edge = edge;
    }
 
-   public Edge getEdge() {
-      return edge;
+   public EventOnWay(double time, Agent agent, long fromID, long toID) {
+      super(Action.ON_WAY, time, agent);
+      this.fromID = fromID;
+      this.toID = toID;
+   }
+
+   public long getFromID() {
+      return fromID;
+   }
+
+   public long getToID() {
+      return toID;
    }
 }

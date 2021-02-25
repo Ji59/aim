@@ -1,20 +1,18 @@
 package cz.cuni.mff.kotal.simulation.event;
 
 import cz.cuni.mff.kotal.simulation.Agent;
-import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
-import java.math.BigInteger;
 
 public class EventArrivalLeaving extends Event {
-   private final Vertex vertex;
+   private final long vertexID;
 
-   public EventArrivalLeaving(Action action, BigInteger time, Agent agent, Vertex vertex) {
+   public EventArrivalLeaving(Action action, double time, Agent agent, long vertexID) {
       super(action, time, agent);
       assert action == Action.ARRIVAL || action == Action.LEAVING;
-      this.vertex = vertex;
+      this.vertexID = vertexID;
    }
 
-   public Vertex getVertex() {
-      return vertex;
+   public long getVertexID() {
+      return vertexID;
    }
 }

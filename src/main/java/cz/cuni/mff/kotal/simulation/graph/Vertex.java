@@ -3,15 +3,31 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 import javafx.scene.paint.Color;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 
 public class Vertex {
 	private static final Color ENTRY_COLOR = Color.LIGHTSLATEGRAY;
 	private static final Color EXIT_COLOR = Color.GRAY;
 
-	private final long id;
-	private final Type type;
+	protected final long id;
+	protected final Type type;
+	protected final Set<Long> neighbour_ids = new HashSet<>();
+
+	/**
+	 * Create vertex with specified ID and type.
+	 *
+	 * @param id   Desired ID of the vertex.
+	 * @param type Desired type of the vertex.
+	 */
+	public Vertex(long id, Type type, Set<Long> neighbourIDs) {
+		this.id = id;
+		this.type = type;
+		this.getNeighbourIDs().addAll(neighbourIDs);
+	}
 
 	/**
 	 * Create vertex with specified ID and type.
@@ -34,18 +50,11 @@ public class Vertex {
 		this.type = Type.ROAD;
 	}
 
-	/**
-	 * @return ID of the vertex.
-	 */
-	public long getID() {
-		return id;
-	}
-
-	/**
-	 * @return Type of the vertex.
-	 */
-	public Type getType() {
-		return type;
+	public boolean addNeighbourID(Long... ids) {
+		if (ids.length == 1) {
+			return neighbour_ids.add(ids[0]);
+		}
+		return neighbour_ids.addAll(Arrays.asList(ids));
 	}
 
 	/**
@@ -68,6 +77,24 @@ public class Vertex {
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);
+	}
+
+	/**
+	 * @return ID of the vertex.
+	 */
+	public long getID() {
+		return id;
+	}
+
+	/**
+	 * @return Type of the vertex.
+	 */
+	public Type getType() {
+		return type;
+	}
+
+	public Set<Long> getNeighbourIDs() {
+		return neighbour_ids;
 	}
 
 	public enum Type {

@@ -21,7 +21,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
 
-import java.lang.reflect.GenericArrayType;
 import java.util.*;
 
 
@@ -426,7 +425,7 @@ public class IntersectionModel extends Pane {
 		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
-		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, preferredHeight);
+		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, preferredHeight, IntersectionMenu.isAbstract());
 
 		if (graph != null && preferredHeight != graph.getSize()) { // if size of the model changed, discard all saved graphs
 			createdGraphs.clear();
@@ -440,9 +439,10 @@ public class IntersectionModel extends Pane {
 
 		if (createdGraphs.containsKey(graphAbstract)) { // if graph already exists and model objects already exist
 			getChildren().setAll(createdGraphs.get(graphAbstract));
+			graph = graphAbstract;
 		} else { // create new graph and all the model nodes.
 			historyNext.clear();
-			graph = new SimulationGraph(granularity, model, entries, exits, preferredHeight);
+			graph = new SimulationGraph(granularity, model, entries, exits, preferredHeight, IntersectionMenu.isAbstract());
 			nodes = new ArrayList<>();
 
 			switch (model) {
