@@ -4,11 +4,15 @@ package cz.cuni.mff.kotal.frontend.intersection;
 import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
+import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 
 public class IntersectionMenu extends VBox {
@@ -90,7 +94,10 @@ public class IntersectionMenu extends VBox {
 				PLAY_BUTTON.setText("Play");
 			} else {
 				if (AlgorithmMenuTab2.Parameters.Algorithm.BFS.equals(AlgorithmMenuTab2.getAlgorithm())) {
+					SimulationGraph graph = IntersectionModel.getGraph();
+//					Simulation simulation = new Simulation(graph, algortithm);
 					BreadthFirstSearch bfs = new BreadthFirstSearch(null);
+
 				} else {
 					return;
 				}

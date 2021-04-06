@@ -2,36 +2,30 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.simulation.graph.Edge;
+import cz.cuni.mff.kotal.simulation.graph.Graph;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters;
 
 
-public class SimulationGraph {
-	private final boolean oriented;
-	private final Map<Long, Vertex> vertices;
-	private final Set<Edge> edges;
+public class SimulationGraph extends Graph {
 	private final long granularity, entries, exits;
 	private final double size;
 	private final Parameters.Models model;
 	private final boolean abstractGraph;
 
-	public SimulationGraph(long granularity, long entries, long exits, Parameters.Models model, boolean oriented, Set<Vertex> vertices, Set<Edge> edges, double size, boolean abstractGraph) {
-		this.oriented = oriented;
+	public SimulationGraph(long granularity, long entries, long exits, Parameters.Models model, boolean oriented, Set<GraphicalVertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges, double size, boolean abstractGraph) {
+		super(oriented, vertices, entryExitVertices, edges);
 		this.size = size;
-		this.vertices = new HashMap<>();
-		this.edges = edges;
 		this.granularity = granularity;
 		this.entries = entries;
 		this.exits = exits;
 		this.model = model;
 		this.abstractGraph = abstractGraph;
-
-		if (vertices != null) {
-			vertices.forEach(vertex -> this.vertices.put(vertex.getID(), vertex));
-		}
 	}
 
 	/**
@@ -41,19 +35,22 @@ public class SimulationGraph {
 	 * @param model         Model type.
 	 * @param entries       Number of entries.
 	 * @param exits         Number of exits.
-	 * @param size
-	 * @param abstractGraph
+	 * @param size          Size of the graph.
+	 * @param abstractGraph True if the graph model is abstract or real.
 	 */
 	public SimulationGraph(long granularity, Parameters.Models model, long entries, long exits, double size, boolean abstractGraph) {
+		super(false, new HashSet<>(), new HashMap<>(), new HashSet<>());
 		this.size = size;
-		this.oriented = false;
-		this.vertices = new HashMap<>();
-		this.edges = new HashSet<>();
 		this.granularity = granularity;
 		this.entries = entries;
 		this.exits = exits;
 		this.model = model;
 		this.abstractGraph = abstractGraph;
+
+
+		for (int i = 0; i < entries; i++) {
+			entryExitVertices.put(i, new ArrayList<>());
+		}
 
 		switch (model) {
 			case SQUARE -> createSquareGraph(entries, exits);
@@ -127,10 +124,8 @@ public class SimulationGraph {
 				}
 
 				// create vertex
-				Vertex vertex = new Vertex(id, (i + 1.5) * shift, (j + 1.5) * shift);
+				GraphicalVertex vertex = new GraphicalVertex(id, (i + 1.5) * shift, (j + 1.5) * shift);
 				vertices.put(id, vertex);
-
-				long gs = g * g;
 
 				// add neighbours ids
 				createSquareGraphAddNeighbours(vertex, withoutCorners);
@@ -147,7 +142,7 @@ public class SimulationGraph {
 	 * @param vertex         Vertex whose neighbours are computed.
 	 * @param withoutCorners Denotes, if The graph is with corners or not.
 	 */
-	private void createSquareGraphAddNeighbours(Vertex vertex, boolean withoutCorners) {
+	private void createSquareGraphAddNeighbours(GraphicalVertex vertex, boolean withoutCorners) {
 		long g = granularity,
 			id = vertex.getID(),
 			i = id / granularity,
@@ -201,8 +196,7 @@ public class SimulationGraph {
 		// compute outer empty spaces
 		long empty = granularity - entries - exits,
 			padding = empty / 3,
-			index = empty % 3 == 2 ? ++padding + 1 : padding + 1,
-			id = vertices.size();
+			index = empty % 3 == 2 ? ++padding + 1 : padding + 1;
 
 		// draw all of the entries
 		createSquareGraphEntries(entries, shift, index, withoutCorners, true);
@@ -234,22 +228,31 @@ public class SimulationGraph {
 		long id = vertices.size();
 
 		for (int i = 0; i < entries; i++) {
-			// create vertices
-			Vertex topE = new Vertex(id++, topX, topY, entry ? Type.ENTRY0 : Type.EXIT0),
-				bottomE = new Vertex(id++, botX, botY, entry ? Type.ENTRY1 : Type.EXIT1),
-				leftE = new Vertex(id++, topY, botX, entry ? Type.ENTRY2 : Type.EXIT2),
-				rightE = new Vertex(id++, botY, topX, entry ? Type.ENTRY3 : Type.EXIT3);
 
+			// create vertices
+			GraphicalVertex topE = new GraphicalVertex(id++, topX, topY, entry ? Type.ENTRY0 : Type.EXIT0),
+				bottomE = new GraphicalVertex(id++, botX, botY, entry ? Type.ENTRY1 : Type.EXIT1),
+				leftE = new GraphicalVertex(id++, topY, botX, entry ? Type.ENTRY2 : Type.EXIT2),
+				rightE = new GraphicalVertex(id++, botY, topX, entry ? Type.ENTRY3 : Type.EXIT3);
+
+			// add graph vertices
 			vertices.put(topE.getID(), topE);
 			vertices.put(bottomE.getID(), bottomE);
 			vertices.put(leftE.getID(), leftE);
 			vertices.put(rightE.getID(), rightE);
 
+			entryExitVertices.get(0).add(topE);
+			entryExitVertices.get(1).add(bottomE);
+			entryExitVertices.get(2).add(leftE);
+			entryExitVertices.get(3).add(rightE);
+
+
 			// create edges
-			Vertex topN = vertices.get((index - 1) * granularity - (withoutCorners ? 2 : 0)),
+			cz.cuni.mff.kotal.simulation.graph.Vertex topN = vertices.get((index - 1) * granularity - (withoutCorners ? 2 : 0)),
 				bottomN = vertices.get((granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)),
 				leftN = vertices.get(granularity - index - (withoutCorners ? 1 : 0)),
 				rightN = vertices.get((granularity - 1) * granularity + index - (withoutCorners ? 4 : 1));
+			// TODO solve accessing entry from intersection
 			assert (topN != null && bottomN != null && leftN != null && rightN != null);
 			topN.getNeighbourIDs().add(topE.getID());
 			bottomN.getNeighbourIDs().add(bottomE.getID());
@@ -278,7 +281,7 @@ public class SimulationGraph {
 
 		// create center vertex
 		long id = vertices.size();
-		Vertex v = new Vertex(id++, centerX, centerY);
+		GraphicalVertex v = new GraphicalVertex(id++, centerX, centerY);
 		v.addNeighbourID(1L, 2L, 3L, 4L, 5L, 6L);
 		vertices.put(0L, v);
 
@@ -355,7 +358,7 @@ public class SimulationGraph {
 	 */
 	private void createHexagonalGraphEdgeVertices(long i, long j, boolean notLast, long id, double x, double y, int side) {
 		// create vertex
-		Vertex v = new Vertex(id, x, y);
+		GraphicalVertex v = new GraphicalVertex(id, x, y);
 
 		// add neighbour IDs
 		long previousLayerNeighbour = id - (i - 1) * 6 - side;
@@ -387,7 +390,7 @@ public class SimulationGraph {
 		}
 
 		// add vertex to vertices map
-		Vertex last1 = vertices.put(id, v);
+		cz.cuni.mff.kotal.simulation.graph.Vertex last1 = vertices.put(id, v);
 		assert (last1 == null);
 	}
 
@@ -404,7 +407,6 @@ public class SimulationGraph {
 			padding = empty / 3,
 			index = empty % 3 == 2 ? ++padding : padding;
 
-		double edgeLength = Math.sqrt(3) * shift / 3;
 		long id = vertices.size();
 
 		// draw all of the entries
@@ -454,18 +456,26 @@ public class SimulationGraph {
 				id4 = id + 4,
 				id5 = id + 5;
 
-			Vertex v0 = new Vertex(id, e0x, e0y, entry ? Type.ENTRY0 : Type.EXIT0),                     // top left
-				v1 = new Vertex(id1, e1x, e1y, entry ? Type.ENTRY1 : Type.EXIT1),                         // top right
-				v2 = new Vertex(id2, height - e5x, e2y, entry ? Type.ENTRY2 : Type.EXIT2),             // right
-				v3 = new Vertex(id3, height - e0x, height - e0y, entry ? Type.ENTRY3 : Type.EXIT3), // bottom right
-				v4 = new Vertex(id4, height - e1x, height - e1y, entry ? Type.ENTRY4 : Type.EXIT4), // bottom left
-				v5 = new Vertex(id5, e5x, height - e2y, entry ? Type.ENTRY5 : Type.EXIT5);             // left
+			GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Type.ENTRY0 : Type.EXIT0),            // top left
+				v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Type.ENTRY1 : Type.EXIT1),                         // top right
+				v2 = new GraphicalVertex(id2, height - e5x, e2y, entry ? Type.ENTRY2 : Type.EXIT2),             // right
+				v3 = new GraphicalVertex(id3, height - e0x, height - e0y, entry ? Type.ENTRY3 : Type.EXIT3), // bottom right
+				v4 = new GraphicalVertex(id4, height - e1x, height - e1y, entry ? Type.ENTRY4 : Type.EXIT4), // bottom left
+				v5 = new GraphicalVertex(id5, e5x, height - e2y, entry ? Type.ENTRY5 : Type.EXIT5);             // left
 			vertices.put(id, v0);
 			vertices.put(id1, v1);
 			vertices.put(id2, v2);
 			vertices.put(id3, v3);
 			vertices.put(id4, v4);
 			vertices.put(id5, v5);
+
+			entryExitVertices.get(0).add(v0);
+			entryExitVertices.get(1).add(v1);
+			entryExitVertices.get(2).add(v2);
+			entryExitVertices.get(3).add(v3);
+			entryExitVertices.get(4).add(v4);
+			entryExitVertices.get(5).add(v5);
+
 
 			addHexagonalEntriesEdges(index, id);
 
@@ -507,6 +517,7 @@ public class SimulationGraph {
 	 * @param idn ID of the neighbour.
 	 */
 	private void addHexagonalEntryEdge(long id, long idn) {
+		// TODO solve accessing entry from intersection
 		vertices.get(id).addNeighbourID(idn);
 		vertices.get(idn).addNeighbourID(id);
 		addGraphEdges(id);
@@ -522,7 +533,7 @@ public class SimulationGraph {
 
 		// create first column
 		for (long j = 0; j < granularity - 1; j++, id++) {
-			Vertex v = new Vertex(id, 2 * shift, (j + 2) * shift);
+			GraphicalVertex v = new GraphicalVertex(id, 2 * shift, (j + 2) * shift);
 
 			long rightTopNeighbourID = granularity - 2 + j;
 			v.addNeighbourID(rightTopNeighbourID, rightTopNeighbourID + 1);
@@ -546,7 +557,7 @@ public class SimulationGraph {
 		// create vertices in second, ..., last but one column
 		for (long i = 1; i < granularity - 2; i++) {
 			for (long j = 0; j < granularity - 1; j++, id++) {
-				Vertex v = new Vertex(id, (i + 2) * shift, (j + 2) * shift);
+				GraphicalVertex v = new GraphicalVertex(id, (i + 2) * shift, (j + 2) * shift);
 
 				long leftTopNeighbourID = i * granularity - 2 + j;
 				long rightTopNeighbourID = leftTopNeighbourID + granularity;
@@ -565,7 +576,7 @@ public class SimulationGraph {
 		long lastColumnIDStartMinusTwo = (granularity - 1) * granularity - 2,
 			lastButOneColumnIDStartMinusTwo = lastColumnIDStartMinusTwo - granularity;
 		for (long j = 0; j < granularity - 1; j++, id++) {
-			Vertex v = new Vertex(id, granularity * shift, (j + 2) * shift);
+			GraphicalVertex v = new GraphicalVertex(id, granularity * shift, (j + 2) * shift);
 
 			long leftTopNeighbourID = lastButOneColumnIDStartMinusTwo + j;
 			v.addNeighbourID(leftTopNeighbourID, leftTopNeighbourID + 1);
@@ -593,34 +604,13 @@ public class SimulationGraph {
 	 * @param id ID of the vertex.
 	 */
 	private void addGraphEdges(long id) {
-		Vertex vertex = vertices.get(id);
+		cz.cuni.mff.kotal.simulation.graph.Vertex vertex = vertices.get(id);
 		assert (vertex != null);
 		for (Long neighbourID : vertex.getNeighbourIDs()) {
 			if (neighbourID < id) {
-				Vertex neighbour = vertices.get(neighbourID);
-//				if (neighbour == null) {
-//					System.out.println(id);
-//					for (long id_ : vertex.getNeighbourIDs()) {
-//
-//						System.out.println("\t" + id_);
-//					}
-//					System.out.println("That's all");
-//				}
-				assert (neighbour != null);
+				GraphicalVertex neighbour = (GraphicalVertex) vertices.get(neighbourID);
 
-//				if (!neighbour.getNeighbourIDs().contains(id)) {
-//					System.out.println(id + " - " + neighbourID);
-//					for (long id_ : vertex.getNeighbourIDs()) {
-//						System.out.println("\t" + id_);
-//					}
-//					System.out.println("That's all for " + id);
-//
-//					System.out.println(neighbourID);
-//					for (long id_ : neighbour.getNeighbourIDs()) {
-//						System.out.println("\t" + id_);
-//					}
-//					System.out.println("That's all for " + neighbourID);
-//				}
+				assert (neighbour != null);
 				assert (neighbour.getNeighbourIDs().contains(id));
 
 				boolean notContainEdge = edges.add(new Edge(vertex, neighbour));
@@ -650,15 +640,16 @@ public class SimulationGraph {
 	}
 
 
-	public boolean isOriented() {
-		return oriented;
-	}
-
 	/**
 	 * @return Set of vertices of the graph.
 	 */
-	public Collection<Vertex> getVertices() {
-		return vertices.values();
+	@Override
+	public Collection<GraphicalVertex> getVertices() {
+		return vertices.values().stream().map(vertex -> (GraphicalVertex) vertex).collect(Collectors.toSet());
+	}
+
+	public GraphicalVertex getVertex(long id) {
+		return (GraphicalVertex) vertices.get(id);
 	}
 
 	/**

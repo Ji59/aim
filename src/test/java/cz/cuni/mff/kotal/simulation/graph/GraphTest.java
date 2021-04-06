@@ -2,9 +2,10 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
 
 class GraphTest {
    private static final Vertex v0 = new Vertex(0),
@@ -16,7 +17,7 @@ class GraphTest {
 
    @Test
    public void testGraph() {
-      Graph g = new Graph(false, Set.of(v0, v1, v2), Set.of(e0, e1, e2));
+      Graph g = new Graph(false, Set.of(v0, v1, v2), new HashMap<>(), Set.of(e0, e1, e2));
 
       // check vertices
       assert g.getVertices().size() == 3;

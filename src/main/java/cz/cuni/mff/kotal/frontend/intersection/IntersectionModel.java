@@ -3,7 +3,7 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
-import cz.cuni.mff.kotal.frontend.simulation.Vertex;
+import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 import javafx.geometry.Pos;
@@ -57,12 +57,12 @@ public class IntersectionModel extends Pane {
 	 */
 	private void drawAbstractModel(double shift) {
 		for (Edge e : graph.getEdges()) {
-			Vertex u = (Vertex) e.getU(),
-				v = (Vertex) e.getV();
+			GraphicalVertex u = (GraphicalVertex) e.getU(),
+				v = (GraphicalVertex) e.getV();
 			Line l = new Line(u.getX(), u.getY(), v.getX(), v.getY());
 			nodes.add(l);
 		}
-		for (Vertex v : graph.getVertices()) {
+		for (GraphicalVertex v : graph.getVertices()) {
 			Circle c = new Circle(shift * VERTEX_RATIO, v.getType().getColor());
 			Text t = new Text(String.valueOf(v.getID()));
 			t.setBoundsType(TextBoundsType.VISUAL);
@@ -85,7 +85,7 @@ public class IntersectionModel extends Pane {
 		double height = preferredHeight, shift = height / (granularity + 2);
 
 		if (!IntersectionMenu.isAbstract()) {
-			for (Vertex v : graph.getVertices()) {
+			for (GraphicalVertex v : graph.getVertices()) {
 				drawSquare(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
 			}
 		} else {
@@ -108,7 +108,7 @@ public class IntersectionModel extends Pane {
 		if (IntersectionMenu.isAbstract()) {
 			drawAbstractModel(shift);
 		} else {
-			for (Vertex v : graph.getVertices()) {
+			for (GraphicalVertex v : graph.getVertices()) {
 				if (v.getType() == Type.ROAD) {
 					drawHexagon(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
 				} else {
@@ -130,7 +130,7 @@ public class IntersectionModel extends Pane {
 		double height = preferredHeight, shift = height / (granularity + 2);
 
 		if (!IntersectionMenu.isAbstract()) {
-			for (Vertex v : graph.getVertices()) {
+			for (GraphicalVertex v : graph.getVertices()) {
 				if (v.getType() == Type.ROAD) {
 					if (v.getID() < granularity * granularity - 4) {
 						drawOctagon(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
@@ -277,7 +277,7 @@ public class IntersectionModel extends Pane {
 	 * @param shift Distance between 2 opposite sides of hexagons in the model.
 	 * @param v     Vertex symbolizing the entry / exit.
 	 */
-	private void drawHexagonEntry(double shift, Vertex v) {
+	private void drawHexagonEntry(double shift, GraphicalVertex v) {
 		switch (v.getType()) {
 			case ENTRY2, EXIT2, ENTRY5, EXIT5 -> {
 				double x = v.getType() == Type.ENTRY5 || v.getType() == Type.EXIT5 ? 0 : v.getX() + (Math.sqrt(3) / 6 - 1) * shift,
@@ -425,7 +425,7 @@ public class IntersectionModel extends Pane {
 		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
-		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, preferredHeight, IntersectionMenu.isAbstract());
+		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, null, preferredHeight, IntersectionMenu.isAbstract());
 
 		if (graph != null && preferredHeight != graph.getSize()) { // if size of the model changed, discard all saved graphs
 			createdGraphs.clear();

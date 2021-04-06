@@ -1,11 +1,8 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
 
-import cz.cuni.mff.kotal.backend.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.Agent;
-import cz.cuni.mff.kotal.simulation.event.Action;
-import cz.cuni.mff.kotal.simulation.event.EventArrivalLeaving;
-import cz.cuni.mff.kotal.simulation.event.EventOnWay;
+import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.*;
@@ -13,7 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class BreadthFirstSearch {
+public class BreadthFirstSearch extends Algorithm {
 	private final Simulation simulation;
 	private final Map<Long, VertexWithVisit> vertices;
 
@@ -26,19 +23,12 @@ public class BreadthFirstSearch {
 	}
 
 	public void start() {
-		for (Agent a : simulation.getAgents()) {
+		for (Agent a : simulation.getAllAgents()) {
 			vertices.values().forEach(vertex -> vertex.setVisited(false));
 			List<Long> path = bfs(a.getStart(), a.getEnd());
 			assert (path != null);
 
-			EventArrivalLeaving arriving = new EventArrivalLeaving(Action.ARRIVAL, 0, a, a.getStart());
-			simulation.getHeap().add(arriving);
-			for (int i = 0; i < path.size() - 1; i++) {
-				EventOnWay e = new EventOnWay(i, a, path.get(i), path.get(i + 1));
-				simulation.getHeap().add(e);
-			}
-			EventArrivalLeaving leaving = new EventArrivalLeaving(Action.LEAVING, path.size() - 1, a, a.getEnd());
-			simulation.getHeap().add(leaving);
+			// TODO
 		}
 	}
 

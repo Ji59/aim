@@ -15,7 +15,8 @@ public class IntersectionScene extends Scene {
 
 	private static final VBox MENU = new IntersectionMenu(PADDING);
 	private static final IntersectionModel GRAPH = new IntersectionModel(Screen.getPrimary().getVisualBounds().getHeight());
-	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight());
+	// TODO add simulation
+	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight(), null);
 	private static final HBox ROOT = new HBox(MENU, new StackPane(GRAPH, AGENTS));
 
 

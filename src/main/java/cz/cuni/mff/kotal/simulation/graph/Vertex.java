@@ -10,8 +10,9 @@ import java.util.Set;
 
 
 public class Vertex {
-	private static final Color ENTRY_COLOR = Color.LIGHTSLATEGRAY;
-	private static final Color EXIT_COLOR = Color.GRAY;
+	private static final Color ROAD_COLOR = Color.LIGHTGREY, 
+		ENTRY_COLOR = Color.LIGHTSLATEGRAY,
+		EXIT_COLOR = Color.GRAY;
 
 	protected final long id;
 	protected final Type type;
@@ -98,31 +99,34 @@ public class Vertex {
 	}
 
 	public enum Type {
-		ROAD(Color.LIGHTGREY),
-		ENTRY0(ENTRY_COLOR, 0), // top / top left entry
-		ENTRY1(ENTRY_COLOR, 1), // left / left entry
-		ENTRY2(ENTRY_COLOR, 2), // bottom / bottom left entry
-		ENTRY3(ENTRY_COLOR, 3), // right / bottom right entry
-		ENTRY4(ENTRY_COLOR, 4), // X / right entry
-		ENTRY5(ENTRY_COLOR, 5), // X / top right entry
-		EXIT0(EXIT_COLOR, 0), // top / top left exit
-		EXIT1(EXIT_COLOR, 1), // left / left exit
-		EXIT2(EXIT_COLOR, 2), // bottom / bottom left exit
-		EXIT3(EXIT_COLOR, 3), // right / bottom right exit
-		EXIT4(EXIT_COLOR, 4), // X / right exit
-		EXIT5(EXIT_COLOR, 5), // X / top right exit
+		ROAD(ROAD_COLOR),
+		ENTRY0(ENTRY_COLOR, true, 0), // top / top left entry
+		ENTRY1(ENTRY_COLOR, true, 1), // left / left entry
+		ENTRY2(ENTRY_COLOR, true, 2), // bottom / bottom left entry
+		ENTRY3(ENTRY_COLOR, true, 3), // right / bottom right entry
+		ENTRY4(ENTRY_COLOR, true, 4), // X / right entry
+		ENTRY5(ENTRY_COLOR, true, 5), // X / top right entry
+		EXIT0(EXIT_COLOR, false, 0), // top / top left exit
+		EXIT1(EXIT_COLOR, false, 1), // left / left exit
+		EXIT2(EXIT_COLOR, false, 2), // bottom / bottom left exit
+		EXIT3(EXIT_COLOR, false, 3), // right / bottom right exit
+		EXIT4(EXIT_COLOR, false, 4), // X / right exit
+		EXIT5(EXIT_COLOR, false, 5), // X / top right exit
 		;
 
 		private final Color color;
+		private final boolean entry;
 		private final int direction;
 
 		Type(Color color) {
 			this.color = color;
+			entry = false;
 			direction = -1;
 		}
 
-		Type(Color color, int direction) {
+		Type(Color color, boolean entry, int direction) {
 			this.color = color;
+			this.entry = entry;
 			this.direction = direction;
 		}
 
@@ -138,6 +142,10 @@ public class Vertex {
 		 */
 		public int getDirection() {
 			return direction;
+		}
+
+		public boolean isEntry() {
+			return entry;
 		}
 	}
 }
