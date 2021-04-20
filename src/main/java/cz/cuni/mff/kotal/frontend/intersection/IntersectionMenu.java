@@ -64,11 +64,8 @@ public class IntersectionMenu extends VBox {
 		SimulationMenuTab3.getSpeed().valueProperty().addListener(getSliderValueListener(SPEED_SLIDER));
 		SimulationMenuTab3.getTimeline().valueProperty().addListener(getSliderValueListener(TIMELINE_SLIDER));
 
-		PLAY_BUTTON.setOnMouseClicked(event -> {
-			String newText = PLAY_BUTTON.getText().equals("Play") ? "Stop" : "Play";
-			PLAY_BUTTON.setText(newText);
-			SimulationMenuTab3.getPlayButton().setText(newText);
-		});
+		addPlayButtonAction();
+
 		SimulationMenuTab3.getPlayButton().setOnMouseClicked(PLAY_BUTTON.getOnMouseClicked());
 		SimulationMenuTab3.getRestartButton().setOnMouseClicked(RESTART_BUTTON.getOnMouseClicked());
 		SimulationMenuTab3.getSaveAgentsButton().setOnMouseClicked(SAVE_AGENTS_BUTTON.getOnMouseClicked());
@@ -90,20 +87,22 @@ public class IntersectionMenu extends VBox {
 	private void addPlayButtonAction() {
 		// TODO extract constants
 		PLAY_BUTTON.setOnMouseClicked(e -> {
+			// TODO add pause simulation
+			String newText;
 			if (playing) {
-				PLAY_BUTTON.setText("Play");
+				newText = "Play";
 			} else {
 				if (AlgorithmMenuTab2.Parameters.Algorithm.BFS.equals(AlgorithmMenuTab2.getAlgorithm())) {
 					SimulationGraph graph = IntersectionModel.getGraph();
-//					Simulation simulation = new Simulation(graph, algortithm);
-					BreadthFirstSearch bfs = new BreadthFirstSearch(null);
-
+					BreadthFirstSearch bfs = new BreadthFirstSearch(graph);
+					IntersectionScene.startSimulation(bfs);
 				} else {
 					return;
 				}
-				PLAY_BUTTON.setText("Pause");
-
+				newText = "Pause";
 			}
+			PLAY_BUTTON.setText(newText);
+			SimulationMenuTab3.getPlayButton().setText(newText);
 			playing = !playing;
 		});
 	}
@@ -131,5 +130,25 @@ public class IntersectionMenu extends VBox {
 
 	public static Button getSaveAgentsButton() {
 		return SAVE_AGENTS_BUTTON;
+	}
+
+	public static Label getStepsLabel() {
+		return stepsLabel;
+	}
+
+	public static Label getDelayLabel() {
+		return delayLabel;
+	}
+
+	public static Label getRejectionsLabel() {
+		return rejectionsLabel;
+	}
+
+	public static Label getCollisionsLabel() {
+		return collisionsLabel;
+	}
+
+	public static Label getRemainingLabel() {
+		return remainingLabel;
 	}
 }

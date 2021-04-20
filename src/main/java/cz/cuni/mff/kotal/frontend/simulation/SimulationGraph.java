@@ -39,7 +39,7 @@ public class SimulationGraph extends Graph {
 	 * @param abstractGraph True if the graph model is abstract or real.
 	 */
 	public SimulationGraph(long granularity, Parameters.Models model, long entries, long exits, double size, boolean abstractGraph) {
-		super(false, new HashSet<>(), new HashMap<>(), new HashSet<>());
+		super(false, model.getDirections().size());
 		this.size = size;
 		this.granularity = granularity;
 		this.entries = entries;
@@ -117,9 +117,10 @@ public class SimulationGraph extends Graph {
 		for (long i = 0; i < granularity; i++) {
 			for (long j = 0; j < granularity; j++) {
 				// check if in corner
-				if ((i == 0 || i == g - 1) &&
-					((j == 0) || (j == granularity - 1)) &&
-					withoutCorners) {
+				if (withoutCorners &&
+					(i == 0 || i == g - 1) &&
+					(j == 0 || j == g - 1)
+				) {
 					continue;
 				}
 
@@ -158,7 +159,7 @@ public class SimulationGraph extends Graph {
 			if (j > (withoutCorners ? 1 : 0)) {
 				vertex.addNeighbourID(id - 1);
 			}
-			if (j < (withoutCorners ? g - 1 : g)) {
+			if (j < (withoutCorners ? g - 2 : g - 1)) {
 				vertex.addNeighbourID(id + 1);
 			}
 		} else if (j == 0 || j == g - 1) {
@@ -252,12 +253,18 @@ public class SimulationGraph extends Graph {
 				bottomN = vertices.get((granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)),
 				leftN = vertices.get(granularity - index - (withoutCorners ? 1 : 0)),
 				rightN = vertices.get((granularity - 1) * granularity + index - (withoutCorners ? 4 : 1));
-			// TODO solve accessing entry from intersection
 			assert (topN != null && bottomN != null && leftN != null && rightN != null);
-			topN.getNeighbourIDs().add(topE.getID());
-			bottomN.getNeighbourIDs().add(bottomE.getID());
-			leftN.getNeighbourIDs().add(leftE.getID());
-			rightN.getNeighbourIDs().add(rightE.getID());
+			if (entry) {
+				topE.getNeighbourIDs().add(topN.getID());
+				bottomE.getNeighbourIDs().add(bottomN.getID());
+				leftE.getNeighbourIDs().add(leftN.getID());
+				rightE.getNeighbourIDs().add(rightN.getID());
+			} else {
+				topN.getNeighbourIDs().add(topE.getID());
+				bottomN.getNeighbourIDs().add(bottomE.getID());
+				leftN.getNeighbourIDs().add(leftE.getID());
+				rightN.getNeighbourIDs().add(rightE.getID());
+			}
 
 			edges.add(new Edge(topE, topN));
 			edges.add(new Edge(bottomE, bottomN));

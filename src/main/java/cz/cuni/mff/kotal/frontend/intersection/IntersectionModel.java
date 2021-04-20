@@ -80,7 +80,7 @@ public class IntersectionModel extends Pane {
 	 * @param entries     Number of entries.
 	 * @param exits       Number of exits.
 	 */
-	private Node[] drawSquareModel(long granularity, long entries, long exits) {
+	private void drawSquareModel(long granularity, long entries, long exits) {
 		// TODO udelat velikost poradne
 		double height = preferredHeight, shift = height / (granularity + 2);
 
@@ -91,7 +91,6 @@ public class IntersectionModel extends Pane {
 		} else {
 			drawAbstractModel(shift);
 		}
-		return nodes.toArray(Node[]::new);
 	}
 
 	/**

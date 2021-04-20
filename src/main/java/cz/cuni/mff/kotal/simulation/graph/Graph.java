@@ -37,6 +37,17 @@ public class Graph {
 		}
 	}
 
+	public Graph(boolean oriented, int entrySides) {
+		this.oriented = oriented;
+		vertices = new HashMap<>();
+		edges = new HashSet<>();
+
+		entryExitVertices = new HashMap<>();
+		for (int i = 0; i < entrySides; i++) {
+			entryExitVertices.put(i, new ArrayList<>());
+		}
+	}
+
 	/**
 	 * @return True if the graph is oriented, otherwise false.
 	 */

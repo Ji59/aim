@@ -13,15 +13,20 @@ import java.util.Map;
 
 
 public class SimulationAgents extends Pane {
-	private final Simulation simulation;
-	private final Map<Long, StackPane> agents = new HashMap<>();
+	private Simulation simulation;
+	private Map<Long, StackPane> agents = new HashMap<>();
 
 
 	public SimulationAgents(double height, Simulation simulation) {
 		this.simulation = simulation;
 		setPrefWidth(height);
 		setPrefHeight(height);
-		simulation.setCallback(this::redraw);
+		simulation.setGuiCallback(this::redraw);
+	}
+
+	public SimulationAgents(double height) {
+		setPrefWidth(height);
+		setPrefHeight(height);
 	}
 
 	public void addAgent(Agent agent) {
@@ -54,5 +59,10 @@ public class SimulationAgents extends Pane {
 		});
 
 		actualAgents.forEach((id, agent) -> addAgent(agent));
+	}
+
+	public void setSimulation(Simulation simulation) {
+		this.simulation = simulation;
+		simulation.setGuiCallback(this::redraw);
 	}
 }

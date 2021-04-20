@@ -18,7 +18,7 @@ public class Agent {
 		end;
 	private final double speed,
 		arrivalTime;
-	private final List<Long> path = new ArrayList<>();
+	private List<Long> path = new ArrayList<>();
 	private double x;
 	private double y;       // location
 
@@ -91,6 +91,10 @@ public class Agent {
 
 	public List<Long> getPath() {
 		return path;
+	}
+
+	public void setPath(List<Long> path) {
+		this.path = path;
 	}
 
 	public void computeNextXY(double time) throws IndexOutOfBoundsException {

@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.backend.algorithm;
 
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
+import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.*;
@@ -10,33 +11,43 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class BreadthFirstSearch extends Algorithm {
-	private final Simulation simulation;
+public class BreadthFirstSearch implements Algorithm {
 	private final Map<Long, VertexWithVisit> vertices;
 
 	public BreadthFirstSearch(Simulation simulation) {
-		this.simulation = simulation;
 		this.vertices = simulation.getIntersectionGraph().getVertices()
 			.stream()
 			.map(vertex -> new VertexWithVisit(vertex.getID(), vertex.getType(), vertex.getNeighbourIDs()))
 			.collect(Collectors.toMap(Vertex::getID, Function.identity()));
 	}
 
-	public void start() {
-		for (Agent a : simulation.getAllAgents()) {
-			vertices.values().forEach(vertex -> vertex.setVisited(false));
-			List<Long> path = bfs(a.getStart(), a.getEnd());
-			assert (path != null);
+	public BreadthFirstSearch(Graph graph) {
+		this.vertices = graph.getVertices()
+			.stream()
+			.map(vertex -> new VertexWithVisit(vertex.getID(), vertex.getType(), vertex.getNeighbourIDs()))
+			.collect(Collectors.toMap(Vertex::getID, Function.identity()));
+	}
 
-			// TODO
-		}
+//	public void start() {
+//		for (Agent a : simulation.getAllAgents()) {
+//			vertices.values().forEach(vertex -> vertex.setVisited(false));
+//			List<Long> path = bfs(a.getStart(), a.getEnd());
+//			assert (path != null);
+//
+//			// TODO
+//		}
+//	}
+
+	@Override
+	public void planAgents(Set<Agent> agents) {
+		agents.forEach(a -> a.setPath(bfs(a.getStart(), a.getEnd())));
 	}
 
 	private List<Long> bfs(long startID, long endID) {
 		VertexWithVisit start = vertices.get(startID);
 		assert (start != null);
 		start.setPath(new ArrayList<>());
-		Queue<VertexWithVisit> queue = new PriorityQueue<>();
+		Queue<VertexWithVisit> queue = new ArrayDeque<>();
 		queue.add(start);
 
 		while (!queue.isEmpty()) {
