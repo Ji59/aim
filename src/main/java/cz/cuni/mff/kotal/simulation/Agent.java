@@ -4,23 +4,23 @@ package cz.cuni.mff.kotal.simulation;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 public class Agent {
 	private final long id;
-	private final double l;
-	private final double w; // size
+	private final double l, w; // size
 	private Edge location = null;
 	private final long start,
 		end;
 	private final double speed,
 		arrivalTime;
 	private List<Long> path = new ArrayList<>();
-	private double x;
-	private double y;       // location
+	private double x, y;       // location
 
 	public Agent(long id, long start, long end, double speed, double arrivalTime, double l, double w, double x, double y) {
 		this.id = id;
@@ -97,18 +97,21 @@ public class Agent {
 		this.path = path;
 	}
 
-	public void computeNextXY(double time) throws IndexOutOfBoundsException {
+	public void computeNextXY(double time, Map<Long, Vertex> vertices) throws IndexOutOfBoundsException {
 		double travelTime = time - arrivalTime,
 			previousGoalTime = travelTime % speed,
 			currentEdgeTravelPart = (travelTime - previousGoalTime) / speed,
 			currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
 		long nextGoalID = path.get((int) (previousGoalTime / speed)),
 			previousGoalID = path.get((int) (previousGoalTime / speed + 1));
-		GraphicalVertex nextGoal = IntersectionModel.getGraph().getVertex(nextGoalID),
-			previousGoal = IntersectionModel.getGraph().getVertex(previousGoalID);
+		GraphicalVertex nextGoal = (GraphicalVertex) vertices.get(nextGoalID),
+			previousGoal = (GraphicalVertex) vertices.get(previousGoalID);
 
 		x = previousGoal.getX() * currentEdgeTravelPart + nextGoal.getX() * currentEdgeTravelRemain;
 		y = previousGoal.getY() * currentEdgeTravelPart + nextGoal.getY() * currentEdgeTravelRemain;
+
+		// TODO remove logs
+		System.out.println("ID: " + id + "previous: " + previousGoalID + "; next: " + nextGoalID);
 	}
 
 	public double getL() {

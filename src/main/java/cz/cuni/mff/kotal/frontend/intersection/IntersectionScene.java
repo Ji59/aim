@@ -2,7 +2,6 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
-import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.Simulation;
@@ -19,10 +18,10 @@ public class IntersectionScene extends Scene {
 
 	private static final VBox MENU = new IntersectionMenu(PADDING);
 	private static final IntersectionModel GRAPH = new IntersectionModel(Screen.getPrimary().getVisualBounds().getHeight());
-	// TODO add simulation
 	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight());
 	private static final HBox ROOT = new HBox(MENU, new StackPane(GRAPH, AGENTS));
 
+	private static Simulation simulation;
 
 	/**
 	 * Create intersection scene object.
@@ -53,6 +52,10 @@ public class IntersectionScene extends Scene {
 		setMenuProperties(menuWidth);
 
 		setButtonsProperties(menuWidth);
+	}
+
+	public static void stopSimulation() {
+		simulation.stop();
 	}
 
 	/**
@@ -99,9 +102,9 @@ public class IntersectionScene extends Scene {
 	}
 
 	public static void startSimulation(Algorithm alg) {
-		Simulation simulation = new Simulation(IntersectionModel.getGraph(), alg);
+		simulation = new Simulation(IntersectionModel.getGraph(), alg);
 		AGENTS.setSimulation(simulation);
 		// TODO add speed
-		simulation.tick(1);
+		new Thread(() -> simulation.start(250)).start();
 	}
 }

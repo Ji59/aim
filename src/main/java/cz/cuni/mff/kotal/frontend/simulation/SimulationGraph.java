@@ -259,17 +259,22 @@ public class SimulationGraph extends Graph {
 				bottomE.getNeighbourIDs().add(bottomN.getID());
 				leftE.getNeighbourIDs().add(leftN.getID());
 				rightE.getNeighbourIDs().add(rightN.getID());
+				
+				edges.add(new Edge(topE, topN));
+				edges.add(new Edge(bottomE, bottomN));
+				edges.add(new Edge(leftE, leftN));
+				edges.add(new Edge(rightE, rightN));
 			} else {
 				topN.getNeighbourIDs().add(topE.getID());
 				bottomN.getNeighbourIDs().add(bottomE.getID());
 				leftN.getNeighbourIDs().add(leftE.getID());
 				rightN.getNeighbourIDs().add(rightE.getID());
-			}
 
-			edges.add(new Edge(topE, topN));
-			edges.add(new Edge(bottomE, bottomN));
-			edges.add(new Edge(leftE, leftN));
-			edges.add(new Edge(rightE, rightN));
+				edges.add(new Edge(topN, topE));
+				edges.add(new Edge(bottomN, bottomE));
+				edges.add(new Edge(leftN, leftE));
+				edges.add(new Edge(rightN, rightE));
+			}
 
 			index++;
 			topX += shift;
@@ -484,7 +489,7 @@ public class SimulationGraph extends Graph {
 			entryExitVertices.get(5).add(v5);
 
 
-			addHexagonalEntriesEdges(index, id);
+			addHexagonalEntriesEdges(index, id, entry);
 
 			id += 6;
 			index++;
@@ -502,19 +507,19 @@ public class SimulationGraph extends Graph {
 	 * @param index Index of entries.
 	 * @param id    ID of the top left entry.
 	 */
-	private void addHexagonalEntriesEdges(long index, long id) {
+	private void addHexagonalEntriesEdges(long index, long id, boolean entry) {
 		long start = 6 * (granularity - 1) * (granularity - 2) / 2 + 1 + index;
-		addHexagonalEntryEdge(id++, start);
+		addHexagonalEntryEdge(id++, start, entry);
 		start += granularity - 1;
-		addHexagonalEntryEdge(id++, start);
+		addHexagonalEntryEdge(id++, start, entry);
 		start += granularity - 1;
-		addHexagonalEntryEdge(id++, start);
+		addHexagonalEntryEdge(id++, start, entry);
 		start += granularity - 1;
-		addHexagonalEntryEdge(id++, start);
+		addHexagonalEntryEdge(id++, start, entry);
 		start += granularity - 1;
-		addHexagonalEntryEdge(id++, start);
+		addHexagonalEntryEdge(id++, start, entry);
 		start += granularity - 1;
-		addHexagonalEntryEdge(id, start);
+		addHexagonalEntryEdge(id, start, entry);
 	}
 
 	/**
@@ -523,11 +528,12 @@ public class SimulationGraph extends Graph {
 	 * @param id  ID of the entry / exit vertex.
 	 * @param idn ID of the neighbour.
 	 */
-	private void addHexagonalEntryEdge(long id, long idn) {
-		// TODO solve accessing entry from intersection
-		vertices.get(id).addNeighbourID(idn);
-		vertices.get(idn).addNeighbourID(id);
-		addGraphEdges(id);
+	private void addHexagonalEntryEdge(long id, long idn, boolean entry) {
+		Vertex v = vertices.get(id), vn = vertices.get(idn),
+			from = entry ? v : vn, to = entry ? vn : v;
+
+		from.addNeighbourID(entry ? idn : id);
+		edges.add(new Edge(from, to));
 	}
 
 	/**
@@ -621,6 +627,9 @@ public class SimulationGraph extends Graph {
 				assert (neighbour.getNeighbourIDs().contains(id));
 
 				boolean notContainEdge = edges.add(new Edge(vertex, neighbour));
+				assert (notContainEdge);
+
+				notContainEdge = edges.add(new Edge(neighbour, vertex));
 				assert (notContainEdge);
 			}
 		}

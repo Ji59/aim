@@ -6,6 +6,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.Simulation;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -77,7 +78,6 @@ public class IntersectionMenu extends VBox {
 		HBox buttons = new HBox(PLAY_BUTTON, RESTART_BUTTON);
 		buttons.setPrefWidth(Double.MAX_VALUE);
 		getChildren().addAll(sliders, buttons, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
-
 	}
 
 	private ChangeListener<Number> getSliderValueListener(Slider affectedSlider) {
@@ -91,6 +91,7 @@ public class IntersectionMenu extends VBox {
 			String newText;
 			if (playing) {
 				newText = "Play";
+				IntersectionScene.stopSimulation();
 			} else {
 				if (AlgorithmMenuTab2.Parameters.Algorithm.BFS.equals(AlgorithmMenuTab2.getAlgorithm())) {
 					SimulationGraph graph = IntersectionModel.getGraph();
@@ -134,6 +135,13 @@ public class IntersectionMenu extends VBox {
 
 	public static Label getStepsLabel() {
 		return stepsLabel;
+	}
+
+	public static void setStep(long step) {
+		Platform.runLater(() -> {
+			stepsLabel.setText(String.valueOf(step));
+			stepsLabel.textProperty().set(String.valueOf(step));
+		});
 	}
 
 	public static Label getDelayLabel() {

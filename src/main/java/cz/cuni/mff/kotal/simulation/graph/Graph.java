@@ -62,6 +62,10 @@ public class Graph {
 		return vertices.values();
 	}
 
+	public Map<Long, Vertex> getVerticesWithIDs() {
+		return vertices;
+	}
+
 	/**
 	 * @return Map of entries and exits in different directions.
 	 */

@@ -12,31 +12,21 @@ import java.util.stream.Collectors;
 
 
 public class BreadthFirstSearch implements Algorithm {
-	private final Map<Long, VertexWithVisit> vertices;
+	private final Set<VertexWithVisit> vertices;
 
 	public BreadthFirstSearch(Simulation simulation) {
 		this.vertices = simulation.getIntersectionGraph().getVertices()
 			.stream()
 			.map(vertex -> new VertexWithVisit(vertex.getID(), vertex.getType(), vertex.getNeighbourIDs()))
-			.collect(Collectors.toMap(Vertex::getID, Function.identity()));
+			.collect(Collectors.toSet());
 	}
 
 	public BreadthFirstSearch(Graph graph) {
 		this.vertices = graph.getVertices()
 			.stream()
 			.map(vertex -> new VertexWithVisit(vertex.getID(), vertex.getType(), vertex.getNeighbourIDs()))
-			.collect(Collectors.toMap(Vertex::getID, Function.identity()));
+			.collect(Collectors.toSet());
 	}
-
-//	public void start() {
-//		for (Agent a : simulation.getAllAgents()) {
-//			vertices.values().forEach(vertex -> vertex.setVisited(false));
-//			List<Long> path = bfs(a.getStart(), a.getEnd());
-//			assert (path != null);
-//
-//			// TODO
-//		}
-//	}
 
 	@Override
 	public void planAgents(Set<Agent> agents) {
@@ -44,23 +34,27 @@ public class BreadthFirstSearch implements Algorithm {
 	}
 
 	private List<Long> bfs(long startID, long endID) {
+		Map<Long, VertexWithVisit> vertices = this.vertices.stream().map(vertex -> new VertexWithVisit(vertex.getID(), vertex.getType(), vertex.getNeighbourIDs())).collect(Collectors.toMap(Vertex::getID, Function.identity()));
 		VertexWithVisit start = vertices.get(startID);
 		assert (start != null);
-		start.setPath(new ArrayList<>());
+		start.setPathAndAddSelf(new ArrayList<>());
 		Queue<VertexWithVisit> queue = new ArrayDeque<>();
 		queue.add(start);
+		start.setVisited(true);
 
 		while (!queue.isEmpty()) {
 			VertexWithVisit first = queue.poll();
-			first.setVisited(true);
-			if (first.getID() == endID) {
-				return first.getPath();
+			if (first.getNeighbourIDs().contains(endID)) {
+				List<Long> path = first.getPath();
+				path.add(endID);
+				return path;
 			}
 			first.getNeighbourIDs()
 				.stream()
 				.map(vertices::get).filter(v -> !v.isVisited()).forEach(neighbour -> {
-				neighbour.setPath(first.getPath());
+				neighbour.setPathAndAddSelf(new ArrayList<>(first.getPath()));
 				queue.add(neighbour);
+				neighbour.setVisited(true);
 			});
 		}
 		// TODO create exception
@@ -91,7 +85,7 @@ public class BreadthFirstSearch implements Algorithm {
 			return path;
 		}
 
-		public void setPath(List<Long> path) {
+		public void setPathAndAddSelf(List<Long> path) {
 			this.path = path;
 			path.add(id);
 		}

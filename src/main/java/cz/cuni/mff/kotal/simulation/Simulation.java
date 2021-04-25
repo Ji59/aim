@@ -13,6 +13,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static cz.cuni.mff.kotal.MyGenerator.generateRandomInt;
+import static cz.cuni.mff.kotal.MyGenerator.generateRandomLong;
+
 
 public class Simulation {
 	private final Graph intersectionGraph;
@@ -26,6 +29,7 @@ public class Simulation {
 	private final List<Long> distribution;
 
 	private long time;
+	private Timer timer;
 
 	private Consumer<Map<Long, Agent>> guiCallback;
 
@@ -48,24 +52,29 @@ public class Simulation {
 		this.distribution = distribution;
 	}
 
-	public void tick(long delay) {
-		try {
-			// TODO add pause support
-			while (true) {
+
+	public void start(long delay) {
+		TimerTask agentsTask = new TimerTask() {
+			@Override
+			public void run() {
+
 				Set<Agent> newAgents = generateAgents(allAgents.size());
 				currentAgents.addAll(newAgents);
 				allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 				algorithm.planAgents(newAgents);
-
 				updateAgents();
-				Thread.sleep(delay);
 				time++;
-				IntersectionMenu.getStepsLabel().setText(String.valueOf(time));
+				IntersectionMenu.setStep(time);
 				System.out.println(time);
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		};
+
+		timer = new Timer();
+		timer.scheduleAtFixedRate(agentsTask, 0, delay);
+	}
+
+	public void stop() {
+		timer.cancel();
 	}
 
 	protected Set<Agent> generateAgents(int id) {
@@ -114,34 +123,21 @@ public class Simulation {
 		Vertex exit = exits.get(generateRandomInt(exits.size() - 1));
 
 		// TODO add speed, length and width
-		return new Agent(id, entry.getID(), exit.getID(), 1, time, 1, 1, entry.getX(), entry.getY());
+		return new Agent(id, entry.getID(), exit.getID(), 1, time, 50, 50, entry.getX(), entry.getY());
 	}
 
 	private void updateAgents() {
 		for (Agent agent : currentAgents) {
 			try {
-				agent.computeNextXY(time);
+				agent.computeNextXY(time, intersectionGraph.getVerticesWithIDs());
 			} catch (IndexOutOfBoundsException e) {
 				// agent doesn't exist in this step
+				// TODO remove log
+				System.out.println("Removing: " + agent.getId());
 				currentAgents.remove(agent);
 			}
 		}
 		guiCallback.accept(currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
-	}
-
-	private long generateRandomLong(long maximum) {
-		return generateRandomLong(0, maximum);
-	}
-
-	private int generateRandomInt(int maximum) {
-		return (int) generateRandomLong(maximum);
-	}
-
-	private long generateRandomLong(long minimum, long maximum) {
-		double random = Math.random();
-		if (random == 0) {
-			return 0;
-		} else return Math.round(random * (maximum - minimum + 1) + minimum - 0.5);
 	}
 
 	public Graph getIntersectionGraph() {
