@@ -1,10 +1,10 @@
 package cz.cuni.mff.kotal.simulation;
 
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +21,7 @@ public class Agent {
 		arrivalTime;
 	private List<Long> path = new ArrayList<>();
 	private double x, y;       // location
+	private static final double PROXIMITY = 0.0001;
 
 	public Agent(long id, long start, long end, double speed, double arrivalTime, double l, double w, double x, double y) {
 		this.id = id;
@@ -47,21 +48,28 @@ public class Agent {
 		this.y = y;
 	}
 
-	// TODO add exception
-	public long getNextVertexID(double time) throws IndexOutOfBoundsException {
+	/**
+	 * Return previous and next target vertex ID at given time.
+	 * If time is before arrival, return twice ID of starting vertex.
+	 * If time is greater then arrival at the end time, throw exception.
+	 * Else return the nearest next vertex ID and vertex ID of its predecessor.
+	 *
+	 * @param time Time to get position from.
+	 * @return Pair od IDs of the previous and next vertex at given time.
+	 * @throws IndexOutOfBoundsException
+	 */
+	Pair<Long, Long> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
+		// TODO add exception
 		if (time < arrivalTime) {
-			return path.get(0);
+			Long first = path.get(0);
+			return new Pair<>(first, first);
+		} if (doubleAlmostEqual(time, arrivalTime + (path.size() - 1) / speed, PROXIMITY)) {
+			long exitID = path.get(path.size() - 1);
+			return new Pair<>(exitID, exitID);
 		}
-		return path.get((int) Math.round((time - arrivalTime) / speed));
-	}
-
-	public long getPreviousVertexID(double time) {
-		if (time <= arrivalTime + speed) {
-			return path.get(0);
-		} else if (time > arrivalTime + path.size() * speed) {
-			return path.get(path.size() - 1);
-		}
-		return path.get((int) Math.round((time - arrivalTime) / speed - 1));
+		int nextIndex = (int) Math.round((time - arrivalTime) * speed + 0.5),
+			previousIndex = nextIndex - 1;
+		return new Pair<>(path.get(previousIndex), path.get(nextIndex));
 	}
 
 	public long getId() {
@@ -99,19 +107,17 @@ public class Agent {
 
 	public void computeNextXY(double time, Map<Long, Vertex> vertices) throws IndexOutOfBoundsException {
 		double travelTime = time - arrivalTime,
-			previousGoalTime = travelTime % speed,
-			currentEdgeTravelPart = (travelTime - previousGoalTime) / speed,
+			currentEdgeTravelPart = (travelTime * speed) % 1,
 			currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
-		long nextGoalID = path.get((int) (previousGoalTime / speed)),
-			previousGoalID = path.get((int) (previousGoalTime / speed + 1));
-		GraphicalVertex nextGoal = (GraphicalVertex) vertices.get(nextGoalID),
-			previousGoal = (GraphicalVertex) vertices.get(previousGoalID);
+		Pair<Long, Long> previousNextGoalID = getPreviousNextVertexIDs(time);
+		GraphicalVertex previousGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getKey()),
+			nextGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getValue());
 
-		x = previousGoal.getX() * currentEdgeTravelPart + nextGoal.getX() * currentEdgeTravelRemain;
-		y = previousGoal.getY() * currentEdgeTravelPart + nextGoal.getY() * currentEdgeTravelRemain;
+		x = previousGoal.getX() * currentEdgeTravelRemain + nextGoal.getX() * currentEdgeTravelPart;
+		y = previousGoal.getY() * currentEdgeTravelRemain + nextGoal.getY() * currentEdgeTravelPart;
 
 		// TODO remove logs
-		System.out.println("ID: " + id + "previous: " + previousGoalID + "; next: " + nextGoalID);
+		System.out.println("ID: " + id + "; goals: " + previousNextGoalID);
 	}
 
 	public double getL() {
@@ -128,5 +134,10 @@ public class Agent {
 
 	public double getY() {
 		return y;
+	}
+
+	static boolean doubleAlmostEqual(double d0, double d1, double proximity) {
+		double difference = Math.abs(d0 - d1);
+		return difference <= proximity;
 	}
 }

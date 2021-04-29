@@ -21,7 +21,7 @@ public class Simulation {
 	private final Graph intersectionGraph;
 
 	private final Map<Long, Agent> allAgents = new HashMap<>();
-	private final Set<Agent> currentAgents = new HashSet<>();
+	private final Set<Agent> currentAgents = Collections.synchronizedSet(new HashSet<>());
 	private final Algorithm algorithm;
 
 	private final long newAgentsMinimum;
@@ -57,11 +57,10 @@ public class Simulation {
 		TimerTask agentsTask = new TimerTask() {
 			@Override
 			public void run() {
-
 				Set<Agent> newAgents = generateAgents(allAgents.size());
-				currentAgents.addAll(newAgents);
-				allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 				algorithm.planAgents(newAgents);
+				allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+				currentAgents.addAll(newAgents);
 				updateAgents();
 				time++;
 				IntersectionMenu.setStep(time);
@@ -127,6 +126,7 @@ public class Simulation {
 	}
 
 	private void updateAgents() {
+		Set<Agent> toRemoveAgents = new HashSet<>();
 		for (Agent agent : currentAgents) {
 			try {
 				agent.computeNextXY(time, intersectionGraph.getVerticesWithIDs());
@@ -134,9 +134,10 @@ public class Simulation {
 				// agent doesn't exist in this step
 				// TODO remove log
 				System.out.println("Removing: " + agent.getId());
-				currentAgents.remove(agent);
+				toRemoveAgents.add(agent);
 			}
 		}
+		currentAgents.removeAll(toRemoveAgents);
 		guiCallback.accept(currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 	}
 
