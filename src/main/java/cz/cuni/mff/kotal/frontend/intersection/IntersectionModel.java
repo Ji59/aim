@@ -430,7 +430,7 @@ public class IntersectionModel extends Pane {
 			createdGraphs.clear();
 			historyNext.clear();
 			historyPrevious.clear();
-		} else if (!historyPrevious.empty() && graph.equals(graphAbstract)) { // if last graph is the same, return
+		} else if (graphAbstract.equals(graph)) { // if last graph is the same, return
 			return;
 		} else if (graph != null) { // else add graph to previous stack
 			historyPrevious.push(graph);
@@ -472,6 +472,7 @@ public class IntersectionModel extends Pane {
 		if (!historyPrevious.empty()) {
 			SimulationGraph graphAbstract = historyPrevious.pop();
 			historyNext.push(graph);
+			// TODO graph doesn't have vertices.
 			graph = graphAbstract;
 			getChildren().setAll(createdGraphs.get(graphAbstract));
 			drawBackground(preferredHeight);
@@ -485,6 +486,7 @@ public class IntersectionModel extends Pane {
 		if (!historyNext.empty()) {
 			SimulationGraph graphAbstract = historyNext.pop();
 			historyPrevious.push(graph);
+			// TODO graph doesn't have vertices.
 			graph = graphAbstract;
 			getChildren().setAll(createdGraphs.get(graphAbstract));
 			drawBackground(preferredHeight);

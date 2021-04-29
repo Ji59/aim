@@ -75,7 +75,8 @@ public class IntersectionMenu extends VBox {
 		GridPane statistics = new GridPane();
 		SimulationMenuTab3.createStatisticsGrid(statistics);
 
-		HBox buttons = new HBox(PLAY_BUTTON, RESTART_BUTTON);
+		HBox buttons = new HBox(PLAY_BUTTON/*, RESTART_BUTTON*/);
+		PLAY_BUTTON.setVisible(true);
 		buttons.setPrefWidth(Double.MAX_VALUE);
 		getChildren().addAll(sliders, buttons, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
 	}

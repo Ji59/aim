@@ -105,6 +105,6 @@ public class IntersectionScene extends Scene {
 		simulation = new Simulation(IntersectionModel.getGraph(), alg);
 		AGENTS.setSimulation(simulation);
 		// TODO add speed
-		new Thread(() -> simulation.start(250)).start();
+		simulation.start(250);
 	}
 }
