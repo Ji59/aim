@@ -34,6 +34,7 @@ class SimulationTest {
 
 	@Test
 	void testTick() {
+		// TODO
 	}
 
 	@Test
@@ -53,6 +54,40 @@ class SimulationTest {
 	}
 
 	@Test
+	void testGenerateAgentsMassive() {
+		int entries = 8,
+			newAgentsMinimum = 4 * entries, newAgentsMaximum = 6 * entries;
+		Graph graph = new SimulationGraph(16, IntersectionMenuTab0.Parameters.Models.HEXAGONAL, entries, entries - 1, 1000, false);
+		List<Long> distribution = Arrays.asList(0L, 50L, 0L, 50L, 0L, 0L);
+		Simulation simulation = new Simulation(graph, null, newAgentsMinimum, newAgentsMaximum, distribution);
+
+		int steps = 2500000;
+		int count = 0;
+		Map<Long, Agent> agents = new HashMap<>();
+
+		for (int i = 0, id = 0; i < steps; i++, id = agents.size()) {
+			Set<Agent> newAgents = simulation.generateAgents(id);
+			count += newAgents.size();
+			newAgents.forEach(agent -> {
+				Vertex entry = findGraphEntryExit(graph, agent.getStart());
+				checkVertex(entry, true);
+				Vertex exit = findGraphEntryExit(graph, agent.getEnd());
+				checkVertex(exit, false);
+
+				if (entry.getType() == Vertex.Type.ENTRY1) {
+					assert exit.getType() == Vertex.Type.EXIT3;
+				} else {
+					assert entry.getType() == Vertex.Type.ENTRY3 && exit.getType() == Vertex.Type.EXIT1;
+				}
+				Agent previous = agents.put(agent.getId(), agent);
+				assert previous == null;
+			});
+		}
+		assert count == agents.size();
+		System.out.println("Tested " + count + " agents.");
+	}
+
+	@Test
 	void testGenerateAgent() {
 		assert (simulation != null && graph != null);
 
@@ -67,6 +102,10 @@ class SimulationTest {
 	}
 
 	private Vertex findGraphEntryExit(long vertexID) {
+		return findGraphEntryExit(graph, vertexID);
+	}
+
+private Vertex findGraphEntryExit(Graph graph, long vertexID) {
 		Map<Integer, List<Vertex>> entries = graph.getEntryExitVertices();
 		for (int i = 0; i < DISTRIBUTION.size(); i++) {
 			for (Vertex vertex : entries.get(i)) {

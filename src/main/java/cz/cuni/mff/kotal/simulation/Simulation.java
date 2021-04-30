@@ -95,11 +95,17 @@ public class Simulation {
 
 	protected Agent generateAgent(int id, long entryValue, long exitValue) {
 		int entryDirection, exitDirection;
-		for (entryDirection = 0; entryDirection < distribution.size() - 1 && entryValue >= distribution.get(entryDirection); entryValue -= distribution.get(entryDirection++)) ;
+		for (entryDirection = 0; entryDirection < distribution.size() - 1 && entryValue >= distribution.get(entryDirection); entryDirection++) {
+			entryValue -= distribution.get(entryDirection);
+		}
+		while (distribution.get(entryDirection) == 0) {
+			entryDirection--;
+		}
+
 		List<Vertex> entries = intersectionGraph.getEntryExitVertices().get(entryDirection).stream().filter(e -> e.getType().isEntry()).collect(Collectors.toList());
 		GraphicalVertex entry = (GraphicalVertex) entries.get(generateRandomInt(entries.size() - 1));
 
-		for (exitDirection = 0; exitDirection < distribution.size() && (exitValue >= distribution.get(exitDirection) || exitDirection == entryDirection); exitValue -= distribution.get(exitDirection++)) {
+		for (exitDirection = 0; exitDirection < distribution.size() - 1 && (exitValue >= distribution.get(exitDirection) || exitDirection == entryDirection); exitValue -= distribution.get(exitDirection++)) {
 			if (entryDirection == exitDirection) {
 				exitValue -= distribution.get(exitDirection);
 				if (exitValue <= 0) {
@@ -116,7 +122,18 @@ public class Simulation {
 		}
 		if (exitDirection >= distribution.size()) {
 			exitDirection = distribution.size() - 1;
-			while (distribution.get(--exitDirection) == 0) ;
+		}
+		while (exitDirection >= 0 && exitDirection != entryDirection && distribution.get(exitDirection) == 0) {
+			exitDirection--;
+		}
+		if (exitDirection < 0) {
+			exitDirection = 0;
+			while (exitDirection < distribution.size() && (exitDirection == entryDirection || distribution.get(exitDirection) == 0)) {
+				exitDirection++;
+			}
+			if (exitDirection >= distribution.size()) {
+				exitDirection = entryDirection == 0 ? 1 : 0;
+			}
 		}
 		List<Vertex> exits = intersectionGraph.getEntryExitVertices().get(exitDirection).stream().filter(e -> !e.getType().isEntry()).collect(Collectors.toList());
 		Vertex exit = exits.get(generateRandomInt(exits.size() - 1));
@@ -129,14 +146,14 @@ public class Simulation {
 		Iterator<Agent> currentAgentsIterator = currentAgents.iterator();
 		while (currentAgentsIterator.hasNext()) {
 			Agent agent = currentAgentsIterator.next();
-				try {
-					agent.computeNextXY(time, intersectionGraph.getVerticesWithIDs());
-				} catch (IndexOutOfBoundsException e) {
-					// agent doesn't exist in this step
-					// TODO remove log
-					System.out.println("Removing: " + agent.getId());
-					currentAgentsIterator.remove();
-				}
+			try {
+				agent.computeNextXY(time, intersectionGraph.getVerticesWithIDs());
+			} catch (IndexOutOfBoundsException e) {
+				// agent doesn't exist in this step
+				// TODO remove log
+				System.out.println("Removing: " + agent.getId());
+				currentAgentsIterator.remove();
+			}
 		}
 		guiCallback.accept(currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 	}
