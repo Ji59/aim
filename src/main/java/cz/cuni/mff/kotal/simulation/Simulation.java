@@ -126,18 +126,18 @@ public class Simulation {
 	}
 
 	private void updateAgents() {
-		Set<Agent> toRemoveAgents = new HashSet<>();
-		for (Agent agent : currentAgents) {
-			try {
-				agent.computeNextXY(time, intersectionGraph.getVerticesWithIDs());
-			} catch (IndexOutOfBoundsException e) {
-				// agent doesn't exist in this step
-				// TODO remove log
-				System.out.println("Removing: " + agent.getId());
-				toRemoveAgents.add(agent);
-			}
+		Iterator<Agent> currentAgentsIterator = currentAgents.iterator();
+		while (currentAgentsIterator.hasNext()) {
+			Agent agent = currentAgentsIterator.next();
+				try {
+					agent.computeNextXY(time, intersectionGraph.getVerticesWithIDs());
+				} catch (IndexOutOfBoundsException e) {
+					// agent doesn't exist in this step
+					// TODO remove log
+					System.out.println("Removing: " + agent.getId());
+					currentAgentsIterator.remove();
+				}
 		}
-		currentAgents.removeAll(toRemoveAgents);
 		guiCallback.accept(currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 	}
 

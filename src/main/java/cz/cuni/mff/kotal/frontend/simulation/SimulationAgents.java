@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.MyGenerator;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.application.Platform;
@@ -10,13 +9,9 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static cz.cuni.mff.kotal.MyGenerator.generateRandomInt;
 
@@ -68,21 +63,22 @@ public class SimulationAgents extends Pane {
 	}
 
 	public void redraw(Map<Long, Agent> actualAgents) {
-		Set<Long> toRemoveAgentsIds = new HashSet<>();
 		Platform.runLater(() -> {
-			agents.forEach((id, pane) -> {
+			Iterator<Map.Entry<Long, StackPane>> agentsIterator = agents.entrySet().iterator();
+			while (agentsIterator.hasNext()) {
+				Map.Entry<Long, StackPane> entry = agentsIterator.next();
+				long id = entry.getKey();
+				StackPane pane = entry.getValue();
 				Agent a = actualAgents.get(id);
 				if (a == null) {
 					getChildren().remove(pane);
-					toRemoveAgentsIds.add(id);
-//					agents.remove(id);
+					agentsIterator.remove();
 				} else {
 					pane.setLayoutX(a.getX() - a.getW() / 2);
 					pane.setLayoutY(a.getY() - a.getL() / 2);
 				}
 				actualAgents.remove(id);
-			});
-			toRemoveAgentsIds.forEach(id -> agents.remove(id));
+			}
 			actualAgents.forEach((id, agent) -> addAgent(agent));
 		});
 	}
