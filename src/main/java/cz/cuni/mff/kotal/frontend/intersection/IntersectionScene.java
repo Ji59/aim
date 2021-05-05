@@ -3,7 +3,6 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
-import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -16,7 +15,7 @@ import javafx.stage.Screen;
 public class IntersectionScene extends Scene {
 	public static final double PADDING = 15;
 
-	private static final VBox MENU = new IntersectionMenu(PADDING);
+	private static final IntersectionMenu MENU = new IntersectionMenu(PADDING);
 	private static final IntersectionModel GRAPH = new IntersectionModel(Screen.getPrimary().getVisualBounds().getHeight());
 	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight());
 	private static final HBox ROOT = new HBox(MENU, new StackPane(GRAPH, AGENTS));
@@ -79,6 +78,31 @@ public class IntersectionScene extends Scene {
 		MENU.setPadding(new Insets(PADDING, PADDING, PADDING, PADDING));
 	}
 
+	public static void startSimulation(Algorithm alg) {
+		if (simulation == null) {
+			simulation = new Simulation(IntersectionModel.getGraph(), alg);
+			AGENTS.setSimulation(simulation);
+		}
+		// TODO add speed
+		simulation.start(250);
+	}
+
+	public static void stopSimulation() {
+		assert simulation != null;
+		simulation.stop();
+	}
+
+	public static void resetSimulation() {
+		MENU.setPlayButtonPlaying(false);
+
+		if (simulation == null) {
+			return;
+		}
+		simulation.stop();
+		simulation = null;
+		AGENTS.resetSimulation();
+	}
+
 	/**
 	 * Get Intersection graph object.
 	 *
@@ -95,23 +119,5 @@ public class IntersectionScene extends Scene {
 	 */
 	public static VBox getMENU() {
 		return MENU;
-	}
-
-	public static void startSimulation(Algorithm alg) {
-		if (simulation == null) {
-			simulation = new Simulation(IntersectionModel.getGraph(), alg);
-			AGENTS.setSimulation(simulation);
-		}
-		// TODO add speed
-		simulation.start(250);
-	}
-
-	public static void stopSimulation() {
-		simulation.stop();
-	}
-
-	public static void resetSimulation() {
-		simulation = null;
-		AGENTS.resetSimulation();
 	}
 }

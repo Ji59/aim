@@ -5,6 +5,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
+import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -20,6 +21,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
+import javafx.util.Pair;
 
 import java.util.*;
 
@@ -32,7 +34,7 @@ public class IntersectionModel extends Pane {
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
 	private static List<Node> nodes = new ArrayList<>();
-	private static final Map<SimulationGraph, List<Node>> createdGraphs = new HashMap<>();
+	private static final Map<SimulationGraph, Pair<Graph, List<Node>>> createdGraphs = new HashMap<>();
 	private static final Stack<SimulationGraph> historyPrevious = new Stack<>(),
 		historyNext = new Stack<>();
 
@@ -441,8 +443,7 @@ public class IntersectionModel extends Pane {
 		}
 
 		if (createdGraphs.containsKey(graphAbstract)) { // if graph already exists and model objects already exist
-			getChildren().setAll(createdGraphs.get(graphAbstract));
-			graph = graphAbstract;
+			setGraphFromAbstract(graphAbstract);
 		} else { // create new graph and all the model nodes.
 			historyNext.clear();
 			graph = new SimulationGraph(granularity, model, entries, exits, preferredHeight, IntersectionMenu.isAbstract());
@@ -462,11 +463,24 @@ public class IntersectionModel extends Pane {
 					break;
 			}
 
-			createdGraphs.put(graph, nodes);
+			createdGraphs.put(graph, new Pair<>(graph, nodes));
 			getChildren().setAll(nodes);
 		}
 
 		drawBackground(preferredHeight);
+	}
+
+	/**
+	 * Add vertices and edges to the abstract graph and set visual elements to math the graph.
+	 *
+	 * @param graphAbstract Graph with necessary elements.
+	 */
+	private void setGraphFromAbstract(SimulationGraph graphAbstract) {
+		assert createdGraphs.containsKey(graphAbstract);
+		Pair<Graph, List<Node>> graphValues = createdGraphs.get(graphAbstract);
+		getChildren().setAll(graphValues.getValue());
+		graphAbstract.addGraphVertices(graphValues.getKey());
+		graph = graphAbstract;
 	}
 
 	/**
@@ -476,9 +490,8 @@ public class IntersectionModel extends Pane {
 		if (!historyPrevious.empty()) {
 			SimulationGraph graphAbstract = historyPrevious.pop();
 			historyNext.push(graph);
-			// TODO graph doesn't have vertices.
-			graph = graphAbstract;
-			getChildren().setAll(createdGraphs.get(graphAbstract));
+			IntersectionScene.resetSimulation();
+			setGraphFromAbstract(graphAbstract);
 			drawBackground(preferredHeight);
 		}
 	}
@@ -490,9 +503,8 @@ public class IntersectionModel extends Pane {
 		if (!historyNext.empty()) {
 			SimulationGraph graphAbstract = historyNext.pop();
 			historyPrevious.push(graph);
-			// TODO graph doesn't have vertices.
-			graph = graphAbstract;
-			getChildren().setAll(createdGraphs.get(graphAbstract));
+			IntersectionScene.resetSimulation();
+			setGraphFromAbstract(graphAbstract);
 			drawBackground(preferredHeight);
 		}
 	}

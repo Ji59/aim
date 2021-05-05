@@ -60,7 +60,10 @@ public class Simulation {
 	}
 
 	public void stop() {
-		timer.cancel();
+		if (timer != null) {
+			timer.cancel();
+			timer = null;
+		}
 	}
 
 	@NotNull

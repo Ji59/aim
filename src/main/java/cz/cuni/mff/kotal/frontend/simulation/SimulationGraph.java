@@ -635,6 +635,12 @@ public class SimulationGraph extends Graph {
 		}
 	}
 
+	public void addGraphVertices(Graph graph) {
+		this.vertices = graph.getVerticesWithIDs();
+		this.entryExitVertices = graph.getEntryExitVertices();
+		this.edges = graph.getEdges();
+	}
+
 	/**
 	 * Check if the graph is same as another graph.
 	 * That means they are same model, have same granularity, size and orientation and same number of entries and exits.

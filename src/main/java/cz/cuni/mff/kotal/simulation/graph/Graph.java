@@ -9,9 +9,9 @@ import java.util.stream.Collectors;
 public class Graph {
 
 	protected final boolean oriented;
-	protected final Map<Long, Vertex> vertices;
-	protected final Map<Integer, List<Vertex>> entryExitVertices;
-	protected final Set<Edge> edges;
+	protected Map<Long, Vertex> vertices;
+	protected Map<Integer, List<Vertex>> entryExitVertices;
+	protected Set<Edge> edges;
 
 	/**
 	 * Create graph with provided vertices and edges. If not oriented, add edges with reversed orientation too.

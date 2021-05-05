@@ -5,7 +5,6 @@ import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
-import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Button;
@@ -118,6 +117,18 @@ public class IntersectionMenu extends VBox {
 
 	private static void setIntersectionModeButtonText() {
 		INTERSECTION_MODE.setText(abstractMode ? "Abstract" : "Real");
+	}
+
+	public void setPlayButtonPlaying(boolean playing) {
+		// TODO extract constants
+		IntersectionMenu.playing = playing;
+		if (playing) {
+			PLAY_BUTTON.setText("Pause");
+			SimulationMenuTab3.getPlayButton().setText("Pause");
+		} else {
+			PLAY_BUTTON.setText("Play");
+			SimulationMenuTab3.getPlayButton().setText("Play");
+		}
 	}
 
 	public static boolean isAbstract() {
