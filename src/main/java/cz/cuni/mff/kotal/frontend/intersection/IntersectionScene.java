@@ -54,10 +54,6 @@ public class IntersectionScene extends Scene {
 		setButtonsProperties(menuWidth);
 	}
 
-	public static void stopSimulation() {
-		simulation.stop();
-	}
-
 	/**
 	 * Set minimum width for play and restart button.
 	 *
@@ -102,9 +98,20 @@ public class IntersectionScene extends Scene {
 	}
 
 	public static void startSimulation(Algorithm alg) {
-		simulation = new Simulation(IntersectionModel.getGraph(), alg);
-		AGENTS.setSimulation(simulation);
+		if (simulation == null) {
+			simulation = new Simulation(IntersectionModel.getGraph(), alg);
+			AGENTS.setSimulation(simulation);
+		}
 		// TODO add speed
 		simulation.start(250);
+	}
+
+	public static void stopSimulation() {
+		simulation.stop();
+	}
+
+	public static void resetSimulation() {
+		simulation = null;
+		AGENTS.resetSimulation();
 	}
 }

@@ -66,6 +66,7 @@ public class IntersectionMenu extends VBox {
 		SimulationMenuTab3.getTimeline().valueProperty().addListener(getSliderValueListener(TIMELINE_SLIDER));
 
 		addPlayButtonAction();
+		addResetButtonAction();
 
 		SimulationMenuTab3.getPlayButton().setOnMouseClicked(PLAY_BUTTON.getOnMouseClicked());
 		SimulationMenuTab3.getRestartButton().setOnMouseClicked(RESTART_BUTTON.getOnMouseClicked());
@@ -75,10 +76,16 @@ public class IntersectionMenu extends VBox {
 		GridPane statistics = new GridPane();
 		SimulationMenuTab3.createStatisticsGrid(statistics);
 
-		HBox buttons = new HBox(PLAY_BUTTON/*, RESTART_BUTTON*/);
+		HBox buttons = new HBox(PLAY_BUTTON, RESTART_BUTTON);
 		PLAY_BUTTON.setVisible(true);
 		buttons.setPrefWidth(Double.MAX_VALUE);
 		getChildren().addAll(sliders, buttons, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
+	}
+
+	private void addResetButtonAction() {
+		RESTART_BUTTON.setOnMouseClicked(e -> {
+			IntersectionScene.resetSimulation();
+		});
 	}
 
 	private ChangeListener<Number> getSliderValueListener(Slider affectedSlider) {

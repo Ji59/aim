@@ -426,12 +426,16 @@ public class IntersectionModel extends Pane {
 		// create graph with key properties set
 		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, null, preferredHeight, IntersectionMenu.isAbstract());
 
+		if (graphAbstract.equals(graph)) { // if last graph is the same, return
+			return;
+		}
+
+		IntersectionScene.resetSimulation();
+
 		if (graph != null && preferredHeight != graph.getSize()) { // if size of the model changed, discard all saved graphs
 			createdGraphs.clear();
 			historyNext.clear();
 			historyPrevious.clear();
-		} else if (graphAbstract.equals(graph)) { // if last graph is the same, return
-			return;
 		} else if (graph != null) { // else add graph to previous stack
 			historyPrevious.push(graph);
 		}

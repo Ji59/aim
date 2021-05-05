@@ -18,7 +18,7 @@ import static cz.cuni.mff.kotal.MyGenerator.generateRandomInt;
 
 public class SimulationAgents extends Pane {
 	private Simulation simulation;
-	private Map<Long, StackPane> agents = new HashMap<>();
+	private final Map<Long, StackPane> AGENTS = new HashMap<>();
 
 
 	public SimulationAgents(double height, Simulation simulation) {
@@ -57,14 +57,14 @@ public class SimulationAgents extends Pane {
 
 		// TODO agentPane.setRotate();
 
-		agents.put(agent.getId(), agentPane);
+		AGENTS.put(agent.getId(), agentPane);
 
 		getChildren().add(agentPane);
 	}
 
 	public void redraw(Map<Long, Agent> actualAgents) {
 		Platform.runLater(() -> {
-			Iterator<Map.Entry<Long, StackPane>> agentsIterator = agents.entrySet().iterator();
+			Iterator<Map.Entry<Long, StackPane>> agentsIterator = AGENTS.entrySet().iterator();
 			while (agentsIterator.hasNext()) {
 				Map.Entry<Long, StackPane> entry = agentsIterator.next();
 				long id = entry.getKey();
@@ -86,5 +86,10 @@ public class SimulationAgents extends Pane {
 	public void setSimulation(Simulation simulation) {
 		this.simulation = simulation;
 		simulation.setGuiCallback(this::redraw);
+	}
+
+	public void resetSimulation() {
+		AGENTS.values().forEach(agentPane -> getChildren().remove(agentPane));
+		AGENTS.clear();
 	}
 }

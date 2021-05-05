@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -54,7 +55,17 @@ public class Simulation {
 
 
 	public void start(long delay) {
-		TimerTask agentsTask = new TimerTask() {
+		timer = new Timer();
+		timer.scheduleAtFixedRate(getTimerTask(), 0, delay);
+	}
+
+	public void stop() {
+		timer.cancel();
+	}
+
+	@NotNull
+	private TimerTask getTimerTask() {
+		return new TimerTask() {
 			@Override
 			public void run() {
 				Set<Agent> newAgents = generateAgents(allAgents.size());
@@ -67,13 +78,6 @@ public class Simulation {
 				System.out.println(time);
 			}
 		};
-
-		timer = new Timer();
-		timer.scheduleAtFixedRate(agentsTask, 0, delay);
-	}
-
-	public void stop() {
-		timer.cancel();
 	}
 
 	protected Set<Agent> generateAgents(int id) {
