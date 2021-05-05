@@ -61,7 +61,7 @@ class SimulationTest {
 		List<Long> distribution = Arrays.asList(0L, 50L, 0L, 50L, 0L, 0L);
 		Simulation simulation = new Simulation(graph, null, newAgentsMinimum, newAgentsMaximum, distribution);
 
-		int steps = 2500000;
+		int steps = 250000;
 		int count = 0;
 		Map<Long, Agent> agents = new HashMap<>();
 
