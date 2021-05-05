@@ -105,7 +105,7 @@ class SimulationTest {
 		return findGraphEntryExit(graph, vertexID);
 	}
 
-private Vertex findGraphEntryExit(Graph graph, long vertexID) {
+	private Vertex findGraphEntryExit(Graph graph, long vertexID) {
 		Map<Integer, List<Vertex>> entries = graph.getEntryExitVertices();
 		for (int i = 0; i < DISTRIBUTION.size(); i++) {
 			for (Vertex vertex : entries.get(i)) {
