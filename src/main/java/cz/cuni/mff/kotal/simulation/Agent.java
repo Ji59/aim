@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static cz.cuni.mff.kotal.MyNumberOperations.doubleAlmostEqual;
+
 
 public class Agent {
 	private final long id;
@@ -58,7 +60,7 @@ public class Agent {
 	 * @return Pair od IDs of the previous and next vertex at given time.
 	 * @throws IndexOutOfBoundsException
 	 */
-	Pair<Long, Long> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
+	public Pair<Long, Long> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
 		// TODO add exception
 		if (time < arrivalTime) {
 			Long first = path.get(0);
@@ -134,10 +136,5 @@ public class Agent {
 
 	public double getY() {
 		return y;
-	}
-
-	static boolean doubleAlmostEqual(double d0, double d1, double proximity) {
-		double difference = Math.abs(d0 - d1);
-		return difference <= proximity;
 	}
 }

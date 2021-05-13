@@ -18,7 +18,7 @@ class SimulationTest {
 	private final IntersectionMenuTab0.Parameters.Models GRAPH_MODEL = IntersectionMenuTab0.Parameters.Models.SQUARE;
 	private final double GRAPH_SIZE = 1000;
 	private final boolean GRAPH_ABSTRACT = true;
-	private Graph graph;
+	private SimulationGraph graph;
 
 	private final long NEW_AGENTS_MINIMUM = 2,
 		NEW_AGENTS_MAXIMUM = 4;
@@ -57,7 +57,7 @@ class SimulationTest {
 	void testGenerateAgentsMassive() {
 		int entries = 8,
 			newAgentsMinimum = 4 * entries, newAgentsMaximum = 6 * entries;
-		Graph graph = new SimulationGraph(16, IntersectionMenuTab0.Parameters.Models.HEXAGONAL, entries, entries - 1, 1000, false);
+		SimulationGraph graph = new SimulationGraph(16, IntersectionMenuTab0.Parameters.Models.HEXAGONAL, entries, entries - 1, 1000, false);
 		List<Long> distribution = Arrays.asList(0L, 50L, 0L, 50L, 0L, 0L);
 		Simulation simulation = new Simulation(graph, null, newAgentsMinimum, newAgentsMaximum, distribution);
 

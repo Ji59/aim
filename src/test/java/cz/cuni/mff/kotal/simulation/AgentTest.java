@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cz.cuni.mff.kotal.simulation.Agent.doubleAlmostEqual;
+import static cz.cuni.mff.kotal.MyNumberOperations.doubleAlmostEqual;
 
 
 class AgentTest {

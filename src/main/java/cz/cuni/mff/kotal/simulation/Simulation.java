@@ -3,10 +3,13 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
+import cz.cuni.mff.kotal.frontend.menu.tabs.AgentParametersMenuTab4;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -14,12 +17,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static cz.cuni.mff.kotal.MyGenerator.generateRandomInt;
-import static cz.cuni.mff.kotal.MyGenerator.generateRandomLong;
+import static cz.cuni.mff.kotal.MyGenerator.*;
 
 
 public class Simulation {
-	private final Graph intersectionGraph;
+	private final SimulationGraph intersectionGraph;
 
 	private final Map<Long, Agent> allAgents = new HashMap<>();
 	private final Set<Agent> currentAgents = Collections.synchronizedSet(new HashSet<>());
@@ -32,10 +34,10 @@ public class Simulation {
 	private long time;
 	private Timer timer;
 
-	private Consumer<Map<Long, Agent>> guiCallback;
+	private Consumer<Pair<Long, Map<Long, Agent>>> guiCallback;
 
 
-	public Simulation(Graph intersectionGraph, Algorithm algorithm) {
+	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm) {
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
 		time = 0;
@@ -44,7 +46,7 @@ public class Simulation {
 		distribution = AgentsMenuTab1.getDirectionDistribution().getChildren().stream().map(node -> ((AgentsMenuTab1.DirectionSlider) node).getValue()).collect(Collectors.toList());
 	}
 
-	public Simulation(Graph intersectionGraph, Algorithm algorithm, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution) {
+	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution) {
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
 		time = 0;
@@ -106,6 +108,7 @@ public class Simulation {
 
 	protected Agent generateAgent(int id, long entryValue, long exitValue) {
 		int entryDirection, exitDirection;
+		// TODO solve problem with multiple agents arriving at same time
 		for (entryDirection = 0; entryDirection < distribution.size() - 1 && entryValue >= distribution.get(entryDirection); entryDirection++) {
 			entryValue -= distribution.get(entryDirection);
 		}
@@ -149,8 +152,23 @@ public class Simulation {
 		List<Vertex> exits = intersectionGraph.getEntryExitVertices().get(exitDirection).stream().filter(e -> !e.getType().isEntry()).collect(Collectors.toList());
 		Vertex exit = exits.get(generateRandomInt(exits.size() - 1));
 
-		// TODO add speed, length and width
-		return new Agent(id, entry.getID(), exit.getID(), 1, time, 50, 50, entry.getX(), entry.getY());
+		double maxDeviation = AgentParametersMenuTab4.getSpeedDeviation().getValue();
+
+		long minimalSpeed = AgentParametersMenuTab4.getMinimalSpeed().getValue(),
+			maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed().getValue();
+		double speed = generateWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
+
+		// TODO remake length and width
+		long minimalLength = AgentParametersMenuTab4.getMinimalSizeLength().getValue(),
+			maximalLength = AgentParametersMenuTab4.getMaximalSizeLength().getValue(),
+			minimalWidth = AgentParametersMenuTab4.getMinimalSizeWidth().getValue(),
+			maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
+
+		double cellSize = intersectionGraph.getCellSize(),
+			width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.5, 0.5) * cellSize,
+			length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
+
+		return new Agent(id, entry.getID(), exit.getID(), speed, time, length, width, entry.getX(), entry.getY());
 	}
 
 	private void updateAgents() {
@@ -166,14 +184,14 @@ public class Simulation {
 				currentAgentsIterator.remove();
 			}
 		}
-		guiCallback.accept(currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+		guiCallback.accept(new Pair<>(time, currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity()))));
 	}
 
 	public boolean isRunning() {
 		return timer != null;
 	}
 
-	public Graph getIntersectionGraph() {
+	public SimulationGraph getIntersectionGraph() {
 		return intersectionGraph;
 	}
 
@@ -189,7 +207,7 @@ public class Simulation {
 		return allAgents.get(id);
 	}
 
-	public void setGuiCallback(Consumer<Map<Long, Agent>> guiCallback) {
+	public void setGuiCallback(Consumer<Pair<Long, Map<Long, Agent>>> guiCallback) {
 		this.guiCallback = guiCallback;
 	}
 

@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class AgentParametersMenuTab4 extends MyTabTemplate {
+   // TODO rename constants
+   // TODO redesign size properties
    private static final MySlider minimalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1, 1),
       minimalSizeWidth = new MySlider(1, Math.min(IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getExits().getValue()), 1),
       maximalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1, 1),

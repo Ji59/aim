@@ -16,4 +16,16 @@ public class MyGenerator {
 			return 0;
 		} else return Math.round(random * (maximum - minimum + 1) + minimum - 0.5);
 	}
+
+	public static double generateWithDeviation(long minimum, long maximum, double maxDeviation) {
+		long baseValue = generateRandomLong(minimum, maximum);
+		if (maxDeviation == 0) {
+			return (double) baseValue;
+		}
+
+		double deviation = Math.random() * maxDeviation;
+		boolean deviationSmaller = Math.random() < 0.5;
+		deviation = 1 + (deviationSmaller ? - 1 : 1) * deviation;
+		return baseValue * deviation;
+	}
 }

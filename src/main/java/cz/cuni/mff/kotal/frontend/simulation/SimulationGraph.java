@@ -710,4 +710,12 @@ public class SimulationGraph extends Graph {
 	public boolean isAbstractGraph() {
 		return abstractGraph;
 	}
+
+	public double getCellSize() {
+		if (model == Parameters.Models.HEXAGONAL) {
+			return size / (2 * granularity + 1);
+		} else {
+			return size / (granularity + 2);
+		}
+	}
 }
