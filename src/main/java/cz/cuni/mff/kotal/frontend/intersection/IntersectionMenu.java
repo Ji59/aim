@@ -4,6 +4,7 @@ package cz.cuni.mff.kotal.frontend.intersection;
 import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
+import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3.Parameters.Statistics;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -14,13 +15,15 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.util.Map;
+
 
 public class IntersectionMenu extends VBox {
 
 	private static boolean abstractMode = false;
 
 	// TODO extract constants
-	private static final Slider SPEED_SLIDER = new Slider(0, 1, 0),
+	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815),
 		TIMELINE_SLIDER = new Slider(0, 1, 0);
 	private static final Button INTERSECTION_MODE = new Button("Real");
 	private static final Label stepsLabel = new Label("#n"),
@@ -59,9 +62,9 @@ public class IntersectionMenu extends VBox {
 		sliders.addRow(1, timelineLabel, TIMELINE_SLIDER);
 		sliders.setVgap(padding);
 
-		SPEED_SLIDER.valueProperty().addListener(getSliderValueListener(SimulationMenuTab3.getSpeed()));
+		SPEED_SLIDER.valueProperty().addListener(getSliderValueListener(SimulationMenuTab3.getSpeedSlider()));
 		TIMELINE_SLIDER.valueProperty().addListener(getSliderValueListener(SimulationMenuTab3.getTimeline()));
-		SimulationMenuTab3.getSpeed().valueProperty().addListener(getSliderValueListener(SPEED_SLIDER));
+		SimulationMenuTab3.getSpeedSlider().valueProperty().addListener(getSliderValueListener(SPEED_SLIDER));
 		SimulationMenuTab3.getTimeline().valueProperty().addListener(getSliderValueListener(TIMELINE_SLIDER));
 
 		addPlayButtonAction();
@@ -73,7 +76,8 @@ public class IntersectionMenu extends VBox {
 		SAVE_AGENTS_BUTTON.setPrefWidth(Double.MAX_VALUE);
 
 		GridPane statistics = new GridPane();
-		SimulationMenuTab3.createStatisticsGrid(statistics);
+		Map<Statistics, Label> labels = Map.of(Statistics.STEPS, stepsLabel, Statistics.DELAY, delayLabel, Statistics.REJECTIONS, rejectionsLabel, Statistics.COLLISIONS, collisionsLabel, Statistics.REMAINS, remainingLabel);
+		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
 		HBox buttons = new HBox(PLAY_BUTTON, RESTART_BUTTON);
 		PLAY_BUTTON.setVisible(true);
@@ -94,7 +98,6 @@ public class IntersectionMenu extends VBox {
 	private void addPlayButtonAction() {
 		// TODO extract constants
 		PLAY_BUTTON.setOnMouseClicked(e -> {
-			// TODO add pause simulation
 			String newText;
 			if (playing) {
 				newText = "Play";
@@ -140,6 +143,10 @@ public class IntersectionMenu extends VBox {
 		setIntersectionModeButtonText();
 	}
 
+	public static double getSpeed() {
+		return SPEED_SLIDER.getValue();
+	}
+
 	public static Button getPlayButton() {
 		return PLAY_BUTTON;
 	}
@@ -159,7 +166,7 @@ public class IntersectionMenu extends VBox {
 	public static void setStep(long step) {
 		Platform.runLater(() -> {
 			stepsLabel.setText(String.valueOf(step));
-			stepsLabel.textProperty().set(String.valueOf(step));
+			SimulationMenuTab3.getStepsLabel().setText(String.valueOf(step));
 		});
 	}
 

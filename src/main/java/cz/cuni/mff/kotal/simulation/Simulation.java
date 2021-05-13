@@ -54,9 +54,13 @@ public class Simulation {
 	}
 
 
-	public void start(long delay) {
+	public void start(long period) {
+		startAfter(0, period);
+	}
+
+	public void startAfter(long delay, long period) {
 		timer = new Timer();
-		timer.scheduleAtFixedRate(getTimerTask(), 0, delay);
+		timer.scheduleAtFixedRate(getTimerTask(), delay, period);
 	}
 
 	public void stop() {
@@ -163,6 +167,10 @@ public class Simulation {
 			}
 		}
 		guiCallback.accept(currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+	}
+
+	public boolean isRunning() {
+		return timer != null;
 	}
 
 	public Graph getIntersectionGraph() {

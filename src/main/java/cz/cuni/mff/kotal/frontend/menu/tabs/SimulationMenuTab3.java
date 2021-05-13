@@ -1,6 +1,6 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -10,10 +10,13 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.TilePane;
 
+import java.util.Map;
+
+
 public class SimulationMenuTab3 extends MyTabTemplate {
 
-   // TODO extract constants
-   private static final Slider speed = new Slider(0, 1, 0),
+   // TODO extract constants and rename constants
+   private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815),
       timeline = new Slider(0, 1, 0);
    private static final Label stepsLabel = new Label("#n"),
       delayLabel = new Label("#n"),
@@ -29,6 +32,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 
       createStatisticsGrid((GridPane) Parameters.STATISTICS.getParameter());
 
+      addSpeedSliderActions();
       // TODO pridat akce na tlacitka a slidery
 
       int row = 0;
@@ -47,14 +51,31 @@ public class SimulationMenuTab3 extends MyTabTemplate {
       int row = 0;
       for (Parameters.Statistics statistic : Parameters.Statistics.values()) {
          Label label = new Label(statistic.getText());
-         grid.getChildren().addAll(label, statistic.getValue());
+         Label labelValue = statistic.getValue();
+         grid.getChildren().addAll(label, labelValue);
          GridPane.setConstraints(label, 0, row);
-         GridPane.setConstraints(statistic.getValue(), 1, row++);
+         GridPane.setConstraints(labelValue, 1, row++);
       }
    }
 
-   public static Slider getSpeed() {
-      return speed;
+   public static void createStatisticsGrid(GridPane grid, Map<Parameters.Statistics, Label> labels) {
+      grid.setHgap(20);
+      int row = 0;
+      for (Parameters.Statistics statistic : Parameters.Statistics.values()) {
+         Label label = new Label(statistic.getText());
+         Label labelValue = labels.get(statistic);
+         grid.getChildren().addAll(label, labelValue);
+         GridPane.setConstraints(label, 0, row);
+         GridPane.setConstraints(labelValue, 1, row++);
+      }
+   }
+
+   private void addSpeedSliderActions() {
+      SPEED_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> IntersectionScene.changeSimulation());
+   }
+
+   public static Slider getSpeedSlider() {
+      return SPEED_SLIDER;
    }
 
    public static Slider getTimeline() {
@@ -94,7 +115,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
    }
 
    public enum Parameters {
-      SPEED("Speed:", speed),
+      SPEED("Speed:", SimulationMenuTab3.SPEED_SLIDER),
       TIMELINE("Timeline:", timeline),
       // TODO remove constants
       BUTTONS(null, new TilePane(Orientation.HORIZONTAL, 20, 0, PLAY_BUTTON, RESTART_BUTTON, SAVE_AGENTS_BUTTON)),
