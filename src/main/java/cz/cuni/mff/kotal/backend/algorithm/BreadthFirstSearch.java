@@ -30,7 +30,13 @@ public class BreadthFirstSearch implements Algorithm {
 
 	@Override
 	public void planAgents(Set<Agent> agents) {
-		agents.forEach(a -> a.setPath(bfs(a.getStart(), a.getEnd())));
+		agents.forEach(this::planAgent);
+	}
+
+	@Override
+	public Agent planAgent(Agent agent) {
+		agent.setPath(bfs(agent.getStart(), agent.getEnd()));
+		return agent;
 	}
 
 	private List<Long> bfs(long startID, long endID) {

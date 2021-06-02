@@ -6,8 +6,8 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentParametersMenuTab4;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
-import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -31,25 +31,33 @@ public class Simulation {
 	private final long newAgentsMaximum;
 	private final List<Long> distribution;
 
-	private long time;
+	private long step,
+		startTime;
 	private Timer timer;
 
+	private final SimulationAgents simulationAgents;
+
 	private Consumer<Pair<Long, Map<Long, Agent>>> guiCallback;
+	private Consumer<Pair<Long, Agent>> addAgentCallback;
 
 
-	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm) {
+	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
-		time = 0;
+		this.simulationAgents = simulationAgents;
+		step = 0;
 		newAgentsMinimum = AgentsMenuTab1.getNewAgentsMinimum().getValue();
 		newAgentsMaximum = AgentsMenuTab1.getNewAgentsMaximum().getValue();
 		distribution = AgentsMenuTab1.getDirectionDistribution().getChildren().stream().map(node -> ((AgentsMenuTab1.DirectionSlider) node).getValue()).collect(Collectors.toList());
+
+		startTime = System.nanoTime();
 	}
 
-	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution) {
+	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution, SimulationAgents simulationAgents) {
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
-		time = 0;
+		this.simulationAgents = simulationAgents;
+		step = 0;
 		this.newAgentsMinimum = newAgentsMinimum;
 		this.newAgentsMaximum = newAgentsMaximum;
 		this.distribution = distribution;
@@ -57,15 +65,32 @@ public class Simulation {
 
 
 	public void start(long period) {
-		startAfter(0, period);
-	}
+		long delay = isRunning() ? period : 0L;
 
-	public void startAfter(long delay, long period) {
 		timer = new Timer();
 		timer.scheduleAtFixedRate(getTimerTask(), delay, period);
+		new Thread(() -> {
+			try {
+				long now = System.nanoTime();
+				Thread.sleep(delay);
+				long noNow = System.nanoTime();
+				System.out.println((noNow - now) / 1_000_000 + "; " + delay);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			simulationAgents.resumeSimulation(period);
+		}).start();
 	}
 
 	public void stop() {
+		if (timer != null) {
+			timer.cancel();
+			timer = null;
+			simulationAgents.stopSimulation();
+		}
+	}
+
+	public void reset() {
 		if (timer != null) {
 			timer.cancel();
 			timer = null;
@@ -78,13 +103,10 @@ public class Simulation {
 			@Override
 			public void run() {
 				Set<Agent> newAgents = generateAgents(allAgents.size());
-				algorithm.planAgents(newAgents);
 				allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
-				currentAgents.addAll(newAgents);
-				updateAgents();
-				time++;
-				IntersectionMenu.setStep(time);
-				System.out.println(time);
+				step++;
+				IntersectionMenu.setStep(step);
+				System.out.println(step);
 			}
 		};
 	}
@@ -168,23 +190,9 @@ public class Simulation {
 			width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.5, 0.5) * cellSize,
 			length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
 
-		return new Agent(id, entry.getID(), exit.getID(), speed, time, length, width, entry.getX(), entry.getY());
-	}
-
-	private void updateAgents() {
-		Iterator<Agent> currentAgentsIterator = currentAgents.iterator();
-		while (currentAgentsIterator.hasNext()) {
-			Agent agent = currentAgentsIterator.next();
-			try {
-				agent.computeNextXY(time, intersectionGraph.getVerticesWithIDs());
-			} catch (IndexOutOfBoundsException e) {
-				// agent doesn't exist in this step
-				// TODO remove log
-				System.out.println("Removing: " + agent.getId());
-				currentAgentsIterator.remove();
-			}
-		}
-		guiCallback.accept(new Pair<>(time, currentAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity()))));
+		Agent agent = new Agent(id, entry.getID(), exit.getID(), speed, step, length, width, entry.getX(), entry.getY());
+		simulationAgents.addAgent(System.nanoTime(), algorithm.planAgent(agent));
+		return agent;
 	}
 
 	public boolean isRunning() {
@@ -211,6 +219,10 @@ public class Simulation {
 		this.guiCallback = guiCallback;
 	}
 
+	public void setAddAgentCallback(Consumer<Pair<Long, Agent>> addAgentCallback) {
+		this.addAgentCallback = addAgentCallback;
+	}
+
 	public long getNewAgentsMinimum() {
 		return newAgentsMinimum;
 	}
@@ -223,7 +235,11 @@ public class Simulation {
 		return distribution;
 	}
 
-	public long getTime() {
-		return time;
+	public long getStep() {
+		return step;
+	}
+
+	public long getStartTime() {
+		return startTime;
 	}
 }

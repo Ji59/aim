@@ -79,35 +79,35 @@ class AgentTest {
 			}
 		}
 
-		Pair<Long, Long> IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.7 + nonTrivialArrivalTime);
+		Pair<Long, Long> IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.7);
 		assert IDsPrediction.getKey() == 0 && IDsPrediction.getValue() == 1;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.8 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.8);
 		assert IDsPrediction.getKey() == 1 && IDsPrediction.getValue() == 2;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.9 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.9);
 		assert IDsPrediction.getKey() == 1 && IDsPrediction.getValue() == 2;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(1.55 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(1.55);
 		assert IDsPrediction.getKey() == 1 && IDsPrediction.getValue() == 2;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2);
 		assert IDsPrediction.getKey() == 2 && IDsPrediction.getValue() == 3;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2.39 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2.39);
 		assert IDsPrediction.getKey() == 2 && IDsPrediction.getValue() == 3;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2.4 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2.4);
 		assert IDsPrediction.getKey() == 3 && IDsPrediction.getValue() == 4;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(3 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(3);
 		assert IDsPrediction.getKey() == 3 && IDsPrediction.getValue() == 4;
 
-		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(3.2 + nonTrivialArrivalTime);
+		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(3.2);
 		assert IDsPrediction.getKey() == 4 && IDsPrediction.getValue() == 4;
 
 		try {
-			nonTrivialAgent.getPreviousNextVertexIDs(3.3 + nonTrivialArrivalTime);
+			nonTrivialAgent.getPreviousNextVertexIDs(3.3);
 			assert false;
 		} catch (IndexOutOfBoundsException e) {
 			assert true;

@@ -80,9 +80,9 @@ public class IntersectionScene extends Scene {
 
 	public static void startSimulation(Algorithm alg) {
 		if (simulation == null) {
-			simulation = new Simulation(IntersectionModel.getGraph(), alg);
+			simulation = new Simulation(IntersectionModel.getGraph(), alg, AGENTS);
 			AGENTS.setSimulation(simulation);
-			simulation.start(getPeriod());
+			simulation.start((long) getPeriod());
 		} else {
 			resumeSimulation();
 		}
@@ -90,15 +90,14 @@ public class IntersectionScene extends Scene {
 
 	private static void resumeSimulation() {
 		assert simulation != null;
-		long period = getPeriod();
-		simulation.startAfter(period, period);
+		long period = (long) getPeriod();
+		simulation.start(period);
 	}
 
-	private static long getPeriod() {
+	public static double getPeriod() {
 		double speed = IntersectionMenu.getSpeed();
 		// TODO do speed properly
-		long period = (long)(2500 - Math.sqrt(speed) * 78.8);
-		return period;
+		return (2500 - Math.sqrt(speed) * 78.8);
 	}
 
 	public static void stopSimulation() {
@@ -112,8 +111,9 @@ public class IntersectionScene extends Scene {
 		}
 		MENU.setPlayButtonPlaying(false);
 
-		simulation.stop();
+		simulation.reset();
 		simulation = null;
+
 		AGENTS.resetSimulation();
 	}
 

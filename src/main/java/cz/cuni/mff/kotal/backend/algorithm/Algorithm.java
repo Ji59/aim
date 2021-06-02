@@ -8,4 +8,6 @@ import java.util.Set;
 
 public interface Algorithm {
 	void planAgents(Set<Agent> agents);
+
+	Agent planAgent(Agent agent);
 }

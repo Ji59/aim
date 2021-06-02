@@ -56,20 +56,21 @@ public class Agent {
 	 * If time is greater then arrival at the end time, throw exception.
 	 * Else return the nearest next vertex ID and vertex ID of its predecessor.
 	 *
-	 * @param time Time to get position from.
+	 * @param time Relative time to arrival time.
 	 * @return Pair od IDs of the previous and next vertex at given time.
 	 * @throws IndexOutOfBoundsException
 	 */
 	public Pair<Long, Long> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
 		// TODO add exception
-		if (time < arrivalTime) {
+		if (time < 0) {
 			Long first = path.get(0);
 			return new Pair<>(first, first);
-		} if (doubleAlmostEqual(time, arrivalTime + (path.size() - 1) / speed, PROXIMITY)) {
+		}
+		if (doubleAlmostEqual(time, (path.size() - 1) / speed, PROXIMITY)) {
 			long exitID = path.get(path.size() - 1);
 			return new Pair<>(exitID, exitID);
 		}
-		int nextIndex = (int) Math.round((time - arrivalTime) * speed + 0.5),
+		int nextIndex = (int) Math.round((time) * speed + 0.5),
 			previousIndex = nextIndex - 1;
 		return new Pair<>(path.get(previousIndex), path.get(nextIndex));
 	}
@@ -108,7 +109,7 @@ public class Agent {
 	}
 
 	public void computeNextXY(double time, Map<Long, Vertex> vertices) throws IndexOutOfBoundsException {
-		double travelTime = time - arrivalTime,
+		double travelTime = time /*- arrivalTime*/,
 			currentEdgeTravelPart = (travelTime * speed) % 1,
 			currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
 		Pair<Long, Long> previousNextGoalID = getPreviousNextVertexIDs(time);
@@ -117,9 +118,6 @@ public class Agent {
 
 		x = previousGoal.getX() * currentEdgeTravelRemain + nextGoal.getX() * currentEdgeTravelPart;
 		y = previousGoal.getY() * currentEdgeTravelRemain + nextGoal.getY() * currentEdgeTravelPart;
-
-		// TODO remove logs
-		System.out.println("ID: " + id + "; goals: " + previousNextGoalID);
 	}
 
 	public double getL() {

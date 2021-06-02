@@ -29,7 +29,7 @@ class SimulationTest {
 	@BeforeEach
 	public void setUp() {
 		graph = new SimulationGraph(GRAPH_GRANULARITY, GRAPH_MODEL, GRAPH_ENTRIES, GRAPH_EXITS, GRAPH_SIZE, GRAPH_ABSTRACT);
-		simulation = new Simulation(graph, null, NEW_AGENTS_MINIMUM, NEW_AGENTS_MAXIMUM, DISTRIBUTION);
+		simulation = new Simulation(graph, null, NEW_AGENTS_MINIMUM, NEW_AGENTS_MAXIMUM, DISTRIBUTION, null);
 	}
 
 	@Test
@@ -59,7 +59,7 @@ class SimulationTest {
 			newAgentsMinimum = 4 * entries, newAgentsMaximum = 6 * entries;
 		SimulationGraph graph = new SimulationGraph(16, IntersectionMenuTab0.Parameters.Models.HEXAGONAL, entries, entries - 1, 1000, false);
 		List<Long> distribution = Arrays.asList(0L, 50L, 0L, 50L, 0L, 0L);
-		Simulation simulation = new Simulation(graph, null, newAgentsMinimum, newAgentsMaximum, distribution);
+		Simulation simulation = new Simulation(graph, null, newAgentsMinimum, newAgentsMaximum, distribution, null);
 
 		int steps = 250000;
 		int count = 0;

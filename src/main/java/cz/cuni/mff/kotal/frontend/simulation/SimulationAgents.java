@@ -2,9 +2,11 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.MyNumberOperations;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
@@ -24,12 +26,12 @@ import static cz.cuni.mff.kotal.MyGenerator.generateRandomInt;
 public class SimulationAgents extends Pane {
 	private Simulation simulation;
 	private final Map<Long, AgentPane> AGENTS = new HashMap<>();
+	private AgentTimer timer;
 
 	public SimulationAgents(double height, Simulation simulation) {
 		this.simulation = simulation;
 		setPrefWidth(height);
 		setPrefHeight(height);
-		simulation.setGuiCallback(this::redraw);
 	}
 
 	public SimulationAgents(double height) {
@@ -37,60 +39,127 @@ public class SimulationAgents extends Pane {
 		setPrefHeight(height);
 	}
 
-	public void addAgent(long time, Agent agent) {
-		AgentPane agentPane = new AgentPane(time, agent);
+	public void addAgent(long startTime, Agent agent, double period) {
+		AgentPane agentPane = new AgentPane(startTime, agent, period);
 
-		AGENTS.put(agent.getId(), agentPane);
+		synchronized (AGENTS) {
+			AGENTS.put(agent.getId(), agentPane);
+		}
 
-		getChildren().add(agentPane);
+		Platform.runLater(() -> getChildren().add(agentPane));
+	}
+
+	public void addAgent(Long time, Agent agent) {
+		addAgent(time, agent, IntersectionScene.getPeriod());
+	}
+
+	private void removeAgent(long agentID) {
+		AgentPane agentPane;
+		synchronized (AGENTS) {
+			agentPane = AGENTS.remove(agentID);
+		}
+		getChildren().remove(agentPane);
 	}
 
 	public void redraw(Pair<Long, Map<Long, Agent>> timeActualAgents) {
-		long time = timeActualAgents.getKey();
-		Map<Long, Agent> actualAgents = timeActualAgents.getValue();
-		Platform.runLater(() -> {
-			Iterator<Map.Entry<Long, AgentPane>> agentsIterator = AGENTS.entrySet().iterator();
-			while (agentsIterator.hasNext()) {
-				Map.Entry<Long, AgentPane> entry = agentsIterator.next();
-				long id = entry.getKey();
-				AgentPane pane = entry.getValue();
-				Agent a = actualAgents.get(id);
-				if (a == null) {
-					getChildren().remove(pane);
-					agentsIterator.remove();
-				} else {
-					pane.updateAgent(time, a);
-				}
-				actualAgents.remove(id);
-			}
-			actualAgents.forEach((id, agent) -> addAgent(time, agent));
-		});
+		// TODO remove
+//		long time = timeActualAgents.getKey();
+//		Map<Long, Agent> actualAgents = timeActualAgents.getValue();
+//		Platform.runLater(() -> {
+//			Iterator<Map.Entry<Long, AgentPane>> agentsIterator = AGENTS.entrySet().iterator();
+//			while (agentsIterator.hasNext()) {
+//				Map.Entry<Long, AgentPane> entry = agentsIterator.next();
+//				long id = entry.getKey();
+//				AgentPane pane = entry.getValue();
+//				Agent a = actualAgents.get(id);
+//				if (a == null) {
+//					getChildren().remove(pane);
+//					agentsIterator.remove();
+//				} else {
+//					pane.updateAgent(time);
+//				}
+//				actualAgents.remove(id);
+//			}
+//			actualAgents.forEach((id, agent) -> addAgent(time, agent));
+//		});
 	}
 
 	public void setSimulation(Simulation simulation) {
 		this.simulation = simulation;
-		simulation.setGuiCallback(this::redraw);
+	}
+
+	public void stopSimulation() {
+		synchronized (AGENTS) {
+			AGENTS.values().forEach(AgentPane::stop);
+		}
+	}
+
+	public void resumeSimulation(double period) {
+		synchronized (AGENTS) {
+			AGENTS.values().forEach(agentPane -> agentPane.resume(period));
+		}
 	}
 
 	public void resetSimulation() {
-		AGENTS.values().forEach(agentPane -> getChildren().remove(agentPane));
+		synchronized (AGENTS) {
+			AGENTS.values().forEach(agentPane -> {
+				agentPane.stop();
+				getChildren().remove(agentPane);
+			});
+		}
 		AGENTS.clear();
 	}
 
-	public class AgentPane extends StackPane {
-		Rotate rotation = new Rotate();
+	private class AgentTimer extends AnimationTimer {
+		private final long startTime;
+		private final double period,
+			relativeDistanceTraveled;
+		private final AgentPane agentPane;
 
-		public AgentPane(long time, Agent agent) {
+		public AgentTimer(long startTime, double period, double relativeDistanceTraveled, AgentPane agentPane) {
+			this.startTime = startTime;
+			this.period = period * 1_000_000; // convert to nanoseconds
+			this.relativeDistanceTraveled = relativeDistanceTraveled;
+			this.agentPane = agentPane;
+		}
+
+		@Override
+		public void handle(long now) {
+			double time = relativeDistanceTraveled + getRelativeTimeTraveled(now);
+			try {
+				agentPane.getAgent().computeNextXY(time, simulation.getIntersectionGraph().getVerticesWithIDs());
+			} catch (IndexOutOfBoundsException e) {
+				this.stop();
+				removeAgent(agentPane.agent.getId());
+				return;
+			}
+			agentPane.updateAgent(time);
+		}
+
+		public double getRelativeTimeTraveled(long time) {
+			return (time - startTime) / period;
+		}
+	}
+
+
+	public class AgentPane extends StackPane {
+		private final Rotate rotation = new Rotate();
+		private final Agent agent;
+		private AgentTimer timer;
+		private double distanceTraveled;
+
+		public AgentPane(long startTime, Agent agent, double period) {
+			this.agent = agent;
+			this.distanceTraveled = 0;
 
 			Rectangle rectangle = new Rectangle(agent.getL(), agent.getW());
 			TextField text = new TextField(String.valueOf(agent.getId()));
 			text.setAlignment(Pos.CENTER);
 
 			// TODO set rotation based on the arriving location
-				rotation.setPivotX(agent.getL() / 2);
-				rotation.setPivotY(agent.getW() / 2);
+			rotation.setPivotX(agent.getL() / 2);
+			rotation.setPivotY(agent.getW() / 2);
 			rectangle.getTransforms().add(rotation);
-			updateAgent(time, agent);
 
 			getChildren().addAll(rectangle, text);
 
@@ -103,35 +172,56 @@ public class SimulationAgents extends Pane {
 			double size = 50;
 			setPrefWidth(size);
 			setPrefHeight(size);
+
+			timer = new AgentTimer(startTime, period, distanceTraveled, this);
+			timer.start();
 		}
 
-		private void updatePosition(Agent agent) {
+		private void updatePosition() {
 			// TODO do position properly
 			setLayoutX(agent.getX() - agent.getL() / 2);
 			setLayoutY(agent.getY() - agent.getW() / 2);
 		}
 
-		public void updateRotation(long time, Agent agent) {
-			Map<Long, Vertex> verices = simulation.getIntersectionGraph().getVerticesWithIDs();
+		public void updateRotation(double time) {
+			Map<Long, Vertex> vertices = simulation.getIntersectionGraph().getVerticesWithIDs();
 			Pair<Long, Long> previousNext = agent.getPreviousNextVertexIDs(time);
-			GraphicalVertex start = (GraphicalVertex) verices.get(previousNext.getKey()),
-				end = (GraphicalVertex) verices.get(previousNext.getValue());
+			GraphicalVertex start = (GraphicalVertex) vertices.get(previousNext.getKey()),
+				end = (GraphicalVertex) vertices.get(previousNext.getValue());
 
 			double angel = MyNumberOperations.computeRotation(start.getX(), start.getY(), end.getX(), end.getY());
 			if (angel > 0) {
-//				rotation.setPivotX(0);
-//				rotation.setPivotY(0);
 				this.rotation.setAngle(angel);
 			}
 		}
 
-		public void updateAgent(long time, Agent agent) {
-			updatePosition(agent);
-			updateRotation(time, agent);
+		public void updateAgent(double time) {
+			updatePosition();
+			updateRotation(time);
+		}
+
+		public void stop() {
+			if (timer != null) {
+				long now = System.nanoTime();
+				timer.stop();
+				distanceTraveled = timer.getRelativeTimeTraveled(now);
+				timer = null;
+			}
+		}
+
+		public void resume(double period) {
+			assert timer == null;
+			long now = System.nanoTime();
+			timer = new AgentTimer(now, period, distanceTraveled, this);
+			timer.start();
 		}
 
 		public double getRotation() {
 			return rotation.getAngle();
+		}
+
+		public Agent getAgent() {
+			return agent;
 		}
 	}
 }
