@@ -86,7 +86,7 @@ public class Simulation {
 		if (timer != null) {
 			timer.cancel();
 			timer = null;
-			simulationAgents.stopSimulation();
+			simulationAgents.pauseSimulation();
 		}
 	}
 

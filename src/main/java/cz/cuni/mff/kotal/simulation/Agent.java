@@ -58,7 +58,7 @@ public class Agent {
 	 *
 	 * @param time Relative time to arrival time.
 	 * @return Pair od IDs of the previous and next vertex at given time.
-	 * @throws IndexOutOfBoundsException
+	 * @throws IndexOutOfBoundsException TODO
 	 */
 	public Pair<Long, Long> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
 		// TODO add exception
