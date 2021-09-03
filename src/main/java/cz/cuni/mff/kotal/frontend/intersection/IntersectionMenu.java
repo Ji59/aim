@@ -79,10 +79,14 @@ public class IntersectionMenu extends VBox {
 		Map<Statistics, Label> labels = Map.of(Statistics.STEPS, stepsLabel, Statistics.DELAY, delayLabel, Statistics.REJECTIONS, rejectionsLabel, Statistics.COLLISIONS, collisionsLabel, Statistics.REMAINS, remainingLabel);
 		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
-		HBox buttons = new HBox(PLAY_BUTTON, RESTART_BUTTON);
 		PLAY_BUTTON.setVisible(true);
+		// TODO on Windows button overlay each other
+//		HBox buttons = new HBox(PLAY_BUTTON /*, RESTART_BUTTON */);
+		HBox buttons = new HBox(padding, PLAY_BUTTON);
+//		buttons.getChildren().add(RESTART_BUTTON);
+
 		buttons.setPrefWidth(Double.MAX_VALUE);
-		getChildren().addAll(sliders, buttons, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
+		getChildren().addAll(sliders, buttons, RESTART_BUTTON, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
 	}
 
 	private void addResetButtonAction() {
