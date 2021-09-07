@@ -130,8 +130,9 @@ public class AgentPane extends StackPane {
 		// TODO
 //			rectangle.getTransformedArea();
 
-		double sinAngle = Math.sin(angle),
-			cosAngle = Math.cos(angle);
+		double radianAngle = Math.toRadians(angle);
+		double sinAngle = Math.sin(radianAngle),
+			cosAngle = Math.cos(radianAngle);
 
 		double halfWidth = agent.getW() / 2,
 			halfHeight = agent.getL() / 2;
