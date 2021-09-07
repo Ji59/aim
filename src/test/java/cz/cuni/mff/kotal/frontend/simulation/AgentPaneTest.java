@@ -149,6 +149,9 @@ class AgentPaneTest {
 		if (inverted) {
 			diagonalAngle += Math.PI;
 		}
+		if (plus90) {
+			diagonalAngle += Math.PI / 2;
+		}
 		
 		double halfDiagonal = Math.sqrt(length * length + width * width) / 2;
 

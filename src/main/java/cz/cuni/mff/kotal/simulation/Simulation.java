@@ -116,30 +116,44 @@ public class Simulation {
 		long newAgentsCount = generateRandomLong(newAgentsMinimum, newAgentsMaximum);
 
 		Set<Agent> newAgents = new HashSet<>();
+		Map<Integer, List<Vertex>> entries = getEntriesExitsMap(true);
+		Map<Integer, List<Vertex>> exits = getEntriesExitsMap(false);
 
 		for (long i = 0; i < newAgentsCount; i++) {
 			long entryValue = generateRandomLong(100),
 				exitValue = generateRandomLong(100);
 
-			Agent newAgent = generateAgent(id++, entryValue, exitValue);
+			Agent newAgent = generateAgent(id++, entryValue, exitValue, entries, exits);
 			newAgents.add(newAgent);
 		}
 
 		return newAgents;
 	}
 
-	protected Agent generateAgent(int id, long entryValue, long exitValue) {
+	protected Agent generateAgent(int id, long entryValue, long exitValue, Map<Integer, List<Vertex>> entries, Map<Integer, List<Vertex>> exits) {
 		int entryDirection, exitDirection;
 		// TODO solve problem with multiple agents arriving at same time
 		for (entryDirection = 0; entryDirection < distribution.size() - 1 && entryValue >= distribution.get(entryDirection); entryDirection++) {
 			entryValue -= distribution.get(entryDirection);
 		}
-		while (distribution.get(entryDirection) == 0) {
-			entryDirection--;
+
+		int startingEntryDirection = entryDirection;
+		while (entryDirection < entries.size() && (distribution.get(entryDirection) == 0 || entries.get(entryDirection).isEmpty())) {
+			entryDirection++;
+		}
+		if (entryDirection >= entries.size()) {
+			entryDirection = startingEntryDirection - 1;
+			while (entryDirection >= 0 && distribution.get(entryDirection) == 0 || entries.get(entryDirection).isEmpty()) {
+				entryDirection--;
+			}
+			if (entryDirection < 0) {
+				entryDirection = startingEntryDirection;
+			}
 		}
 
-		List<Vertex> entries = intersectionGraph.getEntryExitVertices().get(entryDirection).stream().filter(e -> e.getType().isEntry()).collect(Collectors.toList());
-		GraphicalVertex entry = (GraphicalVertex) entries.get(generateRandomInt(entries.size() - 1));
+		List<Vertex> directionEntries = entries.get(entryDirection);
+		GraphicalVertex entry = (GraphicalVertex) directionEntries.get(generateRandomInt(directionEntries.size() - 1));
+		directionEntries.remove(entry);
 
 		for (exitDirection = 0; exitDirection < distribution.size() - 1 && (exitValue >= distribution.get(exitDirection) || exitDirection == entryDirection); exitValue -= distribution.get(exitDirection++)) {
 			if (entryDirection == exitDirection) {
@@ -156,23 +170,29 @@ public class Simulation {
 				}
 			}
 		}
+
+		int startingExitDirection = exitDirection;
 		if (exitDirection >= distribution.size()) {
 			exitDirection = distribution.size() - 1;
 		}
-		while (exitDirection >= 0 && exitDirection != entryDirection && distribution.get(exitDirection) == 0) {
+		while (exitDirection >= 0 && (exits.get(exitDirection).isEmpty() || exitDirection == entryDirection || distribution.get(exitDirection) == 0)) {
 			exitDirection--;
 		}
 		if (exitDirection < 0) {
-			exitDirection = 0;
-			while (exitDirection < distribution.size() && (exitDirection == entryDirection || distribution.get(exitDirection) == 0)) {
+			exitDirection = startingExitDirection + 1;
+			while (exitDirection < distribution.size() && (exits.get(exitDirection).isEmpty() || exitDirection == entryDirection || distribution.get(exitDirection) == 0)) {
 				exitDirection++;
 			}
 			if (exitDirection >= distribution.size()) {
-				exitDirection = entryDirection == 0 ? 1 : 0;
+				if (entryDirection == startingExitDirection) {
+					exitDirection = entryDirection == 0 ? 1 : 0;
+				} else {
+					exitDirection = startingExitDirection;
+				}
 			}
 		}
-		List<Vertex> exits = intersectionGraph.getEntryExitVertices().get(exitDirection).stream().filter(e -> !e.getType().isEntry()).collect(Collectors.toList());
-		Vertex exit = exits.get(generateRandomInt(exits.size() - 1));
+		List<Vertex> directionExits = exits.get(exitDirection);
+		Vertex exit = directionExits.get(generateRandomInt(directionExits.size() - 1));
 
 		double maxDeviation = AgentParametersMenuTab4.getSpeedDeviation().getValue();
 
@@ -193,6 +213,15 @@ public class Simulation {
 		Agent agent = new Agent(id, entry.getID(), exit.getID(), speed, step, length, width, entry.getX(), entry.getY());
 		simulationAgents.addAgent(System.nanoTime(), algorithm.planAgent(agent));
 		return agent;
+	}
+
+	@NotNull
+	Map<Integer, List<Vertex>> getEntriesExitsMap(boolean isEntry) {
+		Map<Integer, List<Vertex>> entries = new HashMap<>();
+		for (Map.Entry<Integer, List<Vertex>> entry : intersectionGraph.getEntryExitVertices().entrySet()) {
+			entries.put(entry.getKey(), entry.getValue().stream().filter(v -> isEntry == v.getType().isEntry()).collect(Collectors.toCollection(LinkedList::new)));
+		}
+		return entries;
 	}
 
 	public boolean isRunning() {

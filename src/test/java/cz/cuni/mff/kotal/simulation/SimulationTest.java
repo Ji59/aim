@@ -91,13 +91,18 @@ class SimulationTest {
 	void testGenerateAgent() {
 		assert (simulation != null && graph != null);
 
-		Agent a = simulation.generateAgent(0, 0, 0);
+		Map<Integer, List<Vertex>> entries = simulation.getEntriesExitsMap(true);
+		Map<Integer, List<Vertex>> exits = simulation.getEntriesExitsMap(false);
+
+		Agent a = simulation.generateAgent(0, 0, 0, entries, exits);
 		checkAgentDirection(a, 0, 1);
 
-		a = simulation.generateAgent(0, 80, 100);
+		a = simulation.generateAgent(0, 80, 100, entries, exits);
+		checkAgentDirection(a, 0, 1);
 		checkAgentDirection(a, 2, 1);
 
-		a = simulation.generateAgent(0, 9, 100);
+		a = simulation.generateAgent(0, 9, 100, entries, exits);
+		checkAgentDirection(a, 0, 1);
 		checkAgentDirection(a, 0, 2);
 	}
 
