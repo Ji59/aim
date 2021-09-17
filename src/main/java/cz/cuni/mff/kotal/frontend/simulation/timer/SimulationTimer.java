@@ -27,12 +27,6 @@ public class SimulationTimer extends AnimationTimer {
 			Set<Map.Entry<Long, AgentPane>> finishedAgents = agents.entrySet().stream().filter(a -> !a.getValue().isDisable()).filter(entry -> entry.getValue().handleTick(now)).collect(Collectors.toSet());
 			finishedAgents.forEach(simulationAgents::removeAgent);
 
-			// TODO remove - only for debug
-//			agents.values().forEach(agent -> {
-//				simulationAgents.addRectangle(agent.getBoundingBox());
-//				simulationAgents.addRectangle(agent.getCornerPoints());
-//			});
-
 			Set<Pair<AgentPane, AgentPane>> overlappingAgents = getBoundingBoxesOverlaps();
 			overlappingAgents = overlappingAgents.stream().filter(pair -> inCollision(pair.getKey(), pair.getValue())).collect(Collectors.toSet());
 
@@ -44,15 +38,15 @@ public class SimulationTimer extends AnimationTimer {
 				agentPane0.collide();
 				agentPane1.collide();
 
+				simulationAgents.getSimulation().addCollision();
+
 				// TODO remove log
 				System.out.println(agentPane0.getAgentID() + " collides with " + agentPane1.getAgentID());
 
-//					TODO remove from simulation
-//					 SimulationAgents.this.removeAgent(agentPane1.getAgentID());
 				new Thread(() -> {
 					try {
 						// TODO replace with number of steps
-						Thread.sleep(1000);
+						Thread.sleep(simulationAgents.getSimulation().getPeriod());
 						Platform.runLater(() -> {
 							simulationAgents.removeAgent(agentPane0.getAgentID());
 							simulationAgents.removeAgent(agentPane1.getAgentID());
@@ -63,7 +57,6 @@ public class SimulationTimer extends AnimationTimer {
 					}
 				}).start();
 
-//						AGENTS.remove(agentPane1.getAgentID());
 			});
 		}
 	}

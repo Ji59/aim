@@ -15,7 +15,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +24,11 @@ import static cz.cuni.mff.kotal.MyGenerator.generateRandomInt;
 
 public class AgentPane extends StackPane {
 
+	private final Map<Long, Vertex> simulationVertices;
 	private final Rectangle rectangle;
 	private final Rotate rotation = new Rotate();
 	private final Agent agent;
 	private double distanceTraveled;
-	// TODO what is previousAgents
-	private final Collection<AgentPane> previousAgents;
 
 	private double angle;
 
@@ -39,12 +37,12 @@ public class AgentPane extends StackPane {
 	private double period; // period in nanoseconds
 	private double relativeDistanceTraveled; // TODO is this necessary?
 
-	public AgentPane(long agentID, long startTime, Agent agent, double period, Collection<AgentPane> previousAgents) {
+	public AgentPane(long agentID, long startTime, Agent agent, double period, Map<Long, Vertex> simulationVertices) {
 		this.agent = agent;
 		this.distanceTraveled = 0;
-		this.previousAgents = previousAgents;
 		this.startTime = startTime;
 		this.period = period * 1_000_000;
+		this.simulationVertices = simulationVertices;
 
 		rectangle = new Rectangle(agent.getW(), agent.getL());
 		TextField text = new TextField(String.valueOf(agent.getId()));
@@ -72,7 +70,6 @@ public class AgentPane extends StackPane {
 	AgentPane(Agent agent) {
 		this.agent = agent;
 
-		previousAgents = null;
 		rectangle = new Rectangle(agent.getW(), agent.getL());
 
 		rotation.setPivotX(rectangle.getWidth() / 2);
@@ -80,6 +77,7 @@ public class AgentPane extends StackPane {
 		rectangle.getTransforms().add(rotation);
 
 		getChildren().add(rectangle);
+		simulationVertices = null;
 	}
 
 	private void updatePosition() {
@@ -92,7 +90,7 @@ public class AgentPane extends StackPane {
 	}
 
 	public void updateRotation(double time) {
-		Map<Long, Vertex> vertices = SimulationAgents.getSimulation().getIntersectionGraph().getVerticesWithIDs();
+		Map<Long, Vertex> vertices = simulationVertices;
 		Pair<Long, Long> previousNext = agent.getPreviousNextVertexIDs(time);
 		GraphicalVertex start = (GraphicalVertex) vertices.get(previousNext.getKey());
 		GraphicalVertex end = (GraphicalVertex) vertices.get(previousNext.getValue());
@@ -116,7 +114,7 @@ public class AgentPane extends StackPane {
 	public boolean handleTick(long now) {
 		double time = relativeDistanceTraveled + getRelativeTimeTraveled(now);
 		try {
-			getAgent().computeNextXY(time, SimulationAgents.getSimulation().getIntersectionGraph().getVerticesWithIDs());
+			getAgent().computeNextXY(time, simulationVertices);
 		} catch (IndexOutOfBoundsException e) {
 			// TODO
 //				removeAgent(agent.getId());
@@ -144,9 +142,6 @@ public class AgentPane extends StackPane {
 		vertices.add(new Point(sx + middleWidthX + counterMiddleHeightX, sy + middleWidthY - middleHeightY)); // rotated top right vertex of the rectangle
 		vertices.add(new Point(sx + middleWidthX - counterMiddleHeightX, sy + middleWidthY + middleHeightY)); // rotated bottom right vertex of the rectangle
 		vertices.add(new Point(sx - middleWidthX - counterMiddleHeightX, sy - middleWidthY + middleHeightY)); // rotated bottom left vertex of the rectangle
-
-		// TODO maybe remove
-//			vertices.sort(Comparator.comparingDouble(Pair::getKey));
 
 		return vertices;
 	}

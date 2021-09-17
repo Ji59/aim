@@ -31,8 +31,11 @@ public class Simulation {
 	private final long newAgentsMaximum;
 	private final List<Long> distribution;
 
-	private long step,
-		startTime;
+	private long step;
+	private long collisions;
+
+	private long startTime;
+	private long period;
 	private Timer timer;
 
 	private final SimulationAgents simulationAgents;
@@ -65,7 +68,14 @@ public class Simulation {
 
 
 	public void start(long period) {
+		this.period = period;
+		simulationAgents.setSimulation(this);
+
 		long delay = isRunning() ? period : 0L;
+
+		if (!isRunning()) {
+			IntersectionMenu.setCollisions(0);
+		}
 
 		timer = new Timer();
 		timer.scheduleAtFixedRate(getTimerTask(), delay, period);
@@ -78,7 +88,7 @@ public class Simulation {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			simulationAgents.resumeSimulation(period);
+			simulationAgents.resumeSimulation(this);
 		}).start();
 	}
 
@@ -196,19 +206,19 @@ public class Simulation {
 
 		double maxDeviation = AgentParametersMenuTab4.getSpeedDeviation().getValue();
 
-		long minimalSpeed = AgentParametersMenuTab4.getMinimalSpeed().getValue(),
-			maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed().getValue();
+		long minimalSpeed = AgentParametersMenuTab4.getMinimalSpeed().getValue();
+		long maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed().getValue();
 		double speed = generateWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
 
 		// TODO remake length and width
-		long minimalLength = AgentParametersMenuTab4.getMinimalSizeLength().getValue(),
-			maximalLength = AgentParametersMenuTab4.getMaximalSizeLength().getValue(),
-			minimalWidth = AgentParametersMenuTab4.getMinimalSizeWidth().getValue(),
-			maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
+		long minimalLength = AgentParametersMenuTab4.getMinimalSizeLength().getValue();
+		long maximalLength = AgentParametersMenuTab4.getMaximalSizeLength().getValue();
+		long minimalWidth = AgentParametersMenuTab4.getMinimalSizeWidth().getValue();
+		long maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
 
-		double cellSize = intersectionGraph.getCellSize(),
-			width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.5, 0.5) * cellSize,
-			length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
+		double cellSize = intersectionGraph.getCellSize();
+		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.5, 0.5) * cellSize;
+		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
 
 		Agent agent = new Agent(id, entry.getID(), exit.getID(), speed, step, length, width, entry.getX(), entry.getY());
 		simulationAgents.addAgent(System.nanoTime(), algorithm.planAgent(agent));
@@ -268,7 +278,15 @@ public class Simulation {
 		return step;
 	}
 
+	public void addCollision() {
+		IntersectionMenu.setCollisions(++collisions);
+	}
+
 	public long getStartTime() {
 		return startTime;
+	}
+
+	public long getPeriod() {
+		return period;
 	}
 }

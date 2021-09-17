@@ -173,6 +173,12 @@ public class IntersectionMenu extends VBox {
 			SimulationMenuTab3.getStepsLabel().setText(String.valueOf(step));
 		});
 	}
+	public static void setCollisions(long collisions) {
+		Platform.runLater(() -> {
+			collisionsLabel.setText(String.valueOf(collisions));
+			SimulationMenuTab3.getCollisionsLabel().setText(String.valueOf(collisions));
+		});
+	}
 
 	public static Label getDelayLabel() {
 		return delayLabel;

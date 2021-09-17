@@ -10,21 +10,20 @@ import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
-import javafx.util.Pair;
 
 import java.util.*;
 
 
 public class SimulationAgents extends Pane {
-	private static Simulation simulation;
-	private final Map<Long, AgentPane> AGENTS = new HashMap<>();
+	private Simulation simulation;
+	private final Map<Long, AgentPane> agents = new HashMap<>();
 	private SimulationTimer timer;
 
 	// TODO remove -  only for debug
-	private Set<Polygon> rectangles = new HashSet<>();
+	private final Set<Polygon> rectangles = new HashSet<>();
 
 	public SimulationAgents(double height, Simulation simulation) {
-		SimulationAgents.simulation = simulation;
+		this.simulation = simulation;
 		setPrefWidth(height);
 		setPrefHeight(height);
 	}
@@ -36,10 +35,10 @@ public class SimulationAgents extends Pane {
 
 	public void addAgent(long startTime, Agent agent, double period) {
 		long agentID = agent.getId();
-		AgentPane agentPane = new AgentPane(agentID, startTime, agent, period, AGENTS.values());
+		AgentPane agentPane = new AgentPane(agentID, startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs());
 
-		synchronized (AGENTS) {
-			AGENTS.put(agentID, agentPane);
+		synchronized (agents) {
+			agents.put(agentID, agentPane);
 		}
 
 		Platform.runLater(() -> getChildren().add(agentPane));
@@ -51,8 +50,8 @@ public class SimulationAgents extends Pane {
 
 	public void removeAgent(long agentID) {
 		AgentPane agentPane;
-		synchronized (AGENTS) {
-			agentPane = AGENTS.remove(agentID);
+		synchronized (agents) {
+			agentPane = agents.remove(agentID);
 			if (agentPane == null) {
 				return;
 			}
@@ -62,39 +61,16 @@ public class SimulationAgents extends Pane {
 	}
 
 	public void removeAgent(Map.Entry<Long, AgentPane> agentEntry) {
-		synchronized (AGENTS) {
-			AGENTS.remove(agentEntry.getKey());
+		synchronized (agents) {
+			agents.remove(agentEntry.getKey());
 		}
 		AgentPane agentPane = agentEntry.getValue();
 		agentPane.setDisable(true);
 		getChildren().remove(agentPane);
 	}
 
-	public void redraw(Pair<Long, Map<Long, Agent>> timeActualAgents) {
-		// TODO remove
-//		long time = timeActualAgents.getKey();
-//		Map<Long, Agent> actualAgents = timeActualAgents.getValue();
-//		Platform.runLater(() -> {
-//			Iterator<Map.Entry<Long, AgentPane>> agentsIterator = AGENTS.entrySet().iterator();
-//			while (agentsIterator.hasNext()) {
-//				Map.Entry<Long, AgentPane> entry = agentsIterator.next();
-//				long id = entry.getKey();
-//				AgentPane pane = entry.getValue();
-//				Agent a = actualAgents.get(id);
-//				if (a == null) {
-//					getChildren().remove(pane);
-//					agentsIterator.remove();
-//				} else {
-//					pane.updateAgent(time);
-//				}
-//				actualAgents.remove(id);
-//			}
-//			actualAgents.forEach((id, agent) -> addAgent(time, agent));
-//		});
-	}
-
 	public void setSimulation(Simulation simulation) {
-		SimulationAgents.simulation = simulation;
+		this.simulation = simulation;
 	}
 
 	public void pauseSimulation() {
@@ -105,46 +81,26 @@ public class SimulationAgents extends Pane {
 //		}
 	}
 
-	public void resumeSimulation(double period) {
+	public void resumeSimulation(Simulation simulation) {
+		this.simulation = simulation;
+
 		long startTime = System.nanoTime();
-		synchronized (AGENTS) {
-			AGENTS.values().forEach(agentPane -> agentPane.resume(period, startTime));
+		synchronized (agents) {
+			agents.values().forEach(agentPane -> agentPane.resume(simulation.getPeriod(), startTime));
 		}
-		timer = new SimulationTimer(AGENTS, this);
+		timer = new SimulationTimer(agents, this);
 		timer.start();
 	}
 
 	public void resetSimulation() {
-		synchronized (AGENTS) {
+		synchronized (agents) {
 			timer.stop();
-			AGENTS.values().forEach(agentPane -> {
-				// TODO
-//				agentPane.pause();
+			agents.values().forEach(agentPane -> {
 				getChildren().remove(agentPane);
 			});
+			agents.clear();
 		}
-		AGENTS.clear();
 	}
-
-// TODO remove
-//	private class AgentTimer extends AnimationTimer {
-//		private final long startTime;
-//		private final double period,
-//			relativeDistanceTraveled;
-//		private final AgentPane agentPane;
-//
-//		public AgentTimer(long startTime, double period, double relativeDistanceTraveled, AgentPane agentPane) {
-//			this.startTime = startTime;
-//			this.period = period * 1_000_000; // convert to nanoseconds
-//			this.relativeDistanceTraveled = relativeDistanceTraveled;
-//			this.agentPane = agentPane;
-//		}
-//
-//		public double getRelativeTimeTraveled(long time) {
-//			return (time - startTime) / period;
-//		}
-//	}
-
 
 	public void resetRectangles() {
 		// TODO remove - only for debug purposes
@@ -185,7 +141,7 @@ public class SimulationAgents extends Pane {
 		getChildren().add(rectangle);
 	}
 
-	public static Simulation getSimulation() {
+	public Simulation getSimulation() {
 		return simulation;
 	}
 }
