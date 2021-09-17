@@ -7,9 +7,9 @@ import org.jetbrains.annotations.NotNull;
 
 class AgentBoundingBox implements Comparable<AgentBoundingBox> {
 	private final AgentPane agentPane;
-	private final Double[] boundingBox;
+	private final double[] boundingBox;
 
-	AgentBoundingBox(AgentPane agentPane, Double[] boundingBox) {
+	AgentBoundingBox(AgentPane agentPane, double[] boundingBox) {
 		this.agentPane = agentPane;
 		this.boundingBox = boundingBox;
 	}
@@ -18,19 +18,19 @@ class AgentBoundingBox implements Comparable<AgentBoundingBox> {
 		return agentPane;
 	}
 
-	public Double getStartX() {
+	public double getStartX() {
 		return boundingBox[0];
 	}
 
-	public Double getStartY() {
+	public double getStartY() {
 		return boundingBox[1];
 	}
 
-	public Double getEndX() {
+	public double getEndX() {
 		return boundingBox[2];
 	}
 
-	public Double getEndY() {
+	public double getEndY() {
 		return boundingBox[3];
 	}
 

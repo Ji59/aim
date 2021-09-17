@@ -22,9 +22,16 @@ public class SimulationTimer extends AnimationTimer {
 
 	@Override
 	public void handle(long now) {
+		simulationAgents.resetRectangles();
 		synchronized (agents) {
 			Set<Map.Entry<Long, AgentPane>> finishedAgents = agents.entrySet().stream().filter(a -> !a.getValue().isDisable()).filter(entry -> entry.getValue().handleTick(now)).collect(Collectors.toSet());
 			finishedAgents.forEach(simulationAgents::removeAgent);
+
+			// TODO remove - only for debug
+//			agents.values().forEach(agent -> {
+//				simulationAgents.addRectangle(agent.getBoundingBox());
+//				simulationAgents.addRectangle(agent.getCornerPoints());
+//			});
 
 			Set<Pair<AgentPane, AgentPane>> overlappingAgents = getBoundingBoxesOverlaps();
 			overlappingAgents = overlappingAgents.stream().filter(pair -> inCollision(pair.getKey(), pair.getValue())).collect(Collectors.toSet());
@@ -128,22 +135,27 @@ public class SimulationTimer extends AnimationTimer {
 		return overlappingAgents;
 	}
 
-	private boolean inCollision(AgentPane agent0, AgentPane agent1) {
+	static private boolean inCollision(AgentPane agent0, AgentPane agent1) {
 		List<Point> cornerPoints0 = agent0.getCornerPoints();
 		List<Point> cornerPoints1 = agent1.getCornerPoints();
 
-		if (findSeparatingLine(cornerPoints0, cornerPoints1)) {
+		if (existsSeparatingLine(cornerPoints0, cornerPoints1)) {
 			return false;
 		}
 
-		return !findSeparatingLine(cornerPoints1, cornerPoints0);
+		return !existsSeparatingLine(cornerPoints1, cornerPoints0);
 	}
 
-	private boolean findSeparatingLine(List<Point> points0, List<Point> points1) {
+	static boolean existsSeparatingLine(List<Point> points0, List<Point> points1) {
+		points0 = new LinkedList<>(points0);
+		points1 = new LinkedList<>(points1);
+
+		int points0Size = points0.size();
+
 		Point point0 = points0.remove(0);
 		Point point1 = null;
 
-		for (int i = 0; i < points0.size(); i++) {
+		for (int i = 0; i < points0Size; i++) {
 			point1 = points0.remove(0);
 			LineSegment line = new LineSegment(point0, point1);
 
@@ -160,7 +172,6 @@ public class SimulationTimer extends AnimationTimer {
 			point0 = point1;
 		}
 
-		points0.add(point1);
 		return false;
 	}
 

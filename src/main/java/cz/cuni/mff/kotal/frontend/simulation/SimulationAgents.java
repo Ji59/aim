@@ -2,11 +2,14 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
+import cz.cuni.mff.kotal.frontend.simulation.timer.Point;
 import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.application.Platform;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import javafx.util.Pair;
 
 import java.util.*;
@@ -16,6 +19,9 @@ public class SimulationAgents extends Pane {
 	private static Simulation simulation;
 	private final Map<Long, AgentPane> AGENTS = new HashMap<>();
 	private SimulationTimer timer;
+
+	// TODO remove -  only for debug
+	private Set<Polygon> rectangles = new HashSet<>();
 
 	public SimulationAgents(double height, Simulation simulation) {
 		SimulationAgents.simulation = simulation;
@@ -139,6 +145,45 @@ public class SimulationAgents extends Pane {
 //		}
 //	}
 
+
+	public void resetRectangles() {
+		// TODO remove - only for debug purposes
+		getChildren().removeAll(rectangles);
+		rectangles.clear();
+	}
+
+	// TODO remove - only for debug purposes
+	public void addRectangle(List<Point> cornerPoints) {
+		double[] points = new double[cornerPoints.size() * 2];
+		for (int i = 0; i < cornerPoints.size(); i++) {
+			points[2 * i] = cornerPoints.get(i).getX();
+			points[2 * i + 1] = cornerPoints.get(i).getY();
+		}
+		addRectangle(points, 0);
+	}
+
+	// TODO remove - only for debug purposes
+	public void addRectangle(double[] boundingBox) {
+		double[] points = new double[boundingBox.length * 2];
+		points[0] = boundingBox[0];
+		points[1] = boundingBox[1];
+		points[2] = boundingBox[2];
+		points[3] = boundingBox[1];
+		points[4] = boundingBox[2];
+		points[5] = boundingBox[3];
+		points[6] = boundingBox[0];
+		points[7] = boundingBox[3];
+		addRectangle(points, 255);
+	}
+
+	// TODO remove - only for debug purposes
+	public void addRectangle(double[] points, int red) {
+		Polygon rectangle = new Polygon(points);
+		rectangle.setFill(Color.rgb(red, 0, 0, 0.3));
+		rectangle.toBack();
+		rectangles.add(rectangle);
+		getChildren().add(rectangle);
+	}
 
 	public static Simulation getSimulation() {
 		return simulation;

@@ -127,8 +127,6 @@ public class AgentPane extends StackPane {
 	}
 
 	public List<Point> getCornerPoints() {
-		// TODO
-//			rectangle.getTransformedArea();
 
 		double radianAngle = Math.toRadians(angle);
 		double sinAngle = Math.sin(radianAngle),
@@ -137,7 +135,7 @@ public class AgentPane extends StackPane {
 		double halfWidth = agent.getW() / 2,
 			halfHeight = agent.getL() / 2;
 
-		double sx = getLayoutX(), sy = getLayoutY(),
+		double sx = getLayoutX() + getWidth() / 2, sy = getLayoutY() + getHeight() / 2,
 			middleWidthX = halfWidth * cosAngle, middleWidthY = halfWidth * sinAngle,
 			counterMiddleHeightX = halfHeight * sinAngle, middleHeightY = halfHeight * cosAngle;
 
@@ -153,8 +151,8 @@ public class AgentPane extends StackPane {
 		return vertices;
 	}
 
-	public Double[] getBoundingBox() {
-		Double[] corners = new Double[4];
+	public double[] getBoundingBox() {
+		double[] corners = new double[4];
 		Bounds boundingBox = getBoundsInParent();
 		corners[0] = boundingBox.getMinX();
 		corners[1] = boundingBox.getMinY();
@@ -207,7 +205,20 @@ public class AgentPane extends StackPane {
 		return angle;
 	}
 
+	/**
+	 * Set angle rotation of the rectangle.
+	 *
+	 * @param angle Angle in degrees
+	 */
 	void setAngle(double angle) {
 		this.angle = angle;
+	}
+
+	public void setWidth(double width) {
+		super.setWidth(width);
+	}
+
+	public void setHeight(double height) {
+		super.setHeight(height);
 	}
 }
