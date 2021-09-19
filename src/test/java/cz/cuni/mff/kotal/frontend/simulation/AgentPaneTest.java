@@ -1,8 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.MyNumberOperations;
-import cz.cuni.mff.kotal.frontend.simulation.timer.Point;
+import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import org.junit.jupiter.api.Test;
 

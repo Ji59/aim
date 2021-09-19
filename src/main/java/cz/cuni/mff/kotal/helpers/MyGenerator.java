@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal;
+package cz.cuni.mff.kotal.helpers;
 
 
 public class MyGenerator {

@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation.timer;
 
-import cz.cuni.mff.kotal.frontend.simulation.AgentPaneTest;
+import cz.cuni.mff.kotal.frontend.simulation.Point;
+import cz.cuni.mff.kotal.helpers.Collisions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,23 +32,23 @@ class SimulationTimerTest {
 		List<Point> points0 = getLinkedList(a0, a1, a2, a3);
 		List<Point> points1 = getLinkedList(b0, b1, b2, b3);
 
-		assert SimulationTimer.existsSeparatingLine(points0, points1);
-		assert SimulationTimer.existsSeparatingLine(points1, points0);
+		assert Collisions.existsSeparatingLine(points0, points1);
+		assert Collisions.existsSeparatingLine(points1, points0);
 
 		points1.remove(0);
 		points1.add(0, new Point(1, 0));
 
 
-		assert !SimulationTimer.existsSeparatingLine(points0, points1);
-		assert !SimulationTimer.existsSeparatingLine(points1, points0);
+		assert !Collisions.existsSeparatingLine(points0, points1);
+		assert !Collisions.existsSeparatingLine(points1, points0);
 
 		points1 = getLinkedList(0.5, 1.1,
 			1.2, 0.9,
 			1.5, 1.7,
 			0., 2.);
 
-		assert !SimulationTimer.existsSeparatingLine(points0, points1);
-		assert !SimulationTimer.existsSeparatingLine(points1, points0);
+		assert !Collisions.existsSeparatingLine(points0, points1);
+		assert !Collisions.existsSeparatingLine(points1, points0);
 
 
 		points0 = getLinkedList(
@@ -57,8 +58,8 @@ class SimulationTimerTest {
 			1., 0.5
 		);
 
-		assert SimulationTimer.existsSeparatingLine(points0, points1);
-		assert SimulationTimer.existsSeparatingLine(points1, points0);
+		assert Collisions.existsSeparatingLine(points0, points1);
+		assert Collisions.existsSeparatingLine(points1, points0);
 
 		double[] pointDoubles0 = {100.01, 150.7,
 			150.7, 100.01,
@@ -76,14 +77,14 @@ class SimulationTimerTest {
 			pointDoubles1
 		);
 
-		assert !SimulationTimer.existsSeparatingLine(points0, points1);
-		assert !SimulationTimer.existsSeparatingLine(points1, points0);
+		assert !Collisions.existsSeparatingLine(points0, points1);
+		assert !Collisions.existsSeparatingLine(points1, points0);
 
 		points0.remove(1);
 		points0.add(1, new Point(150, 115));
 
-		assert !SimulationTimer.existsSeparatingLine(points0, points1);
-		assert SimulationTimer.existsSeparatingLine(points1, points0);
+		assert !Collisions.existsSeparatingLine(points0, points1);
+		assert Collisions.existsSeparatingLine(points1, points0);
 	}
 
 	@NotNull

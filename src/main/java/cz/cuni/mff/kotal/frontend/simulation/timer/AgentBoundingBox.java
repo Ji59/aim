@@ -5,11 +5,11 @@ import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import org.jetbrains.annotations.NotNull;
 
 
-class AgentBoundingBox implements Comparable<AgentBoundingBox> {
+public class AgentBoundingBox implements Comparable<AgentBoundingBox> {
 	private final AgentPane agentPane;
 	private final double[] boundingBox;
 
-	AgentBoundingBox(AgentPane agentPane, double[] boundingBox) {
+	public AgentBoundingBox(AgentPane agentPane, double[] boundingBox) {
 		this.agentPane = agentPane;
 		this.boundingBox = boundingBox;
 	}

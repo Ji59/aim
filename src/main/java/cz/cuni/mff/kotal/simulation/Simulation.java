@@ -17,7 +17,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static cz.cuni.mff.kotal.MyGenerator.*;
+import static cz.cuni.mff.kotal.helpers.MyGenerator.*;
 
 
 public class Simulation {

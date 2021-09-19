@@ -1,8 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.MyNumberOperations;
-import cz.cuni.mff.kotal.frontend.simulation.timer.Point;
+import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.geometry.Bounds;
@@ -19,7 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static cz.cuni.mff.kotal.MyGenerator.generateRandomInt;
+import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 
 
 public class AgentPane extends StackPane {
@@ -180,7 +179,9 @@ public class AgentPane extends StackPane {
 	public void collide() {
 		// TODO
 //			this.stop();
-		this.rectangle.setFill(Color.RED);
+		rectangle.toBack();
+		rectangle.setFill(Color.RED);
+		rectangle.setOpacity(0.5);
 		this.setDisable(true); // TODO don't use this
 	}
 

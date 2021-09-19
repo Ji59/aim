@@ -1,10 +1,9 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.simulation.Agent;
 import org.junit.jupiter.api.Test;
 
-import static cz.cuni.mff.kotal.MyNumberOperations.*;
+import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
 
 class SimulationAgentsTest {
