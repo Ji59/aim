@@ -95,7 +95,7 @@ public class Collisions {
 		int points0Size = points0.size();
 
 		Point point0 = points0.remove(0);
-		Point point1 = null;
+		Point point1;
 
 		for (int i = 0; i < points0Size; i++) {
 			point1 = points0.remove(0);

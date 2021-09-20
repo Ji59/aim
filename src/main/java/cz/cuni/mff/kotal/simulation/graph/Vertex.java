@@ -100,6 +100,7 @@ public class Vertex {
 
 	public enum Type {
 		ROAD(ROAD_COLOR),
+		// TODO check if comments are right
 		ENTRY0(ENTRY_COLOR, true, 0), // top / top left entry
 		ENTRY1(ENTRY_COLOR, true, 1), // left / left entry
 		ENTRY2(ENTRY_COLOR, true, 2), // bottom / bottom left entry

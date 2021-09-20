@@ -112,10 +112,14 @@ public class Simulation {
 		return new TimerTask() {
 			@Override
 			public void run() {
+				long stepTime = System.nanoTime();
 				Set<Agent> newAgents = generateAgents(allAgents.size());
-				allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
-				step++;
-				IntersectionMenu.setStep(step);
+				Set<Agent> plannedAgents = algorithm.planAgents(newAgents);
+
+				IntersectionMenu.setStep(++step);
+				plannedAgents.forEach(agent -> simulationAgents.addAgent(stepTime, agent));
+				allAgents.putAll(plannedAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+
 				System.out.println(step);
 			}
 		};
@@ -221,7 +225,7 @@ public class Simulation {
 		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
 
 		Agent agent = new Agent(id, entry.getID(), exit.getID(), speed, step, length, width, entry.getX(), entry.getY());
-		simulationAgents.addAgent(System.nanoTime(), algorithm.planAgent(agent));
+
 		return agent;
 	}
 

@@ -20,24 +20,25 @@ import java.util.Map;
 
 public class IntersectionMenu extends VBox {
 
-	private static boolean abstractMode = false;
-
 	// TODO extract constants
-	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815),
-		TIMELINE_SLIDER = new Slider(0, 1, 0);
+	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
+	private static final Slider TIMELINE_SLIDER = new Slider(0, 1, 0);
+
 	private static final Button INTERSECTION_MODE = new Button("Real");
-	private static final Label stepsLabel = new Label("#n"),
-		delayLabel = new Label("#n"),
-		rejectionsLabel = new Label("#n"),
-		collisionsLabel = new Label("#n"),
-		remainingLabel = new Label(),
-		speedLabel = new Label("Speed"),
-		timelineLabel = new Label("Timeline");
+	private static final Button PLAY_BUTTON = new Button("Play");
+	private static final Button RESTART_BUTTON = new Button("Restart");
+	private static final Button SAVE_AGENTS_BUTTON = new Button("Save agents");
 
-	private static final Button PLAY_BUTTON = new Button("Play"),
-		RESTART_BUTTON = new Button("Restart"),
-		SAVE_AGENTS_BUTTON = new Button("Save agents");
+	private static final Label STEPS_LABEL = new Label("#n");
+	private static final Label DELAY_LABEL = new Label("#n");
+	private static final Label REJECTIONS_LABEL = new Label("#n");
+	private static final Label COLLISIONS_LABEL = new Label("#n");
+	private static final Label REMAINING_LABEL = new Label();
+	private static final Label SPEED_LABEL = new Label("Speed");
+	private static final Label TIMELINE_LABEL = new Label("Timeline");
 
+
+	private static boolean abstractMode = false;
 	private static boolean playing = false;
 
 	public IntersectionMenu(double padding) {
@@ -58,8 +59,8 @@ public class IntersectionMenu extends VBox {
 		// TODO extract constants
 
 		GridPane sliders = new GridPane();
-		sliders.addRow(0, speedLabel, SPEED_SLIDER);
-		sliders.addRow(1, timelineLabel, TIMELINE_SLIDER);
+		sliders.addRow(0, SPEED_LABEL, SPEED_SLIDER);
+		sliders.addRow(1, TIMELINE_LABEL, TIMELINE_SLIDER);
 		sliders.setVgap(padding);
 
 		SPEED_SLIDER.valueProperty().addListener(getSliderValueListener(SimulationMenuTab3.getSpeedSlider()));
@@ -76,7 +77,7 @@ public class IntersectionMenu extends VBox {
 		SAVE_AGENTS_BUTTON.setPrefWidth(Double.MAX_VALUE);
 
 		GridPane statistics = new GridPane();
-		Map<Statistics, Label> labels = Map.of(Statistics.STEPS, stepsLabel, Statistics.DELAY, delayLabel, Statistics.REJECTIONS, rejectionsLabel, Statistics.COLLISIONS, collisionsLabel, Statistics.REMAINS, remainingLabel);
+		Map<Statistics, Label> labels = Map.of(Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL, Statistics.REMAINS, REMAINING_LABEL);
 		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
 		PLAY_BUTTON.setVisible(true);
@@ -89,17 +90,15 @@ public class IntersectionMenu extends VBox {
 		getChildren().addAll(sliders, buttons, RESTART_BUTTON, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
 	}
 
-	private void addResetButtonAction() {
-		RESTART_BUTTON.setOnMouseClicked(e -> {
-			IntersectionScene.resetSimulation();
-		});
+	private static void addResetButtonAction() {
+		RESTART_BUTTON.setOnMouseClicked(e -> IntersectionScene.resetSimulation());
 	}
 
-	private ChangeListener<Number> getSliderValueListener(Slider affectedSlider) {
+	private static ChangeListener<Number> getSliderValueListener(Slider affectedSlider) {
 		return (observable, oldValue, newValue) -> affectedSlider.setValue(newValue.doubleValue());
 	}
 
-	private void addPlayButtonAction() {
+	private static void addPlayButtonAction() {
 		// TODO extract constants
 		PLAY_BUTTON.setOnMouseClicked(e -> {
 			String newText;
@@ -126,7 +125,7 @@ public class IntersectionMenu extends VBox {
 		INTERSECTION_MODE.setText(abstractMode ? "Abstract" : "Real");
 	}
 
-	public void setPlayButtonPlaying(boolean playing) {
+	public static void setPlayButtonPlaying(boolean playing) {
 		// TODO extract constants
 		IntersectionMenu.playing = playing;
 		if (playing) {
@@ -164,35 +163,36 @@ public class IntersectionMenu extends VBox {
 	}
 
 	public static Label getStepsLabel() {
-		return stepsLabel;
+		return STEPS_LABEL;
 	}
 
 	public static void setStep(long step) {
 		Platform.runLater(() -> {
-			stepsLabel.setText(String.valueOf(step));
+			STEPS_LABEL.setText(String.valueOf(step));
 			SimulationMenuTab3.getStepsLabel().setText(String.valueOf(step));
 		});
 	}
+
 	public static void setCollisions(long collisions) {
 		Platform.runLater(() -> {
-			collisionsLabel.setText(String.valueOf(collisions));
+			COLLISIONS_LABEL.setText(String.valueOf(collisions));
 			SimulationMenuTab3.getCollisionsLabel().setText(String.valueOf(collisions));
 		});
 	}
 
 	public static Label getDelayLabel() {
-		return delayLabel;
+		return DELAY_LABEL;
 	}
 
 	public static Label getRejectionsLabel() {
-		return rejectionsLabel;
+		return REJECTIONS_LABEL;
 	}
 
 	public static Label getCollisionsLabel() {
-		return collisionsLabel;
+		return COLLISIONS_LABEL;
 	}
 
 	public static Label getRemainingLabel() {
-		return remainingLabel;
+		return REMAINING_LABEL;
 	}
 }
