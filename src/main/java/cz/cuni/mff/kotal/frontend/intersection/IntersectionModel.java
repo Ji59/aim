@@ -26,23 +26,28 @@ import javafx.util.Pair;
 import java.util.*;
 
 
+/**
+ * Pane for Intersection model.
+ */
 public class IntersectionModel extends Pane {
 	private static final double GOLDEN_RATIO = (Math.sqrt(5) - 1) / 2;
-	private static final double OCTAGON_RATIO = 1 / Math.E, VERTEX_RATIO = GOLDEN_RATIO / 2;
+	private static final double OCTAGON_RATIO = 1 / Math.E;
+	private static final double VERTEX_RATIO = GOLDEN_RATIO / 2;
 	private static final Color STROKE_COLOR = Color.BLACK;
 
+	// TODO dont use static, use Component
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
 	private static List<Node> nodes = new ArrayList<>();
 	private static final Map<SimulationGraph, Pair<Graph, List<Node>>> createdGraphs = new HashMap<>();
-	private static final Stack<SimulationGraph> historyPrevious = new Stack<>(),
-		historyNext = new Stack<>();
+	private static final Deque<SimulationGraph> historyPrevious = new ArrayDeque<>();
+	private static final Deque<SimulationGraph> historyNext = new ArrayDeque<>();
 
 
 	/**
 	 * Create square graph.
 	 *
-	 * @param height dimension of the graph.
+	 * @param height dimension of the graph
 	 */
 	public IntersectionModel(double height) {
 		// TODO udelat velikost poradne
@@ -55,12 +60,12 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw abstract model of the graph.
 	 *
-	 * @param shift Distance between 2 vertices.
+	 * @param shift Distance between 2 vertices
 	 */
 	private void drawAbstractModel(double shift) {
 		for (Edge e : graph.getEdges()) {
-			GraphicalVertex u = (GraphicalVertex) e.getU(),
-				v = (GraphicalVertex) e.getV();
+			GraphicalVertex u = (GraphicalVertex) e.getU();
+			GraphicalVertex v = (GraphicalVertex) e.getV();
 			Line l = new Line(u.getX(), u.getY(), v.getX(), v.getY());
 			nodes.add(l);
 		}
@@ -78,13 +83,12 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw square model.
 	 *
-	 * @param granularity Granularity of the model.
-	 * @param entries     Number of entries.
-	 * @param exits       Number of exits.
+	 * @param granularity Granularity of the model
 	 */
-	private void drawSquareModel(long granularity, long entries, long exits) {
+	private void drawSquareModel(long granularity) {
 		// TODO udelat velikost poradne
-		double height = preferredHeight, shift = height / (granularity + 2);
+		double height = preferredHeight;
+		double shift = height / (granularity + 2);
 
 		if (!IntersectionMenu.isAbstract()) {
 			for (GraphicalVertex v : graph.getVertices()) {
@@ -98,14 +102,13 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw hexagonal model.
 	 *
-	 * @param granularity Granularity of the model.
-	 * @param entries     Number of entries.
-	 * @param exits       Number of exits.
+	 * @param granularity Granularity of the model
 	 */
-	private void drawHexagonalModel(long granularity, long entries, long exits) {
+	private void drawHexagonalModel(long granularity) {
 		// TODO udelat velikost poradne
 
-		double height = preferredHeight, shift = height / (2 * granularity + 1);
+		double height = preferredHeight;
+		double shift = height / (2 * granularity + 1);
 		if (IntersectionMenu.isAbstract()) {
 			drawAbstractModel(shift);
 		} else {
@@ -122,13 +125,12 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw octagonal model.
 	 *
-	 * @param granularity Granularity of the model.
-	 * @param entries     Number of entries.
-	 * @param exits       Number of exits.
+	 * @param granularity Granularity of the model
 	 */
-	private void drawOctagonalModel(long granularity, long entries, long exits) {
+	private void drawOctagonalModel(long granularity) {
 		// TODO udelat velikost poradne
-		double height = preferredHeight, shift = height / (granularity + 2);
+		double height = preferredHeight;
+		double shift = height / (granularity + 2);
 
 		if (!IntersectionMenu.isAbstract()) {
 			for (GraphicalVertex v : graph.getVertices()) {
@@ -150,11 +152,11 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw square at specified location.
 	 *
-	 * @param size  Size of the square side.
-	 * @param x     Coordinate X of center of the square.
-	 * @param y     Coordinate Y of center of the square.
-	 * @param text  The text inside of the square.
-	 * @param color Color of the square.
+	 * @param size  Size of the square side
+	 * @param x     Coordinate X of center of the square
+	 * @param y     Coordinate Y of center of the square
+	 * @param text  The text inside the square
+	 * @param color Color of the square
 	 */
 	private void drawSquare(double size, double x, double y, String text, Color color) {
 		double halfSize = size / 2;
@@ -171,12 +173,12 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw rectangle with text in it.
 	 *
-	 * @param x      Coordination X of the top left corner.
-	 * @param y      Coordination Y of the top left corner.
-	 * @param width  Width of the rectangle.
+	 * @param x      Coordination X of the top left corner
+	 * @param y      Coordination Y of the top left corner
+	 * @param width  Width of the rectangle
 	 * @param height Height of the rectangle
-	 * @param text   Text to be in the rectangle.
-	 * @param color  Color inside the rectangle.
+	 * @param text   Text to be in the rectangle
+	 * @param color  Color inside the rectangle
 	 */
 	private void drawRectangle(double x, double y, double width, double height, String text, Color color) {
 		Rectangle rectangle = new Rectangle(x, y, width, height);
@@ -190,15 +192,15 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw hexagon.
 	 *
-	 * @param shift Distance between 2 opposite sides.
-	 * @param x     Coordination X of the center of the hexagon.
-	 * @param y     Coordination Y of the center of the hexagon.
-	 * @param text  Text to be inside of the hexagon.
-	 * @param color Color inside the hexagon.
+	 * @param shift Distance between 2 opposite sides
+	 * @param x     Coordination X of the center of the hexagon
+	 * @param y     Coordination Y of the center of the hexagon
+	 * @param text  Text to be inside the hexagon
+	 * @param color Color inside the hexagon
 	 */
 	private void drawHexagon(double shift, double x, double y, String text, Color color) {
-		double tan30HalfShift = Math.sqrt(3) * shift / 6,
-			halfShift = shift / 2;
+		double tan30HalfShift = Math.sqrt(3) * shift / 6;
+		double halfShift = shift / 2;
 
 		Polygon hexagon = new Polygon(
 			x + tan30HalfShift, y - halfShift, // top right
@@ -218,15 +220,15 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw octagon at specified location.
 	 *
-	 * @param size  Distance between opposite sides.
-	 * @param x     Coordinate X of center of the octagon.
-	 * @param y     Coordinate Y of center of the octagon.
-	 * @param text  The text inside of the octagon.
-	 * @param color Color of the octagon.
+	 * @param size  Distance between opposite sides
+	 * @param x     Coordinate X of center of the octagon
+	 * @param y     Coordinate Y of center of the octagon
+	 * @param text  The text inside the octagon
+	 * @param color Color of the octagon
 	 */
 	private void drawOctagon(double size, double x, double y, String text, Color color) {
-		double halfSize = size / 2,
-			shorterSize = OCTAGON_RATIO * halfSize;
+		double halfSize = size / 2;
+		double shorterSize = OCTAGON_RATIO * halfSize;
 
 		// create polygon
 		Polygon octagon = new Polygon(
@@ -237,7 +239,7 @@ public class IntersectionModel extends Pane {
 			x + shorterSize, y + halfSize, // bot right
 			x - shorterSize, y + halfSize, // bot left
 			x - halfSize, y + shorterSize, // mid-bot left
-			x - halfSize, y - shorterSize  // mid-top left);
+			x - halfSize, y - shorterSize  // mid-top left
 		);
 		octagon.setFill(color);
 		octagon.setStroke(STROKE_COLOR);
@@ -249,11 +251,11 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw square at specified location rotated 45 deg.
 	 *
-	 * @param size  Distance between opposite vertices.
-	 * @param x     Coordinate X of center of the square.
-	 * @param y     Coordinate Y of center of the square.
-	 * @param text  The text inside of the square.
-	 * @param color Color of the square.
+	 * @param size  Distance between opposite vertices
+	 * @param x     Coordinate X of center of the square
+	 * @param y     Coordinate Y of center of the square
+	 * @param text  The text inside the square
+	 * @param color Color of the square
 	 */
 	private void drawObliqueSquare(double size, double x, double y, String text, Color color) {
 		double halfSize = size / 2;
@@ -275,41 +277,42 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw an entry / exit.
 	 *
-	 * @param shift Distance between 2 opposite sides of hexagons in the model.
-	 * @param v     Vertex symbolizing the entry / exit.
+	 * @param shift Distance between 2 opposite sides of hexagons in the model
+	 * @param v     Vertex symbolizing the entry / exit
 	 */
 	private void drawHexagonEntry(double shift, GraphicalVertex v) {
 		switch (v.getType()) {
 			case ENTRY2, EXIT2, ENTRY5, EXIT5 -> {
-				double x = v.getType() == Type.ENTRY5 || v.getType() == Type.EXIT5 ? 0 : v.getX() + (Math.sqrt(3) / 6 - 1) * shift,
-					y = v.getY() - shift / 2,
-					width = (graph.getGranularity() - Math.sqrt(3) * (graph.getGranularity() - 2. / 3) / 2 + 0.5) * shift,
-					height = shift;
+				double x = v.getType() == Type.ENTRY5 || v.getType() == Type.EXIT5 ? 0 : v.getX() + (Math.sqrt(3) / 6 - 1) * shift;
+				double y = v.getY() - shift / 2;
+				double width = (graph.getGranularity() - Math.sqrt(3) * (graph.getGranularity() - 2. / 3) / 2 + 0.5) * shift;
+				double height = shift;
 				drawRectangle(x, y, width, height, String.valueOf(v.getID()), v.getType().getColor());
 				return;
 			}
 			case ENTRY0, EXIT0 -> {
-				double x0 = v.getX() + shift * (1. / 2 - 1 / Math.sqrt(3)),
-					y0 = v.getY() + Math.sqrt(3) * shift / 2,
-					x1 = v.getX() + shift * (1 + Math.sqrt(3) / 3) / 2,
-					y1 = v.getY() + (Math.sqrt(3) - 1) * shift / 2,
-					x2 = Math.max(x1 - Math.sqrt(3) * y1 / 3, 0),
-					y2 = x2 == 0 ? y1 - Math.sqrt(3) * x1 : 0,
-					x3 = Math.max(x0 - Math.sqrt(3) * y0 / 3, 0),
-					y3 = x3 == 0 ? y0 - Math.sqrt(3) * x0 : 0;
+				double x0 = v.getX() + shift * (1. / 2 - 1 / Math.sqrt(3));
+				double y0 = v.getY() + Math.sqrt(3) * shift / 2;
+				double x1 = v.getX() + shift * (1 + Math.sqrt(3) / 3) / 2;
+				double y1 = v.getY() + (Math.sqrt(3) - 1) * shift / 2;
+				double x2 = Math.max(x1 - Math.sqrt(3) * y1 / 3, 0);
+				double y2 = x2 == 0 ? y1 - Math.sqrt(3) * x1 : 0;
+				double x3 = Math.max(x0 - Math.sqrt(3) * y0 / 3, 0);
+				double y3 = x3 == 0 ? y0 - Math.sqrt(3) * x0 : 0;
 				drawHexagonalModelObliqueEntry(x0, y0, x1, y1, x2, y2, x3, y3, x3 == 0, y2 == 0, 0., v.getType().getColor());
 			}
 			case ENTRY1, EXIT1 -> {
-				double x0 = v.getX() - shift * (1 + Math.sqrt(3) / 3) / 2,
-					y0 = v.getY() + (Math.sqrt(3) - 1) * shift / 2,
-					x1 = v.getX() + shift * (1 / Math.sqrt(3) - 1. / 2),
-					y1 = v.getY() + Math.sqrt(3) * shift / 2,
-					x2 = Math.min(x1 + Math.sqrt(3) * y1 / 3, preferredHeight),
-					y2 = x2 == preferredHeight ? y1 - Math.sqrt(3) * (preferredHeight - x1) : 0,
-					x3 = Math.min(x0 + Math.sqrt(3) * y0 / 3, preferredHeight),
-					y3 = x3 == preferredHeight ? y0 - Math.sqrt(3) * (preferredHeight - x0) : 0;
+				double x0 = v.getX() - shift * (1 + Math.sqrt(3) / 3) / 2;
+				double y0 = v.getY() + (Math.sqrt(3) - 1) * shift / 2;
+				double x1 = v.getX() + shift * (1 / Math.sqrt(3) - 1. / 2);
+				double y1 = v.getY() + Math.sqrt(3) * shift / 2;
+				double x2 = Math.min(x1 + Math.sqrt(3) * y1 / 3, preferredHeight);
+				double y2 = x2 == preferredHeight ? y1 - Math.sqrt(3) * (preferredHeight - x1) : 0;
+				double x3 = Math.min(x0 + Math.sqrt(3) * y0 / 3, preferredHeight);
+				double y3 = x3 == preferredHeight ? y0 - Math.sqrt(3) * (preferredHeight - x0) : 0;
 				drawHexagonalModelObliqueEntry(x0, y0, x1, y1, x2, y2, x3, y3, x2 == preferredHeight, y3 == 0, preferredHeight, v.getType().getColor());
 			}
+			default -> throw new IllegalStateException("Unexpected value: " + v.getType()); // TODO
 		}
 		addTextField(v.getX() - shift / 2, v.getY() - shift / 2, shift, shift, String.valueOf(v.getID()));
 	}
@@ -318,17 +321,17 @@ public class IntersectionModel extends Pane {
 	 * Create two quadrilaterals or pentagons symbolizing opposite oblique entries / exits for hexagonal model.
 	 * If the entry is over frame corner, it adds fifth point.
 	 *
-	 * @param x0      Coordination X of bottom left corner.
-	 * @param y0      Coordination Y of bottom left corner.
-	 * @param x1      Coordination X of bottom right corner.
-	 * @param y1      Coordination Y of bottom right corner.
-	 * @param x2      Coordination X of top right corner.
-	 * @param y2      Coordination Y of top right corner.
-	 * @param x3      Coordination X of top left corner.
-	 * @param y3      Coordination Y of top left corner.
-	 * @param zeroX   Flag if the entry is touching sides.
-	 * @param zeroY   Flag if the entry is touching top side.
-	 * @param cornerX Coordination X of corner the entry is directing to.
+	 * @param x0      Coordination X of bottom left corner
+	 * @param y0      Coordination Y of bottom left corner
+	 * @param x1      Coordination X of bottom right corner
+	 * @param y1      Coordination Y of bottom right corner
+	 * @param x2      Coordination X of top right corner
+	 * @param y2      Coordination Y of top right corner
+	 * @param x3      Coordination X of top left corner
+	 * @param y3      Coordination Y of top left corner
+	 * @param zeroX   Flag if the entry is touching sides
+	 * @param zeroY   Flag if the entry is touching top side
+	 * @param cornerX Coordination X of corner the entry is directing to
 	 */
 	private void drawHexagonalModelObliqueEntry(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, boolean zeroX, boolean zeroY, double cornerX, Color color) {
 		// create associated entry
@@ -363,12 +366,12 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Create rectangular entry / exit for octagonal model.
 	 *
-	 * @param size      "Width" of the road.
-	 * @param x         Coordination X of the entry / exit in graph.
-	 * @param y         Coordination Y of the entry / exit in graph.
-	 * @param text      The text inside the entry / exit.
-	 * @param color     Color of the rectangle.
-	 * @param direction Direction of the entry / exit. (See Vertex object for more details).
+	 * @param size      "Width" of the road
+	 * @param x         Coordination X of the entry / exit in graph
+	 * @param y         Coordination Y of the entry / exit in graph
+	 * @param text      The text inside the entry / exit
+	 * @param color     Color of the rectangle
+	 * @param direction Direction of the entry / exit. (See Vertex object for more details)
 	 */
 	private void drawOctagonalEntry(double size, double x, double y, String text, Color color, int direction) {
 		assert (direction < 4);
@@ -378,11 +381,11 @@ public class IntersectionModel extends Pane {
 		rectangle.setStroke(STROKE_COLOR);
 
 		// compute location and size
-		double halfSize = size / 2,
-			xLocation = x - (direction == 3 ? (2 - OCTAGON_RATIO) * halfSize : halfSize),
-			yLocation = y - (direction == 1 ? (2 - OCTAGON_RATIO) * halfSize : halfSize),
-			width = direction < 2 ? size : (3 - OCTAGON_RATIO) * halfSize,
-			height = direction < 2 ? (3 - OCTAGON_RATIO) * halfSize : size;
+		double halfSize = size / 2;
+		double xLocation = x - (direction == 3 ? (2 - OCTAGON_RATIO) * halfSize : halfSize);
+		double yLocation = y - (direction == 1 ? (2 - OCTAGON_RATIO) * halfSize : halfSize);
+		double width = direction < 2 ? size : (3 - OCTAGON_RATIO) * halfSize;
+		double height = direction < 2 ? (3 - OCTAGON_RATIO) * halfSize : size;
 
 		// set rectangle location and size
 		rectangle.setX(xLocation);
@@ -398,11 +401,11 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Adds rectangular text field.
 	 *
-	 * @param x      Coordination X of the text field.
-	 * @param y      Coordination Y of the text field.
-	 * @param width  Width of the text field.
-	 * @param height Height of the text field.
-	 * @param text   Text of the text field.
+	 * @param x      Coordination X of the text field
+	 * @param y      Coordination Y of the text field
+	 * @param width  Width of the text field
+	 * @param height Height of the text field
+	 * @param text   Text of the text field
 	 */
 	private void addTextField(double x, double y, double width, double height, String text) {
 		TextField t = new TextField(text);
@@ -422,7 +425,9 @@ public class IntersectionModel extends Pane {
 	 */
 	public void redraw() {
 		// get graph properties
-		long granularity = IntersectionMenuTab0.getGranularity().getValue(), entries = IntersectionMenuTab0.getEntries().getValue(), exits = IntersectionMenuTab0.getExits().getValue();
+		long granularity = IntersectionMenuTab0.getGranularity().getValue();
+		long entries = IntersectionMenuTab0.getEntries().getValue();
+		long exits = IntersectionMenuTab0.getExits().getValue();
 		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
@@ -451,13 +456,13 @@ public class IntersectionModel extends Pane {
 
 			switch (model) {
 				case SQUARE:
-					drawSquareModel(granularity, entries, exits);
+					drawSquareModel(granularity);
 					break;
 				case HEXAGONAL:
-					drawHexagonalModel(granularity, entries, exits);
+					drawHexagonalModel(granularity);
 					break;
 				case OCTAGONAL:
-					drawOctagonalModel(granularity, entries, exits);
+					drawOctagonalModel(granularity);
 					break;
 				case CUSTOM:
 					break;
@@ -473,7 +478,7 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Add vertices and edges to the abstract graph and set visual elements to math the graph.
 	 *
-	 * @param graphAbstract Graph with necessary elements.
+	 * @param graphAbstract Graph with necessary elements
 	 */
 	private void setGraphFromAbstract(SimulationGraph graphAbstract) {
 		assert createdGraphs.containsKey(graphAbstract);
@@ -487,7 +492,7 @@ public class IntersectionModel extends Pane {
 	 * Draw last saved different model.
 	 */
 	public void drawPreviousGraph() {
-		if (!historyPrevious.empty()) {
+		if (!historyPrevious.isEmpty()) {
 			SimulationGraph graphAbstract = historyPrevious.pop();
 			historyNext.push(graph);
 			IntersectionScene.resetSimulation();
@@ -500,7 +505,7 @@ public class IntersectionModel extends Pane {
 	 * Draw first graph created after the current.
 	 */
 	public void drawNextGraph() {
-		if (!historyNext.empty()) {
+		if (!historyNext.isEmpty()) {
 			SimulationGraph graphAbstract = historyNext.pop();
 			historyPrevious.push(graph);
 			IntersectionScene.resetSimulation();
@@ -512,7 +517,7 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw green square.
 	 *
-	 * @param height size of the square.
+	 * @param height size of the square
 	 */
 	private void drawBackground(double height) {
 		Rectangle backgroundSquare = new Rectangle(0, 0, height, height);
@@ -523,7 +528,7 @@ public class IntersectionModel extends Pane {
 	}
 
 	/**
-	 * @return Preferred height of the graph.
+	 * @return Preferred height of the graph
 	 */
 	public static double getPreferredHeight() {
 		return preferredHeight;
@@ -532,14 +537,14 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Set preferred height of the graph.
 	 *
-	 * @param preferredHeight New height the graph should have.
+	 * @param preferredHeight New height the graph should have
 	 */
 	public static void setPreferredHeight(double preferredHeight) {
 		IntersectionModel.preferredHeight = preferredHeight;
 	}
 
 	/**
-	 * @return Currently shown graph.
+	 * @return Currently shown graph
 	 */
 	public static SimulationGraph getGraph() {
 		return graph;

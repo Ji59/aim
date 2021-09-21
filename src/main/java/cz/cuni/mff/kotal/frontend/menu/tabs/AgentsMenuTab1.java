@@ -22,16 +22,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+/**
+ * Tab in menu window for setting generating agents parameters.
+ */
 public class AgentsMenuTab1 extends MyTabTemplate {
 
+	// TODO don't use static, use Component
 	private static final MyComboBox inputType = new MyComboBox(Arrays.stream(Parameters.Input.values()).map(Parameters.Input::getText).collect(Collectors.toList()));
 	//TODO extract constants
-	private static final TextField steps = new TextField("0 ~ infinite simulation"),
-		filePath = new TextField("Enter file path here");
-	private static final MySlider newAgentsMinimum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), 0),
-		newAgentsMaximum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getRoads());
+	private static final TextField steps = new TextField("0 ~ infinite simulation");
+	private static final TextField filePath = new TextField("Enter file path here");
+	private static final MySlider newAgentsMinimum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), 0);
+	private static final MySlider newAgentsMaximum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getRoads());
 	private static final VBox directionDistribution = ((VBox) Parameters.DIRECTION.getParameter());
 
+	/**
+	 * Create new tab with nodes, add actions.
+	 */
 	public AgentsMenuTab1() {
 		super(Tabs.T1.getText());
 
@@ -58,6 +65,9 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		// TODO pridat tlacitko na ulozeni konfigurace
 	}
 
+	/**
+	 * Add input type combo box action.
+	 */
 	private void addInputActions() {
 		inputType.valueProperty().addListener((observable, oldValue, newValue) -> {
 			for (Node child : getGrid().getChildren()) {
@@ -66,9 +76,12 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		});
 	}
 
+	/**
+	 * Add steps text field action.
+	 */
 	private void addStepsActions() {
 		steps.focusedProperty().addListener((observable, oldValue, newValue) -> {
-			if (newValue) {
+			if (newValue != null && newValue) {
 				if (steps.getText().startsWith("0")) {
 					steps.setText("");
 				}
@@ -79,6 +92,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 					try {
 						long value = Long.parseLong(steps.getText());
 						if (value < 0) {
+							// TODO create exception
 							throw new Exception("Entered number: " + value);
 						}
 					} catch (Exception e) {
@@ -96,6 +110,9 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		});
 	}
 
+	/**
+	 * Add file path text field and file button actions and edit parameters.
+	 */
 	private void createFileMenuAndAddActions() {
 		//TODO extract constants
 		filePath.setPrefWidth(200);
@@ -112,7 +129,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 				try {
 					File file = new File(filePath.getText());
 					if (!file.isFile()) {
-						//TODO extract constant
+						//TODO extract constant and create own exception
 						throw new Exception("File does not exist. Entered file: " + file.getPath());
 					}
 				} catch (Exception e) {
@@ -134,6 +151,9 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		fileBox.getChildren().addAll(filePath, fileButton);
 	}
 
+	/**
+	 * Add new agents minimum and maximum slider actions and edit parameters.
+	 */
 	private void createAmountMenuAndAddActions() {
 		newAgentsMinimum.addAction((observable, oldValue, newValue) -> {
 			if (newAgentsMinimum.getValue() > newAgentsMaximum.getValue()) {
@@ -154,6 +174,11 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		GridPane.setConstraints(newAgentsMaximum, 1, 1);
 	}
 
+	/**
+	 * Create direction sliders, add actions and edit parameters.
+	 *
+	 * @param model Actual intersection model type
+	 */
 	static void createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.Models model) {
 		if (model == null || model.getDirections() == null) {
 			return;
@@ -163,7 +188,8 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 
 		List<DirectionSlider> sliders = new ArrayList<>();
 
-		int row = 0, remains = 100;
+		int row = 0;
+		int remains = 100;
 		for (Character direction : model.getDirections()) {
 			long value = remains / (model.getDirections().size() - row);
 			DirectionSlider directionSlider = new DirectionSlider(direction, value);
@@ -186,7 +212,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 			});
 
 			directionSlider.addValueLabelFocusedAction((observable, oldValue, newValue) -> {
-				if (newValue) {
+				if (newValue != null && newValue) {
 					// if focused
 					TextField valueText = directionSlider.valueText;
 					directionSlider.valueText.setText(valueText.getText(0, valueText.getText().lastIndexOf('%')));
@@ -197,9 +223,11 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 						int newVal = Integer.parseInt(directionSlider.valueText.getText());
 						if (newVal < Math.round(directionSlider.slider.getMin() - 0.5) || newVal > directionSlider.slider.getMax()) {
 							directionSlider.setValue(directionSlider.oldValue + '%');
+							// TODO create exception
 							throw new Exception("Please enter integer between 0 and 100. Entered value: " + newVal);
 						} else {
-							double sum = 0, available = 100 - newVal;
+							double sum = 0;
+							double available = 100 - newVal;
 							for (DirectionSlider sl : sliders) {
 								if (sl != directionSlider) {
 									sum += sl.getValue();
@@ -231,30 +259,51 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		directionDistribution.getChildren().addAll(sliders);
 	}
 
+	/**
+	 * @return Input time slider
+	 */
 	public static MyComboBox getInputType() {
 		return inputType;
 	}
 
+	/**
+	 * @return Steps text field
+	 */
 	public static TextField getSteps() {
 		return steps;
 	}
 
+	/**
+	 * @return File path text field
+	 */
 	public static TextField getFilePath() {
 		return filePath;
 	}
 
+	/**
+	 * @return Minimum new agents slider
+	 */
 	public static MySlider getNewAgentsMinimum() {
 		return newAgentsMinimum;
 	}
 
+	/**
+	 * @return Maximum new agents slider
+	 */
 	public static MySlider getNewAgentsMaximum() {
 		return newAgentsMaximum;
 	}
 
+	/**
+	 * @return Direction distribution vertical box
+	 */
 	public static VBox getDirectionDistribution() {
 		return directionDistribution;
 	}
 
+	/**
+	 * Parameters shown in this tab.
+	 */
 	private enum Parameters {
 		INPUT("Agents input type: ", inputType),
 		STEPS("Number of steps: ", steps),
@@ -298,12 +347,21 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	}
 
 
+	/**
+	 * Horizontal box of direction slider and text field.
+	 */
 	public static class DirectionSlider extends HBox {
 		private final Slider slider = new Slider(0.002, 100, 50);
 		private final TextField valueText;
 		private long oldValue = 0;
 		private boolean sliderActionOn = true;
 
+		/**
+		 * Create new HBox and set parameters.
+		 *
+		 * @param directionName Name of direction
+		 * @param value         Initial percent value
+		 */
 		private DirectionSlider(char directionName, long value) {
 			// TODO introduce constant
 			super(10);
@@ -316,29 +374,60 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 			getChildren().addAll(directionLabel, slider, valueText);
 		}
 
+		/**
+		 * @return Value in the text field
+		 * @throws NumberFormatException Parsing text from text field failed
+		 */
 		public long getValue() throws NumberFormatException {
 			return Long.parseLong(valueText.getText(0, valueText.getText().lastIndexOf('%')));
 		}
 
+		/**
+		 * Set new value to the text field.
+		 *
+		 * @param value Value to be set in text field
+		 * @return New Value
+		 */
 		long setValue(long value) {
 			valueText.setText(String.valueOf(value) + '%');
 			return value;
 		}
 
+		/**
+		 * @return Value of the slider
+		 */
 		double getSliderValue() {
 			return slider.getValue();
 		}
 
+		/**
+		 * Set value to slider.
+		 *
+		 * @param value Value to be set
+		 * @return This direction slider
+		 */
 		DirectionSlider setSliderValue(double value) {
 			slider.setValue(value);
 			return this;
 		}
 
+		/**
+		 * Add action to the slider.
+		 *
+		 * @param listener Action to be added
+		 * @return This direction slider
+		 */
 		DirectionSlider addSliderAction(ChangeListener<? super Number> listener) {
 			slider.valueProperty().addListener(listener);
 			return this;
 		}
 
+		/**
+		 * Add action to be performed at text field focus.
+		 *
+		 * @param listener Action to be added
+		 * @return This direction slider
+		 */
 		DirectionSlider addValueLabelFocusedAction(ChangeListener<? super Boolean> listener) {
 			valueText.focusedProperty().addListener(listener);
 			return this;

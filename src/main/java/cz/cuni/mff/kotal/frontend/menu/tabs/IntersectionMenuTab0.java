@@ -19,20 +19,27 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+/**
+ * Tab in menu window for setting intersection parameters.
+ */
 public class IntersectionMenuTab0 extends MyTabTemplate {
 
-	private static final MyComboBox model = new MyComboBox(Arrays.stream(Parameters.Models.values()).map(Parameters.Models::getText).collect(Collectors.toList())),
-		restriction = new MyComboBox(Arrays.stream(Parameters.Restrictions.values()).map(Parameters.Restrictions::getText).collect(Collectors.toList()));
-	private static final MySlider granularity = new MySlider(2, 65, 4),
-		entries = new MySlider(1, granularity.getValue() - 1, 1),
-		exits = new MySlider(1, granularity.getValue() - entries.getValue(), 1);
-	private static final Button nextButton = new Button("Next"),
-		previousButton = new Button("previous");
+	// TODO don't use static, use Component
+	private static final MyComboBox model = new MyComboBox(Arrays.stream(Parameters.Models.values()).map(Parameters.Models::getText).collect(Collectors.toList()));
+	private static final MyComboBox restriction = new MyComboBox(Arrays.stream(Parameters.Restrictions.values()).map(Parameters.Restrictions::getText).collect(Collectors.toList()));
+	private static final MySlider granularity = new MySlider(2, 65, 4);
+	private static final MySlider entries = new MySlider(1, granularity.getValue() - 1, 1);
+	private static final MySlider exits = new MySlider(1, granularity.getValue() - entries.getValue(), 1);
+	private static final Button nextButton = new Button("Next");
+	private static final Button previousButton = new Button("previous");
 	private static final HBox history = new HBox(20, previousButton, nextButton);
 
 	private static long roads = 4;
 	private static int granularityDifference = 0;
 
+	/**
+	 * Create new tab with nodes, add actions.
+	 */
 	public IntersectionMenuTab0() {
 		super(Tabs.T0.getText());
 
@@ -51,6 +58,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		// TODO pridat tlacitko na ulozeni konfigurace
 	}
 
+	/**
+	 * Add action to model combo box.
+	 */
 	private void addModelActions() {
 		model.valueProperty().addListener((observable, oldValue, newValue) -> {
 			if (oldValue.equals(newValue)) {
@@ -58,9 +68,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 			}
 
 			Parameters.Models selected = null;
-			for (Parameters.Models model : Parameters.Models.values()) {
-				if (model.getText().equals(newValue)) {
-					selected = model;
+			for (Parameters.Models modelType : Parameters.Models.values()) {
+				if (modelType.getText().equals(newValue)) {
+					selected = modelType;
 				}
 			}
 			assert selected != null;
@@ -93,6 +103,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		});
 	}
 
+	/**
+	 * Add action to granularity slider.
+	 */
 	private void addGranularityActions() {
 		granularity.addAction((observable, oldValue, newValue) -> {
 			setSlidersDisable(true);
@@ -112,6 +125,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		});
 	}
 
+	/**
+	 * Add action to entries slider.
+	 */
 	private void addEntriesActions() {
 		entries.addAction((observable, oldValue, newValue) -> {
 			adjustAgentsSize(newValue, exits);
@@ -120,10 +136,16 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		});
 	}
 
+	/**
+	 * Add action to exit slider.
+	 */
 	private void addExitsActions() {
 		exits.addAction((observable, oldValue, newValue) -> adjustAgentsSize(newValue, entries));
 	}
 
+	/**
+	 * Add actions to history buttons.
+	 */
 	private void addHistoryButtonsActions() {
 		nextButton.setOnMouseClicked(event -> {
 			IntersectionScene.getIntersectionGraph().drawNextGraph();
@@ -136,6 +158,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		});
 	}
 
+	/**
+	 * Set nodes values based on selected graph.
+	 */
 	private void setValuesFromGraph() {
 		SimulationGraph graph = IntersectionModel.getGraph();
 		model.setValue(graph.getModel().text);
@@ -145,12 +170,23 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		IntersectionMenu.setAbstractMode(graph.isAbstractGraph());
 	}
 
+	/**
+	 * Set disability of sliders.
+	 *
+	 * @param b New value to be set
+	 */
 	private void setSlidersDisable(boolean b) {
 		granularity.setDisable(b);
 		entries.setDisable(b);
 		exits.setDisable(b);
 	}
 
+	/**
+	 * Modify agent size slider values.
+	 *
+	 * @param newValue New maximal slider size
+	 * @param slider   Other slider affecting computing
+	 */
 	private void adjustAgentsSize(Number newValue, MySlider slider) {
 		setSlidersDisable(true);
 
@@ -166,6 +202,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		setSlidersDisable(false);
 	}
 
+	/**
+	 * @return Selected model
+	 */
 	public static Parameters.Models getModel() {
 		for (Parameters.Models model : Parameters.Models.values()) {
 			if (model.getText().equals(IntersectionMenuTab0.model.getValue())) {
@@ -175,26 +214,44 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		return Parameters.Models.SQUARE;
 	}
 
+	/**
+	 * @return Restriction combo box
+	 */
 	public static MyComboBox getRestriction() {
 		return restriction;
 	}
 
+	/**
+	 * @return Granularity slider
+	 */
 	public static MySlider getGranularity() {
 		return granularity;
 	}
 
+	/**
+	 * @return Entries slider
+	 */
 	public static MySlider getEntries() {
 		return entries;
 	}
 
+	/**
+	 * @return Exits slider
+	 */
 	public static MySlider getExits() {
 		return exits;
 	}
 
+	/**
+	 * @return Number of entry / exit directions
+	 */
 	public static long getRoads() {
 		return roads;
 	}
 
+	/**
+	 * Parameters shown in this tab.
+	 */
 	public enum Parameters {
 		MODEL("Model: ", model),
 		GRANULARITY("Granularity: ", granularity),
@@ -220,6 +277,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 			return parameter;
 		}
 
+		/**
+		 * Supported intersection model types.
+		 */
 		public enum Models {
 			SQUARE("Square grid", Arrays.asList('N', 'S', 'W', 'E')),
 			HEXAGONAL("Hexagonal grid", Arrays.asList('A', 'B', 'C', 'D', 'E', 'F')),
@@ -245,6 +305,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		}
 
 
+		/**
+		 * Supported restriction types.
+		 */
 		public enum Restrictions {
 			NO_RESTRICTION("Without restriction"),
 			ROUNDABOUT("Roundabout"),

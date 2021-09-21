@@ -12,9 +12,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 
 
+/**
+ * Scene for intersection map.
+ */
 public class IntersectionScene extends Scene {
 	public static final double PADDING = 15;
 
+	// TODO don't use static, use Component
 	private static final IntersectionMenu MENU = new IntersectionMenu(PADDING);
 	private static final IntersectionModel GRAPH = new IntersectionModel(Screen.getPrimary().getVisualBounds().getHeight());
 	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight());
@@ -26,8 +30,8 @@ public class IntersectionScene extends Scene {
 	 * Create intersection scene object.
 	 * Create actions on window resize, add intersection menu and graph objects.
 	 *
-	 * @param width  Desired width of the scene.
-	 * @param height Desired height of the scene.
+	 * @param width  Desired width of the scene
+	 * @param height Desired height of the scene
 	 */
 	public IntersectionScene(double width, double height) {
 		super(ROOT, width, height);
@@ -56,13 +60,11 @@ public class IntersectionScene extends Scene {
 	/**
 	 * Set minimum width for play and restart button.
 	 *
-	 * @param menuWidth Minimal acceptable width for buttons.
+	 * @param menuWidth Minimal acceptable width for buttons
 	 */
 	private void setButtonsProperties(double menuWidth) {
-		//      IntersectionMenu.getPlayButton().setPrefWidth(menuWidth / 2 - PADDING / 2);
 		IntersectionMenu.getPlayButton().setMinWidth(menuWidth / 2 - PADDING);
 		IntersectionMenu.getPlayButton().setPrefWidth(Double.MAX_VALUE);
-//      IntersectionMenu.getRestartButton().setPrefWidth(menuWidth / 2 - PADDING / 2);
 		IntersectionMenu.getRestartButton().setMinWidth(menuWidth / 2 - PADDING);
 		IntersectionMenu.getRestartButton().setPrefWidth(Double.MAX_VALUE);
 	}
@@ -70,7 +72,7 @@ public class IntersectionScene extends Scene {
 	/**
 	 * Set menu VBox width sizes and add padding.
 	 *
-	 * @param menuWidth Minimal acceptable width for menu.
+	 * @param menuWidth Minimal acceptable width for menu
 	 */
 	private void setMenuProperties(double menuWidth) {
 		MENU.setPrefWidth(menuWidth);
@@ -78,9 +80,14 @@ public class IntersectionScene extends Scene {
 		MENU.setPadding(new Insets(PADDING, PADDING, PADDING, PADDING));
 	}
 
-	public static void startSimulation(Algorithm alg) {
+	/**
+	 * Start the simulation.
+	 *
+	 * @param algorithm Algorithm to use in simulation path finding
+	 */
+	public static void startSimulation(Algorithm algorithm) {
 		if (simulation == null) {
-			simulation = new Simulation(IntersectionModel.getGraph(), alg, AGENTS);
+			simulation = new Simulation(IntersectionModel.getGraph(), algorithm, AGENTS);
 			AGENTS.setSimulation(simulation);
 			simulation.start((long) getPeriod());
 		} else {
@@ -88,28 +95,42 @@ public class IntersectionScene extends Scene {
 		}
 	}
 
+	/**
+	 * Resume already started simulation.
+	 */
 	private static void resumeSimulation() {
 		assert simulation != null;
 		long period = (long) getPeriod();
 		simulation.start(period);
 	}
 
+	/**
+	 * Compute delay between steps based on speed slider value.
+	 *
+	 * @return Delay between steps in milliseconds
+	 */
 	public static double getPeriod() {
 		double speed = IntersectionMenu.getSpeed();
 		// TODO do speed properly
 		return (2500 - Math.sqrt(speed) * 78.8);
 	}
 
+	/**
+	 * Stop running simulation.
+	 */
 	public static void stopSimulation() {
 		assert simulation != null;
 		simulation.stop();
 	}
 
+	/**
+	 * Restart simulation and other parts to initial state.
+	 */
 	public static void resetSimulation() {
 		if (simulation == null) {
 			return;
 		}
-		MENU.setPlayButtonPlaying(false);
+		IntersectionMenu.setPlayButtonPlaying(false);
 
 		simulation.reset();
 		simulation = null;
@@ -117,6 +138,9 @@ public class IntersectionScene extends Scene {
 		AGENTS.resetSimulation();
 	}
 
+	/**
+	 * Apply changes to running simulation.
+	 */
 	public static void changeSimulation() {
 		if (simulation != null && simulation.isRunning()) {
 			stopSimulation();
@@ -127,7 +151,7 @@ public class IntersectionScene extends Scene {
 	/**
 	 * Get Intersection graph object.
 	 *
-	 * @return Graph constant.
+	 * @return Graph constant
 	 */
 	public static IntersectionModel getIntersectionGraph() {
 		return GRAPH;
@@ -136,7 +160,7 @@ public class IntersectionScene extends Scene {
 	/**
 	 * Get Intersection menu object.
 	 *
-	 * @return Menu VBox.
+	 * @return Menu VBox
 	 */
 	public static VBox getMENU() {
 		return MENU;

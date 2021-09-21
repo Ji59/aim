@@ -11,11 +11,17 @@ import javafx.scene.layout.GridPane;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-
+/**
+ * Tab in menu window for algorithm.
+ */
 public class AlgorithmMenuTab2 extends MyTabTemplate {
 
+	// TODO don't use static, use Component
 	private static final MyComboBox algorithm = new MyComboBox(Arrays.stream(Parameters.Algorithm.values()).map(Parameters.Algorithm::getName).collect(Collectors.toList()));
 
+	/**
+	 * Create new tab with nodes, add actions.
+	 */
 	public AlgorithmMenuTab2() {
 		super(Tabs.T2.getText());
 
@@ -39,6 +45,10 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		GridPane.setConstraints(description, 0, 1, 3, 1);
 	}
 
+	/**
+	 *
+	 * @return Selected algorithm
+	 */
 	public static Parameters.Algorithm getAlgorithm() {
 		for (Parameters.Algorithm algorithm : Parameters.Algorithm.values()) {
 			if (AlgorithmMenuTab2.algorithm.getValue().equals(algorithm.name)) {
@@ -49,6 +59,9 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		return null;
 	}
 
+	/**
+	 * Parameters shown in this tab.
+	 */
 	public enum Parameters {
 		ALGORITHM_NAME("Algorithm:", algorithm),
 		ALGORITHM_DESCRIPTION(null, new TextField(Algorithm.BFS.getDescription())),
@@ -70,6 +83,9 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			return parameter;
 		}
 
+		/**
+		 * All algorithms to be shown in combo box.
+		 */
 		public enum Algorithm {
 			BFS("Breadth First Search", "Finds the shortest path for every agent."),
 			A0("Algorithm0", "Description of alg0"),
@@ -77,7 +93,8 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			A2("Algorithm2", "Description of alg2"),
 			;
 
-			private final String name, description;
+			private final String name;
+			private final String description;
 
 
 			Algorithm(String name, String description) {

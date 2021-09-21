@@ -48,7 +48,7 @@ public class SimulationGraph extends Graph {
 		this.abstractGraph = abstractGraph;
 
 
-		for (int i = 0; i < entries; i++) {
+		for (int i = 0; i < model.getDirections().size(); i++) {
 			entryExitVertices.put(i, new ArrayList<>());
 		}
 
@@ -56,6 +56,7 @@ public class SimulationGraph extends Graph {
 			case SQUARE -> createSquareGraph(entries, exits);
 			case OCTAGONAL -> createOctagonalGraph(entries, exits);
 			case HEXAGONAL -> createHexagonalGraph(entries, exits);
+			default -> throw new IllegalStateException("Unexpected value: " + model);
 		}
 	}
 
@@ -259,7 +260,7 @@ public class SimulationGraph extends Graph {
 				bottomE.getNeighbourIDs().add(bottomN.getID());
 				leftE.getNeighbourIDs().add(leftN.getID());
 				rightE.getNeighbourIDs().add(rightN.getID());
-				
+
 				edges.add(new Edge(topE, topN));
 				edges.add(new Edge(bottomE, bottomN));
 				edges.add(new Edge(leftE, leftN));

@@ -18,7 +18,12 @@ import javafx.scene.layout.VBox;
 import java.util.Map;
 
 
+/**
+ * Class representing Side menu on main window.
+ */
 public class IntersectionMenu extends VBox {
+
+	// TODO dont use static, use Component
 
 	// TODO extract constants
 	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
@@ -41,6 +46,12 @@ public class IntersectionMenu extends VBox {
 	private static boolean abstractMode = false;
 	private static boolean playing = false;
 
+	/**
+	 * Create new instance with spacing between elements.
+	 * Set all action buttons, etc.
+	 *
+	 * @param padding Spacing between elements.
+	 */
 	public IntersectionMenu(double padding) {
 		super(padding);
 		INTERSECTION_MODE.setPrefWidth(Double.MAX_VALUE);
@@ -55,6 +66,11 @@ public class IntersectionMenu extends VBox {
 		createControlNodes(padding);
 	}
 
+	/**
+	 * Create all nodes and set their parameters.
+	 *
+	 * @param padding Padding between elements
+	 */
 	private void createControlNodes(double padding) {
 		// TODO extract constants
 
@@ -90,14 +106,26 @@ public class IntersectionMenu extends VBox {
 		getChildren().addAll(sliders, buttons, RESTART_BUTTON, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
 	}
 
+	/**
+	 * Set action performed on reset button press.
+	 */
 	private static void addResetButtonAction() {
 		RESTART_BUTTON.setOnMouseClicked(e -> IntersectionScene.resetSimulation());
 	}
 
+	/**
+	 * Create new listener which sets its new value also to other slider.
+	 *
+	 * @param affectedSlider Slider to have same values as the one calling the listener
+	 * @return Listener with defined action
+	 */
 	private static ChangeListener<Number> getSliderValueListener(Slider affectedSlider) {
 		return (observable, oldValue, newValue) -> affectedSlider.setValue(newValue.doubleValue());
 	}
 
+	/**
+	 * Set action performed on play button press.
+	 */
 	private static void addPlayButtonAction() {
 		// TODO extract constants
 		PLAY_BUTTON.setOnMouseClicked(e -> {
@@ -121,10 +149,18 @@ public class IntersectionMenu extends VBox {
 		});
 	}
 
+	/**
+	 * Set intersection button text based on actual graph visual mode.
+	 */
 	private static void setIntersectionModeButtonText() {
 		INTERSECTION_MODE.setText(abstractMode ? "Abstract" : "Real");
 	}
 
+	/**
+	 * Set text on both play buttons according to parameter.
+	 *
+	 * @param playing True if simulation is running, otherwise false
+	 */
 	public static void setPlayButtonPlaying(boolean playing) {
 		// TODO extract constants
 		IntersectionMenu.playing = playing;
@@ -137,35 +173,63 @@ public class IntersectionMenu extends VBox {
 		}
 	}
 
+	/**
+	 * @return If the shown graph is in abstract mode
+	 */
 	public static boolean isAbstract() {
 		return abstractMode;
 	}
 
+	/**
+	 * Set abstract mode according to parameter.
+	 *
+	 * @param abstractMode True if graph should be abstract, otherwise False.
+	 */
 	public static void setAbstractMode(boolean abstractMode) {
 		IntersectionMenu.abstractMode = abstractMode;
 		setIntersectionModeButtonText();
 	}
 
+	/**
+	 * @return Speed set on slider
+	 */
 	public static double getSpeed() {
 		return SPEED_SLIDER.getValue();
 	}
 
+	/**
+	 * @return Play button node
+	 */
 	public static Button getPlayButton() {
 		return PLAY_BUTTON;
 	}
 
+	/**
+	 * @return Restart button node
+	 */
 	public static Button getRestartButton() {
 		return RESTART_BUTTON;
 	}
 
+	/**
+	 * @return Save button node
+	 */
 	public static Button getSaveAgentsButton() {
 		return SAVE_AGENTS_BUTTON;
 	}
 
+	/**
+	 * @return Step label node
+	 */
 	public static Label getStepsLabel() {
 		return STEPS_LABEL;
 	}
 
+	/**
+	 * Set value of both step labels.
+	 *
+	 * @param step Value to be shown on labels
+	 */
 	public static void setStep(long step) {
 		Platform.runLater(() -> {
 			STEPS_LABEL.setText(String.valueOf(step));
@@ -173,6 +237,11 @@ public class IntersectionMenu extends VBox {
 		});
 	}
 
+	/**
+	 * Set value of both collision labels.
+	 *
+	 * @param collisions Value to be shown on labels
+	 */
 	public static void setCollisions(long collisions) {
 		Platform.runLater(() -> {
 			COLLISIONS_LABEL.setText(String.valueOf(collisions));
@@ -180,18 +249,30 @@ public class IntersectionMenu extends VBox {
 		});
 	}
 
+	/**
+	 * @return Label displaying total delay since start of the simulation
+	 */
 	public static Label getDelayLabel() {
 		return DELAY_LABEL;
 	}
 
+	/**
+	 * @return Label displaying number of rejections
+	 */
 	public static Label getRejectionsLabel() {
 		return REJECTIONS_LABEL;
 	}
 
+	/**
+	 * @return Label displaying number of collisions
+	 */
 	public static Label getCollisionsLabel() {
 		return COLLISIONS_LABEL;
 	}
 
+	/**
+	 * @return Label displaying remaining running time
+	 */
 	public static Label getRemainingLabel() {
 		return REMAINING_LABEL;
 	}
