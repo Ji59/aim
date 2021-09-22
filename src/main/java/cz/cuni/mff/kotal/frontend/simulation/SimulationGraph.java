@@ -336,18 +336,18 @@ public class SimulationGraph extends Graph {
 	 * @param j       Number of vertex on hexagon edge. Vertex of hexagon has 0, vertex next to him clockwise has 1, etc. to next hexagon vertex excluded.
 	 * @param notLast Indicator if it is the last layer.
 	 * @param id0     ID of top left hexagon edge vertex.
-	 * @param x0      Coordination X of top left hexagon edge vertex.
-	 * @param y0      Coordination Y of top left hexagon edge vertex.
-	 * @param x1      Coordination X of top right hexagon edge vertex.
-	 * @param y1      Coordination Y of top right hexagon edge vertex.
-	 * @param x2      Coordination X of right hexagon edge vertex.
-	 * @param y2      Coordination Y of right hexagon edge vertex.
-	 * @param x3      Coordination X of bottom right hexagon edge vertex.
-	 * @param y3      Coordination Y of bottom right hexagon edge vertex.
-	 * @param x4      Coordination X of bottom left hexagon edge vertex.
-	 * @param y4      Coordination Y of bottom left hexagon edge vertex.
-	 * @param x5      Coordination X of left hexagon edge vertex.
-	 * @param y5      Coordination Y of left hexagon edge vertex.
+	 * @param x0      Coordinate X of top left hexagon edge vertex.
+	 * @param y0      Coordinate Y of top left hexagon edge vertex.
+	 * @param x1      Coordinate X of top right hexagon edge vertex.
+	 * @param y1      Coordinate Y of top right hexagon edge vertex.
+	 * @param x2      Coordinate X of right hexagon edge vertex.
+	 * @param y2      Coordinate Y of right hexagon edge vertex.
+	 * @param x3      Coordinate X of bottom right hexagon edge vertex.
+	 * @param y3      Coordinate Y of bottom right hexagon edge vertex.
+	 * @param x4      Coordinate X of bottom left hexagon edge vertex.
+	 * @param y4      Coordinate Y of bottom left hexagon edge vertex.
+	 * @param x5      Coordinate X of left hexagon edge vertex.
+	 * @param y5      Coordinate Y of left hexagon edge vertex.
 	 */
 	private void createLayerVertices(long i, long j, boolean notLast, long id0, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double x5, double y5) {
 		createHexagonalGraphEdgeVertices(i, j, notLast, id0, x0, y0, 0);
@@ -365,8 +365,8 @@ public class SimulationGraph extends Graph {
 	 * @param j       Number of vertex on hexagon edge.
 	 * @param notLast Indicator if it is the last layer.
 	 * @param id      ID of the vertex.
-	 * @param x       Coordination X of the vertex.
-	 * @param y       Coordination Y of the vertex.
+	 * @param x       Coordinate X of the vertex.
+	 * @param y       Coordinate Y of the vertex.
 	 * @param side    Number of edge of the hexagon. 0 is top left, then incrementally clockwise.
 	 */
 	private void createHexagonalGraphEdgeVertices(long i, long j, boolean notLast, long id, double x, double y, int side) {
@@ -454,12 +454,12 @@ public class SimulationGraph extends Graph {
 	 * @param shift   Distance between 2 vertices.
 	 * @param index   Index of the first entries.
 	 * @param id      ID of the first entry.
-	 * @param e0x     Coordination X of the first top left entry.
-	 * @param e0y     Coordination Y of the first top left entry.
-	 * @param e1x     Coordination X of the first top right entry.
-	 * @param e1y     Coordination Y of the first top right entry.
-	 * @param e5x     Coordination X of the first left entry.
-	 * @param e2y     Coordination Y of the first right entry.
+	 * @param e0x     Coordinate X of the first top left entry.
+	 * @param e0y     Coordinate Y of the first top left entry.
+	 * @param e1x     Coordinate X of the first top right entry.
+	 * @param e1y     Coordinate Y of the first top right entry.
+	 * @param e5x     Coordinate X of the first left entry.
+	 * @param e2y     Coordinate Y of the first right entry.
 	 */
 	private void createHexagonalGraphEntries(long entries, double height, double shift, long index, long id, double e0x, double e0y, double e1x, double e1y, double e5x, double e2y, boolean entry) {
 		while (entries-- > 0) {

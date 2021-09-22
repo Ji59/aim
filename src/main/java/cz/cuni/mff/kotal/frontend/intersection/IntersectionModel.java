@@ -173,8 +173,8 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Draw rectangle with text in it.
 	 *
-	 * @param x      Coordination X of the top left corner
-	 * @param y      Coordination Y of the top left corner
+	 * @param x      Coordinate X of the top left corner
+	 * @param y      Coordinate Y of the top left corner
 	 * @param width  Width of the rectangle
 	 * @param height Height of the rectangle
 	 * @param text   Text to be in the rectangle
@@ -193,8 +193,8 @@ public class IntersectionModel extends Pane {
 	 * Draw hexagon.
 	 *
 	 * @param shift Distance between 2 opposite sides
-	 * @param x     Coordination X of the center of the hexagon
-	 * @param y     Coordination Y of the center of the hexagon
+	 * @param x     Coordinate X of the center of the hexagon
+	 * @param y     Coordinate Y of the center of the hexagon
 	 * @param text  Text to be inside the hexagon
 	 * @param color Color inside the hexagon
 	 */
@@ -321,17 +321,17 @@ public class IntersectionModel extends Pane {
 	 * Create two quadrilaterals or pentagons symbolizing opposite oblique entries / exits for hexagonal model.
 	 * If the entry is over frame corner, it adds fifth point.
 	 *
-	 * @param x0      Coordination X of bottom left corner
-	 * @param y0      Coordination Y of bottom left corner
-	 * @param x1      Coordination X of bottom right corner
-	 * @param y1      Coordination Y of bottom right corner
-	 * @param x2      Coordination X of top right corner
-	 * @param y2      Coordination Y of top right corner
-	 * @param x3      Coordination X of top left corner
-	 * @param y3      Coordination Y of top left corner
+	 * @param x0      Coordinate X of bottom left corner
+	 * @param y0      Coordinate Y of bottom left corner
+	 * @param x1      Coordinate X of bottom right corner
+	 * @param y1      Coordinate Y of bottom right corner
+	 * @param x2      Coordinate X of top right corner
+	 * @param y2      Coordinate Y of top right corner
+	 * @param x3      Coordinate X of top left corner
+	 * @param y3      Coordinate Y of top left corner
 	 * @param zeroX   Flag if the entry is touching sides
 	 * @param zeroY   Flag if the entry is touching top side
-	 * @param cornerX Coordination X of corner the entry is directing to
+	 * @param cornerX Coordinate X of corner the entry is directing to
 	 */
 	private void drawHexagonalModelObliqueEntry(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, boolean zeroX, boolean zeroY, double cornerX, Color color) {
 		// create associated entry
@@ -367,8 +367,8 @@ public class IntersectionModel extends Pane {
 	 * Create rectangular entry / exit for octagonal model.
 	 *
 	 * @param size      "Width" of the road
-	 * @param x         Coordination X of the entry / exit in graph
-	 * @param y         Coordination Y of the entry / exit in graph
+	 * @param x         Coordinate X of the entry / exit in graph
+	 * @param y         Coordinate Y of the entry / exit in graph
 	 * @param text      The text inside the entry / exit
 	 * @param color     Color of the rectangle
 	 * @param direction Direction of the entry / exit. (See Vertex object for more details)
@@ -401,8 +401,8 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Adds rectangular text field.
 	 *
-	 * @param x      Coordination X of the text field
-	 * @param y      Coordination Y of the text field
+	 * @param x      Coordinate X of the text field
+	 * @param y      Coordinate Y of the text field
 	 * @param width  Width of the text field
 	 * @param height Height of the text field
 	 * @param text   Text of the text field

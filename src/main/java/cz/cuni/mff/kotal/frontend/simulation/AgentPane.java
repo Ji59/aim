@@ -21,6 +21,9 @@ import java.util.Map;
 import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 
 
+/**
+ * Class containing all agent gui elements.
+ */
 public class AgentPane extends StackPane {
 
 	private final Map<Long, Vertex> simulationVertices;
@@ -36,23 +39,36 @@ public class AgentPane extends StackPane {
 	private double period; // period in nanoseconds
 	private double relativeDistanceTraveled; // TODO is this necessary?
 
-	public AgentPane(long agentID, long startTime, Agent agent, double period, Map<Long, Vertex> simulationVertices) {
+	/**
+	 * Create new agent pane and all GUI elements, set position to starting state.
+	 *
+	 * @param startTime          System time, when the agent was created
+	 * @param agent              Agent tied to this pane
+	 * @param period             Delay between steps
+	 * @param simulationVertices Intersection vertices the agent is travelling on
+	 */
+	public AgentPane(long startTime, Agent agent, double period, Map<Long, Vertex> simulationVertices) {
 		this.agent = agent;
 		this.distanceTraveled = 0;
 		this.startTime = startTime;
 		this.period = period * 1_000_000;
 		this.simulationVertices = simulationVertices;
 
+		// Create rectangle representing agent
 		rectangle = new Rectangle(agent.getW(), agent.getL());
+
+		// TODO change to label
+		// Create ID text field
 		TextField text = new TextField(String.valueOf(agent.getId()));
 		text.setAlignment(Pos.CENTER);
+		text.setBackground(Background.EMPTY);
 
 		// TODO set rotation based on the arriving location
+		// Add rotation parameters
 		rotation.setPivotX(rectangle.getWidth() / 2);
 		rotation.setPivotY(rectangle.getHeight() / 2);
 		rectangle.getTransforms().add(rotation);
 
-		text.setBackground(Background.EMPTY);
 
 		// TODO set color properly
 		rectangle.setFill(Color.rgb(generateRandomInt(255), generateRandomInt(255), generateRandomInt(255)));
@@ -66,6 +82,11 @@ public class AgentPane extends StackPane {
 		updateAgent(0);
 	}
 
+	/**
+	 * Create agent used for tests.
+	 *
+	 * @param agent Agent the pane is based on
+	 */
 	AgentPane(Agent agent) {
 		this.agent = agent;
 
@@ -79,6 +100,9 @@ public class AgentPane extends StackPane {
 		simulationVertices = null;
 	}
 
+	/**
+	 * Update coordinates of the pane to fit new agent state.
+	 */
 	private void updatePosition() {
 		// TODO do position properly
 //			setLayoutX(agent.getX() - agent.getL() / 2);
@@ -88,6 +112,11 @@ public class AgentPane extends StackPane {
 		setLayoutY(agent.getY() - (getHeight() == 0 ? agent.getL() / 2 : getHeight() / 2));
 	}
 
+	/**
+	 * Update rotation of the agent at given time.
+	 *
+	 * @param time System time used in computation
+	 */
 	public void updateRotation(double time) {
 		Map<Long, Vertex> vertices = simulationVertices;
 		Pair<Long, Long> previousNext = agent.getPreviousNextVertexIDs(time);
@@ -101,15 +130,31 @@ public class AgentPane extends StackPane {
 		}
 	}
 
+	/**
+	 * Update rotation and position of the pane.
+	 *
+	 * @param time System time of the update
+	 */
 	public void updateAgent(double time) {
 		updateRotation(time);
 		updatePosition();
 	}
 
+	/**
+	 * @param time Given system time
+	 * @return number of steps already traveled, could be rational number
+	 */
 	public double getRelativeTimeTraveled(long time) {
 		return (time - startTime) / period;
 	}
 
+	/**
+	 * Compute X and Y coordinates at given time.
+	 * Then update agent node.
+	 *
+	 * @param now System time of time moment
+	 * @return True if agent is out of simulation, otherwise false
+	 */
 	public boolean handleTick(long now) {
 		double time = relativeDistanceTraveled + getRelativeTimeTraveled(now);
 		try {
@@ -123,18 +168,25 @@ public class AgentPane extends StackPane {
 		return false;
 	}
 
+	/**
+	 * Compute coordinates of agent rectangle corner points.
+	 *
+	 * @return List of corner points
+	 */
 	public List<Point> getCornerPoints() {
-
 		double radianAngle = Math.toRadians(angle);
-		double sinAngle = Math.sin(radianAngle),
-			cosAngle = Math.cos(radianAngle);
+		double sinAngle = Math.sin(radianAngle);
+		double cosAngle = Math.cos(radianAngle);
 
-		double halfWidth = agent.getW() / 2,
-			halfHeight = agent.getL() / 2;
+		double halfWidth = agent.getW() / 2;
+		double halfHeight = agent.getL() / 2;
 
-		double sx = getLayoutX() + getWidth() / 2, sy = getLayoutY() + getHeight() / 2,
-			middleWidthX = halfWidth * cosAngle, middleWidthY = halfWidth * sinAngle,
-			counterMiddleHeightX = halfHeight * sinAngle, middleHeightY = halfHeight * cosAngle;
+		double sx = getLayoutX() + getWidth() / 2;
+		double sy = getLayoutY() + getHeight() / 2;
+		double middleWidthX = halfWidth * cosAngle;
+		double middleWidthY = halfWidth * sinAngle;
+		double counterMiddleHeightX = halfHeight * sinAngle;
+		double middleHeightY = halfHeight * cosAngle;
 
 		List<Point> vertices = new LinkedList<>();
 		vertices.add(new Point(sx - middleWidthX + counterMiddleHeightX, sy - middleWidthY - middleHeightY)); // rotated top left vertex of the rectangle
@@ -145,6 +197,9 @@ public class AgentPane extends StackPane {
 		return vertices;
 	}
 
+	/**
+	 * @return Array containing node bounding box in format [mix_x, min_y, max_x, max_y]
+	 */
 	public double[] getBoundingBox() {
 		double[] corners = new double[4];
 		Bounds boundingBox = getBoundsInParent();
@@ -155,7 +210,11 @@ public class AgentPane extends StackPane {
 		return corners;
 	}
 
-	// TODO remove
+	/**
+	 * Compute agent state at pause time and save it to parameters.
+	 *
+	 * @param now System time at pause
+	 */
 	public void pause(long now) {
 //			if (timer != null) {
 //				long now = System.nanoTime();
@@ -165,8 +224,14 @@ public class AgentPane extends StackPane {
 //			}
 	}
 
-	//
+	/**
+	 * Set agent node parameters according to new simulation parameters.
+	 *
+	 * @param period Delay between steps
+	 * @param now    System time of resume
+	 */
 	public void resume(double period, long now) {
+		// TODO refactor
 //			assert timer == null;
 //			long now = System.nanoTime();
 //			timer = new AgentTimer(now, period, distanceTraveled, this);
@@ -176,8 +241,11 @@ public class AgentPane extends StackPane {
 //			timer.start();
 	}
 
+	/**
+	 * Set node parameters to fit collided agent state.
+	 */
 	public void collide() {
-		// TODO
+		// TODO refactor
 //			this.stop();
 		rectangle.toBack();
 		rectangle.setFill(Color.RED);
@@ -185,18 +253,30 @@ public class AgentPane extends StackPane {
 		this.setDisable(true); // TODO don't use this
 	}
 
+	/**
+	 * @return ID of the agent belonging to this pane
+	 */
 	public long getAgentID() {
 		return agent.getId();
 	}
 
+	/**
+	 * @return Rotation object angle
+	 */
 	public double getRotation() {
 		return rotation.getAngle();
 	}
 
+	/**
+	 * @return Agent belonging to this pane
+	 */
 	public Agent getAgent() {
 		return agent;
 	}
 
+	/**
+	 * @return Rotation attribute value
+	 */
 	public double getAngle() {
 		return angle;
 	}
@@ -210,10 +290,24 @@ public class AgentPane extends StackPane {
 		this.angle = angle;
 	}
 
+	/**
+	 * Set width of this pane.
+	 * Use only in tests.
+	 *
+	 * @param width New width of the pane
+	 */
+	@Override
 	public void setWidth(double width) {
 		super.setWidth(width);
 	}
 
+	/**
+	 * Set width of this pane.
+	 * Use only in tests.
+	 *
+	 * @param height New height of the pane
+	 */
+	@Override
 	public void setHeight(double height) {
 		super.setHeight(height);
 	}

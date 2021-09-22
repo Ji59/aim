@@ -93,10 +93,10 @@ class SimulationTimerTest {
 	}
 
 	@NotNull
-	private List<Point> getLinkedList(double... pointsCoordination) {
-		List<Point> points = new ArrayList<>(pointsCoordination.length / 2);
-		for (int i = 0; i < pointsCoordination.length / 2; i++) {
-			points.add(new Point(pointsCoordination[2 * i], pointsCoordination[2 * i + 1]));
+	private List<Point> getLinkedList(double... pointsCoordinates) {
+		List<Point> points = new ArrayList<>(pointsCoordinates.length / 2);
+		for (int i = 0; i < pointsCoordinates.length / 2; i++) {
+			points.add(new Point(pointsCoordinates[2 * i], pointsCoordinates[2 * i + 1]));
 		}
 		return points;
 	}

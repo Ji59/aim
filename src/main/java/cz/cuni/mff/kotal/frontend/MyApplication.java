@@ -11,6 +11,9 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 
+/**
+ * Main GUI class
+ */
 public class MyApplication extends Application {
 	private static final String STAGE_NAME = "Autonomous Intersection Management";
 	private static final int INTERSECTION_MENU_WIDTH = 250;
@@ -21,17 +24,18 @@ public class MyApplication extends Application {
 	/**
 	 * Start application by creating 2 windows, menu and intersection.
 	 *
-	 * @param primaryStage Stage where the intersection scene will be drawn.
+	 * @param primaryStage Stage where the intersection scene will be drawn
 	 */
 	@Override
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle(STAGE_NAME);
+		primaryStage.setOnCloseRequest(event -> System.exit(0));
 
 		Rectangle2D primaryDisplayBounds = Screen.getPrimary().getVisualBounds();
-		double width = primaryDisplayBounds.getWidth(),
-			height = primaryDisplayBounds.getHeight(),
-			x = primaryDisplayBounds.getMinX(),
-			y = primaryDisplayBounds.getMinY();
+		double width = primaryDisplayBounds.getWidth();
+		double height = primaryDisplayBounds.getHeight();
+		double x = primaryDisplayBounds.getMinX();
+		double y = primaryDisplayBounds.getMinY();
 
 		double menuStageWidth = width - height - INTERSECTION_MENU_WIDTH;
 
@@ -44,10 +48,10 @@ public class MyApplication extends Application {
 	 * Process stage parameters and create scene with intersection.
 	 * Before return call redraw on the intersection to draw the intersection for the first time.
 	 *
-	 * @param primaryStage Stage where to assign intersection scene.
-	 * @param height       Desired height of the stage.
-	 * @param x            Stage x coordination on the monitor.
-	 * @param y            Stage y coordination on the monitor.
+	 * @param primaryStage Stage where to assign intersection scene
+	 * @param height       Desired height of the stage
+	 * @param x            Stage X coordinate on the monitor
+	 * @param y            Stage Y coordinate on the monitor
 	 */
 	private void createIntersectionStage(Stage primaryStage, double height, double x, double y) {
 		Scene scene = new IntersectionScene(height + INTERSECTION_MENU_WIDTH, height);
@@ -67,7 +71,7 @@ public class MyApplication extends Application {
 	}
 
 	/**
-	 * @return Window containing menu settings.
+	 * @return Window containing menu settings
 	 */
 	public static Window getMenuStage() {
 		return menuStage;

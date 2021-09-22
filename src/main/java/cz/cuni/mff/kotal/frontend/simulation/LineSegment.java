@@ -16,12 +16,12 @@ public class LineSegment {
 	private Double b = null;
 
 	/**
-	 * Create new line segment between points [x0, y0] and [x1, y1], sorted increasingly by X coordination, then by Y.
+	 * Create new line segment between points [x0, y0] and [x1, y1], sorted increasingly by X coordinate, then by Y.
 	 *
-	 * @param x0 Coordination X of the first end
-	 * @param y0 Coordination Y of the first end
-	 * @param x1 Coordination X of the second end
-	 * @param y1 Coordination Y of the second end
+	 * @param x0 Coordinate X of the first end
+	 * @param y0 Coordinate Y of the first end
+	 * @param x1 Coordinate X of the second end
+	 * @param y1 Coordinate Y of the second end
 	 */
 	public LineSegment(double x0, double y0, double x1, double y1) {
 		if (x0 < x1 || (x0 == x1 && y0 <= y1)) {
@@ -34,7 +34,7 @@ public class LineSegment {
 	}
 
 	/**
-	 * Create new line segment between given points, sorted increasingly by X coordination, then by Y.
+	 * Create new line segment between given points, sorted increasingly by X coordinate, then by Y.
 	 *
 	 * @param point0 First end if the new line segment
 	 * @param point1 Second end of the new line segment
@@ -50,10 +50,10 @@ public class LineSegment {
 	}
 
 	/**
-	 * Compute Y coordination where this line segment intersects the `x = param.x` line. Does not check if the X is in the range of the segment.
+	 * Compute Y coordinate where this line segment intersects the `x = param.x` line. Does not check if the X is in the range of the segment.
 	 *
-	 * @param x Coordination X to use in calculations
-	 * @return Coordination Y at given x
+	 * @param x Coordinate X to use in calculations
+	 * @return Coordinate Y at given X
 	 */
 	public double getYAtX(double x) {
 		double ratioToEnd = (point0.getX() - x) / (point1.getX() - point0.getX());
@@ -102,7 +102,7 @@ public class LineSegment {
 	 *
 	 * @param a Parametric representation of not vertical line
 	 * @param b Parametric representation of not vertical line
-	 * @param x Coordination X where the lines intersect
+	 * @param x Coordinate X where the lines intersect
 	 * @return Ratio in which is this line segment divided
 	 */
 	private double getVerticalRatio(double a, double b, double x) {

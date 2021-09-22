@@ -34,7 +34,7 @@ public class SimulationAgents extends Pane {
 
 	public void addAgent(long startTime, Agent agent, double period) {
 		long agentID = agent.getId();
-		AgentPane agentPane = new AgentPane(agentID, startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs());
+		AgentPane agentPane = new AgentPane(startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs());
 
 		synchronized (agents) {
 			agents.put(agentID, agentPane);
