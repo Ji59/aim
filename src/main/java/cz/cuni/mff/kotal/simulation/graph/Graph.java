@@ -6,6 +6,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
+/**
+ * Graph of vertices and edges.
+ */
 public class Graph {
 
 	protected final boolean oriented;
@@ -16,10 +19,10 @@ public class Graph {
 	/**
 	 * Create graph with provided vertices and edges. If not oriented, add edges with reversed orientation too.
 	 *
-	 * @param oriented      If graph edges are oriented.
-	 * @param vertices      Set of vertices.
-	 * @param entryExitVertices Map of entry and exit vertices from different sides. Indexed by index of entry side.
-	 * @param edges         Set of edges.
+	 * @param oriented          If graph edges are oriented
+	 * @param vertices          Set of vertices
+	 * @param entryExitVertices Map of entry and exit vertices from different sides. Indexed by index of entry side
+	 * @param edges             Set of edges
 	 */
 	public Graph(boolean oriented, Set<? extends Vertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges) {
 		this.oriented = oriented;
@@ -37,6 +40,12 @@ public class Graph {
 		}
 	}
 
+	/**
+	 * Create empty graph with specified attributes.
+	 *
+	 * @param oriented   True if and only if this graph is oriented
+	 * @param entrySides Number of entry directions
+	 */
 	public Graph(boolean oriented, int entrySides) {
 		this.oriented = oriented;
 		vertices = new HashMap<>();
@@ -49,14 +58,14 @@ public class Graph {
 	}
 
 	/**
-	 * @return True if the graph is oriented, otherwise false.
+	 * @return True if the graph is oriented, otherwise false
 	 */
 	public boolean isOriented() {
 		return oriented;
 	}
 
 	/**
-	 * @return Set of vertices of the graph.
+	 * @return Set of vertices of the graph
 	 */
 	public Collection<? extends Vertex> getVertices() {
 		return vertices.values();
@@ -67,14 +76,14 @@ public class Graph {
 	}
 
 	/**
-	 * @return Map of entries and exits in different directions.
+	 * @return Map of entries and exits in different directions
 	 */
 	public Map<Integer, List<Vertex>> getEntryExitVertices() {
 		return entryExitVertices;
 	}
 
 	/**
-	 * @return Set of edges of the graph.
+	 * @return Set of edges of the graph
 	 */
 	public Set<Edge> getEdges() {
 		return edges;

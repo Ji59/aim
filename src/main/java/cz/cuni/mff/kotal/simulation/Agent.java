@@ -2,7 +2,6 @@ package cz.cuni.mff.kotal.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
-import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.util.Pair;
 
@@ -13,33 +12,37 @@ import java.util.Map;
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
 
 
+/**
+ * Class representing agent.
+ */
 public class Agent {
 	private final long id;
-	private final double l, w; // size
-	private Edge location = null;
-	private final long start,
-		end;
-	private final double speed,
-		arrivalTime;
+	private final double l; // Length of the agent
+	private final double w; // Width of the agent
+	private final long start;
+	private final long end;
+	private final double speed;
+	private final double arrivalTime;
 	private List<Long> path = new ArrayList<>();
-	private double x, y;       // location
+	private double x;
+	private double y;       // location
 	private static final double PROXIMITY = 0.0001;
 
+	/**
+	 * Create new agent with specified attributes.
+	 *
+	 * @param id          ID of the agent
+	 * @param start       Starting vertex ID of the agent
+	 * @param end         Ending vertex ID of the agent
+	 * @param speed       Speed of the agents in roads per step
+	 * @param arrivalTime Step number when this agent appeared
+	 * @param l           Length of the agent in roads
+	 * @param w           Width of the agent in roads
+	 * @param x           Coordinate X of the agent
+	 * @param y           Coordinate Y of the agent
+	 */
 	public Agent(long id, long start, long end, double speed, double arrivalTime, double l, double w, double x, double y) {
 		this.id = id;
-		this.start = start;
-		this.end = end;
-		this.speed = speed;
-		this.arrivalTime = arrivalTime;
-		this.l = l;
-		this.w = w;
-		this.x = x;
-		this.y = y;
-	}
-
-	public Agent(long id, Edge v, long start, long end, double speed, double arrivalTime, double l, double w, double x, double y) {
-		this.id = id;
-		location = v;
 		this.start = start;
 		this.end = end;
 		this.speed = speed;
@@ -53,11 +56,11 @@ public class Agent {
 	/**
 	 * Return previous and next target vertex ID at given time.
 	 * If time is before arrival, return twice ID of starting vertex.
-	 * If time is greater then arrival at the end time, throw exception.
+	 * If time is greater than arrival at the end time, throw exception.
 	 * Else return the nearest next vertex ID and vertex ID of its predecessor.
 	 *
-	 * @param time Relative time to arrival time.
-	 * @return Pair od IDs of the previous and next vertex at given time.
+	 * @param time Relative time to arrival time
+	 * @return Pair od IDs of the previous and next vertex at given time
 	 * @throws IndexOutOfBoundsException TODO
 	 */
 	public Pair<Long, Long> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
@@ -70,68 +73,97 @@ public class Agent {
 			long exitID = path.get(path.size() - 1);
 			return new Pair<>(exitID, exitID);
 		}
-		int nextIndex = (int) Math.round((time) * speed + 0.5),
-			previousIndex = nextIndex - 1;
+		int nextIndex = (int) Math.round((time) * speed + 0.5);
+		int previousIndex = nextIndex - 1;
 		return new Pair<>(path.get(previousIndex), path.get(nextIndex));
 	}
 
+	/**
+	 * @return ID of the agent
+	 */
 	public long getId() {
 		return id;
 	}
 
-	public Edge getLocation() {
-		return location;
-	}
-
-	public Agent setLocation(Edge location) {
-		this.location = location;
-		return this;
-	}
-
+	/**
+	 * @return ID of starting vertex of this agent
+	 */
 	public long getStart() {
 		return start;
 	}
 
+	/**
+	 * @return ID of ending vertex of this agent
+	 */
 	public long getEnd() {
 		return end;
 	}
 
+	/**
+	 * @return Speed of this agent
+	 */
 	public double getSpeed() {
 		return speed;
 	}
 
+	/**
+	 * @return Path of this agent
+	 */
 	public List<Long> getPath() {
 		return path;
 	}
 
+	/**
+	 * Set path of this agent to new value.
+	 *
+	 * @param path New path of this agent
+	 */
 	public void setPath(List<Long> path) {
 		this.path = path;
 	}
 
+	/**
+	 * Compute coordinates X and Y at given time.
+	 *
+	 * @param time     Time in steps since agent appeared
+	 * @param vertices Map of vertices and their IDs of the graph the agent is moving on
+	 * @throws IndexOutOfBoundsException TODO
+	 */
 	public void computeNextXY(double time, Map<Long, Vertex> vertices) throws IndexOutOfBoundsException {
-		double travelTime = time /*- arrivalTime*/,
-			currentEdgeTravelPart = (travelTime * speed) % 1,
-			currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
+		double currentEdgeTravelPart = (time * speed) % 1;
+		double currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
 		Pair<Long, Long> previousNextGoalID = getPreviousNextVertexIDs(time);
-		GraphicalVertex previousGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getKey()),
-			nextGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getValue());
+		GraphicalVertex previousGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getKey());
+		GraphicalVertex nextGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getValue());
 
 		x = previousGoal.getX() * currentEdgeTravelRemain + nextGoal.getX() * currentEdgeTravelPart;
 		y = previousGoal.getY() * currentEdgeTravelRemain + nextGoal.getY() * currentEdgeTravelPart;
 	}
 
+	/**
+	 * @return Length of the agent
+	 */
 	public double getL() {
 		return l;
 	}
 
+	/**
+	 * @return Width of the agent
+	 */
 	public double getW() {
 		return w;
 	}
 
+	/**
+	 * @return Coordinate X of the agent
+	 */
 	public double getX() {
 		return x;
 	}
 
+	/**
+	 * @return Coordinate Y of the agent
+	 */
 	public double getY() {
 		return y;
 	}

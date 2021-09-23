@@ -9,20 +9,23 @@ import java.util.Objects;
 import java.util.Set;
 
 
+/**
+ * Class representing graph vertex.
+ */
 public class Vertex {
-	private static final Color ROAD_COLOR = Color.LIGHTGREY, 
-		ENTRY_COLOR = Color.LIGHTSLATEGRAY,
-		EXIT_COLOR = Color.GRAY;
+	private static final Color ROAD_COLOR = Color.LIGHTGREY;
+	private static final Color ENTRY_COLOR = Color.LIGHTSLATEGRAY;
+	private static final Color EXIT_COLOR = Color.GRAY;
 
 	protected final long id;
 	protected final Type type;
-	protected final Set<Long> neighbour_ids = new HashSet<>();
+	protected final Set<Long> neighbourIds = new HashSet<>();
 
 	/**
 	 * Create vertex with specified ID and type.
 	 *
-	 * @param id   Desired ID of the vertex.
-	 * @param type Desired type of the vertex.
+	 * @param id   Desired ID of the vertex
+	 * @param type Desired type of the vertex
 	 */
 	public Vertex(long id, Type type, Set<Long> neighbourIDs) {
 		this.id = id;
@@ -33,8 +36,8 @@ public class Vertex {
 	/**
 	 * Create vertex with specified ID and type.
 	 *
-	 * @param id   Desired ID of the vertex.
-	 * @param type Desired type of the vertex.
+	 * @param id   Desired ID of the vertex
+	 * @param type Desired type of the vertex
 	 */
 	public Vertex(long id, Type type) {
 		this.id = id;
@@ -44,25 +47,31 @@ public class Vertex {
 	/**
 	 * Create vertex with specified ID and road type.
 	 *
-	 * @param id Desired ID of the vertex.
+	 * @param id Desired ID of the vertex
 	 */
 	public Vertex(long id) {
 		this.id = id;
 		this.type = Type.ROAD;
 	}
 
+	/**
+	 * Add IDs to neighbours set.
+	 *
+	 * @param ids IDs of neighbour vertices
+	 * @return True if neighbour IDs set changed
+	 */
 	public boolean addNeighbourID(Long... ids) {
 		if (ids.length == 1) {
-			return neighbour_ids.add(ids[0]);
+			return neighbourIds.add(ids[0]);
 		}
-		return neighbour_ids.addAll(Arrays.asList(ids));
+		return neighbourIds.addAll(Arrays.asList(ids));
 	}
 
 	/**
 	 * Compare vertex to another object.
 	 *
-	 * @param o Object to compare to.
-	 * @return True if the object is vertex and has the same ID.
+	 * @param o Object to compare to
+	 * @return True if the object is vertex and has the same ID
 	 */
 	@Override
 	public boolean equals(Object o) {
@@ -73,7 +82,7 @@ public class Vertex {
 	}
 
 	/**
-	 * @return Hash generated using ID.
+	 * @return Hash generated using ID
 	 */
 	@Override
 	public int hashCode() {
@@ -81,23 +90,29 @@ public class Vertex {
 	}
 
 	/**
-	 * @return ID of the vertex.
+	 * @return ID of the vertex
 	 */
 	public long getID() {
 		return id;
 	}
 
 	/**
-	 * @return Type of the vertex.
+	 * @return Type of the vertex
 	 */
 	public Type getType() {
 		return type;
 	}
 
+	/**
+	 * @return IDs of neighbours
+	 */
 	public Set<Long> getNeighbourIDs() {
-		return neighbour_ids;
+		return neighbourIds;
 	}
 
+	/**
+	 * Enum of vertex types.
+	 */
 	public enum Type {
 		ROAD(ROAD_COLOR),
 		// TODO check if comments are right
@@ -132,19 +147,22 @@ public class Vertex {
 		}
 
 		/**
-		 * @return Color of the vertex type.
+		 * @return Color of the vertex type
 		 */
 		public Color getColor() {
 			return color;
 		}
 
 		/**
-		 * @return Direction of the vertex entry / exit type.
+		 * @return Direction of the vertex entry / exit type
 		 */
 		public int getDirection() {
 			return direction;
 		}
 
+		/**
+		 * @return True if this vertex is entry one, otherwise False
+		 */
 		public boolean isEntry() {
 			return entry;
 		}

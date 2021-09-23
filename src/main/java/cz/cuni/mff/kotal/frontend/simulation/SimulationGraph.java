@@ -12,12 +12,31 @@ import java.util.stream.Collectors;
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters;
 
 
+/**
+ * Graph with added attributes for graphical usage.
+ */
 public class SimulationGraph extends Graph {
-	private final long granularity, entries, exits;
+	private final long granularity;
+	private final long entries;
+	private final long exits;
 	private final double size;
 	private final Parameters.Models model;
 	private final boolean abstractGraph;
 
+	/**
+	 * Create new simulation graph.
+	 *
+	 * @param granularity       Granularity of the graph
+	 * @param entries           Number of entries from each direction
+	 * @param exits             Number of exits from each direction
+	 * @param model             Intersection model type
+	 * @param oriented          If this graph is oriented or not
+	 * @param vertices          Set of vertices in this graph
+	 * @param entryExitVertices Map of vertices in each entry / exit direction
+	 * @param edges             Graph edges
+	 * @param size              Graph width and height
+	 * @param abstractGraph     True if the graph model is abstract otherwise is real, in that case it is False
+	 */
 	public SimulationGraph(long granularity, long entries, long exits, Parameters.Models model, boolean oriented, Set<GraphicalVertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges, double size, boolean abstractGraph) {
 		super(oriented, vertices, entryExitVertices, edges);
 		this.size = size;
@@ -31,12 +50,12 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create graph for simulation.
 	 *
-	 * @param granularity   Granularity of the graph.
-	 * @param model         Model type.
-	 * @param entries       Number of entries.
-	 * @param exits         Number of exits.
-	 * @param size          Size of the graph.
-	 * @param abstractGraph True if the graph model is abstract or real.
+	 * @param granularity   Granularity of the graph
+	 * @param model         Intersection model type
+	 * @param entries       Number of entries from each direction
+	 * @param exits         Number of exits from each direction
+	 * @param size          Graph width and height
+	 * @param abstractGraph True if the graph model is abstract otherwise is real, in that case it is False
 	 */
 	public SimulationGraph(long granularity, Parameters.Models model, long entries, long exits, double size, boolean abstractGraph) {
 		super(false, model.getDirections().size());
@@ -63,8 +82,8 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create graph for square model.
 	 *
-	 * @param entries Number of entries.
-	 * @param exits   Number of exits.
+	 * @param entries Number of entries
+	 * @param exits   Number of exits
 	 */
 	private void createSquareGraph(long entries, long exits) {
 		double shift = size / (granularity + 2);
@@ -76,10 +95,10 @@ public class SimulationGraph extends Graph {
 
 	/**
 	 * Create graph for hexagonal model.
-	 * First of all crate center vertex, then all the other from inside to outside.
+	 * First crate center vertex, then all the other from inside to outside.
 	 *
-	 * @param entries Number of entries.
-	 * @param exits   Number of exits.
+	 * @param entries Number of entries
+	 * @param exits   Number of exits
 	 */
 	private void createHexagonalGraph(long entries, long exits) {
 		double shift = size / (2 * granularity + 1);
@@ -91,10 +110,10 @@ public class SimulationGraph extends Graph {
 
 	/**
 	 * Create graph for octagonal model.
-	 * First of all create grid vertices (like in square model), then the in between vertices and finally entries and exits.
+	 * First create grid vertices (like in square model), then the in between vertices and finally entries and exits.
 	 *
-	 * @param entries Number of entries.
-	 * @param exits   Number of exits.
+	 * @param entries Number of entries
+	 * @param exits   Number of exits
 	 */
 	private void createOctagonalGraph(long entries, long exits) {
 		double shift = size / (granularity + 2);
@@ -108,9 +127,9 @@ public class SimulationGraph extends Graph {
 	}
 
 	/**
-	 * Create intersection verticies with edges between them.
+	 * Create intersection vertices with edges between them.
 	 *
-	 * @param shift Distance between 2 vertices.
+	 * @param shift Distance between 2 vertices
 	 */
 	private void createSquareGraphVertices(double shift, boolean withoutCorners) {
 		long g = granularity;
@@ -141,19 +160,25 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Compute neighbour IDs.
 	 *
-	 * @param vertex         Vertex whose neighbours are computed.
-	 * @param withoutCorners Denotes, if The graph is with corners or not.
+	 * @param vertex         Vertex whose neighbours are computed
+	 * @param withoutCorners Denotes, if The graph is with corners or not
 	 */
 	private void createSquareGraphAddNeighbours(GraphicalVertex vertex, boolean withoutCorners) {
-		long g = granularity,
-			id = vertex.getID(),
-			i = id / granularity,
-			j = id % granularity;
+		long g = granularity;
+		long id = vertex.getID();
+		long i = id / granularity;
+		long j = id % granularity;
 
 		if (withoutCorners) {
-			int id_offset = id < g - 2 ? 1 : id >= g * (g - 1) - 2 ? 3 : 2;
-			i = (id + id_offset) / g;
-			j = (j + id_offset) % g;
+			int idOffset;
+			if (id < g - 2) {
+				idOffset = 1;
+			} else {
+				if (id >= g * (g - 1) - 2) idOffset = 3;
+				else idOffset = 2;
+			}
+			i = (id + idOffset) / g;
+			j = (j + idOffset) % g;
 		}
 		if (i == 0 || i == g - 1) {
 			vertex.addNeighbourID(id + (i == 0 ? 1 : -1) * (g - (withoutCorners ? 1 : 0)));
@@ -187,44 +212,44 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create entries and exits vertices with edges connecting them to graph.
 	 *
-	 * @param entries        Number of entries.
-	 * @param exits          Number of exits.
-	 * @param shift          distance between 2 neighbour vertices.
-	 * @param withoutCorners Denotes, if The graph is with corners or not.
+	 * @param entries        Number of entries
+	 * @param exits          Number of exits
+	 * @param shift          distance between 2 neighbour vertices
+	 * @param withoutCorners Denotes, if The graph is with corners or not
 	 */
 	private void createSquareGraphEntryVertices(long entries, long exits, double shift, boolean withoutCorners) {
 		assert (entries + exits <= granularity - (withoutCorners ? 2 : 0));
 
 		// compute outer empty spaces
-		long empty = granularity - entries - exits,
-			padding = empty / 3,
-			index = empty % 3 == 2 ? ++padding + 1 : padding + 1;
+		long empty = granularity - entries - exits;
+		long padding = empty / 3;
+		long index = empty % 3 == 2 ? ++padding + 1 : padding + 1;
 
-		// draw all of the entries
+		// draw all the entries
 		createSquareGraphEntries(entries, shift, index, withoutCorners, true);
 		index += entries;
 
 		// skip middle empty space
 		index += empty - 2 * padding;
 
-		// draw all of the exits
+		// draw all the exits
 		createSquareGraphEntries(exits, shift, index, withoutCorners, false);
 	}
 
 	/**
 	 * Create entries / exits from all sides at specified location.
 	 *
-	 * @param entries        Number of entries on one side.
-	 * @param shift          Distance between 2 vertices.
-	 * @param index          Number of square from side where entries should be created from.
-	 * @param withoutCorners Denotes, if The graph is with corners or not.
-	 * @param entry          Define if creating entries or exits.
+	 * @param entries        Number of entries on one side
+	 * @param shift          Distance between 2 vertices
+	 * @param index          Number of square from side where entries should be created from
+	 * @param withoutCorners Denotes, if The graph is with corners or not
+	 * @param entry          Define if creating entries or exits
 	 */
 	private void createSquareGraphEntries(long entries, double shift, long index, boolean withoutCorners, boolean entry) {
-		double topX = (index + 0.5) * shift,
-			topY = shift * 0.5,
-			botX = (granularity - index + 1.5) * shift,
-			botY = (granularity + 1 + 0.5) * shift;
+		double topX = (index + 0.5) * shift;
+		double topY = shift * 0.5;
+		double botX = (granularity - index + 1.5) * shift;
+		double botY = (granularity + 1 + 0.5) * shift;
 
 		// find first unused id
 		long id = vertices.size();
@@ -232,10 +257,10 @@ public class SimulationGraph extends Graph {
 		for (int i = 0; i < entries; i++) {
 
 			// create vertices
-			GraphicalVertex topE = new GraphicalVertex(id++, topX, topY, entry ? Type.ENTRY0 : Type.EXIT0),
-				bottomE = new GraphicalVertex(id++, botX, botY, entry ? Type.ENTRY1 : Type.EXIT1),
-				leftE = new GraphicalVertex(id++, topY, botX, entry ? Type.ENTRY2 : Type.EXIT2),
-				rightE = new GraphicalVertex(id++, botY, topX, entry ? Type.ENTRY3 : Type.EXIT3);
+			GraphicalVertex topE = new GraphicalVertex(id++, topX, topY, entry ? Type.ENTRY0 : Type.EXIT0);
+			GraphicalVertex bottomE = new GraphicalVertex(id++, botX, botY, entry ? Type.ENTRY1 : Type.EXIT1);
+			GraphicalVertex leftE = new GraphicalVertex(id++, topY, botX, entry ? Type.ENTRY2 : Type.EXIT2);
+			GraphicalVertex rightE = new GraphicalVertex(id++, botY, topX, entry ? Type.ENTRY3 : Type.EXIT3);
 
 			// add graph vertices
 			vertices.put(topE.getID(), topE);
@@ -250,10 +275,10 @@ public class SimulationGraph extends Graph {
 
 
 			// create edges
-			cz.cuni.mff.kotal.simulation.graph.Vertex topN = vertices.get((index - 1) * granularity - (withoutCorners ? 2 : 0)),
-				bottomN = vertices.get((granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)),
-				leftN = vertices.get(granularity - index - (withoutCorners ? 1 : 0)),
-				rightN = vertices.get((granularity - 1) * granularity + index - (withoutCorners ? 4 : 1));
+			cz.cuni.mff.kotal.simulation.graph.Vertex topN = vertices.get((index - 1) * granularity - (withoutCorners ? 2 : 0));
+			cz.cuni.mff.kotal.simulation.graph.Vertex bottomN = vertices.get((granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1));
+			cz.cuni.mff.kotal.simulation.graph.Vertex leftN = vertices.get(granularity - index - (withoutCorners ? 1 : 0));
+			cz.cuni.mff.kotal.simulation.graph.Vertex rightN = vertices.get((granularity - 1) * granularity + index - (withoutCorners ? 4 : 1));
 			assert (topN != null && bottomN != null && leftN != null && rightN != null);
 			if (entry) {
 				topE.getNeighbourIDs().add(topN.getID());
@@ -286,11 +311,11 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create all roads for hexagonal model.
 	 *
-	 * @param shift Distance between 2 vertices.
+	 * @param shift Distance between 2 vertices
 	 */
 	private void createHexagonalGraphRoadVertices(double shift) {
-		double centerX = size / 2,
-			centerY = size / 2;
+		double centerX = size / 2;
+		double centerY = size / 2;
 
 		// create center vertex
 		long id = vertices.size();
@@ -300,17 +325,23 @@ public class SimulationGraph extends Graph {
 
 
 		long id0 = id;
-		double sin60Shift = shift * Math.sqrt(3) / 2,
-			halfShift = shift / 2;
+		double sin60Shift = shift * Math.sqrt(3) / 2;
+		double halfShift = shift / 2;
 
 		for (long i = 1; i < granularity; i++, id0 += (i - 1) * 5) {
 			// compute initial positions
-			double x1 = centerX, y1 = centerY - i * shift,
-				x2 = centerX + i * sin60Shift, y2 = centerY - i * halfShift,
-				x3 = x2, y3 = centerY + i * shift / 2,
-				x4 = centerX, y4 = centerY + i * shift,
-				x5 = centerX - i * sin60Shift, y5 = y3,
-				x0 = x5, y0 = y2;
+			double x1 = centerX;
+			double y1 = centerY - i * shift;
+			double x2 = centerX + i * sin60Shift;
+			double y2 = centerY - i * halfShift;
+			double x3 = x2;
+			double y3 = centerY + i * shift / 2;
+			double x4 = centerX;
+			double y4 = centerY + i * shift;
+			double x5 = centerX - i * sin60Shift;
+			double y5 = y3;
+			double x0 = x5;
+			double y0 = y2;
 
 			boolean notLast = i < granularity - 1;
 
@@ -332,22 +363,22 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create single vertices of one layer.
 	 *
-	 * @param i       Number of layer, counted from 0.
-	 * @param j       Number of vertex on hexagon edge. Vertex of hexagon has 0, vertex next to him clockwise has 1, etc. to next hexagon vertex excluded.
-	 * @param notLast Indicator if it is the last layer.
-	 * @param id0     ID of top left hexagon edge vertex.
-	 * @param x0      Coordinate X of top left hexagon edge vertex.
-	 * @param y0      Coordinate Y of top left hexagon edge vertex.
-	 * @param x1      Coordinate X of top right hexagon edge vertex.
-	 * @param y1      Coordinate Y of top right hexagon edge vertex.
-	 * @param x2      Coordinate X of right hexagon edge vertex.
-	 * @param y2      Coordinate Y of right hexagon edge vertex.
-	 * @param x3      Coordinate X of bottom right hexagon edge vertex.
-	 * @param y3      Coordinate Y of bottom right hexagon edge vertex.
-	 * @param x4      Coordinate X of bottom left hexagon edge vertex.
-	 * @param y4      Coordinate Y of bottom left hexagon edge vertex.
-	 * @param x5      Coordinate X of left hexagon edge vertex.
-	 * @param y5      Coordinate Y of left hexagon edge vertex.
+	 * @param i       Number of layer, counted from 0
+	 * @param j       Number of vertex on hexagon edge. Vertex of hexagon has 0, vertex next to him clockwise has 1, etc. to next hexagon vertex excluded
+	 * @param notLast Indicator if it is the last layer
+	 * @param id0     ID of top left hexagon edge vertex
+	 * @param x0      Coordinate X of top left hexagon edge vertex
+	 * @param y0      Coordinate Y of top left hexagon edge vertex
+	 * @param x1      Coordinate X of top right hexagon edge vertex
+	 * @param y1      Coordinate Y of top right hexagon edge vertex
+	 * @param x2      Coordinate X of right hexagon edge vertex
+	 * @param y2      Coordinate Y of right hexagon edge vertex
+	 * @param x3      Coordinate X of bottom right hexagon edge vertex
+	 * @param y3      Coordinate Y of bottom right hexagon edge vertex
+	 * @param x4      Coordinate X of bottom left hexagon edge vertex
+	 * @param y4      Coordinate Y of bottom left hexagon edge vertex
+	 * @param x5      Coordinate X of left hexagon edge vertex
+	 * @param y5      Coordinate Y of left hexagon edge vertex
 	 */
 	private void createLayerVertices(long i, long j, boolean notLast, long id0, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double x5, double y5) {
 		createHexagonalGraphEdgeVertices(i, j, notLast, id0, x0, y0, 0);
@@ -361,13 +392,13 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create vertex at desired location and compute and add neighbour IDs.
 	 *
-	 * @param i       Number of layer, counted from 0.
-	 * @param j       Number of vertex on hexagon edge.
-	 * @param notLast Indicator if it is the last layer.
-	 * @param id      ID of the vertex.
-	 * @param x       Coordinate X of the vertex.
-	 * @param y       Coordinate Y of the vertex.
-	 * @param side    Number of edge of the hexagon. 0 is top left, then incrementally clockwise.
+	 * @param i       Number of layer, counted from 0
+	 * @param j       Number of vertex on hexagon edge
+	 * @param notLast Indicator if it is the last layer
+	 * @param id      ID of the vertex
+	 * @param x       Coordinate X of the vertex
+	 * @param y       Coordinate Y of the vertex
+	 * @param side    Number of edge of the hexagon. 0 is top left, then incrementally clockwise
 	 */
 	private void createHexagonalGraphEdgeVertices(long i, long j, boolean notLast, long id, double x, double y, int side) {
 		// create vertex
@@ -410,33 +441,33 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create entries and exits for hexagonal graph.
 	 *
-	 * @param entries Number of entries.
-	 * @param exits   Number of exits.
-	 * @param shift   Distance between 2 vertices.
+	 * @param entries Number of entries
+	 * @param exits   Number of exits
+	 * @param shift   Distance between 2 vertices
 	 */
 	private void createHexagonalGraphEntriesExits(long entries, long exits, double shift) {
 		// compute outer empty spaces
-		long empty = granularity - entries - exits,
-			padding = empty / 3,
-			index = empty % 3 == 2 ? ++padding : padding;
+		long empty = granularity - entries - exits;
+		long padding = empty / 3;
+		long index = empty % 3 == 2 ? ++padding : padding;
 
 		long id = vertices.size();
 
-		// draw all of the entries
-		double e0x = shift * (granularity + Math.sqrt(3) * (index - granularity + 1) / 2),
-			e0y = (granularity + 2 - index - Math.sqrt(3)) * shift / 2,     // top left road center
-			e1x = size / 2 + shift * (index * Math.sqrt(3) / 2 + 0.5),
-			e1y = shift * (index / 2. + 1.5 - Math.sqrt(3) / 2),                     // top right road center
-			e5x = shift * (granularity - Math.sqrt(3) * (granularity - 1) / 2 - 0.5),
-			e2y = ((granularity) / 2. + index + 1) * shift;
+		// draw all the entries
+		double e0x = shift * (granularity + Math.sqrt(3) * (index - granularity + 1) / 2);
+		double e0y = (granularity + 2 - index - Math.sqrt(3)) * shift / 2; // top left road center
+		double e1x = size / 2 + shift * (index * Math.sqrt(3) / 2 + 0.5);
+		double e1y = shift * (index / 2. + 1.5 - Math.sqrt(3) / 2);
+		double e5x = shift * (granularity - Math.sqrt(3) * (granularity - 1) / 2 - 0.5); // top right road center
+		double e2y = ((granularity) / 2. + index + 1) * shift;
 		createHexagonalGraphEntries(entries, size, shift, index, id, e0x, e0y, e1x, e1y, e5x, e2y, true);
 
 		// skip middle empty space
-		long middleEmpty = empty % 3 == 2 ? empty - 2 * padding : padding,
-			indexShift = middleEmpty + entries;
+		long middleEmpty = empty % 3 == 2 ? empty - 2 * padding : padding;
+		long indexShift = middleEmpty + entries;
 		index += indexShift;
 
-		// draw all of the exits
+		// draw all the exits
 		id = vertices.size();
 		e0x += indexShift * Math.sqrt(3) * shift / 2;
 		e0y -= indexShift * shift / 2;
@@ -449,32 +480,32 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create entries / exits for hexagonal graph.
 	 *
-	 * @param entries Number of entries / exits.
-	 * @param height  Height of the space.
-	 * @param shift   Distance between 2 vertices.
-	 * @param index   Index of the first entries.
-	 * @param id      ID of the first entry.
-	 * @param e0x     Coordinate X of the first top left entry.
-	 * @param e0y     Coordinate Y of the first top left entry.
-	 * @param e1x     Coordinate X of the first top right entry.
-	 * @param e1y     Coordinate Y of the first top right entry.
-	 * @param e5x     Coordinate X of the first left entry.
-	 * @param e2y     Coordinate Y of the first right entry.
+	 * @param entries Number of entries / exits
+	 * @param height  Height of the space
+	 * @param shift   Distance between 2 vertices
+	 * @param index   Index of the first entries
+	 * @param id      ID of the first entry
+	 * @param e0x     Coordinate X of the first top left entry
+	 * @param e0y     Coordinate Y of the first top left entry
+	 * @param e1x     Coordinate X of the first top right entry
+	 * @param e1y     Coordinate Y of the first top right entry
+	 * @param e5x     Coordinate X of the first left entry
+	 * @param e2y     Coordinate Y of the first right entry
 	 */
 	private void createHexagonalGraphEntries(long entries, double height, double shift, long index, long id, double e0x, double e0y, double e1x, double e1y, double e5x, double e2y, boolean entry) {
 		while (entries-- > 0) {
-			long id1 = id + 1,
-				id2 = id + 2,
-				id3 = id + 3,
-				id4 = id + 4,
-				id5 = id + 5;
+			long id1 = id + 1;
+			long id2 = id + 2;
+			long id3 = id + 3;
+			long id4 = id + 4;
+			long id5 = id + 5;
 
-			GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Type.ENTRY0 : Type.EXIT0),            // top left
-				v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Type.ENTRY1 : Type.EXIT1),                         // top right
-				v2 = new GraphicalVertex(id2, height - e5x, e2y, entry ? Type.ENTRY2 : Type.EXIT2),             // right
-				v3 = new GraphicalVertex(id3, height - e0x, height - e0y, entry ? Type.ENTRY3 : Type.EXIT3), // bottom right
-				v4 = new GraphicalVertex(id4, height - e1x, height - e1y, entry ? Type.ENTRY4 : Type.EXIT4), // bottom left
-				v5 = new GraphicalVertex(id5, e5x, height - e2y, entry ? Type.ENTRY5 : Type.EXIT5);             // left
+			GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Type.ENTRY0 : Type.EXIT0);                          // top left
+			GraphicalVertex v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Type.ENTRY1 : Type.EXIT1);                         // top right
+			GraphicalVertex v2 = new GraphicalVertex(id2, height - e5x, e2y, entry ? Type.ENTRY2 : Type.EXIT2);             // right
+			GraphicalVertex v3 = new GraphicalVertex(id3, height - e0x, height - e0y, entry ? Type.ENTRY3 : Type.EXIT3); // bottom right
+			GraphicalVertex v4 = new GraphicalVertex(id4, height - e1x, height - e1y, entry ? Type.ENTRY4 : Type.EXIT4); // bottom left
+			GraphicalVertex v5 = new GraphicalVertex(id5, e5x, height - e2y, entry ? Type.ENTRY5 : Type.EXIT5);             // left
 			vertices.put(id, v0);
 			vertices.put(id1, v1);
 			vertices.put(id2, v2);
@@ -505,8 +536,8 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Add edges to all entries from all sides.
 	 *
-	 * @param index Index of entries.
-	 * @param id    ID of the top left entry.
+	 * @param index Index of entries
+	 * @param id    ID of the top left entry
 	 */
 	private void addHexagonalEntriesEdges(long index, long id, boolean entry) {
 		long start = 6 * (granularity - 1) * (granularity - 2) / 2 + 1 + index;
@@ -526,12 +557,14 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Add neighbour to entry / exit vertex and vice versa and then add edge.
 	 *
-	 * @param id  ID of the entry / exit vertex.
-	 * @param idn ID of the neighbour.
+	 * @param id  ID of the entry / exit vertex
+	 * @param idn ID of the neighbour
 	 */
 	private void addHexagonalEntryEdge(long id, long idn, boolean entry) {
-		Vertex v = vertices.get(id), vn = vertices.get(idn),
-			from = entry ? v : vn, to = entry ? vn : v;
+		Vertex v = vertices.get(id);
+		Vertex vn = vertices.get(idn);
+		Vertex from = entry ? v : vn;
+		Vertex to = entry ? vn : v;
 
 		from.addNeighbourID(entry ? idn : id);
 		edges.add(new Edge(from, to));
@@ -540,7 +573,7 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create vertices connecting grid vertices width diagonal.
 	 *
-	 * @param shift Distance between 2 vertices in main grid.
+	 * @param shift Distance between 2 vertices in main grid
 	 */
 	private void createOctagonalGraphInBetweenVertices(double shift) {
 		long id = vertices.size();
@@ -587,8 +620,8 @@ public class SimulationGraph extends Graph {
 		}
 
 		// create last column
-		long lastColumnIDStartMinusTwo = (granularity - 1) * granularity - 2,
-			lastButOneColumnIDStartMinusTwo = lastColumnIDStartMinusTwo - granularity;
+		long lastColumnIDStartMinusTwo = (granularity - 1) * granularity - 2;
+		long lastButOneColumnIDStartMinusTwo = lastColumnIDStartMinusTwo - granularity;
 		for (long j = 0; j < granularity - 1; j++, id++) {
 			GraphicalVertex v = new GraphicalVertex(id, granularity * shift, (j + 2) * shift);
 
@@ -615,7 +648,7 @@ public class SimulationGraph extends Graph {
 	/**
 	 * Create edges to neighbours with lower IDs.
 	 *
-	 * @param id ID of the vertex.
+	 * @param id ID of the vertex
 	 */
 	private void addGraphEdges(long id) {
 		cz.cuni.mff.kotal.simulation.graph.Vertex vertex = vertices.get(id);
@@ -646,8 +679,8 @@ public class SimulationGraph extends Graph {
 	 * Check if the graph is same as another graph.
 	 * That means they are same model, have same granularity, size and orientation and same number of entries and exits.
 	 *
-	 * @param o Compared object.
-	 * @return True if the object is graph and has same key features.
+	 * @param o Compared object
+	 * @return True if the object is graph and has same key features
 	 */
 	@Override
 	public boolean equals(Object o) {
@@ -664,11 +697,11 @@ public class SimulationGraph extends Graph {
 
 
 	/**
-	 * @return Set of vertices of the graph.
+	 * @return Set of vertices of the graph
 	 */
 	@Override
 	public Collection<GraphicalVertex> getVertices() {
-		return vertices.values().stream().map(vertex -> (GraphicalVertex) vertex).collect(Collectors.toSet());
+		return vertices.values().stream().map(GraphicalVertex.class::cast).collect(Collectors.toSet());
 	}
 
 	public GraphicalVertex getVertex(long id) {
@@ -676,42 +709,58 @@ public class SimulationGraph extends Graph {
 	}
 
 	/**
-	 * @return Set of edges of the graph.
+	 * @return Set of edges of the graph
 	 */
+	@Override
 	public Set<Edge> getEdges() {
 		return edges;
 	}
 
 	/**
-	 * @return Granularity of the graph.
+	 * @return Granularity of the graph
 	 */
 	public long getGranularity() {
 		return granularity;
 	}
 
+	/**
+	 * @return Entries to this graph
+	 */
 	public long getEntries() {
 		return entries;
 	}
 
+	/**
+	 * @return Exits to this graph
+	 */
 	public long getExits() {
 		return exits;
 	}
 
+	/**
+	 * @return Width and height of this graph
+	 */
 	public double getSize() {
 		return size;
 	}
 
 	/**
-	 * @return Model Type of the graph.
+	 * @return Model Type of the graph
 	 */
 	public Parameters.Models getModel() {
 		return model;
 	}
 
+	/**
+	 * @return True if this graph is abstract, otherwise False
+	 */
 	public boolean isAbstractGraph() {
 		return abstractGraph;
 	}
 
+	/**
+	 * @return Size of one road part
+	 */
 	public double getCellSize() {
 		if (model == Parameters.Models.HEXAGONAL) {
 			return size / (2 * granularity + 1);

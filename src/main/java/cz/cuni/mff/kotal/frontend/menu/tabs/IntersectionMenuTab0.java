@@ -88,7 +88,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 			} else {
 				granularityDifference = 0;
 			}
-			granularity.setMin(2 + granularityDifference);
+			granularity.setMin(2L + granularityDifference);
 			entries.setMax(granularity.getValue() - granularityDifference - 1);
 			exits.setMax(granularity.getValue() - granularityDifference - 1);
 

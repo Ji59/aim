@@ -9,17 +9,18 @@ import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cz.cuni.mff.kotal.helpers.MyGenerator.*;
 
 
+/**
+ * Class representing simulation.
+ */
 public class Simulation {
 	private final SimulationGraph intersectionGraph;
 
@@ -40,10 +41,14 @@ public class Simulation {
 
 	private final SimulationAgents simulationAgents;
 
-	private Consumer<Pair<Long, Map<Long, Agent>>> guiCallback;
-	private Consumer<Pair<Long, Agent>> addAgentCallback;
 
-
+	/**
+	 * Create new simulation.
+	 *
+	 * @param intersectionGraph Graph of the simulation
+	 * @param algorithm         Algorithm used in computation
+	 * @param simulationAgents  Agents simulation pane
+	 */
 	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
@@ -56,6 +61,16 @@ public class Simulation {
 		startTime = System.nanoTime();
 	}
 
+	/**
+	 * Create new simulation.
+	 *
+	 * @param intersectionGraph Graph of the simulation
+	 * @param algorithm         Algorithm used in computation
+	 * @param newAgentsMinimum  Minimal amount of new agents in each step
+	 * @param newAgentsMaximum  Maximal amount of new agents in each step
+	 * @param distribution      Entries usage distribution
+	 * @param simulationAgents  Agents simulation pane
+	 */
 	public Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution, SimulationAgents simulationAgents) {
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
@@ -67,6 +82,12 @@ public class Simulation {
 	}
 
 
+	/**
+	 * Start this simulation.
+	 * Create timer for agents generation and planning.
+	 *
+	 * @param period Delay between steps
+	 */
 	public void start(long period) {
 		this.period = period;
 		simulationAgents.setSimulation(this);
@@ -92,6 +113,9 @@ public class Simulation {
 		}).start();
 	}
 
+	/**
+	 * Stop this simulation.
+	 */
 	public void stop() {
 		if (timer != null) {
 			timer.cancel();
@@ -100,6 +124,9 @@ public class Simulation {
 		}
 	}
 
+	/**
+	 * Reset this simulation.
+	 */
 	public void reset() {
 		if (timer != null) {
 			timer.cancel();
@@ -107,6 +134,11 @@ public class Simulation {
 		}
 	}
 
+	/**
+	 * Create new timer task for creating new agents.
+	 *
+	 * @return New timer task
+	 */
 	@NotNull
 	private TimerTask getTimerTask() {
 		return new TimerTask() {
@@ -120,11 +152,17 @@ public class Simulation {
 				plannedAgents.forEach(agent -> simulationAgents.addAgent(stepTime, agent));
 				allAgents.putAll(plannedAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 
-				System.out.println(step);
+				System.out.println(step); // TODO
 			}
 		};
 	}
 
+	/**
+	 * Generate new agents with IDs starting from specified ID.
+	 *
+	 * @param id ID of first generated agent; increases with reach generated agent
+	 * @return Set of newly generated agents
+	 */
 	protected Set<Agent> generateAgents(int id) {
 		assert (distribution.stream().reduce(0L, Long::sum) == 100);
 		long newAgentsCount = generateRandomLong(newAgentsMinimum, newAgentsMaximum);
@@ -144,8 +182,19 @@ public class Simulation {
 		return newAgents;
 	}
 
+	/**
+	 * Generate new agent.
+	 *
+	 * @param id         ID of the new agent
+	 * @param entryValue Value used for entry direction selection
+	 * @param exitValue  Value used for exit direction selection
+	 * @param entries    Map of entries from different directions
+	 * @param exits      Map of exits from different directions
+	 * @return Newly generated agent
+	 */
 	protected Agent generateAgent(int id, long entryValue, long exitValue, Map<Integer, List<Vertex>> entries, Map<Integer, List<Vertex>> exits) {
-		int entryDirection, exitDirection;
+		int entryDirection;
+		int exitDirection;
 		// TODO solve problem with multiple agents arriving at same time
 		for (entryDirection = 0; entryDirection < distribution.size() - 1 && entryValue >= distribution.get(entryDirection); entryDirection++) {
 			entryValue -= distribution.get(entryDirection);
@@ -224,11 +273,16 @@ public class Simulation {
 		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.5, 0.5) * cellSize;
 		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
 
-		Agent agent = new Agent(id, entry.getID(), exit.getID(), speed, step, length, width, entry.getX(), entry.getY());
+		return new Agent(id, entry.getID(), exit.getID(), speed, step, length, width, entry.getX(), entry.getY());
 
-		return agent;
 	}
 
+	/**
+	 * Get map of entry / exit directions and vertices at the direction.
+	 *
+	 * @param isEntry If wanted entries or exits
+	 * @return Map of entry direction numbers and vertices
+	 */
 	@NotNull
 	Map<Integer, List<Vertex>> getEntriesExitsMap(boolean isEntry) {
 		Map<Integer, List<Vertex>> entries = new HashMap<>();
@@ -238,58 +292,90 @@ public class Simulation {
 		return entries;
 	}
 
+	/**
+	 * @return If this simulation is running
+	 */
 	public boolean isRunning() {
 		return timer != null;
 	}
 
+	/**
+	 * @return Graph of this simulation
+	 */
 	public SimulationGraph getIntersectionGraph() {
 		return intersectionGraph;
 	}
 
+	/**
+	 * @return All generated agents
+	 */
 	public Collection<Agent> getAllAgents() {
 		return allAgents.values();
 	}
 
+	/**
+	 * @return Currently going agents
+	 */
 	public Collection<Agent> getCurrentAgents() {
 		return currentAgents;
 	}
 
+	/**
+	 * Get generated agent with specified ID.
+	 *
+	 * @param id ID of the agent
+	 * @return Found agent
+	 */
 	public Agent getAgent(long id) {
 		return allAgents.get(id);
 	}
 
-	public void setGuiCallback(Consumer<Pair<Long, Map<Long, Agent>>> guiCallback) {
-		this.guiCallback = guiCallback;
-	}
-
-	public void setAddAgentCallback(Consumer<Pair<Long, Agent>> addAgentCallback) {
-		this.addAgentCallback = addAgentCallback;
-	}
-
+	/**
+	 * @return Minimum agents to be generated
+	 */
 	public long getNewAgentsMinimum() {
 		return newAgentsMinimum;
 	}
 
+	/**
+	 * @return Maximum agents to be generated
+	 */
 	public long getNewAgentsMaximum() {
 		return newAgentsMaximum;
 	}
 
+	/**
+	 * @return Directions distribution
+	 */
 	public List<Long> getDistribution() {
 		return distribution;
 	}
 
+	/**
+	 * @return Actual simulation step
+	 */
 	public long getStep() {
 		return step;
 	}
 
+	/**
+	 * Increase number of collisions in this simulation.
+	 * Write this value to GUI label.
+	 */
 	public void addCollision() {
 		IntersectionMenu.setCollisions(++collisions);
 	}
 
+	/**
+	 * @return System time of start of this simulation
+	 */
 	public long getStartTime() {
 		return startTime;
 	}
 
+	/**
+	 * @return Time Delay between steps in nanoseconds
+	 */
 	public long getPeriod() {
 		return period;
 	}

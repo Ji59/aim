@@ -1,40 +1,71 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
+import org.jetbrains.annotations.NotNull;
+
 import java.math.BigDecimal;
 import java.util.Objects;
 
 
+/**
+ * Class representing graph edge with value.
+ */
 public class Edge {
 
-	private final Vertex u, v;
+	private final Vertex u;
+	private final Vertex v;
 	private final BigDecimal value;
 
-	public Edge(Vertex u, Vertex v, BigDecimal value) {
-		assert u != null;
-		assert v != null;
-
+	/**
+	 * Create new edge between specified vertices with specified value.
+	 *
+	 * @param u     First vertex
+	 * @param v     Second vertex
+	 * @param value Value of the edge
+	 */
+	public Edge(@NotNull Vertex u, @NotNull Vertex v, BigDecimal value) {
 		this.u = u;
 		this.v = v;
 		this.value = value;
 	}
 
+	/**
+	 * Create new edge between specified vertices with value 1.
+	 *
+	 * @param u First vertex
+	 * @param v Second vertex
+	 */
 	public Edge(Vertex u, Vertex v) {
 		this(u, v, BigDecimal.ONE);
 	}
 
+	/**
+	 * @return New Edge with vertices reversed
+	 */
 	public Edge reverse() {
 		return new Edge(v, u, value);
 	}
 
+	/**
+	 *
+	 * @return First vertex
+	 */
 	public Vertex getU() {
 		return u;
 	}
 
+	/**
+	 *
+	 * @return Second vertex
+	 */
 	public Vertex getV() {
 		return v;
 	}
 
+	/**
+	 *
+	 * @return Edge value
+	 */
 	public BigDecimal getValue() {
 		return value;
 	}

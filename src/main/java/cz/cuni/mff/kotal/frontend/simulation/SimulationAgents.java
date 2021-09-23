@@ -13,25 +13,42 @@ import javafx.scene.shape.Polygon;
 import java.util.*;
 
 
+/**
+ * Pane with agent rectangles.
+ */
 public class SimulationAgents extends Pane {
 	private Simulation simulation;
 	private final Map<Long, AgentPane> agents = new HashMap<>();
 	private SimulationTimer timer;
 
-	// TODO remove -  only for debug
-	private final Set<Polygon> rectangles = new HashSet<>();
+	private final Set<Polygon> rectangles = new HashSet<>(); // only for debug
 
+	/**
+	 * Create new pane with specified parameters.
+	 * @param height Width and height of the pane
+	 * @param simulation Simulation associated with this pane
+	 */
 	public SimulationAgents(double height, Simulation simulation) {
 		this.simulation = simulation;
 		setPrefWidth(height);
 		setPrefHeight(height);
 	}
 
+	/**
+	 * Create new pane with specified size.
+	 * @param height Width and height of the pane
+	 */
 	public SimulationAgents(double height) {
 		setPrefWidth(height);
 		setPrefHeight(height);
 	}
 
+	/**
+	 * Create and add new agent pane to this simulation.
+	 * @param startTime System time of agent creation
+	 * @param agent Agent to be added
+	 * @param period Time delay between simulation steps
+	 */
 	public void addAgent(long startTime, Agent agent, double period) {
 		long agentID = agent.getId();
 		AgentPane agentPane = new AgentPane(startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs());
@@ -43,10 +60,19 @@ public class SimulationAgents extends Pane {
 		Platform.runLater(() -> getChildren().add(agentPane));
 	}
 
+	/**
+	 * Create and add new agent pane to this simulation.
+	 * @param time System time of agent creation
+	 * @param agent Agent to be added
+	 */
 	public void addAgent(Long time, Agent agent) {
 		addAgent(time, agent, IntersectionScene.getPeriod());
 	}
 
+	/**
+	 * Remove this agent from the simulation GUI.
+	 * @param agentID ID of the agent to be removed
+	 */
 	public void removeAgent(long agentID) {
 		AgentPane agentPane;
 		synchronized (agents) {
@@ -59,6 +85,10 @@ public class SimulationAgents extends Pane {
 		getChildren().remove(agentPane);
 	}
 
+	/**
+	 * Remove this agent from the simulation GUI.
+	 * @param agentEntry Agent with its ID
+	 */
 	public void removeAgent(Map.Entry<Long, AgentPane> agentEntry) {
 		synchronized (agents) {
 			agents.remove(agentEntry.getKey());
@@ -68,10 +98,17 @@ public class SimulationAgents extends Pane {
 		getChildren().remove(agentPane);
 	}
 
+	/**
+	 * Set actually using simulation.
+	 * @param simulation Running simulation
+	 */
 	public void setSimulation(Simulation simulation) {
 		this.simulation = simulation;
 	}
 
+	/**
+	 * Stop running agent panes simulation.
+	 */
 	public void pauseSimulation() {
 		timer.stop();
 		// TODO
@@ -80,6 +117,10 @@ public class SimulationAgents extends Pane {
 //		}
 	}
 
+	/**
+	 * Resume already started simulation.
+	 * @param simulation Simulation to be resumed
+	 */
 	public void resumeSimulation(Simulation simulation) {
 		this.simulation = simulation;
 
@@ -91,23 +132,28 @@ public class SimulationAgents extends Pane {
 		timer.start();
 	}
 
+	/**
+	 * Restart whole pane to starting state.
+	 */
 	public void resetSimulation() {
 		synchronized (agents) {
 			timer.stop();
-			agents.values().forEach(agentPane -> {
-				getChildren().remove(agentPane);
-			});
+			getChildren().removeAll(agents.values());
 			agents.clear();
 		}
 	}
 
+	/**
+	 * Only for debug purposes
+	 */
 	public void resetRectangles() {
-		// TODO remove - only for debug purposes
 		getChildren().removeAll(rectangles);
 		rectangles.clear();
 	}
 
-	// TODO remove - only for debug purposes
+	/**
+	 * Only for debug purposes
+	 */
 	public void addRectangle(List<Point> cornerPoints) {
 		double[] points = new double[cornerPoints.size() * 2];
 		for (int i = 0; i < cornerPoints.size(); i++) {
@@ -117,7 +163,9 @@ public class SimulationAgents extends Pane {
 		addRectangle(points, 0);
 	}
 
-	// TODO remove - only for debug purposes
+	/**
+	 * Only for debug purposes
+	 */
 	public void addRectangle(double[] boundingBox) {
 		double[] points = new double[boundingBox.length * 2];
 		points[0] = boundingBox[0];
@@ -131,7 +179,9 @@ public class SimulationAgents extends Pane {
 		addRectangle(points, 255);
 	}
 
-	// TODO remove - only for debug purposes
+	/**
+	 * Only for debug purposes
+	 */
 	public void addRectangle(double[] points, int red) {
 		Polygon rectangle = new Polygon(points);
 		rectangle.setFill(Color.rgb(red, 0, 0, 0.3));

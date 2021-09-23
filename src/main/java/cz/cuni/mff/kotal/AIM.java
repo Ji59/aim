@@ -11,15 +11,11 @@ public class AIM {
 	 * Main function.
 	 * Start application GUI.
 	 *
-	 * @param args Input arguments, unused.
+	 * @param args Input arguments, unused
 	 */
 	public static void main(String[] args) throws InterruptedException {
-		// TODO remove hello world output
-		System.out.println("Hello there.");
-
 		Thread gui = new Thread(() -> Application.launch(MyApplication.class, args));
 		gui.start();
-
 		gui.join();
 	}
 }

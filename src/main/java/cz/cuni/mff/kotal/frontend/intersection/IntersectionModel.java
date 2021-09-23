@@ -2,8 +2,8 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
-import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
@@ -312,7 +312,8 @@ public class IntersectionModel extends Pane {
 				double y3 = x3 == preferredHeight ? y0 - Math.sqrt(3) * (preferredHeight - x0) : 0;
 				drawHexagonalModelObliqueEntry(x0, y0, x1, y1, x2, y2, x3, y3, x2 == preferredHeight, y3 == 0, preferredHeight, v.getType().getColor());
 			}
-			default -> throw new IllegalStateException("Unexpected value: " + v.getType()); // TODO
+			default -> {
+			}
 		}
 		addTextField(v.getX() - shift / 2, v.getY() - shift / 2, shift, shift, String.valueOf(v.getID()));
 	}

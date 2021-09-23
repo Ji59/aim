@@ -61,10 +61,10 @@ public class LineSegment {
 	}
 
 	/**
-	 * Compute on which side of this line does provided point lie using linear algebra.
+	 * Compute on which side of this line does point lie using linear algebra.
 	 *
 	 * @param point Point used in calculations
-	 * @return Shifted scalar product of the point and the line segment.
+	 * @return Shifted scalar product of the point and the line segment
 	 */
 	public double getSide(Point point) {
 		double x = point.getX();

@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.helpers;
 
+
 import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import cz.cuni.mff.kotal.frontend.simulation.AgentPolygon;
 import cz.cuni.mff.kotal.frontend.simulation.LineSegment;
@@ -11,8 +12,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
+/**
+ * Class containing methods for collision checking.
+ */
 public class Collisions {
 	// TODO refactor
+
+	/**
+	 * Hide implicit constructor.
+	 */
+	private Collisions() {
+	}
+
+	/**
+	 * Check bounding boxes of agents for collisions.
+	 *
+	 * @param agents Map of agents and their ID to check
+	 * @return Set of agents with overlapping agent bounding boxes
+	 */
 	public static Set<Pair<AgentPane, AgentPane>> getBoundingBoxesOverlaps(Map<Long, AgentPane> agents) {
 		List<AgentBoundingBox> boundingBoxes;
 		synchronized (agents) {
@@ -77,6 +95,13 @@ public class Collisions {
 		return overlappingAgents;
 	}
 
+	/**
+	 * Check two agents if they are overlapping each other.
+	 *
+	 * @param agent0 First agent to check
+	 * @param agent1 Second agent to check
+	 * @return True if they are overlapping, otherwise False
+	 */
 	public static boolean inCollision(AgentPane agent0, AgentPane agent1) {
 		List<Point> cornerPoints0 = agent0.getCornerPoints();
 		List<Point> cornerPoints1 = agent1.getCornerPoints();
@@ -88,6 +113,13 @@ public class Collisions {
 		return !existsSeparatingLine(cornerPoints1, cornerPoints0);
 	}
 
+	/**
+	 * Try to find separating line between two lists of points.
+	 *
+	 * @param points0 List of points creating first polygon
+	 * @param points1 List of points creating second polygon
+	 * @return True if there is separating line between the polygons, otherwise False
+	 */
 	public static boolean existsSeparatingLine(List<Point> points0, List<Point> points1) {
 		points0 = new LinkedList<>(points0);
 		points1 = new LinkedList<>(points1);
@@ -117,6 +149,13 @@ public class Collisions {
 		return false;
 	}
 
+	/**
+	 * Compute collisions between agents.
+	 *
+	 * @param lastStates Map of agent polygons and their ID in last state
+	 * @param newStates  Map of agent polygons and their ID in new state
+	 * @return Set of collisions between agents
+	 */
 	public static Set<Collision> getTimeShiftCollisions(Map<Long, AgentPolygon> lastStates, Map<Long, AgentPolygon> newStates) {
 		Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments = new HashSet<>();
 
@@ -169,6 +208,14 @@ public class Collisions {
 			.collect(Collectors.toSet());
 	}
 
+	/**
+	 * Check intersections between line segments with different IDs.
+	 *
+	 * @param collidedSegments       Set of already collided segments; used for adding new collisions
+	 * @param newVerticalSegmentList Last X queue of segments sorted by Y
+	 * @param endingX                Actual processing X
+	 * @return New X queue of segments sorted by Y
+	 */
 	@NotNull
 	private static Queue<LineSegmentWithY> checkLineSegmentsCollisions(Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments, Queue<LineSegmentWithY> newVerticalSegmentList, double endingX) {
 		Queue<LineSegmentWithY> lastVerticalSegmentList;
@@ -200,6 +247,13 @@ public class Collisions {
 		return newVerticalSegmentList;
 	}
 
+	/**
+	 * Recompute and sort segments at given X.
+	 *
+	 * @param segmentList List of segments to reorder
+	 * @param x           X value to compute Y at
+	 * @return Sorted segments by Y coordination at X
+	 */
 	@NotNull
 	private static PriorityQueue<LineSegmentWithY> getSegmentsAtX(Queue<LineSegmentWithY> segmentList, double x) {
 		return segmentList.stream()
@@ -210,6 +264,14 @@ public class Collisions {
 			.collect(Collectors.toCollection(PriorityQueue::new));
 	}
 
+	/**
+	 * Check if mismatching segments contain actually processing segment.
+	 *
+	 * @param collidedSegments    Already collided segments
+	 * @param mismatchingSegments List of segments with switched order
+	 * @param lastVerticalSegment Actually processing segment in last state
+	 * @return True if mismatching segments contain the segment, otherwise False
+	 */
 	private static boolean checkMismatchingSegments(Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments, List<LineSegmentWithY> mismatchingSegments, LineSegmentWithID lastVerticalSegment) {
 		Iterator<LineSegmentWithY> mismatchingSegmentsIt = mismatchingSegments.iterator();
 		while (mismatchingSegmentsIt.hasNext()) {
@@ -228,15 +290,30 @@ public class Collisions {
 		return false;
 	}
 
+	/**
+	 * Local class representing segment with saved Y value.
+	 */
 	private static class LineSegmentWithY implements Comparable<LineSegmentWithY> {
 		private final double y;
 		private final LineSegmentWithID lineSegment;
 
+		/**
+		 * Create new line segment with specified attributes.
+		 *
+		 * @param y           Y Value
+		 * @param lineSegment Line segment this object should represent
+		 */
 		private LineSegmentWithY(double y, LineSegmentWithID lineSegment) {
 			this.y = y;
 			this.lineSegment = lineSegment;
 		}
 
+		/**
+		 * Compare two line segments by Y value.
+		 *
+		 * @param lineSegment Compared line segment
+		 * @return Double difference if Y differs, otherwise line segment comparison
+		 */
 		@Override
 		public int compareTo(@NotNull Collisions.LineSegmentWithY lineSegment) {
 			int yDiff = Double.compare(y, lineSegment.y);
@@ -256,10 +333,16 @@ public class Collisions {
 			return Objects.hash(y, lineSegment);
 		}
 
+		/**
+		 * @return Saved Y value
+		 */
 		public double getY() {
 			return y;
 		}
 
+		/**
+		 * @return Representing line segment
+		 */
 		public LineSegmentWithID getLineSegment() {
 			return lineSegment;
 		}
