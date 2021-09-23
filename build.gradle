@@ -31,4 +31,16 @@ test {
     maxHeapSize = "10g"
 }
 
+configurations {
+    // configuration that holds jars to include in the jar
+    extraLibs
+}
 
+jar {
+    manifest {
+        attributes 'Main-Class': 'cz.cuni.mff.kotal.AIM'
+    }
+    from {
+        configurations.runtimeClasspath.filter { it.exists() }.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
