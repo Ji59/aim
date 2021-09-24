@@ -1,0 +1,12 @@
+module aim.main {
+    // Require JavaFX
+    requires javafx.controls;
+    requires javafx.fxml;
+    requires org.jetbrains.annotations;
+
+    // Export the "cz.cuni.mff.kotal" package (needed by JavaFX to start the Application)
+    exports cz.cuni.mff.kotal;
+
+    //  allow to access your classes via reflections
+    opens cz.cuni.mff.kotal.frontend to javafx.graphics;
+}

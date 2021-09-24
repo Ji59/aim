@@ -1,0 +1,6 @@
+--add-modules
+    org.junit.jupiter.api
+
+
+--add-reads
+  aim.main=org.junit.jupiter.api
