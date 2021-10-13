@@ -1,5 +1,7 @@
 module aim.main {
     // Require JavaFX
+    requires javafx.base;
+    requires javafx.graphics;
     requires javafx.controls;
     requires javafx.fxml;
     requires org.jetbrains.annotations;
