@@ -1,6 +1,8 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
+import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -54,6 +56,30 @@ public class Graph {
 		entryExitVertices = new HashMap<>();
 		for (int i = 0; i < entrySides; i++) {
 			entryExitVertices.put(i, new ArrayList<>());
+		}
+	}
+
+	/**
+	 * Create edges to neighbours with lower IDs.
+	 *
+	 * @param id ID of the vertex
+	 */
+	protected void addGraphEdges(long id) {
+		cz.cuni.mff.kotal.simulation.graph.Vertex vertex = vertices.get(id);
+		assert (vertex != null);
+		for (Long neighbourID : vertex.getNeighbourIDs()) {
+			if (neighbourID < id) {
+				GraphicalVertex neighbour = (GraphicalVertex) vertices.get(neighbourID);
+
+				assert (neighbour != null);
+				assert (neighbour.getNeighbourIDs().contains(id));
+
+				boolean notContainEdge = edges.add(new Edge(vertex, neighbour));
+				assert (notContainEdge);
+
+				notContainEdge = edges.add(new Edge(neighbour, vertex));
+				assert (notContainEdge);
+			}
 		}
 	}
 

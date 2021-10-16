@@ -7,7 +7,7 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
-import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
@@ -167,7 +167,6 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		granularity.setValue(graph.getGranularity());
 		entries.setValue(graph.getEntries());
 		exits.setValue(graph.getExits());
-		IntersectionMenu.setAbstractMode(graph.isAbstractGraph());
 	}
 
 	/**

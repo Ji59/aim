@@ -3,11 +3,12 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentParametersMenuTab4;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
-import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
 
@@ -269,7 +270,7 @@ public class Simulation {
 		long minimalWidth = AgentParametersMenuTab4.getMinimalSizeWidth().getValue();
 		long maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
 
-		double cellSize = intersectionGraph.getCellSize();
+		double cellSize = intersectionGraph.getCellSize() * IntersectionModel.getPreferredHeight();
 		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.5, 0.5) * cellSize;
 		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
 

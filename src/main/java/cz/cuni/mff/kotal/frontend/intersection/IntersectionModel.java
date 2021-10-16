@@ -2,10 +2,9 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
+import cz.cuni.mff.kotal.frontend.simulation.AbstractGraph;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
-import cz.cuni.mff.kotal.frontend.simulation.SimulationGraph;
-import cz.cuni.mff.kotal.simulation.graph.Edge;
-import cz.cuni.mff.kotal.simulation.graph.Graph;
+import cz.cuni.mff.kotal.simulation.graph.*;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -39,7 +38,7 @@ public class IntersectionModel extends Pane {
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
 	private static List<Node> nodes = new ArrayList<>();
-	private static final Map<SimulationGraph, Pair<Graph, List<Node>>> createdGraphs = new HashMap<>();
+	private static final Map<SimulationGraph, SimulationGraph> createdGraphs = new HashMap<>();
 	private static final Deque<SimulationGraph> historyPrevious = new ArrayDeque<>();
 	private static final Deque<SimulationGraph> historyNext = new ArrayDeque<>();
 
@@ -66,7 +65,7 @@ public class IntersectionModel extends Pane {
 		for (Edge e : graph.getEdges()) {
 			GraphicalVertex u = (GraphicalVertex) e.getU();
 			GraphicalVertex v = (GraphicalVertex) e.getV();
-			Line l = new Line(u.getX(), u.getY(), v.getX(), v.getY());
+			Line l = new Line(vCoor(u.getX()), vCoor(u.getY()), vCoor(v.getX()), vCoor(v.getY()));
 			nodes.add(l);
 		}
 		for (GraphicalVertex v : graph.getVertices()) {
@@ -74,8 +73,8 @@ public class IntersectionModel extends Pane {
 			Text t = new Text(String.valueOf(v.getID()));
 			t.setBoundsType(TextBoundsType.VISUAL);
 			StackPane stack = new StackPane(c, t);
-			stack.setLayoutX(v.getX() - shift * VERTEX_RATIO);
-			stack.setLayoutY(v.getY() - shift * VERTEX_RATIO);
+			stack.setLayoutX(vCoor(v.getX()) - shift * VERTEX_RATIO);
+			stack.setLayoutY(vCoor(v.getY()) - shift * VERTEX_RATIO);
 			nodes.add(stack);
 		}
 	}
@@ -92,7 +91,7 @@ public class IntersectionModel extends Pane {
 
 		if (!IntersectionMenu.isAbstract()) {
 			for (GraphicalVertex v : graph.getVertices()) {
-				drawSquare(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
+				drawSquare(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
 			}
 		} else {
 			drawAbstractModel(shift);
@@ -114,7 +113,7 @@ public class IntersectionModel extends Pane {
 		} else {
 			for (GraphicalVertex v : graph.getVertices()) {
 				if (v.getType() == Type.ROAD) {
-					drawHexagon(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
+					drawHexagon(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
 				} else {
 					drawHexagonEntry(shift, v);
 				}
@@ -130,18 +129,18 @@ public class IntersectionModel extends Pane {
 	private void drawOctagonalModel(long granularity) {
 		// TODO udelat velikost poradne
 		double height = preferredHeight;
-		double shift = height / (granularity + 2);
+		double shift = height * graph.getCellSize();
 
 		if (!IntersectionMenu.isAbstract()) {
 			for (GraphicalVertex v : graph.getVertices()) {
 				if (v.getType() == Type.ROAD) {
 					if (v.getID() < granularity * granularity - 4) {
-						drawOctagon(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
-					} else if (v.getID() < 2 * granularity * (granularity - 1) - 3) {
-						drawObliqueSquare((1 - OCTAGON_RATIO) * shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor());
+						drawOctagon(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
+					} else {
+						drawObliqueSquare((1 - OCTAGON_RATIO) * shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
 					}
 				} else {
-					drawOctagonalEntry(shift, v.getX(), v.getY(), String.valueOf(v.getID()), v.getType().getColor(), v.getType().getDirection());
+					drawOctagonalEntry(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor(), v.getType().getDirection());
 				}
 			}
 		} else {
@@ -283,18 +282,18 @@ public class IntersectionModel extends Pane {
 	private void drawHexagonEntry(double shift, GraphicalVertex v) {
 		switch (v.getType()) {
 			case ENTRY2, EXIT2, ENTRY5, EXIT5 -> {
-				double x = v.getType() == Type.ENTRY5 || v.getType() == Type.EXIT5 ? 0 : v.getX() + (Math.sqrt(3) / 6 - 1) * shift;
-				double y = v.getY() - shift / 2;
+				double x = v.getType() == Type.ENTRY5 || v.getType() == Type.EXIT5 ? 0 : vCoor(v.getX()) + (Math.sqrt(3) / 6 - 1) * shift;
+				double y = vCoor(v.getY()) - shift / 2;
 				double width = (graph.getGranularity() - Math.sqrt(3) * (graph.getGranularity() - 2. / 3) / 2 + 0.5) * shift;
 				double height = shift;
 				drawRectangle(x, y, width, height, String.valueOf(v.getID()), v.getType().getColor());
 				return;
 			}
 			case ENTRY0, EXIT0 -> {
-				double x0 = v.getX() + shift * (1. / 2 - 1 / Math.sqrt(3));
-				double y0 = v.getY() + Math.sqrt(3) * shift / 2;
-				double x1 = v.getX() + shift * (1 + Math.sqrt(3) / 3) / 2;
-				double y1 = v.getY() + (Math.sqrt(3) - 1) * shift / 2;
+				double x0 = vCoor(v.getX()) + shift * (1. / 2 - 1 / Math.sqrt(3));
+				double y0 = vCoor(v.getY()) + Math.sqrt(3) * shift / 2;
+				double x1 = vCoor(v.getX()) + shift * (1 + Math.sqrt(3) / 3) / 2;
+				double y1 = vCoor(v.getY()) + (Math.sqrt(3) - 1) * shift / 2;
 				double x2 = Math.max(x1 - Math.sqrt(3) * y1 / 3, 0);
 				double y2 = x2 == 0 ? y1 - Math.sqrt(3) * x1 : 0;
 				double x3 = Math.max(x0 - Math.sqrt(3) * y0 / 3, 0);
@@ -302,10 +301,10 @@ public class IntersectionModel extends Pane {
 				drawHexagonalModelObliqueEntry(x0, y0, x1, y1, x2, y2, x3, y3, x3 == 0, y2 == 0, 0., v.getType().getColor());
 			}
 			case ENTRY1, EXIT1 -> {
-				double x0 = v.getX() - shift * (1 + Math.sqrt(3) / 3) / 2;
-				double y0 = v.getY() + (Math.sqrt(3) - 1) * shift / 2;
-				double x1 = v.getX() + shift * (1 / Math.sqrt(3) - 1. / 2);
-				double y1 = v.getY() + Math.sqrt(3) * shift / 2;
+				double x0 = vCoor(v.getX()) - shift * (1 + Math.sqrt(3) / 3) / 2;
+				double y0 = vCoor(v.getY()) + (Math.sqrt(3) - 1) * shift / 2;
+				double x1 = vCoor(v.getX()) + shift * (1 / Math.sqrt(3) - 1. / 2);
+				double y1 = vCoor(v.getY()) + Math.sqrt(3) * shift / 2;
 				double x2 = Math.min(x1 + Math.sqrt(3) * y1 / 3, preferredHeight);
 				double y2 = x2 == preferredHeight ? y1 - Math.sqrt(3) * (preferredHeight - x1) : 0;
 				double x3 = Math.min(x0 + Math.sqrt(3) * y0 / 3, preferredHeight);
@@ -315,7 +314,7 @@ public class IntersectionModel extends Pane {
 			default -> {
 			}
 		}
-		addTextField(v.getX() - shift / 2, v.getY() - shift / 2, shift, shift, String.valueOf(v.getID()));
+		addTextField(vCoor(v.getX()) - shift / 2, vCoor(v.getY()) - shift / 2, shift, shift, String.valueOf(v.getID()));
 	}
 
 	/**
@@ -420,11 +419,24 @@ public class IntersectionModel extends Pane {
 		nodes.add(t);
 	}
 
+	private double vCoor(double coordination) {
+		return coordination * preferredHeight;
+	}
+
 	/**
 	 * Redraw graph based on selected properties in menu window.
 	 * If the graph was not changed, do nothing.
 	 */
 	public void redraw() {
+		redraw(false);
+	}
+
+	/**
+	 * Redraw graph based on selected properties in menu window.
+	 *
+	 * @param ignoreOld If redraw is forced, ignoring fact old graph is identical to the new one
+	 */
+	public void redraw(boolean ignoreOld) {
 		// get graph properties
 		long granularity = IntersectionMenuTab0.getGranularity().getValue();
 		long entries = IntersectionMenuTab0.getEntries().getValue();
@@ -432,19 +444,15 @@ public class IntersectionModel extends Pane {
 		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
-		SimulationGraph graphAbstract = new SimulationGraph(granularity, entries, exits, model, false, null, null, null, preferredHeight, IntersectionMenu.isAbstract());
+		SimulationGraph graphAbstract = new AbstractGraph(model, granularity, entries, exits, false, null, null, null);
 
-		if (graphAbstract.equals(graph)) { // if last graph is the same, return
+		if (!ignoreOld && graphAbstract.equals(graph)) { // if last graph is the same, return
 			return;
 		}
 
 		IntersectionScene.resetSimulation();
 
-		if (graph != null && preferredHeight != graph.getSize()) { // if size of the model changed, discard all saved graphs
-			createdGraphs.clear();
-			historyNext.clear();
-			historyPrevious.clear();
-		} else if (graph != null) { // else add graph to previous stack
+		if (graph != null) { // else add graph to previous stack
 			historyPrevious.push(graph);
 		}
 
@@ -452,24 +460,17 @@ public class IntersectionModel extends Pane {
 			setGraphFromAbstract(graphAbstract);
 		} else { // create new graph and all the model nodes.
 			historyNext.clear();
-			graph = new SimulationGraph(granularity, model, entries, exits, preferredHeight, IntersectionMenu.isAbstract());
 			nodes = new ArrayList<>();
 
 			switch (model) {
-				case SQUARE:
-					drawSquareModel(granularity);
-					break;
-				case HEXAGONAL:
-					drawHexagonalModel(granularity);
-					break;
-				case OCTAGONAL:
-					drawOctagonalModel(granularity);
-					break;
-				case CUSTOM:
-					break;
+				case SQUARE -> graph = new SquareGraph(granularity, entries, exits);
+				case HEXAGONAL -> graph = new HexagonalGraph(granularity, entries, exits);
+				case OCTAGONAL -> graph = new OctagonalGraph(granularity, entries, exits);
 			}
 
-			createdGraphs.put(graph, new Pair<>(graph, nodes));
+			createGraphNodes();
+
+			createdGraphs.put(graph, graph);
 			getChildren().setAll(nodes);
 		}
 
@@ -483,10 +484,23 @@ public class IntersectionModel extends Pane {
 	 */
 	private void setGraphFromAbstract(SimulationGraph graphAbstract) {
 		assert createdGraphs.containsKey(graphAbstract);
-		Pair<Graph, List<Node>> graphValues = createdGraphs.get(graphAbstract);
-		getChildren().setAll(graphValues.getValue());
-		graphAbstract.addGraphVertices(graphValues.getKey());
-		graph = graphAbstract;
+		this.graph = createdGraphs.get(graphAbstract);
+		nodes.clear();
+		createGraphNodes();
+		getChildren().setAll(nodes);
+	}
+
+	/**
+	 * Create graphical nodes from graph.
+	 */
+	private void createGraphNodes() {
+		final long granularity = graph.getGranularity();
+		switch (graph.getModel()) {
+			case SQUARE -> drawSquareModel(granularity);
+			case HEXAGONAL -> drawHexagonalModel(granularity);
+			case OCTAGONAL -> drawOctagonalModel(granularity);
+			default -> throw new IllegalStateException("Unexpected value: " + graph.getModel()); // TODO
+		}
 	}
 
 	/**
@@ -495,7 +509,9 @@ public class IntersectionModel extends Pane {
 	public void drawPreviousGraph() {
 		if (!historyPrevious.isEmpty()) {
 			SimulationGraph graphAbstract = historyPrevious.pop();
-			historyNext.push(graph);
+			if (graph != null) {
+				historyNext.push(graph);
+			}
 			IntersectionScene.resetSimulation();
 			setGraphFromAbstract(graphAbstract);
 			drawBackground(preferredHeight);
@@ -508,7 +524,9 @@ public class IntersectionModel extends Pane {
 	public void drawNextGraph() {
 		if (!historyNext.isEmpty()) {
 			SimulationGraph graphAbstract = historyNext.pop();
-			historyPrevious.push(graph);
+			if (graph != null) {
+				historyPrevious.push(graph);
+			}
 			IntersectionScene.resetSimulation();
 			setGraphFromAbstract(graphAbstract);
 			drawBackground(preferredHeight);

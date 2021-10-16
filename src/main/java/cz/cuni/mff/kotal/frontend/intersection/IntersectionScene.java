@@ -40,14 +40,14 @@ public class IntersectionScene extends Scene {
 			double newHeight = Math.min(newValue.doubleValue(), getWidth() - MENU.getMinWidth());
 			IntersectionModel.setPreferredHeight(newHeight);
 			MENU.setPrefWidth(getWidth() - newHeight);
-			GRAPH.redraw();
+			GRAPH.redraw(true);
 		});
 
 		widthProperty().addListener((observable, oldValue, newValue) -> {
 			double newHeight = Math.min(getHeight(), newValue.doubleValue() - MENU.getMinWidth());
 			IntersectionModel.setPreferredHeight(newHeight);
 			MENU.setPrefWidth(newValue.doubleValue() - newHeight - 1);
-			GRAPH.redraw();
+			GRAPH.redraw(true);
 		});
 
 
