@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
+import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import javafx.scene.paint.Color;
 
 import java.util.Arrays;
@@ -52,6 +53,12 @@ public class Vertex {
 	public Vertex(long id) {
 		this.id = id;
 		this.type = Type.ROAD;
+	}
+
+	public Vertex(Vertex vertex) {
+		this.id = vertex.getID();
+		this.type = vertex.getType();
+		this.neighbourIds.addAll(vertex.getNeighbourIDs());
 	}
 
 	/**
@@ -117,17 +124,17 @@ public class Vertex {
 		ROAD(ROAD_COLOR),
 		// TODO check if comments are right
 		ENTRY0(ENTRY_COLOR, true, 0), // top / top left entry
-		ENTRY1(ENTRY_COLOR, true, 1), // left / left entry
-		ENTRY2(ENTRY_COLOR, true, 2), // bottom / bottom left entry
-		ENTRY3(ENTRY_COLOR, true, 3), // right / bottom right entry
-		ENTRY4(ENTRY_COLOR, true, 4), // X / right entry
-		ENTRY5(ENTRY_COLOR, true, 5), // X / top right entry
+		ENTRY1(ENTRY_COLOR, true, 1), // right / top right entry
+		ENTRY2(ENTRY_COLOR, true, 2), // bottom / right entry
+		ENTRY3(ENTRY_COLOR, true, 3), // left / bottom right entry
+		ENTRY4(ENTRY_COLOR, true, 4), // X / bottom left entry
+		ENTRY5(ENTRY_COLOR, true, 5), // X / left entry
 		EXIT0(EXIT_COLOR, false, 0), // top / top left exit
-		EXIT1(EXIT_COLOR, false, 1), // left / left exit
-		EXIT2(EXIT_COLOR, false, 2), // bottom / bottom left exit
-		EXIT3(EXIT_COLOR, false, 3), // right / bottom right exit
-		EXIT4(EXIT_COLOR, false, 4), // X / right exit
-		EXIT5(EXIT_COLOR, false, 5), // X / top right exit
+		EXIT1(EXIT_COLOR, false, 1), // right / top right exit
+		EXIT2(EXIT_COLOR, false, 2), // bottom / right exit
+		EXIT3(EXIT_COLOR, false, 3), // left / bottom right exit
+		EXIT4(EXIT_COLOR, false, 4), // X / bottom left exit
+		EXIT5(EXIT_COLOR, false, 5), // X / left exit
 		;
 
 		private final Color color;

@@ -450,15 +450,16 @@ public class IntersectionModel extends Pane {
 			return;
 		}
 
-		IntersectionScene.resetSimulation();
-
 		if (graph != null) { // else add graph to previous stack
 			historyPrevious.push(graph);
 		}
 
 		if (createdGraphs.containsKey(graphAbstract)) { // if graph already exists and model objects already exist
 			setGraphFromAbstract(graphAbstract);
-		} else { // create new graph and all the model nodes.
+			IntersectionScene.stopSimulation();
+			IntersectionMenu.setPlayButtonPlaying(false);
+		} else { // create new graph and all the model nodes
+			IntersectionScene.resetSimulation();
 			historyNext.clear();
 			nodes = new ArrayList<>();
 

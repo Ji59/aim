@@ -178,9 +178,9 @@ public class SquareGraph extends SimulationGraph {
 
 			// create vertices
 			GraphicalVertex topE = new GraphicalVertex(id++, topX, topY, entry ? Vertex.Type.ENTRY0 : Vertex.Type.EXIT0);
-			GraphicalVertex bottomE = new GraphicalVertex(id++, botX, botY, entry ? Vertex.Type.ENTRY1 : Vertex.Type.EXIT1);
-			GraphicalVertex leftE = new GraphicalVertex(id++, topY, botX, entry ? Vertex.Type.ENTRY2 : Vertex.Type.EXIT2);
-			GraphicalVertex rightE = new GraphicalVertex(id++, botY, topX, entry ? Vertex.Type.ENTRY3 : Vertex.Type.EXIT3);
+			GraphicalVertex rightE = new GraphicalVertex(id++, botY, topX, entry ? Vertex.Type.ENTRY1 : Vertex.Type.EXIT1);
+			GraphicalVertex bottomE = new GraphicalVertex(id++, botX, botY, entry ? Vertex.Type.ENTRY2 : Vertex.Type.EXIT2);
+			GraphicalVertex leftE = new GraphicalVertex(id++, topY, botX, entry ? Vertex.Type.ENTRY3 : Vertex.Type.EXIT3);
 
 			// add graph vertices
 			vertices.put(topE.getID(), topE);
@@ -188,10 +188,10 @@ public class SquareGraph extends SimulationGraph {
 			vertices.put(leftE.getID(), leftE);
 			vertices.put(rightE.getID(), rightE);
 
-			entryExitVertices.get(0).add(topE);
-			entryExitVertices.get(1).add(bottomE);
-			entryExitVertices.get(2).add(leftE);
-			entryExitVertices.get(3).add(rightE);
+			entryExitVertices.get(topE.getType().getDirection()).add(topE);
+			entryExitVertices.get(rightE.getType().getDirection()).add(rightE);
+			entryExitVertices.get(bottomE.getType().getDirection()).add(bottomE);
+			entryExitVertices.get(leftE.getType().getDirection()).add(leftE);
 
 
 			// create edges

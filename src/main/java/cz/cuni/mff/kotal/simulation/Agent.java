@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.simulation;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.util.Pair;
@@ -136,8 +137,12 @@ public class Agent {
 		GraphicalVertex previousGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getKey());
 		GraphicalVertex nextGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getValue());
 
-		x = previousGoal.getX() * currentEdgeTravelRemain + nextGoal.getX() * currentEdgeTravelPart;
-		y = previousGoal.getY() * currentEdgeTravelRemain + nextGoal.getY() * currentEdgeTravelPart;
+		double previousGoalX = previousGoal.getX() * IntersectionModel.getPreferredHeight();
+		double nextGoalX = nextGoal.getX() * IntersectionModel.getPreferredHeight();
+		this.x = previousGoalX * currentEdgeTravelRemain + nextGoalX * currentEdgeTravelPart;
+		double previousGoalY = previousGoal.getY() * IntersectionModel.getPreferredHeight();
+		double nextGoalY = nextGoal.getY() * IntersectionModel.getPreferredHeight();
+		this.y = previousGoalY * currentEdgeTravelRemain + nextGoalY * currentEdgeTravelPart;
 	}
 
 	/**
@@ -166,5 +171,9 @@ public class Agent {
 	 */
 	public double getY() {
 		return y;
+	}
+
+	public double getArrivalTime() {
+		return arrivalTime;
 	}
 }

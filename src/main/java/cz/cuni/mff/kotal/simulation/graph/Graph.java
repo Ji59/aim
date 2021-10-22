@@ -102,6 +102,15 @@ public class Graph {
 	}
 
 	/**
+	 *
+	 * @param id ID of desired vertex
+	 * @return Vertex from this graph with specified ID
+	 */
+	public Vertex getVertex(long id) {
+		return vertices.get(id);
+	}
+
+	/**
 	 * @return Map of entries and exits in different directions
 	 */
 	public Map<Integer, List<Vertex>> getEntryExitVertices() {

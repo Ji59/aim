@@ -26,14 +26,16 @@ public class Simulation {
 	private final SimulationGraph intersectionGraph;
 
 	private final Map<Long, Agent> allAgents = new HashMap<>();
-	private final Set<Agent> currentAgents = Collections.synchronizedSet(new HashSet<>());
+	private final List<Agent> delayedAgents = new ArrayList<>();
 	private final Algorithm algorithm;
 
 	private final long newAgentsMinimum;
 	private final long newAgentsMaximum;
 	private final List<Long> distribution;
 
-	private long step;
+	private long step = 0;
+	private long agentsDelay;
+	private long agentsRejected;
 	private long collisions;
 
 	private long startTime;
@@ -41,6 +43,9 @@ public class Simulation {
 	private Timer timer;
 
 	private final SimulationAgents simulationAgents;
+
+	// TODO
+	public static long MAXIMUM_DELAY = 16;
 
 
 	/**
@@ -54,12 +59,12 @@ public class Simulation {
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
 		this.simulationAgents = simulationAgents;
-		step = 0;
 		newAgentsMinimum = AgentsMenuTab1.getNewAgentsMinimum().getValue();
 		newAgentsMaximum = AgentsMenuTab1.getNewAgentsMaximum().getValue();
 		distribution = AgentsMenuTab1.getDirectionDistribution().getChildren().stream().map(node -> ((AgentsMenuTab1.DirectionSlider) node).getValue()).collect(Collectors.toList());
 
 		startTime = System.nanoTime();
+		MAXIMUM_DELAY = intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
 	}
 
 	/**
@@ -96,6 +101,7 @@ public class Simulation {
 		long delay = isRunning() ? period : 0L;
 
 		if (!isRunning()) {
+			IntersectionMenu.setDelay(0);
 			IntersectionMenu.setCollisions(0);
 		}
 
@@ -133,6 +139,7 @@ public class Simulation {
 			timer.cancel();
 			timer = null;
 		}
+		delayedAgents.clear();
 	}
 
 	/**
@@ -145,13 +152,27 @@ public class Simulation {
 		return new TimerTask() {
 			@Override
 			public void run() {
+				step++;
 				long stepTime = System.nanoTime();
-				Set<Agent> newAgents = generateAgents(allAgents.size());
-				Set<Agent> plannedAgents = algorithm.planAgents(newAgents);
 
-				IntersectionMenu.setStep(++step);
+				List<Agent> newAgents = generateAgents(allAgents.size());
+				allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+				delayedAgents.addAll(newAgents);
+
+				List<Agent> plannedAgents = algorithm.planAgents(delayedAgents, step);
+				delayedAgents.removeAll(plannedAgents);
+				// TODO replace with iterator
+				List<Agent> rejectedAgents = delayedAgents.stream().filter(agent -> agent.getArrivalTime() < step - MAXIMUM_DELAY).collect(Collectors.toList());
+				delayedAgents.removeAll(rejectedAgents);
+
+				agentsRejected += rejectedAgents.size();
+				agentsDelay += delayedAgents.size();
+
+				IntersectionMenu.setStep(step);
+				IntersectionMenu.setDelay(agentsDelay);
+				IntersectionMenu.setRejections(agentsRejected);
+
 				plannedAgents.forEach(agent -> simulationAgents.addAgent(stepTime, agent));
-				allAgents.putAll(plannedAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 
 				System.out.println(step); // TODO
 			}
@@ -164,11 +185,11 @@ public class Simulation {
 	 * @param id ID of first generated agent; increases with reach generated agent
 	 * @return Set of newly generated agents
 	 */
-	protected Set<Agent> generateAgents(int id) {
+	protected List<Agent> generateAgents(int id) {
 		assert (distribution.stream().reduce(0L, Long::sum) == 100);
 		long newAgentsCount = generateRandomLong(newAgentsMinimum, newAgentsMaximum);
 
-		Set<Agent> newAgents = new HashSet<>();
+		List<Agent> newAgents = new ArrayList<>();
 		Map<Integer, List<Vertex>> entries = getEntriesExitsMap(true);
 		Map<Integer, List<Vertex>> exits = getEntriesExitsMap(false);
 
@@ -196,7 +217,6 @@ public class Simulation {
 	protected Agent generateAgent(int id, long entryValue, long exitValue, Map<Integer, List<Vertex>> entries, Map<Integer, List<Vertex>> exits) {
 		int entryDirection;
 		int exitDirection;
-		// TODO solve problem with multiple agents arriving at same time
 		for (entryDirection = 0; entryDirection < distribution.size() - 1 && entryValue >= distribution.get(entryDirection); entryDirection++) {
 			entryValue -= distribution.get(entryDirection);
 		}
@@ -271,11 +291,15 @@ public class Simulation {
 		long maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
 
 		double cellSize = intersectionGraph.getCellSize() * IntersectionModel.getPreferredHeight();
-		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.5, 0.5) * cellSize;
-		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.5, 0.5) * cellSize;
+		// TODO extract constants
+		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.7, 0.2) * cellSize;
+		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.55, 0.3) * cellSize;
 
-		return new Agent(id, entry.getID(), exit.getID(), speed, step, length, width, entry.getX(), entry.getY());
+		double entryX = entry.getX() * IntersectionModel.getPreferredHeight();
+		double entryY = entry.getY() * IntersectionModel.getPreferredHeight();
+		double arrivalTime = step + Math.exp(-Math.random()) * maxDeviation;
 
+		return new Agent(id, entry.getID(), exit.getID(), speed, arrivalTime, length, width, entryX, entryY);
 	}
 
 	/**
@@ -312,13 +336,6 @@ public class Simulation {
 	 */
 	public Collection<Agent> getAllAgents() {
 		return allAgents.values();
-	}
-
-	/**
-	 * @return Currently going agents
-	 */
-	public Collection<Agent> getCurrentAgents() {
-		return currentAgents;
 	}
 
 	/**

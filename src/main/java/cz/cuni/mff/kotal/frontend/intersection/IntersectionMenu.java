@@ -1,7 +1,10 @@
 package cz.cuni.mff.kotal.frontend.intersection;
 
 
+import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
+import cz.cuni.mff.kotal.backend.algorithm.Lines;
+import cz.cuni.mff.kotal.backend.algorithm.Semaphore;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3.Parameters.Statistics;
@@ -134,13 +137,18 @@ public class IntersectionMenu extends VBox {
 				newText = "Play";
 				IntersectionScene.stopSimulation();
 			} else {
+				SimulationGraph graph = IntersectionModel.getGraph();
+				Algorithm algorithm;
 				if (AlgorithmMenuTab2.Parameters.Algorithm.BFS.equals(AlgorithmMenuTab2.getAlgorithm())) {
-					SimulationGraph graph = IntersectionModel.getGraph();
-					BreadthFirstSearch bfs = new BreadthFirstSearch(graph);
-					IntersectionScene.startSimulation(bfs);
+					algorithm = new BreadthFirstSearch(graph);
+				} else if (AlgorithmMenuTab2.Parameters.Algorithm.LINES.equals(AlgorithmMenuTab2.getAlgorithm())) {
+					algorithm = new Lines(graph);
+				} else if (AlgorithmMenuTab2.Parameters.Algorithm.SEMAPHORE.equals(AlgorithmMenuTab2.getAlgorithm())) {
+					algorithm = new Semaphore(graph);
 				} else {
 					return;
 				}
+				IntersectionScene.startSimulation(algorithm);
 				newText = "Pause";
 			}
 			PLAY_BUTTON.setText(newText);
@@ -238,6 +246,30 @@ public class IntersectionMenu extends VBox {
 	}
 
 	/**
+	 * Set value of both rejections labels.
+	 *
+	 * @param delay Value to be shown on labels
+	 */
+	public static void setDelay(long delay) {
+		Platform.runLater(() -> {
+			DELAY_LABEL.setText(String.valueOf(delay));
+			SimulationMenuTab3.getDelayLabel().setText(String.valueOf(delay));
+		});
+	}
+
+	/**
+	 * Set value of both rejections labels.
+	 *
+	 * @param rejections Value to be shown on labels
+	 */
+	public static void setRejections(long rejections) {
+		Platform.runLater(() -> {
+			REJECTIONS_LABEL.setText(String.valueOf(rejections));
+			SimulationMenuTab3.getRejectionsLabel().setText(String.valueOf(rejections));
+		});
+	}
+
+	/**
 	 * Set value of both collision labels.
 	 *
 	 * @param collisions Value to be shown on labels
@@ -250,7 +282,7 @@ public class IntersectionMenu extends VBox {
 	}
 
 	/**
-	 * @return Label displaying total delay since start of the simulation
+	 * @return Label displaying total rejections since start of the simulation
 	 */
 	public static Label getDelayLabel() {
 		return DELAY_LABEL;

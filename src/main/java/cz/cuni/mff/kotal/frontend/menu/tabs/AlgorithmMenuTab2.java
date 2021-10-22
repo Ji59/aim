@@ -46,7 +46,6 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	}
 
 	/**
-	 *
 	 * @return Selected algorithm
 	 */
 	public static Parameters.Algorithm getAlgorithm() {
@@ -88,6 +87,8 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		 */
 		public enum Algorithm {
 			BFS("Breadth First Search", "Finds the shortest path for every agent."),
+			LINES("Follow lines", "Every agent follow line from start to end."),
+			SEMAPHORE("Semaphore", "Standard semaphore with direction limit."),
 			A0("Algorithm0", "Description of alg0"),
 			A1("Algorithm1", "Description of alg1"),
 			A2("Algorithm2", "Description of alg2"),

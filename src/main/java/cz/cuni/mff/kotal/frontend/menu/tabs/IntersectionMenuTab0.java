@@ -280,9 +280,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		 * Supported intersection model types.
 		 */
 		public enum Models {
-			SQUARE("Square grid", Arrays.asList('N', 'S', 'W', 'E')),
+			SQUARE("Square grid", Arrays.asList('N', 'E', 'S', 'W')),
 			HEXAGONAL("Hexagonal grid", Arrays.asList('A', 'B', 'C', 'D', 'E', 'F')),
-			OCTAGONAL("Octagonal grid", Arrays.asList('N', 'S', 'W', 'E')),
+			OCTAGONAL("Octagonal grid", Arrays.asList('N', 'E', 'S', 'W')),
 			CUSTOM("Custom intersection", new ArrayList<>()),
 			;
 

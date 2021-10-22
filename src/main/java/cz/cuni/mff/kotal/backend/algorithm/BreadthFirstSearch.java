@@ -39,21 +39,23 @@ public class BreadthFirstSearch implements Algorithm {
 	 * Plan all agents using BFS without any collision check.
 	 *
 	 * @param agents Set of agents to be planned
+	 * @param step   Number of step in which agents should be planned
 	 * @return Set of successfully planned agents
 	 */
 	@Override
-	public Set<Agent> planAgents(Set<Agent> agents) {
-		return agents.stream().filter(agent -> planAgent(agent) != null).collect(Collectors.toSet());
+	public List<Agent> planAgents(List<Agent> agents, long step) {
+		return agents.stream().filter(agent -> planAgent(agent, step) != null).collect(Collectors.toList());
 	}
 
 	/**
 	 * Plan agent using BFS on saved graph.
 	 *
 	 * @param agent Agent to be planned
+	 * @param step
 	 * @return Agent if successfully planned otherwise null
 	 */
 	@Override
-	public Agent planAgent(Agent agent) {
+	public Agent planAgent(Agent agent, long step) {
 		try {
 			agent.setPath(bfs(agent.getStart(), agent.getEnd()));
 		} catch (Exception e) {

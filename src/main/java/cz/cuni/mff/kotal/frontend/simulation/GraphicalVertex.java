@@ -38,6 +38,12 @@ public class GraphicalVertex extends Vertex {
 		this.y = y;
 	}
 
+	protected GraphicalVertex(GraphicalVertex vertex) {
+		super(vertex);
+		this.x = vertex.getX();
+		this.y = vertex.getY();
+	}
+
 	/**
 	 * @return Coordinate X of the vertex
 	 */

@@ -116,11 +116,12 @@ public class IntersectionScene extends Scene {
 	}
 
 	/**
-	 * Stop running simulation.
+	 * Stop simulation if running.
 	 */
 	public static void stopSimulation() {
-		assert simulation != null;
-		simulation.stop();
+		if (simulation != null) {
+			simulation.stop();
+		}
 	}
 
 	/**
