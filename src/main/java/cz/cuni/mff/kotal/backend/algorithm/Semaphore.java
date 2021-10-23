@@ -1,9 +1,7 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
 import cz.cuni.mff.kotal.simulation.Agent;
-import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
-import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,13 +25,13 @@ public class Semaphore implements Algorithm {
 			.orElse(0);
 
 		directions = graph.getModel().getDirections().size() / 2;
-		directionTime = Simulation.MAXIMUM_DELAY / (directions - 1); // TODO zero division
+		directionTime =( graph.getGranularity() * graph.getEntryExitVertices().size()) / (directions - 1); // TODO zero division TODO extract method
 		greenTime = Math.max(1, directionTime - longestPath);
 	}
 
 	@Override
 	public List<Agent> planAgents(List<Agent> agents, long step) {
-		if (step % directionTime > greenTime) {
+		if (step % directionTime >= greenTime) {
 			return new ArrayList<>();
 		}
 
