@@ -69,25 +69,6 @@ public abstract class SimulationGraph extends Graph {
 		this.edges = graph.getEdges();
 	}
 
-	/**
-	 * Check if the graph is same as another graph.
-	 * That means they are same model, have same granularity, size and orientation and same number of entries and exits.
-	 *
-	 * @param o Compared object
-	 * @return True if the object is graph and has same key features
-	 */
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof SimulationGraph graph)) return false;
-		return oriented == graph.oriented && granularity == graph.granularity && entries == graph.entries && exits == graph.exits && getModel() == graph.getModel();
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(oriented, granularity, entries, exits, getModel());
-	}
-
 	public Map<Long, Map<Long, List<Long>>> getLines() {
 		if (shortestPaths == null) {
 			shortestPaths = new HashMap<>((int) (entries * getModel().getDirections().size()));
@@ -134,6 +115,29 @@ public abstract class SimulationGraph extends Graph {
 			vertices.put(neighbourID, neighbourVertexWithDirection);
 			dfs(vertices, neighbourVertexWithDirection);
 		}
+	}
+
+	private void bfs() {
+		
+	}
+
+	/**
+	 * Check if the graph is same as another graph.
+	 * That means they are same model, have same granularity, size and orientation and same number of entries and exits.
+	 *
+	 * @param o Compared object
+	 * @return True if the object is graph and has same key features
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof SimulationGraph graph)) return false;
+		return oriented == graph.oriented && granularity == graph.granularity && entries == graph.entries && exits == graph.exits && getModel() == graph.getModel();
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(oriented, granularity, entries, exits, getModel());
 	}
 
 	/**
