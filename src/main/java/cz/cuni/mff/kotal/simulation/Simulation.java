@@ -159,20 +159,29 @@ public class Simulation {
 				allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 				delayedAgents.addAll(newAgents);
 
-				List<Agent> plannedAgents = algorithm.planAgents(delayedAgents, step);
+				Map<Long, Agent> entriesAgents = new HashMap<>();
+				delayedAgents.forEach(agent -> {
+					if (!entriesAgents.containsKey(agent.getStart())) {
+						entriesAgents.put(agent.getStart(), agent);
+					}
+				});
+
+				Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents.values(), step);
+				plannedAgents.forEach(agent -> simulationAgents.addAgent(stepTime, agent));
+
 				delayedAgents.removeAll(plannedAgents);
 				// TODO replace with iterator
-				List<Agent> rejectedAgents = delayedAgents.stream().filter(agent -> agent.getArrivalTime() < step - MAXIMUM_DELAY).collect(Collectors.toList());
+				Set<Agent> rejectedAgents = delayedAgents.parallelStream().filter(agent -> agent.getArrivalTime() < step - MAXIMUM_DELAY).collect(Collectors.toSet());
 				delayedAgents.removeAll(rejectedAgents);
 
 				agentsRejected += rejectedAgents.size();
 				agentsDelay += delayedAgents.size();
 
+				agentsDelay += plannedAgents.stream().mapToLong(agent -> agent.getPath().size() - intersectionGraph.getLines().get(agent.getStart()).get(agent.getEnd()).size()).sum();
+
 				IntersectionMenu.setStep(step);
 				IntersectionMenu.setDelay(agentsDelay);
 				IntersectionMenu.setRejections(agentsRejected);
-
-				plannedAgents.forEach(agent -> simulationAgents.addAgent(stepTime, agent));
 
 				System.out.println(step); // TODO
 			}
@@ -215,6 +224,8 @@ public class Simulation {
 	 * @return Newly generated agent
 	 */
 	protected Agent generateAgent(int id, long entryValue, long exitValue, Map<Integer, List<Vertex>> entries, Map<Integer, List<Vertex>> exits) {
+		// FIXME No agents from E to S in square
+		// TODO generate only directions
 		int entryDirection;
 		int exitDirection;
 		for (entryDirection = 0; entryDirection < distribution.size() - 1 && entryValue >= distribution.get(entryDirection); entryDirection++) {

@@ -21,11 +21,11 @@ public class SquareGraph extends SimulationGraph {
 	public SquareGraph(long granularity, long entries, long exits) {
 		super(SQUARE, granularity, entries, exits);
 
-		double shift = getCellSize();
+		cellSize = 1. / (granularity + 2);
 
-		createSquareGraphVertices(shift, false);
+		createSquareGraphVertices(cellSize, false);
 
-		createSquareGraphEntryVertices(entries, exits, shift, false);
+		createSquareGraphEntryVertices(entries, exits, cellSize, false);
 	}
 
 	/**
@@ -238,6 +238,6 @@ public class SquareGraph extends SimulationGraph {
 
 	@Override
 	public double getCellSize() {
-		return 1. / (granularity + 2);
+		return cellSize;
 	}
 }

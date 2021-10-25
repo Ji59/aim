@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.backend.algorithm;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -15,7 +16,7 @@ public class Lines implements Algorithm {
 	}
 
 	@Override
-	public List<Agent> planAgents(List<Agent> agents, long step) {
+	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
 		return agents.stream().map(agent -> planAgent(agent, step)).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 

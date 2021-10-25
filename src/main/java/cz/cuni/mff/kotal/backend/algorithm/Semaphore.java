@@ -25,12 +25,12 @@ public class Semaphore implements Algorithm {
 			.orElse(0);
 
 		directions = graph.getModel().getDirections().size() / 2;
-		directionTime =( graph.getGranularity() * graph.getEntryExitVertices().size()) / (directions - 1); // TODO zero division TODO extract method
+		directionTime = (graph.getGranularity() * graph.getEntryExitVertices().size()) / (directions - 1); // TODO zero division TODO extract method
 		greenTime = Math.max(1, directionTime - longestPath);
 	}
 
 	@Override
-	public List<Agent> planAgents(List<Agent> agents, long step) {
+	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
 		if (step % directionTime >= greenTime) {
 			return new ArrayList<>();
 		}
@@ -62,23 +62,26 @@ public class Semaphore implements Algorithm {
 
 	private boolean agentGoingStraight(Agent agent) {
 		return Math.abs(
-			(
-				graph.getVertex(agent.getStart()).getType().getDirection() -
-					graph.getVertex(agent.getEnd()).getType().getDirection()
-			)
-		) == graph.getEntryExitVertices().size();
+			graph.getVertex(agent.getStart()).getType().getDirection() -
+				graph.getVertex(agent.getEnd()).getType().getDirection()
+		) % directions == 0;
 	}
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
 		List<Long> path = graph.getLines().get(agent.getStart()).get(agent.getEnd());
 		for (int i = 0; i < path.size(); i++) {
-			if (stepOccupiedVertices.containsKey(step + i)) {
-				if (stepOccupiedVertices.get(step + i).containsKey(path.get(i))) {
+			long actualStep = step + i;
+			if (stepOccupiedVertices.containsKey(actualStep)) {
+				if (stepOccupiedVertices.get(actualStep).containsKey(path.get(i)) ||
+					(i >= 1 && stepOccupiedVertices.containsKey(actualStep - 1) &&
+						stepOccupiedVertices.get(actualStep - 1).containsKey(path.get(i)) &&
+						stepOccupiedVertices.get(actualStep - 1).get(path.get(i)) == stepOccupiedVertices.get(actualStep).get(path.get(i - 1)))
+				) {
 					return null;
 				}
 			} else {
-				stepOccupiedVertices.put(step + i, new HashMap<>());
+				stepOccupiedVertices.put(actualStep, new HashMap<>());
 			}
 		}
 

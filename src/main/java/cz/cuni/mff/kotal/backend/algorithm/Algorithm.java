@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.backend.algorithm;
 
 import cz.cuni.mff.kotal.simulation.Agent;
 
+import java.util.Collection;
 import java.util.List;
 
 
@@ -15,7 +16,7 @@ public interface Algorithm {
 	 * @param step   Number of step in which agents should be planned
 	 * @return Set of agents which had been successfully planned
 	 */
-	List<Agent> planAgents(List<Agent> agents, long step);
+	Collection<Agent> planAgents(Collection<Agent> agents, long step);
 
 	/**
 	 * Try to plan agent with an algorithm.

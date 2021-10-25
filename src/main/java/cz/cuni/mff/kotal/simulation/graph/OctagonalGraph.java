@@ -18,9 +18,9 @@ public class OctagonalGraph extends SquareGraph {
 	 */
 	public OctagonalGraph(long granularity, long entries, long exits) {
 		super(OCTAGONAL, granularity, entries, exits, 1. / (granularity + 2), true);
-		final double shift = getCellSize();
+		cellSize = 1. / (granularity + 2);
 
-		createOctagonalGraphInBetweenVertices(shift);
+		createOctagonalGraphInBetweenVertices(cellSize);
 
 	}
 
@@ -101,7 +101,7 @@ public class OctagonalGraph extends SquareGraph {
 
 	@Override
 	public double getCellSize() {
-		return 1. / (granularity + 2);
+		return cellSize;
 	}
 
 	/**

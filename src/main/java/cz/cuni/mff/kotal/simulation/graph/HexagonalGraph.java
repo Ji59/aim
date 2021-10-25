@@ -20,12 +20,11 @@ public class HexagonalGraph extends SimulationGraph {
 	public HexagonalGraph(long granularity, long entries, long exits) {
 		super(HEXAGONAL, granularity, entries, exits);
 
+		cellSize = 1. / (2 * granularity + 1);
 
-		double shift = getCellSize();
+		createHexagonalGraphRoadVertices(cellSize);
 
-		createHexagonalGraphRoadVertices(shift);
-
-		createHexagonalGraphEntriesExits(entries, exits, shift);
+		createHexagonalGraphEntriesExits(entries, exits, cellSize);
 	}
 
 	/**
@@ -300,6 +299,6 @@ public class HexagonalGraph extends SimulationGraph {
 
 	@Override
 	public double getCellSize() {
-		return 1. / (2 * granularity + 1);
+		return cellSize;
 	}
 }

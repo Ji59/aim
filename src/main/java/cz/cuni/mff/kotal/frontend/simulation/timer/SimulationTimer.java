@@ -37,7 +37,7 @@ public class SimulationTimer extends AnimationTimer {
 	 */
 	@Override
 	public void handle(long now) {
-		simulationAgents.resetRectangles();
+//		simulationAgents.resetRectangles();
 		synchronized (agents) {
 			Set<Map.Entry<Long, AgentPane>> finishedAgents = agents.entrySet().stream().filter(a -> !a.getValue().isDisable()).filter(entry -> entry.getValue().handleTick(now)).collect(Collectors.toSet());
 			finishedAgents.forEach(simulationAgents::removeAgent);

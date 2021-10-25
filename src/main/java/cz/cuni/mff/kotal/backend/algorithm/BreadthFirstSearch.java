@@ -43,7 +43,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 * @return Set of successfully planned agents
 	 */
 	@Override
-	public List<Agent> planAgents(List<Agent> agents, long step) {
+	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
 		return agents.stream().filter(agent -> planAgent(agent, step) != null).collect(Collectors.toList());
 	}
 

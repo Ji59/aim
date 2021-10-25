@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,11 +14,13 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Paramete
  * Graph with added attributes for graphical usage.
  */
 public abstract class SimulationGraph extends Graph {
-	public static final double EPSILON = 1e-7;
+	public static final double EPSILON = 1e-2;
 	protected final long granularity;
 	protected final long entries;
 	protected final long exits;
 	protected Map<Long, Map<Long, List<Long>>> shortestPaths;
+
+	protected double cellSize;
 
 	/**
 	 * Create new simulation graph.
@@ -88,8 +91,9 @@ public abstract class SimulationGraph extends Graph {
 	private Map<Long, List<Long>> shortestPaths(GraphicalVertex start) {
 
 		VertexWithDirection startWithDirection = new VertexWithDirection(start);
-		HashMap<Long, VertexWithDirection> allPaths = new HashMap<>();
-		dfs(allPaths, startWithDirection);
+		Map<Long, VertexWithDirection> allPaths = bfs(startWithDirection);
+//		HashMap<Long, VertexWithDirection> allPaths = new HashMap<>();
+//		dfs(allPaths, startWithDirection);
 
 		Map<Long, List<Long>> paths = new HashMap<>();
 		entryExitVertices.values().stream()
@@ -111,14 +115,29 @@ public abstract class SimulationGraph extends Graph {
 					continue;
 				}
 			}
-			VertexWithDirection neighbourVertexWithDirection = new VertexWithDirection(vertex, neighbourVertex);
+			VertexWithDirection neighbourVertexWithDirection = new VertexWithDirection(vertex, neighbourVertex, getCellSize());
 			vertices.put(neighbourID, neighbourVertexWithDirection);
 			dfs(vertices, neighbourVertexWithDirection);
 		}
 	}
 
-	private void bfs() {
-		
+	private Map<Long, VertexWithDirection> bfs(VertexWithDirection startingVertex) {
+		Map<Long, VertexWithDirection> vertexDistances = new HashMap<>(vertices.size());
+		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
+		queue.add(startingVertex);
+
+		while (!queue.isEmpty()) {
+			VertexWithDirection vertex = queue.poll();
+			if (!vertexDistances.containsKey(vertex.getID())) {
+				vertexDistances.put(vertex.getID(), vertex);
+				for (long neighbourID : vertex.getNeighbourIDs()) {
+					if (!vertexDistances.containsKey(neighbourID)) {
+						queue.add(new VertexWithDirection(vertex, (GraphicalVertex) vertices.get(neighbourID), getCellSize()));
+					}
+				}
+			}
+		}
+		return vertexDistances;
 	}
 
 	/**
@@ -184,23 +203,23 @@ public abstract class SimulationGraph extends Graph {
 	 */
 	public abstract double getCellSize();
 
-	private static class VertexWithDirection extends GraphicalVertex {
+	private static class VertexWithDirection extends GraphicalVertex implements Comparable<VertexWithDirection> {
 		private final double angle;
 		private final double distance;
 		private final List<Long> path;
 
 		public VertexWithDirection(GraphicalVertex vertex) {
 			super(vertex);
-			this.angle = Math.atan2(vertex.getX(), vertex.getY());
+			this.angle = 0;
 			this.distance = 0;
 			path = Collections.singletonList(vertex.getID());
 		}
 
-		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual) {
+		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, double cellDistance) {
 			super(actual);
 
-			double xDiff = actual.getX() - previous.getX();
-			double yDiff = actual.getY() - previous.getY();
+			double xDiff = getX() - previous.getX();
+			double yDiff = getY() - previous.getY();
 
 			double verticesDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
 			this.angle = Math.atan2(yDiff, xDiff);
@@ -208,7 +227,12 @@ public abstract class SimulationGraph extends Graph {
 			if (angleDiff > Math.PI) {
 				angleDiff -= Math.PI;
 			}
-			this.distance = previous.getDistance() + verticesDistance + angleDiff * EPSILON;
+
+			double middleDistanceX = getX() - 0.5;
+			double middleDistanceY = getY() - 0.5;
+			double middleDistance = Math.sqrt(middleDistanceX * middleDistanceX + middleDistanceY * middleDistanceY);
+
+			this.distance = previous.getDistance() + verticesDistance / cellDistance + angleDiff * EPSILON + middleDistance * EPSILON * EPSILON;
 
 			this.path = new ArrayList<>(previous.getPath());
 			this.path.add(this.getID());
@@ -242,6 +266,11 @@ public abstract class SimulationGraph extends Graph {
 				angleDiff -= Math.PI;
 			}
 			return start.getDistance() + verticesDistance + angleDiff * EPSILON;
+		}
+
+		@Override
+		public int compareTo(@NotNull SimulationGraph.VertexWithDirection o) {
+			return Double.compare(distance, o.getDistance());
 		}
 	}
 }
