@@ -1,14 +1,18 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
 
+import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 
 
 public class BreadthFirstSearch implements Algorithm {
@@ -16,6 +20,7 @@ public class BreadthFirstSearch implements Algorithm {
 
 	/**
 	 * Create new instance working with graph from provided simulation.
+	 * FIXME
 	 *
 	 * @param simulation
 	 */
@@ -28,36 +33,28 @@ public class BreadthFirstSearch implements Algorithm {
 	 *
 	 * @param graph Graph to search on
 	 */
-	public BreadthFirstSearch(Graph graph) {
+	public BreadthFirstSearch(SimulationGraph graph) {
 		vertices = graph.getVertices()
 			.stream()
-			.map(vertex -> new VertexWithVisit(vertex.getID(), vertex.getType(), vertex.getNeighbourIDs()))
+			.map(vertex -> new VertexWithVisit((GraphicalVertex) vertex))
 			.collect(Collectors.toMap(Vertex::getID, Function.identity()));
-	}
-
-	/**
-	 * Plan all agents using BFS without any collision check.
-	 *
-	 * @param agents Set of agents to be planned
-	 * @param step   Number of step in which agents should be planned
-	 * @return Set of successfully planned agents
-	 */
-	@Override
-	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
-		return agents.stream().filter(agent -> planAgent(agent, step) != null).collect(Collectors.toList());
 	}
 
 	/**
 	 * Plan agent using BFS on saved graph.
 	 *
 	 * @param agent Agent to be planned
-	 * @param step
+	 * @param step  Actual step of simulation, ignored
 	 * @return Agent if successfully planned otherwise null
 	 */
 	@Override
 	public Agent planAgent(Agent agent, long step) {
+		if (agent.getExit() < 0) {
+			List<VertexWithVisit> directionExits = vertices.values().stream().filter(vertex -> vertex.getType().isExit() && vertex.getType().getDirection() == agent.getExitDirection()).collect(Collectors.toList());
+			agent.setExit(directionExits.get(generateRandomInt(directionExits.size() - 1)));
+		}
 		try {
-			agent.setPath(bfs(agent.getStart(), agent.getEnd()));
+			agent.setPath(bfs(agent.getEntry(), agent.getExit()));
 		} catch (Exception e) {
 			return null;
 		}
@@ -112,7 +109,7 @@ public class BreadthFirstSearch implements Algorithm {
 	/**
 	 * Vertex with saved path to it.
 	 */
-	private static class VertexWithVisit extends Vertex {
+	private static class VertexWithVisit extends GraphicalVertex {
 		private boolean visited = false;
 		private List<Long> path;
 
@@ -123,8 +120,8 @@ public class BreadthFirstSearch implements Algorithm {
 		 * @param type         Type of the vertex
 		 * @param neighbourIDs Set of neighbour vertices of the vertex
 		 */
-		public VertexWithVisit(long id, Type type, Set<Long> neighbourIDs) {
-			super(id, type, neighbourIDs);
+		public VertexWithVisit(long id, double x, double y, Type type, Set<Long> neighbourIDs) {
+			super(id, x, y, type, neighbourIDs);
 		}
 
 		/**
@@ -133,8 +130,12 @@ public class BreadthFirstSearch implements Algorithm {
 		 * @param id   ID of the vertex
 		 * @param type Type of the vertex
 		 */
-		public VertexWithVisit(long id, Type type) {
-			super(id, type);
+		public VertexWithVisit(long id, double x, double y, Type type) {
+			super(id, x, y, type);
+		}
+
+		public VertexWithVisit(GraphicalVertex vertex) {
+			super(vertex);
 		}
 
 		/**

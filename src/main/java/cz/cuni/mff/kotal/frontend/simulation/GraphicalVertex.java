@@ -3,6 +3,8 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
+import java.util.Set;
+
 
 /**
  * Vertex with added coordinates.
@@ -44,6 +46,12 @@ public class GraphicalVertex extends Vertex {
 		this.y = vertex.getY();
 	}
 
+	public GraphicalVertex(long id, double x, double y, Type type, Set<Long> neighbourIDs) {
+		super(id, type, neighbourIDs);
+		this.x = x;
+		this.y = y;
+	}
+
 	/**
 	 * @return Coordinate X of the vertex
 	 */
@@ -58,4 +66,6 @@ public class GraphicalVertex extends Vertex {
 	public double getY() {
 		return y;
 	}
+
+
 }

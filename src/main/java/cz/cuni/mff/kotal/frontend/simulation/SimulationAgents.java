@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -51,7 +52,8 @@ public class SimulationAgents extends Pane {
 	 */
 	public void addAgent(long startTime, Agent agent, double period) {
 		long agentID = agent.getId();
-		AgentPane agentPane = new AgentPane(startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs());
+		double cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight();
+		AgentPane agentPane = new AgentPane(startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
 
 		synchronized (agents) {
 			agents.put(agentID, agentPane);

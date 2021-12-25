@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
-import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import javafx.scene.paint.Color;
 
 import java.util.Arrays;
@@ -74,23 +73,13 @@ public class Vertex {
 		return neighbourIds.addAll(Arrays.asList(ids));
 	}
 
-	/**
-	 * Compare vertex to another object.
-	 *
-	 * @param o Object to compare to
-	 * @return True if the object is vertex and has the same ID
-	 */
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Vertex vertex = (Vertex) o;
+		if (!(o instanceof Vertex vertex)) return false;
 		return id == vertex.id;
 	}
 
-	/**
-	 * @return Hash generated using ID
-	 */
 	@Override
 	public int hashCode() {
 		return Objects.hash(id);
@@ -139,17 +128,20 @@ public class Vertex {
 
 		private final Color color;
 		private final boolean entry;
+		private final boolean exit;
 		private final int direction;
 
 		Type(Color color) {
 			this.color = color;
 			entry = false;
+			exit = false;
 			direction = -1;
 		}
 
 		Type(Color color, boolean entry, int direction) {
 			this.color = color;
 			this.entry = entry;
+			this.exit = !entry;
 			this.direction = direction;
 		}
 
@@ -172,6 +164,13 @@ public class Vertex {
 		 */
 		public boolean isEntry() {
 			return entry;
+		}
+
+		/**
+		 * @return True if this vertex is exit one, otherwise False
+		 */
+		public boolean isExit() {
+			return exit;
 		}
 	}
 }

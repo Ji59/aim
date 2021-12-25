@@ -27,7 +27,7 @@ class AgentTest {
 
 	@BeforeEach
 	void startUp() {
-		agent = new Agent(id, start, end, speed, arrivalTime, l, w, x, y);
+		agent = new Agent(id, start, end, 0, 0, speed, arrivalTime, l, w, x, y); // FIXME fix entry / exit directions
 		path = new ArrayList<>();
 		vertices = new HashMap<>();
 		for (long i = start; i <= end; i++) {
@@ -37,7 +37,7 @@ class AgentTest {
 		}
 		agent.setPath(path);
 
-		nonTrivialAgent = new Agent(1, 0, 4, 1.25, nonTrivialArrivalTime, 1, 1, 0, 1);
+		nonTrivialAgent = new Agent(1, 0, 4, 0, 0, 1.25, nonTrivialArrivalTime, 1, 1, 0, 1); // FIXME fix entry / exit directions
 		nonTrivialAgent.setPath(path.subList(0, 5));
 	}
 

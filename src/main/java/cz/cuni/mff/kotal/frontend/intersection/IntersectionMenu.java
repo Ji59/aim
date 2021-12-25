@@ -18,6 +18,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 
@@ -37,6 +39,7 @@ public class IntersectionMenu extends VBox {
 	private static final Button RESTART_BUTTON = new Button("Restart");
 	private static final Button SAVE_AGENTS_BUTTON = new Button("Save agents");
 
+	private static final Label AGENTS_LABEL = new Label("#n");
 	private static final Label STEPS_LABEL = new Label("#n");
 	private static final Label DELAY_LABEL = new Label("#n");
 	private static final Label REJECTIONS_LABEL = new Label("#n");
@@ -96,7 +99,7 @@ public class IntersectionMenu extends VBox {
 		SAVE_AGENTS_BUTTON.setPrefWidth(Double.MAX_VALUE);
 
 		GridPane statistics = new GridPane();
-		Map<Statistics, Label> labels = Map.of(Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL, Statistics.REMAINS, REMAINING_LABEL);
+		Map<Statistics, Label> labels = Map.of(Statistics.AGENTS, AGENTS_LABEL, Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL, Statistics.REMAINS, REMAINING_LABEL);
 		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
 		PLAY_BUTTON.setVisible(true);
@@ -138,16 +141,28 @@ public class IntersectionMenu extends VBox {
 				IntersectionScene.stopSimulation();
 			} else {
 				SimulationGraph graph = IntersectionModel.getGraph();
-				Algorithm algorithm;
-				if (AlgorithmMenuTab2.Parameters.Algorithm.BFS.equals(AlgorithmMenuTab2.getAlgorithm())) {
-					algorithm = new BreadthFirstSearch(graph);
-				} else if (AlgorithmMenuTab2.Parameters.Algorithm.LINES.equals(AlgorithmMenuTab2.getAlgorithm())) {
-					algorithm = new Lines(graph);
-				} else if (AlgorithmMenuTab2.Parameters.Algorithm.SEMAPHORE.equals(AlgorithmMenuTab2.getAlgorithm())) {
-					algorithm = new Semaphore(graph);
-				} else {
+				AlgorithmMenuTab2.Parameters.Algorithm algorithmEnum = AlgorithmMenuTab2.getAlgorithm();
+				if (algorithmEnum == null) {
+					// TODO exception
 					return;
 				}
+				Algorithm algorithm = null;
+				try {
+					// TODO
+					algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class).newInstance(graph);
+				} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
+					ex.printStackTrace();
+					return;
+				}
+//				if (AlgorithmMenuTab2.Parameters.Algorithm.BFS.equals(algorithmEnum)) {
+//					algorithm = new BreadthFirstSearch(graph);
+//				} else if (AlgorithmMenuTab2.Parameters.Algorithm.LINES.equals(algorithmEnum)) {
+//					algorithm = new Lines(graph);
+//				} else if (AlgorithmMenuTab2.Parameters.Algorithm.SEMAPHORE.equals(algorithmEnum)) {
+//					algorithm = new Semaphore(graph);
+//				} else {
+//					return;
+//				}
 				IntersectionScene.startSimulation(algorithm);
 				newText = "Pause";
 			}
@@ -227,10 +242,29 @@ public class IntersectionMenu extends VBox {
 	}
 
 	/**
+	 * @return Label for number of agents that arrived
+	 */
+	public static Label getAgentsLabel() {
+		return AGENTS_LABEL;
+	}
+
+	/**
 	 * @return Step label node
 	 */
 	public static Label getStepsLabel() {
 		return STEPS_LABEL;
+	}
+
+	/**
+	 * Set value of both agent labels. Should be total number of agents that arrived.
+	 *
+	 * @param agents Value to be shown on agent labels
+	 */
+	public static void setAgents(long agents) {
+		Platform.runLater(() -> {
+			AGENTS_LABEL.setText(String.valueOf(agents));
+			SimulationMenuTab3.getAgentsLabel().setText(String.valueOf(agents));
+		});
 	}
 
 	/**

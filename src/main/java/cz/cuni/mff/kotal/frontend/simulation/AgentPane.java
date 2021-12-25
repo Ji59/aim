@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
@@ -47,7 +48,7 @@ public class AgentPane extends StackPane {
 	 * @param period             Delay between steps
 	 * @param simulationVertices Intersection vertices the agent is travelling on
 	 */
-	public AgentPane(long startTime, Agent agent, double period, Map<Long, Vertex> simulationVertices) {
+	public AgentPane(long startTime, Agent agent, double period, Map<Long, Vertex> simulationVertices, double cellSize) {
 		this.agent = agent;
 		this.distanceTraveled = 0;
 		this.startTime = startTime;
@@ -55,7 +56,7 @@ public class AgentPane extends StackPane {
 		this.simulationVertices = simulationVertices;
 
 		// Create rectangle representing agent
-		rectangle = new Rectangle(agent.getW(), agent.getL());
+		rectangle = new Rectangle(agent.getW() * cellSize, agent.getL() * cellSize);
 
 		// TODO change to label
 		// Create ID text field
@@ -74,8 +75,8 @@ public class AgentPane extends StackPane {
 		rectangle.setFill(Color.rgb(generateRandomInt(255), generateRandomInt(255), generateRandomInt(255)));
 
 		// TODO set proper agent size
-		setPrefWidth(agent.getW());
-		setPrefHeight(agent.getL());
+		setPrefWidth(getW());
+		setPrefHeight(getL());
 
 		getChildren().addAll(rectangle, text);
 
@@ -108,8 +109,8 @@ public class AgentPane extends StackPane {
 //			setLayoutX(agent.getX() - agent.getL() / 2);
 //			setLayoutY(agent.getY() - agent.getW() / 2);
 		// TODO if agents too small the box is spawned at wrong position
-		setLayoutX(agent.getX() - (getWidth() == 0 ? agent.getW() / 2 : getWidth() / 2));
-		setLayoutY(agent.getY() - (getHeight() == 0 ? agent.getL() / 2 : getHeight() / 2));
+		setLayoutX(agent.getX() - (getWidth() == 0 ? getW() / 2 : getWidth() / 2));
+		setLayoutY(agent.getY() - (getHeight() == 0 ? getL() / 2 : getHeight() / 2));
 	}
 
 	/**
@@ -178,8 +179,8 @@ public class AgentPane extends StackPane {
 		double sinAngle = Math.sin(radianAngle);
 		double cosAngle = Math.cos(radianAngle);
 
-		double halfWidth = agent.getW() / 2;
-		double halfHeight = agent.getL() / 2;
+		double halfWidth = getW() / 2;
+		double halfHeight = getL() / 2;
 
 		double sx = getLayoutX() + getWidth() / 2;
 		double sy = getLayoutY() + getHeight() / 2;
@@ -288,6 +289,16 @@ public class AgentPane extends StackPane {
 	 */
 	void setAngle(double angle) {
 		this.angle = angle;
+	}
+
+	//TODO
+	double getL() {
+		return rectangle.getHeight();
+	}
+
+	//TODO
+	double getW() {
+		return rectangle.getWidth();
 	}
 
 	/**

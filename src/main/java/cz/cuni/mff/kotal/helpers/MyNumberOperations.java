@@ -1,6 +1,8 @@
 package cz.cuni.mff.kotal.helpers;
 
 
+import cz.cuni.mff.kotal.frontend.simulation.Point;
+
 /**
  * Class with special number operations.
  */
@@ -54,5 +56,32 @@ public class MyNumberOperations {
 			angle = 180 + angle;
 		}
 		return 360 - angle;
+	}
+
+	/**
+	 * Computes modulo and convert result to non-negative numbers.
+	 *
+	 * @param number Input number to modify
+	 * @param modulo Number taken as base
+	 * @return Positive modulo of number
+	 */
+	public static long myModulo(long number, long modulo) {
+		long result = number % modulo;
+		return result >= 0 ? result : modulo + result;
+	}
+
+	// TODO
+	public static double distance(double x0, double y0, double x1, double y1) {
+		double xDiff = x1 - x0;
+		double yDiff = y1 - y0;
+		return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
+	}
+
+	public static double distance(Point p0, Point p1) {
+		return distance(p0.getX(), p0.getY(), p1.getX(), p1.getY());
+	}
+
+	public static double perimeter(double l, double w) {
+		return Math.sqrt(l * l + w * w) / 2;
 	}
 }

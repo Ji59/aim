@@ -267,10 +267,16 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	}
 
 	/**
-	 * @return Steps text field
+	 * @return Maximum number of step in which are agents generated.
 	 */
-	public static TextField getSteps() {
-		return steps;
+	public static long getSteps() {
+		long stepsValue;
+		try {
+			stepsValue = Long.parseLong(steps.getText());
+		} catch (NumberFormatException ignored) {
+			stepsValue = 0;
+		}
+		return stepsValue;
 	}
 
 	/**

@@ -14,7 +14,7 @@ public class AgentPaneTest {
 	public static final double LENGTH = 100;
 	public static final double HALF_LENGTH = LENGTH / 2;
 	public static final double WIDTH = 70;
-	public static final Agent AGENT = new Agent(0, 0, 1, 1, 0, LENGTH, WIDTH, 300, 69);
+	public static final Agent AGENT = new Agent(0, 0, 1, 0, 0, 1, 0, LENGTH, WIDTH, 300, 69); // FIXME fix entry / exit directions
 	public static final AgentPane AGENT_PANE = new AgentPane(AGENT);
 	public static final double DIAGONAL_ANGLE = Math.atan(WIDTH / LENGTH);
 	public static final double HALF_DIAGONAL = Math.sqrt(LENGTH * LENGTH + WIDTH * WIDTH) / 2;
@@ -138,7 +138,7 @@ public class AgentPaneTest {
 	}
 
 	private void checkCornersAtAngle2(double length, double width, boolean inverted, boolean plus90) {
-		Agent agent = new Agent(0, 0, 1, 1, 0, length, width, CENTER_X, CENTER_Y);
+		Agent agent = new Agent(0, 0, 1, 0, 0, 1, 0, length, width, CENTER_X, CENTER_Y); // FIXME entry / exit directions
 
 		AgentPane agentPane = setAgentPaneParameters(new AgentPane(agent));
 

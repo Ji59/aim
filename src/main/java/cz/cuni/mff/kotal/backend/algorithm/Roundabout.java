@@ -1,0 +1,213 @@
+package cz.cuni.mff.kotal.backend.algorithm;
+
+import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.simulation.Agent;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph.VertexWithDirection;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import javafx.util.Pair;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
+
+public class Roundabout extends SafeLines {
+	List<Long> roundTrip = new ArrayList<>();
+	Map<Long, Long> exitsNeighbours = new HashMap<>();
+
+	public Roundabout(SimulationGraph graph) {
+		super(graph);
+
+		Collection<List<Vertex>> entriesExits = graph.getEntryExitVertices().values();
+		if (entriesExits.isEmpty()) {
+			return;
+		} else if (entriesExits.size() == 1) {
+			entriesExits.forEach(e -> roundTrip.addAll(sortEntriesExits(e, graph)));
+		}
+		List<List<Long>> directionParts = entriesExits.parallelStream().map(directionList -> sortEntriesExits(directionList, graph)).toList();
+
+		Map<Integer, Map<Integer, List<Long>>> distances = new HashMap<>(directionParts.size());
+		int from = 0;
+		int to = 0;
+		int shortest = Integer.MAX_VALUE;
+		for (int i = 0; i < directionParts.size(); i++) {
+			int iDirectionPartsSize = directionParts.get(i).size();
+			GraphicalVertex iDirectionLast = graph.getVertex(directionParts.get(i).get(iDirectionPartsSize - 1));
+			double angle = 0;
+			if (iDirectionPartsSize >= 2) {
+				GraphicalVertex iDirectionOneButLast = graph.getVertex(directionParts.get(i).get(iDirectionPartsSize - 2));
+				angle = VertexWithDirection.computeAngle(iDirectionOneButLast, iDirectionLast);
+			}
+			Map<Integer, List<Long>> iDistances = new HashMap<>();
+			for (int j = 0; j < directionParts.size(); j++) {
+				if (i == j) {
+					continue;
+				}
+				GraphicalVertex jDirectionFirst = graph.getVertex(directionParts.get(j).get(0));
+				List<Long> path = graph.shortestPath(iDirectionLast, jDirectionFirst, angle);
+				if (path.size() < shortest) {
+					from = i;
+					to = j;
+					shortest = path.size();
+				}
+				iDistances.put(j, path);
+			}
+			distances.put(i, iDistances);
+		}
+
+		int start = from;
+		while (!distances.isEmpty()) {
+			List<Long> directionVertices = directionParts.get(from);
+			if (!roundTrip.isEmpty() && roundTrip.get(roundTrip.size() - 1).equals(directionVertices.get(0))) {
+				directionVertices.remove(0);
+			}
+			roundTrip.addAll(directionVertices);
+			List<Long> pathIDs = distances.get(from).get(to);
+			if (pathIDs.size() > 2) {
+				pathIDs.remove(0);
+				pathIDs.remove(pathIDs.size() - 1);
+				roundTrip.addAll(pathIDs);
+			}
+			distances.remove(from);
+			from = to;
+			if (distances.size() >= 2) {
+				to = distances.get(from).entrySet().stream()
+					.filter(e -> distances.containsKey(e.getKey()))
+					.min(Comparator.comparingInt(e0 -> e0.getValue().size()))
+					.map(Map.Entry::getKey).orElse(0);
+			} else {
+				to = start;
+			}
+		}
+	}
+
+	@Override
+	public Agent planAgent(Agent agent, long step) {
+		double agentPerimeter = perimeter(agent.getL(), agent.getW()) * graph.getCellSize();
+		long exitNeighbour;
+		if (agent.getExit() < 0) {
+			int exitNeighbourIndex = directionExits.get((int) agent.getExitDirection()).stream()
+				.mapToLong(exit -> exitsNeighbours.get(exit.getID()))
+				.mapToInt(exit -> roundTrip.indexOf(exit)).min().orElse(0);
+			exitNeighbour = roundTrip.get(exitNeighbourIndex);
+			agent.setExit(exitsNeighbours.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToLong(Map.Entry::getKey).findFirst().orElse(0L));
+		} else {
+			exitNeighbour = exitsNeighbours.get(agent.getExit());
+		}
+
+		long entryNeighbour = graph.getVertex(agent.getEntry()).getNeighbourIDs().stream().findFirst().orElse(0L);
+		List<Long> path = new ArrayList<>(roundTrip.size());
+		path.add(agent.getEntry());
+		int startIndex;
+		for (startIndex = 0; startIndex < roundTrip.size(); startIndex++) {
+			if (roundTrip.get(startIndex) == entryNeighbour) {
+				break;
+			}
+		}
+		int index = startIndex;
+		long vertexID;
+		while ((vertexID = roundTrip.get(index)) != exitNeighbour) {
+			path.add(vertexID);
+			index = (index + 1) % roundTrip.size();
+		}
+		path.add(exitNeighbour);
+		path.add(agent.getExit());
+
+		if (!validPath(step, path, agentPerimeter)) {
+			System.out.println("Rejected agent: " + agent.getId() + "; invalid path: " + path);
+			return null;
+		}
+		agent.setPath(path);
+		for (int i = 0; i < path.size(); i++) {
+			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
+		}
+		return agent;
+	}
+
+	private List<Long> sortEntriesExits(List<Vertex> directionEntriesExits, SimulationGraph graph) {
+		List<GraphicalVertex> entriesNeighboursVertices = new ArrayList<>();
+		List<GraphicalVertex> exitsNeighboursVertices = new ArrayList<>();
+		directionEntriesExits.forEach(v -> {
+			if (v.getType().isEntry()) {
+				Long neighbour = v.getNeighbourIDs().stream().findFirst().orElse(null);
+				if (neighbour == null) {
+					// TODO
+					throw new RuntimeException("Neighbour of entry " + v.getID() + " not found.");
+				}
+				entriesNeighboursVertices.add(graph.getVertex(neighbour));
+			} else {
+				GraphicalVertex neighbour = graph.getVertices().stream().filter(n -> n.getNeighbourIDs().contains(v.getID())).findFirst().orElse(null);
+				if (neighbour == null) {
+					// TODO
+					throw new RuntimeException("Neighbour of exit " + v.getID() + " not found.");
+				}
+				exitsNeighboursVertices.add(neighbour);
+				exitsNeighbours.put(v.getID(), neighbour.getID());
+			}
+		});
+
+		Map<GraphicalVertex, Map<GraphicalVertex, List<Long>>> distances = new HashMap<>();
+		exitsNeighboursVertices.parallelStream().forEach(exit -> {
+			Map<GraphicalVertex, List<Long>> exitMap = entriesNeighboursVertices.stream()
+				.collect(Collectors.toMap(Function.identity(), entry -> graph.shortestPath(exit, entry)));
+			distances.put(exit, exitMap);
+		});
+
+		Pair<GraphicalVertex, GraphicalVertex> closest = null;
+		int closestDistance = Integer.MAX_VALUE;
+		for (Map.Entry<GraphicalVertex, Map<GraphicalVertex, List<Long>>> exitDistances : distances.entrySet()) {
+			GraphicalVertex exit = exitDistances.getKey();
+			for (Map.Entry<GraphicalVertex, List<Long>> entryDistances : exitDistances.getValue().entrySet()) {
+				GraphicalVertex entry = entryDistances.getKey();
+				int distance = entryDistances.getValue().size();
+				if (distance < closestDistance) {
+					closest = new Pair<>(exit, entry);
+					closestDistance = distance;
+				}
+			}
+		}
+
+		if (closest == null) {
+			throw new RuntimeException("Closest entry and exit not found.");
+			// TODO
+		}
+		GraphicalVertex exit = closest.getKey();
+		GraphicalVertex entry = closest.getValue();
+
+		LinkedList<GraphicalVertex> pathPoints = new LinkedList<>();
+		pathPoints.add(exit);
+		pathPoints.addLast(entry);
+//		exitsNeighboursVertices.remove(exit);
+//		entriesNeighboursVertices.remove(entry);
+
+		distances.entrySet().stream()
+			.filter(e -> e.getKey() != exit)
+			.map(e -> new Pair<>(e.getKey(), e.getValue().get(entry).size()))
+			.sorted(Comparator.comparingInt(Pair::getValue))
+			.forEach(p -> pathPoints.addFirst(p.getKey()));
+
+		distances.get(exit).entrySet().stream()
+			.filter(e -> e.getKey() != entry)
+			.sorted(Comparator.comparingInt(e -> e.getValue().size()))
+			.map(Map.Entry::getKey)
+			.forEach(pathPoints::addLast);
+
+		List<Long> path = new ArrayList<>();
+		GraphicalVertex previous = null;
+		for (GraphicalVertex vertex : pathPoints) {
+			if (previous != null) {
+				List<Long> nextPath = graph.shortestPath(previous, vertex);
+				assert !nextPath.isEmpty();
+				nextPath.remove(0);
+				path.addAll(nextPath);
+			} else {
+				path.add(vertex.getID());
+			}
+			previous = vertex;
+		}
+		System.out.println("Direction path: " + path);
+		return path;
+	}
+}

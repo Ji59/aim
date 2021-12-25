@@ -382,10 +382,10 @@ public class IntersectionModel extends Pane {
 
 		// compute location and size
 		double halfSize = size / 2;
-		double xLocation = x - (direction == 3 ? (2 - OCTAGON_RATIO) * halfSize : halfSize);
-		double yLocation = y - (direction == 1 ? (2 - OCTAGON_RATIO) * halfSize : halfSize);
-		double width = direction < 2 ? size : (3 - OCTAGON_RATIO) * halfSize;
-		double height = direction < 2 ? (3 - OCTAGON_RATIO) * halfSize : size;
+		double xLocation = x - (direction == 1 ? (2 - OCTAGON_RATIO) * halfSize : halfSize);
+		double yLocation = y - (direction == 2 ? (2 - OCTAGON_RATIO) * halfSize : halfSize);
+		double width = direction % 2 == 0 ? size : (3 - OCTAGON_RATIO) * halfSize;
+		double height = direction % 2 == 0 ? (3 - OCTAGON_RATIO) * halfSize : size;
 
 		// set rectangle location and size
 		rectangle.setX(xLocation);

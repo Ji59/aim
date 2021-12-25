@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.simulation;
 
 
+import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
@@ -20,10 +21,13 @@ public class Agent {
 	private final long id;
 	private final double l; // Length of the agent
 	private final double w; // Width of the agent
-	private final long start;
-	private final long end;
+	private long entry;
+	private long exit;
+	private final long entryDirection;
+	private final long exitDirection;
 	private final double speed;
 	private final double arrivalTime;
+	private long plannedTime;
 	private List<Long> path = new ArrayList<>();
 	private double x;
 	private double y;       // location
@@ -32,20 +36,24 @@ public class Agent {
 	/**
 	 * Create new agent with specified attributes.
 	 *
-	 * @param id          ID of the agent
-	 * @param start       Starting vertex ID of the agent
-	 * @param end         Ending vertex ID of the agent
-	 * @param speed       Speed of the agents in roads per step
-	 * @param arrivalTime Step number when this agent appeared
-	 * @param l           Length of the agent in roads
-	 * @param w           Width of the agent in roads
-	 * @param x           Coordinate X of the agent
-	 * @param y           Coordinate Y of the agent
+	 * @param id             ID of the agent
+	 * @param entry          Starting vertex ID of the agent
+	 * @param exit           Ending vertex ID of the agent
+	 * @param entryDirection Direction in which the agent is entering the intersection
+	 * @param exitDirection  Direction in which the agent is exiting the intersection
+	 * @param speed          Speed of the agents in roads per step
+	 * @param arrivalTime    Step number when this agent appeared
+	 * @param l              Length of the agent in roads
+	 * @param w              Width of the agent in roads
+	 * @param x              Coordinate X of the agent
+	 * @param y              Coordinate Y of the agent
 	 */
-	public Agent(long id, long start, long end, double speed, double arrivalTime, double l, double w, double x, double y) {
+	public Agent(long id, long entry, long exit, long entryDirection, long exitDirection, double speed, double arrivalTime, double l, double w, double x, double y) {
 		this.id = id;
-		this.start = start;
-		this.end = end;
+		this.entry = entry;
+		this.exit = exit;
+		this.entryDirection = entryDirection;
+		this.exitDirection = exitDirection;
 		this.speed = speed;
 		this.arrivalTime = arrivalTime;
 		this.l = l;
@@ -87,17 +95,63 @@ public class Agent {
 	}
 
 	/**
+	 * Set starting vertex in case only direction is generated.
+	 *
+	 * @param entry ID of starting vertex
+	 */
+	public Agent setEntry(long entry) {
+		this.entry = entry;
+		return this;
+	}
+
+	public void setEntry(GraphicalVertex vertex) {
+		// TODO
+		entry = vertex.getID();
+		x = vertex.getX();
+		y = vertex.getY();
+	}
+
+	/**
 	 * @return ID of starting vertex of this agent
 	 */
-	public long getStart() {
-		return start;
+	public long getEntry() {
+		return entry;
+	}
+
+	/**
+	 * Set ending vertex in case only direction is generated.
+	 *
+	 * @param exit ID of ending vertex
+	 */
+	public Agent setExit(long exit) {
+		this.exit = exit;
+		return this;
+	}
+
+	public void setExit(GraphicalVertex vertex) {
+		// TODO
+		exit = vertex.getID();
 	}
 
 	/**
 	 * @return ID of ending vertex of this agent
 	 */
-	public long getEnd() {
-		return end;
+	public long getExit() {
+		return exit;
+	}
+
+	/**
+	 * @return ID of direction in which agent appears
+	 */
+	public long getEntryDirection() {
+		return entryDirection;
+	}
+
+	/**
+	 * @return ID of direction in which agent leaves the intersection
+	 */
+	public long getExitDirection() {
+		return exitDirection;
 	}
 
 	/**
@@ -116,11 +170,16 @@ public class Agent {
 
 	/**
 	 * Set path of this agent to new value.
+	 * If exit was not yet set, set it to the last vertex of the path.
 	 *
 	 * @param path New path of this agent
 	 */
-	public void setPath(List<Long> path) {
+	public Agent setPath(List<Long> path) {
 		this.path = path;
+		if (exit < 0) {
+			exit = path.get(path.size() - 1);
+		}
+		return this;
 	}
 
 	/**
@@ -143,6 +202,21 @@ public class Agent {
 		double previousGoalY = previousGoal.getY() * IntersectionModel.getPreferredHeight();
 		double nextGoalY = nextGoal.getY() * IntersectionModel.getPreferredHeight();
 		this.y = previousGoalY * currentEdgeTravelRemain + nextGoalY * currentEdgeTravelPart;
+	}
+
+	/**
+	 * Set X and Y coordinates according to entry vertex ID.
+	 *
+	 * @param vertices Map of vertices to get entry vertex object.
+	 * @throws RuntimeException TODO
+	 */
+	public void setStartingXY(Map<Long, Vertex> vertices) {
+		if (entry < 0 || exit < 0) {
+			throw new RuntimeException("Agent not planned.");
+		}
+		GraphicalVertex entryVertex = (GraphicalVertex) vertices.get(entry);
+		x = entryVertex.getX();
+		y = entryVertex.getY();
 	}
 
 	/**
@@ -175,5 +249,15 @@ public class Agent {
 
 	public double getArrivalTime() {
 		return arrivalTime;
+	}
+
+	// TODO
+	public Agent setPlannedTime(long plannedTime) {
+		this.plannedTime = plannedTime;
+		return this;
+	}
+
+	public long getPlannedTime() {
+		return plannedTime;
 	}
 }

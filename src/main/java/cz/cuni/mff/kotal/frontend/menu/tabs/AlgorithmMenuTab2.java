@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
+import cz.cuni.mff.kotal.backend.algorithm.*;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import javafx.geometry.Pos;
@@ -86,21 +87,23 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		 * All algorithms to be shown in combo box.
 		 */
 		public enum Algorithm {
-			BFS("Breadth First Search", "Finds the shortest path for every agent."),
-			LINES("Follow lines", "Every agent follow line from start to end."),
-			SEMAPHORE("Semaphore", "Standard semaphore with direction limit."),
-			A0("Algorithm0", "Description of alg0"),
-			A1("Algorithm1", "Description of alg1"),
-			A2("Algorithm2", "Description of alg2"),
+			BFS("Breadth First Search", "Finds the shortest path for every agent.", BreadthFirstSearch.class),
+			LINES("Follow lines", "Every agent follows line from start to end.", Lines.class),
+			SAFE_LINES("Safe lines", "Every agent follows its line, but checks for collisions.", SafeLines.class),
+			SEMAPHORE("Semaphore", "Standard semaphore with direction limit.", Semaphore.class),
+			ROUNDABOUT("Roundabout", "Standard one way one line roundabout.", Roundabout.class),
+			BI_ROUNDABOUT("Bidirectional Roundabout", "One line roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
 			;
 
 			private final String name;
 			private final String description;
+			private final Class<? extends cz.cuni.mff.kotal.backend.algorithm.Algorithm> algorithmClass;
 
 
-			Algorithm(String name, String description) {
+			Algorithm(String name, String description, Class<? extends cz.cuni.mff.kotal.backend.algorithm.Algorithm> algorithmClass) {
 				this.name = name;
 				this.description = description;
+				this.algorithmClass = algorithmClass;
 			}
 
 			public String getName() {
@@ -109,6 +112,10 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 
 			public String getDescription() {
 				return description;
+			}
+
+			public Class<? extends cz.cuni.mff.kotal.backend.algorithm.Algorithm> getAlgorithmClass() {
+				return algorithmClass;
 			}
 		}
 	}

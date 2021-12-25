@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -14,7 +15,8 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Paramete
  * Graph with added attributes for graphical usage.
  */
 public abstract class SimulationGraph extends Graph {
-	public static final double EPSILON = 1e-2;
+	public static final double EPSILON = 1e-1;
+	private final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
 	protected final long granularity;
 	protected final long entries;
 	protected final long exits;
@@ -72,37 +74,103 @@ public abstract class SimulationGraph extends Graph {
 		this.edges = graph.getEdges();
 	}
 
+	// TODO create exception if path does not exists
 	public Map<Long, Map<Long, List<Long>>> getLines() {
 		if (shortestPaths == null) {
 			shortestPaths = new HashMap<>((int) (entries * getModel().getDirections().size()));
-			for (GraphicalVertex entry : entryExitVertices.values().stream()
-				.flatMap(Collection::stream)
-				.map(vertex -> (GraphicalVertex) vertex)
-				.filter(entry -> entry.getType().isEntry())
-				.collect(Collectors.toSet())) {
+			initializeVerticesDistances();
 
-				int entryDirection = entry.getType().getDirection();
-				shortestPaths.put(entry.getID(), shortestPaths(entry));
-			}
+			entryExitVertices.values().parallelStream()
+				.flatMap(Collection::stream)
+				.filter(entry -> entry.getType().isEntry())
+				.map(GraphicalVertex.class::cast)
+				.forEach(entry -> shortestPaths.put(entry.getID(), shortestPaths(entry)));
 		}
 		return shortestPaths;
+	}
+
+	private void initializeVerticesDistances() {
+		vertices.values().forEach(vertex -> verticesDistances.put((GraphicalVertex) vertex, new HashMap<>()));
+		for (Edge edge : this.edges) {
+			verticesDistances.get((GraphicalVertex) edge.getU()).put((GraphicalVertex) edge.getV(), edge);
+		}
 	}
 
 	private Map<Long, List<Long>> shortestPaths(GraphicalVertex start) {
 
 		VertexWithDirection startWithDirection = new VertexWithDirection(start);
-		Map<Long, VertexWithDirection> allPaths = bfs(startWithDirection);
-//		HashMap<Long, VertexWithDirection> allPaths = new HashMap<>();
-//		dfs(allPaths, startWithDirection);
+		Map<Long, List<Long>> allPaths = ucs(startWithDirection);
 
 		Map<Long, List<Long>> paths = new HashMap<>();
 		entryExitVertices.values().stream()
 			.flatMap(Collection::stream)
-			.filter(exit -> !exit.getType().isEntry() && exit.getType().getDirection() != start.getType().getDirection())
+			.filter(exit -> exit.getType().isExit())
 			.map(Vertex::getID)
-			.forEach(vertexID -> paths.put(vertexID, allPaths.get(vertexID).getPath()));
+			.forEach(vertexID -> paths.put(vertexID, allPaths.get(vertexID)));
 
 		return paths;
+	}
+
+	private Map<Long, List<Long>> ucs(VertexWithDirection startingVertex) {
+		Map<Long, List<Long>> vertexDistances = new HashMap<>(vertices.size());
+
+		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
+		queue.add(startingVertex);
+
+		while (!queue.isEmpty()) {
+			VertexWithDirection vertex = queue.poll();
+			if (!vertexDistances.containsKey(vertex.getID())) {
+				if (vertex.getParent() == null) {
+					vertexDistances.put(vertex.getID(), Collections.singletonList(vertex.getID()));
+				} else {
+					List<Long> vertexPath = new ArrayList<>(vertexDistances.get(vertex.getParent().getID()));
+					vertexPath.add(vertex.getID());
+					vertexDistances.put(vertex.getID(), vertexPath);
+				}
+
+				verticesDistances.get(vertex).forEach((neighbour, edge) -> {
+					if (!vertexDistances.containsKey(neighbour.getID())) {
+						queue.add(new VertexWithDirection(vertex, neighbour, edge, getCellSize())); // TODO refactor
+					}
+				});
+			}
+		}
+		return vertexDistances;
+	}
+
+	public List<Long> shortestPath(GraphicalVertex from, GraphicalVertex to) {
+		return shortestPath(from, to, 0);
+	}
+
+	// TODO
+
+	public List<Long> shortestPath(GraphicalVertex from, GraphicalVertex to, double startingAngle) {
+		if (verticesDistances.isEmpty()) {
+			initializeVerticesDistances();
+		}
+		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
+		HashSet<Long> visitedIDs = new HashSet<>();
+		queue.add(new VertexWithDirection(from, startingAngle));
+		while (!queue.isEmpty()) {
+			VertexWithDirection vertex = queue.poll();
+			if (vertex.getID() == to.getID()) {
+				LinkedList<Long> path = new LinkedList<>();
+				VertexWithDirection vertexPath = vertex;
+				while (vertexPath != null) {
+					path.addFirst(vertexPath.getID());
+					vertexPath = vertexPath.getParent();
+				}
+				return path;
+			}
+			visitedIDs.add(vertex.getID());
+			verticesDistances.get(vertex).forEach((neighbour, edge) -> {
+				if (!visitedIDs.contains(neighbour.getID())) {
+					double distance = MyNumberOperations.distance(neighbour.getX(), neighbour.getY(), to.getX(), to.getY());
+					queue.add(new VertexWithDirection(vertex, neighbour, edge, getCellSize(), distance)); // TODO refactor
+				}
+			});
+		}
+		return new ArrayList<>();
 	}
 
 	private void dfs(Map<Long, VertexWithDirection> vertices, VertexWithDirection vertex) {
@@ -119,25 +187,6 @@ public abstract class SimulationGraph extends Graph {
 			vertices.put(neighbourID, neighbourVertexWithDirection);
 			dfs(vertices, neighbourVertexWithDirection);
 		}
-	}
-
-	private Map<Long, VertexWithDirection> bfs(VertexWithDirection startingVertex) {
-		Map<Long, VertexWithDirection> vertexDistances = new HashMap<>(vertices.size());
-		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
-		queue.add(startingVertex);
-
-		while (!queue.isEmpty()) {
-			VertexWithDirection vertex = queue.poll();
-			if (!vertexDistances.containsKey(vertex.getID())) {
-				vertexDistances.put(vertex.getID(), vertex);
-				for (long neighbourID : vertex.getNeighbourIDs()) {
-					if (!vertexDistances.containsKey(neighbourID)) {
-						queue.add(new VertexWithDirection(vertex, (GraphicalVertex) vertices.get(neighbourID), getCellSize()));
-					}
-				}
-			}
-		}
-		return vertexDistances;
 	}
 
 	/**
@@ -167,8 +216,28 @@ public abstract class SimulationGraph extends Graph {
 		return vertices.values().stream().map(GraphicalVertex.class::cast).collect(Collectors.toSet());
 	}
 
+	/**
+	 * TODO
+	 *
+	 * @param id ID of desired vertex
+	 * @return
+	 */
 	public GraphicalVertex getVertex(long id) {
 		return (GraphicalVertex) vertices.get(id);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param v0
+	 * @param v1
+	 * @return
+	 */
+	public Edge getEdge(GraphicalVertex v0, GraphicalVertex v1) {
+		if (verticesDistances.isEmpty()) {
+			initializeVerticesDistances();
+		}
+		return verticesDistances.get(v0).get(v1);
 	}
 
 	/**
@@ -203,39 +272,54 @@ public abstract class SimulationGraph extends Graph {
 	 */
 	public abstract double getCellSize();
 
-	private static class VertexWithDirection extends GraphicalVertex implements Comparable<VertexWithDirection> {
+	public static class VertexWithDirection extends GraphicalVertex implements Comparable<VertexWithDirection> {
 		private final double angle;
 		private final double distance;
-		private final List<Long> path;
+		private final double estimate;
+		private final VertexWithDirection parent;
 
 		public VertexWithDirection(GraphicalVertex vertex) {
+			this(vertex, 0);
+		}
+
+		public VertexWithDirection(GraphicalVertex vertex, double angle) {
 			super(vertex);
-			this.angle = 0;
+			this.angle = angle;
 			this.distance = 0;
-			path = Collections.singletonList(vertex.getID());
+			parent = null;
+			estimate = 0;
+		}
+
+		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, Edge edge, double cellDistance) {
+			this(previous, actual, edge, cellDistance, 0);
+		}
+
+		// TODO refactor
+		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, Edge edge, double cellDistance, double estimate) {
+			super(actual);
+
+			double xDiff = previous.getX() - getX();
+			double yDiff = previous.getY() - getY();
+			this.angle = computeAngle(xDiff, yDiff);
+
+			double verticesDistance = edge == null ? Math.sqrt(xDiff * xDiff + yDiff * yDiff) / cellDistance : edge.getValue().doubleValue();
+
+			double angleDiff = Math.abs(this.angle - previous.getAngle());
+			if (angleDiff > Math.PI) {
+				angleDiff = 2 * Math.PI - angleDiff;
+			}
+
+//			double middleDistanceX = getX() - 0.5;
+//			double middleDistanceY = getY() - 0.5;
+//			double middleDistance = Math.sqrt(middleDistanceX * middleDistanceX + middleDistanceY * middleDistanceY);  // TODO
+
+			this.distance = previous.getDistance() + verticesDistance + angleDiff * EPSILON; // + middleDistance * EPSILON * EPSILON;
+			this.parent = previous;
+			this.estimate = estimate;
 		}
 
 		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, double cellDistance) {
-			super(actual);
-
-			double xDiff = getX() - previous.getX();
-			double yDiff = getY() - previous.getY();
-
-			double verticesDistance = Math.sqrt(xDiff * xDiff + yDiff * yDiff);
-			this.angle = Math.atan2(yDiff, xDiff);
-			double angleDiff = Math.abs(this.angle - previous.getAngle());
-			if (angleDiff > Math.PI) {
-				angleDiff -= Math.PI;
-			}
-
-			double middleDistanceX = getX() - 0.5;
-			double middleDistanceY = getY() - 0.5;
-			double middleDistance = Math.sqrt(middleDistanceX * middleDistanceX + middleDistanceY * middleDistanceY);
-
-			this.distance = previous.getDistance() + verticesDistance / cellDistance + angleDiff * EPSILON + middleDistance * EPSILON * EPSILON;
-
-			this.path = new ArrayList<>(previous.getPath());
-			this.path.add(this.getID());
+			this(previous, actual, null, cellDistance, 0);
 		}
 
 		public double getAngle() {
@@ -246,8 +330,22 @@ public abstract class SimulationGraph extends Graph {
 			return distance;
 		}
 
-		public List<Long> getPath() {
-			return path;
+		public double getEstimate() {
+			return estimate;
+		}
+
+		public VertexWithDirection getParent() {
+			return parent;
+		}
+
+		public static double computeAngle(GraphicalVertex start, GraphicalVertex end) {
+			double xDiff = start.getX() - end.getX();
+			double yDiff = start.getY() - end.getY();
+			return computeAngle(xDiff, yDiff);
+		}
+
+		private static double computeAngle(double xDiff, double yDiff) {
+			return Math.atan2(yDiff, xDiff);
 		}
 
 		public static double getDistance(VertexWithDirection start, GraphicalVertex end) {
@@ -270,7 +368,16 @@ public abstract class SimulationGraph extends Graph {
 
 		@Override
 		public int compareTo(@NotNull SimulationGraph.VertexWithDirection o) {
-			return Double.compare(distance, o.getDistance());
+			return Double.compare(distance + estimate, o.getDistance() + o.estimate);
 		}
+
+// FIXME
+//		@Override
+//		public boolean equals(Object o) {
+//			if (o instanceof Vertex vertex) {
+//				return id == vertex.getID();
+//			}
+//			return false;
+//		}
 	}
 }

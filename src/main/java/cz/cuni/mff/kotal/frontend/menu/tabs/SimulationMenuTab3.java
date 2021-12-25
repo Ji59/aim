@@ -23,6 +23,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	// TODO extract constants and rename constants
 	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
 	private static final Slider timeline = new Slider(0, 1, 0);
+	private static final Label agensLabel = new Label("#n");
 	private static final Label stepsLabel = new Label("#n");
 	private static final Label delayLabel = new Label("#n");
 	private static final Label rejectionsLabel = new Label("#n");
@@ -113,6 +114,13 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	}
 
 	/**
+	 * @return Label for number of agents that arrived
+	 */
+	public static Label getAgentsLabel() {
+		return agensLabel;
+	}
+
+	/**
 	 * @return Steps label
 	 */
 	public static Label getStepsLabel() {
@@ -199,6 +207,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 		 * All statistics rows to be shown in statistics section.
 		 */
 		public enum Statistics {
+			AGENTS("Agents:", agensLabel),
 			STEPS("Steps:", stepsLabel),
 			DELAY("Total delay:", delayLabel),
 			REJECTIONS("Rejections:", rejectionsLabel),
