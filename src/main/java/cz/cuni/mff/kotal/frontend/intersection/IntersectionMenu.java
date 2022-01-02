@@ -64,7 +64,7 @@ public class IntersectionMenu extends VBox {
 		INTERSECTION_MODE.setOnMouseClicked(event -> {
 			abstractMode = !abstractMode;
 			setIntersectionModeButtonText();
-			IntersectionScene.getIntersectionGraph().redraw();
+			IntersectionScene.getIntersectionGraph().redraw(true);
 		});
 
 		getChildren().add(INTERSECTION_MODE);

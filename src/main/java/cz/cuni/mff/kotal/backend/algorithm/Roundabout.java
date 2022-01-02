@@ -15,7 +15,7 @@ import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
 
 public class Roundabout extends SafeLines {
 	List<Long> roundTrip = new ArrayList<>();
-	Map<Long, Long> exitsNeighbours = new HashMap<>();
+	private final Map<Long, Long> exitsNeighboursMapping = new HashMap<>();
 
 	public Roundabout(SimulationGraph graph) {
 		super(graph);
@@ -75,11 +75,14 @@ public class Roundabout extends SafeLines {
 			if (distances.size() >= 2) {
 				to = distances.get(from).entrySet().stream()
 					.filter(e -> distances.containsKey(e.getKey()))
-					.min(Comparator.comparingInt(e0 -> e0.getValue().size()))
+					.min(Comparator.comparingInt(e -> e.getValue().size()))
 					.map(Map.Entry::getKey).orElse(0);
 			} else {
 				to = start;
 			}
+		}
+		if (roundTrip.size() > 1 && roundTrip.get(0).equals(roundTrip.get(roundTrip.size() - 1))) {
+			roundTrip.remove(0);
 		}
 	}
 
@@ -89,12 +92,12 @@ public class Roundabout extends SafeLines {
 		long exitNeighbour;
 		if (agent.getExit() < 0) {
 			int exitNeighbourIndex = directionExits.get((int) agent.getExitDirection()).stream()
-				.mapToLong(exit -> exitsNeighbours.get(exit.getID()))
+				.mapToLong(exit -> exitsNeighboursMapping.get(exit.getID()))
 				.mapToInt(exit -> roundTrip.indexOf(exit)).min().orElse(0);
 			exitNeighbour = roundTrip.get(exitNeighbourIndex);
-			agent.setExit(exitsNeighbours.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToLong(Map.Entry::getKey).findFirst().orElse(0L));
+			agent.setExit(exitsNeighboursMapping.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToLong(Map.Entry::getKey).findFirst().orElse(0L));
 		} else {
-			exitNeighbour = exitsNeighbours.get(agent.getExit());
+			exitNeighbour = exitsNeighboursMapping.get(agent.getExit());
 		}
 
 		long entryNeighbour = graph.getVertex(agent.getEntry()).getNeighbourIDs().stream().findFirst().orElse(0L);
@@ -144,7 +147,8 @@ public class Roundabout extends SafeLines {
 					throw new RuntimeException("Neighbour of exit " + v.getID() + " not found.");
 				}
 				exitsNeighboursVertices.add(neighbour);
-				exitsNeighbours.put(v.getID(), neighbour.getID());
+				exitsNeighboursMapping.put(v.getID(), neighbour.getID());
+				exitsNeighboursMapping.put(neighbour.getID(), v.getID());
 			}
 		});
 
@@ -209,5 +213,13 @@ public class Roundabout extends SafeLines {
 		}
 		System.out.println("Direction path: " + path);
 		return path;
+	}
+
+	/**
+	 *
+	 * @return map containing mapping between exits IDs and their neighbours IDs both ways
+	 */
+	protected Map<Long, Long> getExitsNeighboursMapping() {
+		return exitsNeighboursMapping;
 	}
 }

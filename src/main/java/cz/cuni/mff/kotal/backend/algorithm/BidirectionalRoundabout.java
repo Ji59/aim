@@ -1,6 +1,5 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
-import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +29,7 @@ public class BidirectionalRoundabout extends Roundabout {
 
 		if (agent.getExit() < 0) {
 			List<Long> exitNeighbourIndexes = directionExits.get((int) agent.getExitDirection()).stream()
-				.map(exit -> exitsNeighbours.get(exit.getID()))
+				.map(exit -> getExitsNeighboursMapping().get(exit.getID()))
 				.toList();
 			for (int i = 0; i < roundTrip.size(); i++) {
 				Long roundID = roundTrip.get(i);
@@ -45,7 +44,7 @@ public class BidirectionalRoundabout extends Roundabout {
 			firstExitNeighbour = roundTrip.get(firstExitNeighbourIndex);
 			lastExitNeighbour = roundTrip.get(lastExitNeighbourIndex);
 		} else {
-			lastExitNeighbour = firstExitNeighbour = exitsNeighbours.get(agent.getExit());
+			lastExitNeighbour = firstExitNeighbour = getExitsNeighboursMapping().get(agent.getExit());
 			lastExitNeighbourIndex = firstExitNeighbourIndex = roundTrip.indexOf(firstExitNeighbour);
 		}
 
@@ -64,7 +63,8 @@ public class BidirectionalRoundabout extends Roundabout {
 			}
 		}
 
-		agent.setExit(exitsNeighbours.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToLong(Map.Entry::getKey).findFirst().orElse(0L));
+		long finalExitNeighbour = exitNeighbour;
+		agent.setExit(getExitsNeighboursMapping().get(finalExitNeighbour));
 		agent.setPath(path);
 		for (
 			int i = 0; i < path.size(); i++) {
@@ -84,7 +84,7 @@ public class BidirectionalRoundabout extends Roundabout {
 			index = (int) myModulo(index + (increasing ? 1 : -1), roundTrip.size());
 		}
 		path.add(exitNeighbour);
-		path.add(agent.getExit());
+		path.add(getExitsNeighboursMapping().get(exitNeighbour));
 		return path;
 	}
 

@@ -36,7 +36,7 @@ public class Simulation {
 	private final long newAgentsMaximum;
 	private final List<Long> distribution;
 
-	private final boolean randomEntry = true;
+	private final boolean randomEntry = false;
 	private final boolean generateEntry = true;
 	private final boolean generateExit = false; // TODO
 
@@ -388,8 +388,8 @@ public class Simulation {
 		long maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
 
 		// TODO extract constants
-		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.65, 0.1);
-		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.4, 0.3);
+		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.69, 0.1);
+		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.42, 0.3);
 
 		List<Vertex> directionEntries = entries.get(entryDirection);
 		GraphicalVertex entry = null;

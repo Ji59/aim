@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
+
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,10 +8,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.not;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class RoundaboutTest {
 	private Roundabout roundabout;
@@ -35,6 +35,6 @@ class RoundaboutTest {
 		assertThat(previousAgent.getPath(), contains(19L, 2L, 3L, 7L, 11L, 15L, 14L, 13L, 12L, 8L, 20L));
 
 		Agent plannedAgent = roundabout.planAgent(nextAgent, NEXT_AGENT_START);
-		assertNotNull(plannedAgent);
+		assertThat(plannedAgent, not(nullValue()));
 	}
 }

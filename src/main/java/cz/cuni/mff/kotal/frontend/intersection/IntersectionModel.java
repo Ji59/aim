@@ -419,6 +419,9 @@ public class IntersectionModel extends Pane {
 		nodes.add(t);
 	}
 
+	/*
+	 * TODO
+	 */
 	private double vCoor(double coordination) {
 		return coordination * preferredHeight;
 	}
@@ -444,13 +447,13 @@ public class IntersectionModel extends Pane {
 		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
-		SimulationGraph graphAbstract = new AbstractGraph(model, granularity, entries, exits, false, null, null, null);
+		SimulationGraph graphAbstract = new AbstractGraph(model, granularity, entries, exits, false);
 
 		if (!ignoreOld && graphAbstract.equals(graph)) { // if last graph is the same, return
 			return;
 		}
 
-		if (graph != null) { // else add graph to previous stack
+		if (graph != null && !graphAbstract.equals(graph)) { // else add graph to previous stack
 			historyPrevious.push(graph);
 		}
 
