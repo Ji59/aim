@@ -6,10 +6,12 @@ import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.*;
+
+//import static org.hamcrest.MatcherAssert.assertThat;
+//import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
+//import static org.hamcrest.Matchers.nullValue;
+//import static org.hamcrest.Matchers.not;
 
 
 class RoundaboutTest {
@@ -32,9 +34,11 @@ class RoundaboutTest {
 		roundabout.planAgent(previousAgent, 0);
 		previousAgent.setPlannedTime(0);
 
-		assertThat(previousAgent.getPath(), contains(19L, 2L, 3L, 7L, 11L, 15L, 14L, 13L, 12L, 8L, 20L));
+//		assertThat(previousAgent.getPath(), contains(19L, 2L, 3L, 7L, 11L, 15L, 14L, 13L, 12L, 8L, 20L));
+		assertThat(previousAgent.getPath()).contains(19L, 2L, 3L, 7L, 11L, 15L, 14L, 13L, 12L, 8L, 20L);
 
 		Agent plannedAgent = roundabout.planAgent(nextAgent, NEXT_AGENT_START);
-		assertThat(plannedAgent, not(nullValue()));
+//		assertThat(plannedAgent, not(nullValue()));
+		assertThat(plannedAgent).isNotNull();
 	}
 }

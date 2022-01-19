@@ -41,6 +41,7 @@ public class Simulation {
 	private final boolean generateExit = false; // TODO
 
 	private long step = 0;
+	private long generatedStep = 0;
 	private long agentsDelay;
 	private long agentsRejected;
 	private long collisions;
@@ -98,7 +99,6 @@ public class Simulation {
 		this.algorithm = algorithm;
 		this.maximumSteps = maximumSteps;
 		this.simulationAgents = simulationAgents;
-		step = 0;
 		this.newAgentsMinimum = newAgentsMinimum;
 		this.distribution = distribution;
 

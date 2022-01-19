@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.simulation;
 
 
-import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;

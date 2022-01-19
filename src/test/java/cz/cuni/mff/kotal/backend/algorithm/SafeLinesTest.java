@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.assertj.core.api.Assertions.*;
 
 
 class SafeLinesTest {
@@ -37,6 +36,6 @@ class SafeLinesTest {
 	@Test
 	void validPath() {
 		double agentPerimeter = perimeter(agent1.getL(), agent1.getW()) * safeLines.graph.getCellSize();
-		assertThat(safeLines.validPath(agent1.getPlannedTime(), agent1.getPath(), agentPerimeter), is(false));
+		assertThat(safeLines.validPath(agent1.getPlannedTime(), agent1.getPath(), agentPerimeter)).isFalse();
 	}
 }
