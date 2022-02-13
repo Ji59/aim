@@ -11,6 +11,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3.Parameters.Statis
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -18,6 +19,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -92,6 +94,7 @@ public class IntersectionMenu extends VBox {
 
 		addPlayButtonAction();
 		addResetButtonAction();
+		addSaveAgentsButtonAction();
 
 		SimulationMenuTab3.getPlayButton().setOnMouseClicked(PLAY_BUTTON.getOnMouseClicked());
 		SimulationMenuTab3.getRestartButton().setOnMouseClicked(RESTART_BUTTON.getOnMouseClicked());
@@ -119,6 +122,34 @@ public class IntersectionMenu extends VBox {
 		RESTART_BUTTON.setOnMouseClicked(e -> IntersectionScene.resetSimulation());
 	}
 
+	private static void addSaveAgentsButtonAction() {
+		SAVE_AGENTS_BUTTON.setOnMouseClicked(e -> {
+			try {
+				// TODO check simulation
+				IntersectionScene.getSimulation().saveAgents("test.json");
+				// FIXME exceptions
+			} catch (IOException ex) {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setTitle("Saving agents failed.");
+				alert.setHeaderText("Input/output exception occurred while saving agents. \n Exception info below.");
+				alert.setContentText(ex.getMessage());
+				alert.show();
+			} catch (NullPointerException ex) {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setTitle("Saving agents failed.");
+				alert.setHeaderText("Found null value. \n Exception info below.");
+				alert.setContentText(ex.getMessage());
+				alert.show();
+			} catch (Exception ex) {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setTitle("Saving agents failed.");
+				alert.setHeaderText("Unexpected exception occurred. \n Exception info below.");
+				alert.setContentText(ex.getMessage());
+				alert.show();
+			}
+		});
+	}
+
 	/**
 	 * Create new listener which sets its new value also to other slider.
 	 *
@@ -137,7 +168,7 @@ public class IntersectionMenu extends VBox {
 		PLAY_BUTTON.setOnMouseClicked(e -> {
 			String newText;
 			if (playing) {
-				newText = "Play";
+				newText = "Play"; // TODO
 				IntersectionScene.stopSimulation();
 			} else {
 				SimulationGraph graph = IntersectionModel.getGraph();
@@ -154,17 +185,8 @@ public class IntersectionMenu extends VBox {
 					ex.printStackTrace();
 					return;
 				}
-//				if (AlgorithmMenuTab2.Parameters.Algorithm.BFS.equals(algorithmEnum)) {
-//					algorithm = new BreadthFirstSearch(graph);
-//				} else if (AlgorithmMenuTab2.Parameters.Algorithm.LINES.equals(algorithmEnum)) {
-//					algorithm = new Lines(graph);
-//				} else if (AlgorithmMenuTab2.Parameters.Algorithm.SEMAPHORE.equals(algorithmEnum)) {
-//					algorithm = new Semaphore(graph);
-//				} else {
-//					return;
-//				}
 				IntersectionScene.startSimulation(algorithm);
-				newText = "Pause";
+				newText = "Pause"; // TODO
 			}
 			PLAY_BUTTON.setText(newText);
 			SimulationMenuTab3.getPlayButton().setText(newText);

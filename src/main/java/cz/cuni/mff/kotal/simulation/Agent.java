@@ -21,16 +21,18 @@ public class Agent {
 	private final double l; // Length of the agent
 	private final double w; // Width of the agent
 	private long entry;
-	private long exit;
+	private final long exit;
 	private final long entryDirection;
 	private final long exitDirection;
 	private final double speed;
 	private final double arrivalTime;
 	private long plannedTime;
 	private List<Long> path = new ArrayList<>();
-	private double x;
-	private double y;       // location
-	private static final double PROXIMITY = 0.0001;
+
+	private transient double x; // location
+	private transient double y;
+
+	private static final double PROXIMITY = 0.0001; // TODO
 
 	/**
 	 * Create new agent with specified attributes.
@@ -118,21 +120,6 @@ public class Agent {
 	}
 
 	/**
-	 * Set ending vertex in case only direction is generated.
-	 *
-	 * @param exit ID of ending vertex
-	 */
-	public Agent setExit(long exit) {
-		this.exit = exit;
-		return this;
-	}
-
-	public void setExit(GraphicalVertex vertex) {
-		// TODO
-		exit = vertex.getID();
-	}
-
-	/**
 	 * @return ID of ending vertex of this agent
 	 */
 	public long getExit() {
@@ -175,9 +162,6 @@ public class Agent {
 	 */
 	public Agent setPath(List<Long> path) {
 		this.path = path;
-		if (exit < 0) {
-			exit = path.get(path.size() - 1);
-		}
 		return this;
 	}
 

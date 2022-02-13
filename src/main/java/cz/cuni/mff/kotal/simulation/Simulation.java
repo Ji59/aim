@@ -1,6 +1,8 @@
 package cz.cuni.mff.kotal.simulation;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
@@ -12,6 +14,9 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -201,7 +206,7 @@ public class Simulation {
 				agentsRejected += rejectedAgents.size();
 				agentsDelay += delayedAgents.values().parallelStream().mapToLong(Collection::size).sum();
 
-				agentsDelay += plannedAgents.stream().mapToLong(agent -> agent.getPath().size() - intersectionGraph.getLines().get(agent.getEntry()).get(agent.getExit()).size()).sum();
+				agentsDelay += plannedAgents.stream().mapToLong(agent -> agent.getPath().size() - intersectionGraph.getLines().get(agent.getEntry()).get(agent.getPath().get(agent.getPath().size() - 1)).size()).sum();
 
 				IntersectionMenu.setAgents(allAgents.size());
 				IntersectionMenu.setStep(currentStep);
@@ -429,6 +434,13 @@ public class Simulation {
 			entries.put(entry.getKey(), entry.getValue().stream().filter(v -> isEntry == v.getType().isEntry()).collect(Collectors.toCollection(LinkedList::new)));
 		}
 		return entries;
+	}
+
+	public void saveAgents(String path) throws IOException {
+		FileWriter writer = new FileWriter(path, StandardCharsets.UTF_8, false);
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		gson.toJson(allAgents.values(), writer);
+		writer.close();
 	}
 
 	/**

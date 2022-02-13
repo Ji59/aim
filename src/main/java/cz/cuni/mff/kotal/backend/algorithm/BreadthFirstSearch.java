@@ -49,12 +49,15 @@ public class BreadthFirstSearch implements Algorithm {
 	 */
 	@Override
 	public Agent planAgent(Agent agent, long step) {
+		final long exit;
 		if (agent.getExit() < 0) {
 			List<VertexWithVisit> directionExits = vertices.values().stream().filter(vertex -> vertex.getType().isExit() && vertex.getType().getDirection() == agent.getExitDirection()).collect(Collectors.toList());
-			agent.setExit(directionExits.get(generateRandomInt(directionExits.size() - 1)));
+			exit = directionExits.get(generateRandomInt(directionExits.size() - 1)).getID();
+		} else {
+			exit = agent.getExit();
 		}
 		try {
-			agent.setPath(bfs(agent.getEntry(), agent.getExit()));
+			agent.setPath(bfs(agent.getEntry(), exit));
 		} catch (Exception e) {
 			return null;
 		}

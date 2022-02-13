@@ -90,14 +90,16 @@ public class Roundabout extends SafeLines {
 	public Agent planAgent(Agent agent, long step) {
 		double agentPerimeter = perimeter(agent.getL(), agent.getW()) * graph.getCellSize();
 		long exitNeighbour;
+		final long agentExit;
 		if (agent.getExit() < 0) {
 			int exitNeighbourIndex = directionExits.get((int) agent.getExitDirection()).stream()
 				.mapToLong(exit -> exitsNeighboursMapping.get(exit.getID()))
 				.mapToInt(exit -> roundTrip.indexOf(exit)).min().orElse(0);
 			exitNeighbour = roundTrip.get(exitNeighbourIndex);
-			agent.setExit(exitsNeighboursMapping.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToLong(Map.Entry::getKey).findFirst().orElse(0L));
+			agentExit = exitsNeighboursMapping.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToLong(Map.Entry::getKey).findFirst().orElse(0L);
 		} else {
 			exitNeighbour = exitsNeighboursMapping.get(agent.getExit());
+			agentExit = agent.getExit();
 		}
 
 		long entryNeighbour = graph.getVertex(agent.getEntry()).getNeighbourIDs().stream().findFirst().orElse(0L);
@@ -116,7 +118,7 @@ public class Roundabout extends SafeLines {
 			index = (index + 1) % roundTrip.size();
 		}
 		path.add(exitNeighbour);
-		path.add(agent.getExit());
+		path.add(agentExit);
 
 		if (!validPath(step, path, agentPerimeter)) {
 			System.out.println("Rejected agent: " + agent.getId() + "; invalid path: " + path);

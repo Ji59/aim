@@ -166,4 +166,14 @@ public class IntersectionScene extends Scene {
 	public static VBox getMENU() {
 		return MENU;
 	}
+
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public static Simulation getSimulation() {
+		// TODO add exception
+		return simulation;
+	}
 }

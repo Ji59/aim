@@ -181,7 +181,7 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	private enum Parameters {
 		SIZE("Size:", new GridPane()),
 		SPEED("Speed:", new GridPane()),
-		RNG("RNG distribution:", new MyComboBox(Arrays.stream(Random.values()).map(Random::getText).collect(Collectors.toList()))),
+		RNG("RNG distribution:", new MyComboBox(Arrays.stream(Random.values()).map(Random::getText).toList())),
 		;
 
 		private final String text;
