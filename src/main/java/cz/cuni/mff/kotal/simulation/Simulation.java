@@ -14,6 +14,7 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -133,6 +134,7 @@ public class Simulation {
 		timer.scheduleAtFixedRate(getTimerTask(), delay, period);
 		new Thread(() -> {
 			try {
+				// FIXME WTH?
 				long now = System.nanoTime();
 				Thread.sleep(delay);
 				long noNow = System.nanoTime();
@@ -181,7 +183,7 @@ public class Simulation {
 
 				long stepTime = System.nanoTime();
 				if (maximumSteps > 0 && currentStep > maximumSteps) {
-					if (delayedAgents.isEmpty()) {
+					if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
 						stop();
 					}
 				} else {
@@ -436,8 +438,8 @@ public class Simulation {
 		return entries;
 	}
 
-	public void saveAgents(String path) throws IOException {
-		FileWriter writer = new FileWriter(path, StandardCharsets.UTF_8, false);
+	public void saveAgents(File file) throws IOException {
+		FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8, false);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		gson.toJson(allAgents.values(), writer);
 		writer.close();

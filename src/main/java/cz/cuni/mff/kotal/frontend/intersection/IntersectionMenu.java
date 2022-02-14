@@ -18,7 +18,9 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -126,7 +128,9 @@ public class IntersectionMenu extends VBox {
 		SAVE_AGENTS_BUTTON.setOnMouseClicked(e -> {
 			try {
 				// TODO check simulation
-				IntersectionScene.getSimulation().saveAgents("test.json");
+				FileChooser fileChooser = new FileChooser();
+				File agentsFile = fileChooser.showSaveDialog(null);
+				IntersectionScene.getSimulation().saveAgents(agentsFile);
 				// FIXME exceptions
 			} catch (IOException ex) {
 				Alert alert = new Alert(Alert.AlertType.ERROR);
