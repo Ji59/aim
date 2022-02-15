@@ -26,9 +26,9 @@ public class Agent {
 	private final long exitDirection;
 	private final double speed;
 	private final double arrivalTime;
-	private long plannedTime;
-	private List<Long> path = new ArrayList<>();
 
+	private transient long plannedTime;
+	private transient List<Long> path = new ArrayList<>();
 	private transient double x; // location
 	private transient double y;
 

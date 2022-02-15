@@ -2,7 +2,11 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
+import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
+import cz.cuni.mff.kotal.simulation.GeneratingSimulation;
+import cz.cuni.mff.kotal.simulation.InvalidSimulation;
+import cz.cuni.mff.kotal.simulation.LoadingSimulation;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -10,6 +14,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
+
+import java.io.FileNotFoundException;
 
 
 /**
@@ -24,7 +30,7 @@ public class IntersectionScene extends Scene {
 	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight());
 	private static final HBox ROOT = new HBox(MENU, new StackPane(GRAPH, AGENTS));
 
-	private static Simulation simulation;
+	private static Simulation simulation = new InvalidSimulation();
 
 	/**
 	 * Create intersection scene object.
@@ -86,12 +92,23 @@ public class IntersectionScene extends Scene {
 	 * @param algorithm Algorithm to use in simulation path finding
 	 */
 	public static void startSimulation(Algorithm algorithm) {
-		if (simulation == null) {
-			simulation = new Simulation(IntersectionModel.getGraph(), algorithm, AGENTS);
+		if (simulation.getState().isValid()) {
+			resumeSimulation();
+		} else {
+			if (AgentsMenuTab1.getInputType() == AgentsMenuTab1.Parameters.Input.FILE) {
+				try {
+					simulation = new LoadingSimulation(IntersectionModel.getGraph(), algorithm, AGENTS, AgentsMenuTab1.getFilePath().getText());
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+					// TODO
+					return;
+				}
+			} else {
+				simulation = new GeneratingSimulation(IntersectionModel.getGraph(), algorithm, AGENTS);
+			}
+
 			AGENTS.setSimulation(simulation);
 			simulation.start((long) getPeriod());
-		} else {
-			resumeSimulation();
 		}
 	}
 
@@ -128,13 +145,12 @@ public class IntersectionScene extends Scene {
 	 * Restart simulation and other parts to initial state.
 	 */
 	public static void resetSimulation() {
-		if (simulation == null) {
+		if (simulation == null || !simulation.getState().isValid()) {
 			return;
 		}
 		IntersectionMenu.setPlayButtonPlaying(false);
 
 		simulation.reset();
-		simulation = null;
 
 		AGENTS.resetSimulation();
 	}

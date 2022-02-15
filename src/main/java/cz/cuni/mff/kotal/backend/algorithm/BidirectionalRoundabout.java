@@ -63,7 +63,7 @@ public class BidirectionalRoundabout extends Roundabout {
 			}
 		}
 
-		long finalExitNeighbour = exitNeighbour;
+		long finalExitNeighbour = exitNeighbour; // TODO remove?
 		agent.setPath(path);
 		for (
 			int i = 0; i < path.size(); i++) {

@@ -14,11 +14,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
+import javax.swing.filechooser.FileSystemView;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -28,7 +26,7 @@ import java.util.stream.Collectors;
 public class AgentsMenuTab1 extends MyTabTemplate {
 
 	// TODO don't use static, use Component
-	private static final MyComboBox inputType = new MyComboBox(Arrays.stream(Parameters.Input.values()).map(Parameters.Input::getText).collect(Collectors.toList()));
+	private static final MyComboBox inputType = new MyComboBox(Arrays.stream(Parameters.Input.values()).map(Parameters.Input::getText).toList());
 	//TODO extract constants
 	private static final TextField steps = new TextField("0 ~ infinite simulation");
 	private static final TextField filePath = new TextField("Enter file path here");
@@ -140,6 +138,10 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		});
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Select agents file input");
+		fileChooser.setInitialFileName("agents.json");
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Json documents", "*.json"));
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files", "*.*"));
+		fileChooser.setInitialDirectory(FileSystemView.getFileSystemView().getDefaultDirectory());
 		Button fileButton = new Button("Select file");
 		fileButton.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
 			File file = fileChooser.showOpenDialog(MyApplication.getMenuStage());
@@ -262,8 +264,9 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	/**
 	 * @return Input time slider
 	 */
-	public static MyComboBox getInputType() {
-		return inputType;
+	public static Parameters.Input getInputType() {
+
+		return Parameters.Input.value(inputType.getValue());
 	}
 
 	/**
@@ -310,7 +313,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	/**
 	 * Parameters shown in this tab.
 	 */
-	private enum Parameters {
+	public enum Parameters {
 		INPUT("Agents input type: ", inputType),
 		STEPS("Number of steps: ", steps),
 		AMOUNT("Amount of new agents:", new GridPane()),
@@ -335,7 +338,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 			return parameter;
 		}
 
-		private enum Input {
+		public enum Input {
 			RNG("Randomly generated"),
 			FILE("From file"),
 			;
@@ -348,6 +351,15 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 
 			public String getText() {
 				return text;
+			}
+
+			public static Input value(String name) {
+				for (Input inputType: values()) {
+					if (inputType.text.equals(name)) {
+						return inputType;
+					}
+				}
+				return null;
 			}
 		}
 	}

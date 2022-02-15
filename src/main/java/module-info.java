@@ -6,6 +6,7 @@ module aim.main {
 	requires javafx.fxml;
 	requires org.jetbrains.annotations;
 	requires com.google.gson;
+	requires java.desktop;
 
 	// Export the "cz.cuni.mff.kotal" package (needed by JavaFX to start the Application)
 	exports cz.cuni.mff.kotal;

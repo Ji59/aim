@@ -5,6 +5,7 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
 import cz.cuni.mff.kotal.simulation.Agent;
+import cz.cuni.mff.kotal.simulation.GeneratingSimulation;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.application.Platform;
 import javafx.scene.layout.Pane;
@@ -26,7 +27,8 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Create new pane with specified parameters.
-	 * @param height Width and height of the pane
+	 *
+	 * @param height     Width and height of the pane
 	 * @param simulation Simulation associated with this pane
 	 */
 	public SimulationAgents(double height, Simulation simulation) {
@@ -37,6 +39,7 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Create new pane with specified size.
+	 *
 	 * @param height Width and height of the pane
 	 */
 	public SimulationAgents(double height) {
@@ -46,9 +49,10 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Create and add new agent pane to this simulation.
+	 *
 	 * @param startTime System time of agent creation
-	 * @param agent Agent to be added
-	 * @param period Time delay between simulation steps
+	 * @param agent     Agent to be added
+	 * @param period    Time delay between simulation steps
 	 */
 	public void addAgent(long startTime, Agent agent, double period) {
 		long agentID = agent.getId();
@@ -64,7 +68,8 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Create and add new agent pane to this simulation.
-	 * @param time System time of agent creation
+	 *
+	 * @param time  System time of agent creation
 	 * @param agent Agent to be added
 	 */
 	public void addAgent(Long time, Agent agent) {
@@ -73,6 +78,7 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Remove this agent from the simulation GUI.
+	 *
 	 * @param agentID ID of the agent to be removed
 	 */
 	public void removeAgent(long agentID) {
@@ -89,6 +95,7 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Remove this agent from the simulation GUI.
+	 *
 	 * @param agentEntry Agent with its ID
 	 */
 	public void removeAgent(Map.Entry<Long, AgentPane> agentEntry) {
@@ -102,6 +109,7 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Set actually using simulation.
+	 *
 	 * @param simulation Running simulation
 	 */
 	public void setSimulation(Simulation simulation) {
@@ -121,6 +129,7 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Resume already started simulation.
+	 *
 	 * @param simulation Simulation to be resumed
 	 */
 	public void resumeSimulation(Simulation simulation) {

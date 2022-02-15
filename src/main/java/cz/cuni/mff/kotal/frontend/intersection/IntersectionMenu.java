@@ -2,30 +2,27 @@ package cz.cuni.mff.kotal.frontend.intersection;
 
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
-import cz.cuni.mff.kotal.backend.algorithm.BreadthFirstSearch;
-import cz.cuni.mff.kotal.backend.algorithm.Lines;
-import cz.cuni.mff.kotal.backend.algorithm.Semaphore;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3.Parameters.Statistics;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.swing.filechooser.FileSystemView;
 
 /**
  * Class representing Side menu on main window.
@@ -124,12 +121,27 @@ public class IntersectionMenu extends VBox {
 		RESTART_BUTTON.setOnMouseClicked(e -> IntersectionScene.resetSimulation());
 	}
 
+	/**
+	 * TODO javadoc
+	 */
 	private static void addSaveAgentsButtonAction() {
 		SAVE_AGENTS_BUTTON.setOnMouseClicked(e -> {
 			try {
 				// TODO check simulation
-				FileChooser fileChooser = new FileChooser();
-				File agentsFile = fileChooser.showSaveDialog(null);
+
+				File agentsFile = getAgentsSaveFile();
+				while (!agentsFile.getPath().endsWith(".json")) {
+					AtomicInteger result = getWarningResult(agentsFile);
+
+					if (result.get() == 2) {
+						return;
+					} else if (result.get() == 1) {
+						break;
+					}
+
+					agentsFile = getAgentsSaveFile();
+				}
+
 				IntersectionScene.getSimulation().saveAgents(agentsFile);
 				// FIXME exceptions
 			} catch (IOException ex) {
@@ -152,6 +164,46 @@ public class IntersectionMenu extends VBox {
 				alert.show();
 			}
 		});
+	}
+
+	/**
+	 * TODO javadoc
+	 * @param agentsFile
+	 * @return
+	 */
+	@NotNull
+	private static AtomicInteger getWarningResult(File agentsFile) {
+		AtomicInteger result = new AtomicInteger();
+		String contentText = "Agents are saved in json format, so using \".json\" extension is recommended.\n" +
+			"Entered filename: " + agentsFile.getName() + "\n" +
+			"Are you sure you want to save agents into selected file?";
+		Alert extensionConfirmation = new Alert(Alert.AlertType.CONFIRMATION, contentText, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+		extensionConfirmation.setTitle("Unexpected file extension");
+		extensionConfirmation.setHeaderText("File with unexpected extension entered.");
+		extensionConfirmation.showAndWait().ifPresentOrElse(response -> {
+			if (response == ButtonType.NO) {
+				result.set(0);
+			} else if (response == ButtonType.YES) {
+				result.set(1);
+			} else {
+				result.set(2);
+			}
+		}, () -> result.set(1));
+		return result;
+	}
+
+	/**
+	 * TODO javadoc
+	 * @return
+	 */
+	private static File getAgentsSaveFile() {
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Agents data save file"); // FIXME get rid of this stoopid name
+		fileChooser.setInitialFileName("agents.json");
+		fileChooser.getExtensionFilters().add(new ExtensionFilter("Json documents", "*.json"));
+		fileChooser.setInitialDirectory(FileSystemView.getFileSystemView().getDefaultDirectory());
+		File agentsFile = fileChooser.showSaveDialog(null);
+		return agentsFile;
 	}
 
 	/**

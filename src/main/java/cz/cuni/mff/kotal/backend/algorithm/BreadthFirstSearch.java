@@ -4,7 +4,6 @@ package cz.cuni.mff.kotal.backend.algorithm;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
-import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
