@@ -157,10 +157,24 @@ public class Agent {
 	/**
 	 * Set path of this agent to new value.
 	 * If exit was not yet set, set it to the last vertex of the path.
+	 * TODO
+	 *
+	 * @param path New path of this agent
+	 * @param plannedTime
+	 */
+	public Agent setPath(List<Long> path, long plannedTime) {
+		this.path = path;
+		this.plannedTime = plannedTime;
+		return this;
+	}
+
+	/**
+	 * Set path of this agent to new value.
+	 * If exit was not yet set, set it to the last vertex of the path.
 	 *
 	 * @param path New path of this agent
 	 */
-	public Agent setPath(List<Long> path) {
+	protected Agent setPath(List<Long> path) {
 		this.path = path;
 		return this;
 	}

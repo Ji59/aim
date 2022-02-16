@@ -38,6 +38,8 @@ public class BidirectionalRoundabout extends Roundabout {
 						firstExitNeighbourIndex = i;
 					}
 					lastExitNeighbourIndex = i;
+				} else if (firstExitNeighbourIndex >= 0) {
+					break;
 				}
 			}
 
@@ -52,19 +54,18 @@ public class BidirectionalRoundabout extends Roundabout {
 		boolean increasing = getDistance(entryNeighbourIndex, firstExitNeighbourIndex, true) <= getDistance(entryNeighbourIndex, lastExitNeighbourIndex, false);
 
 
-		long exitNeighbour = increasing ? lastExitNeighbour : firstExitNeighbour;
+		long exitNeighbour = increasing ? firstExitNeighbour : lastExitNeighbour;
 		List<Long> path = getPath(agent, exitNeighbour, entryNeighbourIndex, increasing);
 		if (!validPath(step, path, agentPerimeter)) {
 			increasing = !increasing;
-			exitNeighbour = increasing ? lastExitNeighbour : firstExitNeighbour;
-			path = getPath(agent, lastExitNeighbour, entryNeighbourIndex, !increasing);
+			exitNeighbour = increasing ? firstExitNeighbour : lastExitNeighbour;
+			path = getPath(agent, exitNeighbour, entryNeighbourIndex, !increasing);
 			if (!validPath(step, path, agentPerimeter)) {
 				return null;
 			}
 		}
 
-		long finalExitNeighbour = exitNeighbour; // TODO remove?
-		agent.setPath(path);
+		agent.setPath(path, step);
 		for (
 			int i = 0; i < path.size(); i++) {
 			stepOccupiedVertices.get(step + i).put(path.get(i), agent);

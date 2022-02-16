@@ -34,7 +34,7 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 		if (path == null) {
 			return null;
 		}
-		agent.setPath(path);
+		agent.setPath(path, step);
 		return agent;
 	}
 

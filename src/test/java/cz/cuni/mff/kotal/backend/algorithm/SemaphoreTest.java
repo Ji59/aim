@@ -18,10 +18,10 @@ class SemaphoreTest {
 	private final Semaphore semaphore = new Semaphore(graph);
 	private final Map<Long, Map<Long, Agent>> stepOccupiedVertices = semaphore.getStepOccupiedVertices();
 
-	private final Agent agent0 = new Agent(0, 22, 32, 1, 3, 1, 248, 0.44999999999999996, 0.30000000000000004, 0, 0).setPlannedTime(266)
-		.setPath(Arrays.asList(22L, 18L, 14L, 9L, 4L, 0L, 32L));
-	private final Agent agent1 = new Agent(1, 28, 29, 3, 0, 1, 255, 0.44999999999999996, 0.30000000000000004, 0, 0).setPlannedTime(266)
-		.setPath(Arrays.asList(28L, 1L, 5L, 38L, 9L, 41L, 13L, 29L));
+	private final Agent agent0 = new Agent(0, 22, 32, 1, 3, 1, 248, 0.44999999999999996, 0.30000000000000004, 0, 0)
+		.setPath(Arrays.asList(22L, 18L, 14L, 9L, 4L, 0L, 32L), 266);
+	private final Agent agent1 = new Agent(1, 28, 29, 3, 0, 1, 255, 0.44999999999999996, 0.30000000000000004, 0, 0)
+		.setPath(Arrays.asList(28L, 1L, 5L, 38L, 9L, 41L, 13L, 29L), 266);
 
 	@BeforeEach
 	void setUp() {

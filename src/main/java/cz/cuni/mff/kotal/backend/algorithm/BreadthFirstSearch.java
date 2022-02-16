@@ -56,7 +56,7 @@ public class BreadthFirstSearch implements Algorithm {
 			exit = agent.getExit();
 		}
 		try {
-			agent.setPath(bfs(agent.getEntry(), exit));
+			agent.setPath(bfs(agent.getEntry(), exit), step);
 		} catch (Exception e) {
 			return null;
 		}

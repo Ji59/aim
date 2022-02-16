@@ -18,8 +18,8 @@ import static org.assertj.core.api.Assertions.*;
 class SafeLinesTest {
 	List<Long> path0 = Arrays.asList(16L, 4L, 0L, 1L, 2L, 3L, 7L, 22L);
 	List<Long> path1 = Arrays.asList(19L, 2L, 1L, 0L, 4L, 8L, 20L);
-	Agent agent0 = new Agent(0, 16, 22, 0, 2, 1, 13, 0.5800000000000001, 0.31000000000000005, 0, 0).setPath(path0).setPlannedTime(24);
-	Agent agent1 = new Agent(1, 19, 20, 3, 0, 1, 9, 0.5800000000000001, 0.31000000000000005, 0, 0).setPath(path1).setPlannedTime(24);
+	Agent agent0 = new Agent(0, 16, 22, 0, 2, 1, 13, 0.5800000000000001, 0.31000000000000005, 0, 0).setPath(path0, 24);
+	Agent agent1 = new Agent(1, 19, 20, 3, 0, 1, 9, 0.5800000000000001, 0.31000000000000005, 0, 0).setPath(path1, 24);
 
 	SafeLines safeLines;
 

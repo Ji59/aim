@@ -124,7 +124,7 @@ public class Roundabout extends SafeLines {
 			System.out.println("Rejected agent: " + agent.getId() + "; invalid path: " + path);
 			return null;
 		}
-		agent.setPath(path);
+		agent.setPath(path, step);
 		for (int i = 0; i < path.size(); i++) {
 			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
 		}
@@ -218,7 +218,6 @@ public class Roundabout extends SafeLines {
 	}
 
 	/**
-	 *
 	 * @return map containing mapping between exits IDs and their neighbours IDs both ways
 	 */
 	protected Map<Long, Long> getExitsNeighboursMapping() {

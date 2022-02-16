@@ -61,7 +61,7 @@ public class SafeLines implements Algorithm {
 		if (selectedPath == null) {
 			return null;
 		}
-		agent.setPath(selectedPath);
+		agent.setPath(selectedPath, step);
 		for (int i = 0; i < selectedPath.size(); i++) {
 			stepOccupiedVertices.get(step + i).put(selectedPath.get(i), agent);
 		}
@@ -87,13 +87,9 @@ public class SafeLines implements Algorithm {
 	}
 
 	private boolean safeVertex(long step, long vertexID, double agentPerimeter) {
-		boolean safe = verticesDistances.get(vertexID).stream()
+		return verticesDistances.get(vertexID).stream()
 			.takeWhile(v -> v.distance() <= agentPerimeter)
 			.noneMatch(v -> stepOccupiedVertices.get(step).containsKey(v.vertexID()));
-		if (!safe) {
-			System.out.println("Not safe vertex: " + vertexID + "; collision with: " + stepOccupiedVertices.get(step).get(vertexID).getId());
-		}
-		return safe;
 	}
 
 	boolean safeStepTo(long step, long vertexID, long previousVertexID, double agentPerimeter) {
@@ -167,12 +163,7 @@ public class SafeLines implements Algorithm {
 		double perimetersSquared = neighbourPerimeter + agentPerimeter;
 		perimetersSquared *= perimetersSquared;
 
-		boolean safe = xDiffAtT + yDiffAtT > perimetersSquared;
-		if (!safe) {
-			long neighbourId = neighbour.getId();
-			System.out.println("Vertex collision on: " + vertexID + "; first from: " + adjacentVertexID + "; second to: " + neighbourVertexID + "; with: " + neighbourId);
-		}
-		return safe;
+		return xDiffAtT + yDiffAtT > perimetersSquared;
 	}
 
 	Map<Long, Map<Long, Agent>> getStepOccupiedVertices() {
