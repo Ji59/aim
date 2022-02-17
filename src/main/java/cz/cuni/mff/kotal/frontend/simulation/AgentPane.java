@@ -125,7 +125,7 @@ public class AgentPane extends StackPane {
 		GraphicalVertex end = (GraphicalVertex) vertices.get(previousNext.getValue());
 
 		double newAngle = MyNumberOperations.computeRotation(start.getX(), start.getY(), end.getX(), end.getY());
-		if (newAngle > 0 && newAngle != angle) {
+		if (newAngle >= 0 && newAngle != angle) { // FIXME condition, why angle >= 0?
 			angle = newAngle;
 			rotation.setAngle(angle);
 		}
@@ -161,7 +161,7 @@ public class AgentPane extends StackPane {
 		try {
 			getAgent().computeNextXY(time, simulationVertices);
 		} catch (IndexOutOfBoundsException e) {
-			// TODO
+			// FIXME refactor
 //				removeAgent(agent.getId());
 			return true;
 		}

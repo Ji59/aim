@@ -193,6 +193,7 @@ public class Agent {
 		GraphicalVertex previousGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getKey());
 		GraphicalVertex nextGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getValue());
 
+		// TODO optimize
 		double previousGoalX = previousGoal.getX() * IntersectionModel.getPreferredHeight();
 		double nextGoalX = nextGoal.getX() * IntersectionModel.getPreferredHeight();
 		this.x = previousGoalX * currentEdgeTravelRemain + nextGoalX * currentEdgeTravelPart;

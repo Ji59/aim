@@ -47,6 +47,8 @@ public class MyNumberOperations {
 				return 270;
 			}
 		}
+
+		// TODO WTF?
 		double angle = Math.toDegrees(Math.atan(Math.abs(xDiff / yDiff)));
 		if (xDiff >= 0 && yDiff < 0) {
 			angle = 180 - angle;
