@@ -2,7 +2,6 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
@@ -20,6 +19,8 @@ import java.util.*;
 public class SimulationAgents extends Pane {
 	private Simulation simulation;
 	private final Map<Long, AgentPane> agents = new HashMap<>();
+	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+
 	private SimulationTimer timer;
 
 	private final Set<Polygon> rectangles = new HashSet<>(); // only for debug
@@ -49,13 +50,13 @@ public class SimulationAgents extends Pane {
 	/**
 	 * Create and add new agent pane to this simulation.
 	 *
-	 * @param startTime System time of agent creation
-	 * @param agent     Agent to be added
-	 * @param period    Time delay between simulation steps
+	 * @param agent  Agent to be added
+	 * @param period Time delay between simulation steps
 	 */
-	public void addAgent(long startTime, Agent agent, double period) {
+	public void addAgent(Agent agent, double period) {
 		long agentID = agent.getId();
-		double cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight();
+		double cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
+		long startTime = simulation.getTime(agent.getPlannedTime());
 		AgentPane agentPane = new AgentPane(startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
 
 		synchronized (agents) {
@@ -68,11 +69,20 @@ public class SimulationAgents extends Pane {
 	/**
 	 * Create and add new agent pane to this simulation.
 	 *
-	 * @param time  System time of agent creation
 	 * @param agent Agent to be added
 	 */
-	public void addAgent(Long time, Agent agent) {
-		addAgent(time, agent, IntersectionScene.getPeriod());
+	public void addAgent(Agent agent) {
+		arrivingAgents.add(agent);
+//		addAgent(agent, simulation.getPeriod());
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param agentPane
+	 */
+	public void addAgentPane(AgentPane agentPane) {
+		Platform.runLater(() -> getChildren().add(agentPane));
 	}
 
 	/**
@@ -131,10 +141,9 @@ public class SimulationAgents extends Pane {
 	 *
 	 * @param simulation Simulation to be resumed
 	 */
-	public void resumeSimulation(Simulation simulation) {
+	public void resumeSimulation(Simulation simulation, long startTime) {
 		this.simulation = simulation;
 
-		long startTime = System.nanoTime();
 		synchronized (agents) {
 			agents.values().forEach(agentPane -> agentPane.resume(simulation.getPeriod(), startTime));
 		}
@@ -151,6 +160,10 @@ public class SimulationAgents extends Pane {
 			getChildren().removeAll(agents.values());
 			agents.clear();
 		}
+	}
+
+	public PriorityQueue<Agent> getArrivingAgents() {
+		return arrivingAgents;
 	}
 
 	/**

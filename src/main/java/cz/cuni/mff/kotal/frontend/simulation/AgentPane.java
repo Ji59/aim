@@ -27,7 +27,7 @@ import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
  */
 public class AgentPane extends StackPane {
 
-	private final Map<Long, Vertex> simulationVertices;
+	private final Map<Long, Vertex> simulationVertices;  // FIXME remove
 	private final Rectangle rectangle;
 	private final Rotate rotation = new Rotate();
 	private final Agent agent;
@@ -52,7 +52,7 @@ public class AgentPane extends StackPane {
 		this.agent = agent;
 		this.distanceTraveled = 0;
 		this.startTime = startTime;
-		this.period = period * 1_000_000;
+		this.period = period;
 		this.simulationVertices = simulationVertices;
 
 		// Create rectangle representing agent
@@ -170,6 +170,23 @@ public class AgentPane extends StackPane {
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @param step
+	 * @return
+	 */
+	public boolean handleTick(double step) {
+		double time = step - agent.getPlannedTime();
+		try {
+			getAgent().computeNextXY(time, simulationVertices);
+		} catch (IndexOutOfBoundsException e) {
+			return true;
+		}
+		updateAgent(time);
+		return false;
+	}
+
+	/**
 	 * Compute coordinates of agent rectangle corner points.
 	 *
 	 * @return List of corner points
@@ -236,7 +253,7 @@ public class AgentPane extends StackPane {
 //			assert timer == null;
 //			long now = System.nanoTime();
 //			timer = new AgentTimer(now, period, distanceTraveled, this);
-		this.period = period * 1_000_000;
+		this.period = period;
 		this.relativeDistanceTraveled = distanceTraveled;
 		this.startTime = now;
 //			timer.start();

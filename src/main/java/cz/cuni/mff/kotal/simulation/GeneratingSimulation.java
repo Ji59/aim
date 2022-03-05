@@ -33,6 +33,12 @@ public class GeneratingSimulation extends Simulation {
 	protected final List<Long> distribution;
 
 	private long generatedStep = 0;
+	private static final double GENERATED_MINIMUM_STEP_AHEAD = 8;
+	private static final double GENERATED_MAXIMUM_STEP_AHEAD = 16;
+
+	protected PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+	protected PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
+
 	private long finalStep = 0;
 
 	private Timer timer;
@@ -55,6 +61,11 @@ public class GeneratingSimulation extends Simulation {
 
 //		newAgentsMaximum = AgentsMenuTab1.getNewAgentsMaximum().getValue(); TODO
 		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getValue(), getDistribution().stream().filter(d -> d > 0).count());
+	}
+
+	@Override
+	public Set<Agent> loadAgents(double step) {
+		return null;
 	}
 
 	/**
@@ -84,10 +95,12 @@ public class GeneratingSimulation extends Simulation {
 	 */
 	@Override
 	public void start() {
-		long delay = isRunning() ? period : 0L;
+		long msPeriod = period / 1_000_000;
+		long delay = isRunning() ? msPeriod : 0L;
+		startTime = System.nanoTime() - (isRunning() ? period : 0);
 
 		timer = new Timer();
-		timer.scheduleAtFixedRate(getTimerTask(), delay, period);
+		timer.scheduleAtFixedRate(getTimerTask(), delay, msPeriod); // TODO refactor delay
 		new Thread(() -> {
 			try {
 				// FIXME WTH?
@@ -99,6 +112,36 @@ public class GeneratingSimulation extends Simulation {
 				e.printStackTrace();
 			}
 		}).start();
+	}
+
+	@Override
+	protected void updateAgentsDelay(double step) {
+		agentsDelay += delayedAgents.values().parallelStream().mapToLong(Collection::size).sum();
+
+		Iterator<Agent> iterator = plannedAgentsQueue.iterator();
+		while (iterator.hasNext()) {
+			Agent agent = iterator.next();
+			if (agent.getPlannedTime() > step) {
+				return;
+			}
+
+			agentsDelay += getAgentsDelay(agent);
+			iterator.remove();
+		}
+	}
+
+	@Override
+	protected void updateRejectedAgents(double step) {
+		Iterator<Agent> iterator = rejectedAgentsQueue.iterator();
+		while (iterator.hasNext()) {
+			Agent rejectedAgent = iterator.next();
+			if (rejectedAgent.getArrivalTime() + maximumDelay > step) {
+				return;
+			}
+
+			agentsRejected++;
+			iterator.remove();
+		}
 	}
 
 	/**
@@ -133,53 +176,62 @@ public class GeneratingSimulation extends Simulation {
 		return new TimerTask() {
 			@Override
 			public void run() {
-				step++;
+				System.out.println(step);
 				long currentStep = getStep(); // TODO
 
-				long stepTime = System.nanoTime();
-				if (maximumSteps > 0 && currentStep > maximumSteps) {
-					if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
-						if (step > finalStep) {
-							stop();
-						} else {
-							updateStatistics(allAgents.size());
-							return;
-						}
-					}
-				} else {
-					List<Agent> newAgents = generateAgents(allAgents.size());
-					allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
-					newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
-				}
+				generateAndUpdateAgents(currentStep);
 
-				List<Agent> entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
-
-				Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, currentStep);
-				plannedAgents.forEach(agent -> {
-					simulationAgents.addAgent(stepTime, agent);
-					agent.setPlannedTime(currentStep);
-					long leavingTime = agent.getPath().size() + currentStep;
-					if (leavingTime > finalStep) {
-						finalStep = leavingTime;
-					}
-				});
-
-				delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
-				// TODO replace with iterator
-				Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
-				delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
-
-				agentsRejected += rejectedAgents.size();
-				agentsDelay += delayedAgents.values().parallelStream().mapToLong(Collection::size).sum();
-
-				agentsDelay += plannedAgents.stream().mapToLong(agent -> agent.getPath().size() - getIntersectionGraph().getLines().get(agent.getEntry()).get(agent.getPath().get(agent.getPath().size() - 1)).size()).sum();
-
+				updateAgentsDelay(currentStep);
+				updateRejectedAgents(currentStep);
 				updateStatistics(allAgents.size());
-
-//				System.out.println(step); // TODO
-				assert getStep() == currentStep;
+				step++;
 			}
 		};
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 * @return True if simulation has finished else false
+	 */
+	protected boolean generateAndUpdateAgents(long step) {
+		if (maximumSteps > 0 && step > maximumSteps) {
+			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
+				if (step > finalStep) {
+					stop();
+				} else {
+					updateStatistics(allAgents.size());
+					return true;
+				}
+			}
+		} else {
+			List<Agent> newAgents = generateAgents(allAgents.size());
+			allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+			newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
+		}
+
+		List<Agent> entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
+
+		assert algorithm != null;
+		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
+		plannedAgents.forEach(agent -> {
+			agent.setPlannedTime(step);
+			assert simulationAgents != null;
+			simulationAgents.addAgent(agent);
+			long leavingTime = agent.getPath().size() + step;
+			if (leavingTime > finalStep) {
+				finalStep = leavingTime;
+			}
+		});
+
+		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
+		// TODO replace with iterator
+		Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
+		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
+		rejectedAgentsQueue.addAll(rejectedAgents);
+
+		return false;
 	}
 
 	/**

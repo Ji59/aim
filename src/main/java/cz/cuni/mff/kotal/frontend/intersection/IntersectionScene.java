@@ -124,12 +124,12 @@ public class IntersectionScene extends Scene {
 	/**
 	 * Compute delay between steps based on speed slider value.
 	 *
-	 * @return Delay between steps in milliseconds
+	 * @return Delay between steps in nanoseconds
 	 */
 	public static double getPeriod() {
 		double speed = IntersectionMenu.getSpeed();
 		// TODO do speed properly
-		return (2500 - Math.sqrt(speed) * 78.8);
+		return (2500 - Math.sqrt(speed) * 73) * 1_000_000;
 	}
 
 	/**

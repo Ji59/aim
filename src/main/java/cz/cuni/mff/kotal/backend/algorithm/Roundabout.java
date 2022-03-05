@@ -121,7 +121,6 @@ public class Roundabout extends SafeLines {
 		path.add(agentExit);
 
 		if (!validPath(step, path, agentPerimeter)) {
-			System.out.println("Rejected agent: " + agent.getId() + "; invalid path: " + path);
 			return null;
 		}
 		agent.setPath(path, step);
@@ -213,7 +212,6 @@ public class Roundabout extends SafeLines {
 			}
 			previous = vertex;
 		}
-		System.out.println("Direction path: " + path);
 		return path;
 	}
 

@@ -1,8 +1,12 @@
 package cz.cuni.mff.kotal.frontend.simulation.timer;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.*;
 import cz.cuni.mff.kotal.helpers.Collisions;
+import cz.cuni.mff.kotal.simulation.Agent;
+import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.util.Pair;
@@ -16,8 +20,13 @@ import java.util.stream.Collectors;
  */
 public class SimulationTimer extends AnimationTimer {
 	private final Map<Long, AgentPane> agents;
-	private final Map<Long, AgentPolygon> lastState = new HashMap<>();
+	//	private final Map<Long, AgentPolygon> lastState = new HashMap<>();
 	private final SimulationAgents simulationAgents;
+
+	private final double cellSize;
+
+	private double generatedStep = 0;
+
 
 	/**
 	 * Create new timer.
@@ -28,6 +37,7 @@ public class SimulationTimer extends AnimationTimer {
 	public SimulationTimer(Map<Long, AgentPane> agents, SimulationAgents simulationAgents) {
 		this.agents = agents;
 		this.simulationAgents = simulationAgents;
+		cellSize = simulationAgents.getSimulation().getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 	}
 
 	/**
@@ -37,9 +47,14 @@ public class SimulationTimer extends AnimationTimer {
 	 */
 	@Override
 	public void handle(long now) {
-//		simulationAgents.resetRectangles();
+//		simulationAgents.resetRectangles(); TODO
+		double step = simulationAgents.getSimulation().getStep(now);
+		IntersectionMenu.setStep(step);
+
+		addArrivedAgents(step);
+
 		synchronized (agents) {
-			Set<Map.Entry<Long, AgentPane>> finishedAgents = agents.entrySet().stream().filter(a -> !a.getValue().isDisable()).filter(entry -> entry.getValue().handleTick(now)).collect(Collectors.toSet());
+			Set<Map.Entry<Long, AgentPane>> finishedAgents = agents.entrySet().stream().filter(a -> !a.getValue().isDisable() && a.getValue().handleTick(step)).collect(Collectors.toSet());
 			finishedAgents.forEach(simulationAgents::removeAgent);
 
 			Set<Pair<AgentPane, AgentPane>> overlappingAgents = Collisions.getBoundingBoxesOverlaps(agents);
@@ -62,7 +77,7 @@ public class SimulationTimer extends AnimationTimer {
 				new Thread(() -> {
 					try {
 						// TODO replace with number of steps
-						Thread.sleep(simulationAgents.getSimulation().getPeriod());
+						Thread.sleep(simulationAgents.getSimulation().getPeriod() / 1_000_000); // TODO millis
 						Platform.runLater(() -> {
 							simulationAgents.removeAgent(agentPane0.getAgentID());
 							simulationAgents.removeAgent(agentPane1.getAgentID());
@@ -87,5 +102,29 @@ public class SimulationTimer extends AnimationTimer {
 		synchronized (agents) {
 			agents.values().forEach(a -> a.pause(now));
 		}
+	}
+
+	private void addArrivedAgents(double step) {
+		Iterator<Agent> iterator = simulationAgents.getArrivingAgents().iterator();
+		while (iterator.hasNext()) {
+			Agent agent = iterator.next();
+			if (agent.getPlannedTime() > step) {
+				 return;
+			}
+			addAgentPane(agent);
+			iterator.remove();
+		}
+	}
+
+	private void addAgentPane(Agent agent) {
+		long agentID = agent.getId();
+		Simulation simulation = simulationAgents.getSimulation();
+		long startTime = simulation.getTime(agent.getPlannedTime());
+		AgentPane agentPane = new AgentPane(startTime, agent, simulation.getPeriod(), simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
+
+		synchronized (agents) {
+			agents.put(agentID, agentPane);
+		}
+		simulationAgents.addAgentPane(agentPane);
 	}
 }

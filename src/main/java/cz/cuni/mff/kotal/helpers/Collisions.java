@@ -34,7 +34,7 @@ public class Collisions {
 	public static Set<Pair<AgentPane, AgentPane>> getBoundingBoxesOverlaps(Map<Long, AgentPane> agents) {
 		List<AgentBoundingBox> boundingBoxes;
 		synchronized (agents) {
-			boundingBoxes = agents.values().stream().filter(a -> !a.isDisabled()).map(a -> new AgentBoundingBox(a, a.getBoundingBox())).sorted().collect(Collectors.toList());
+			boundingBoxes = agents.values().stream().filter(a -> !a.isDisabled()).map(a -> new AgentBoundingBox(a, a.getBoundingBox())).sorted().toList();
 		}
 
 		Set<Pair<AgentPane, AgentPane>> overlappingAgents = new HashSet<>();
@@ -293,20 +293,7 @@ public class Collisions {
 	/**
 	 * Local class representing segment with saved Y value.
 	 */
-	private static class LineSegmentWithY implements Comparable<LineSegmentWithY> {
-		private final double y;
-		private final LineSegmentWithID lineSegment;
-
-		/**
-		 * Create new line segment with specified attributes.
-		 *
-		 * @param y           Y Value
-		 * @param lineSegment Line segment this object should represent
-		 */
-		private LineSegmentWithY(double y, LineSegmentWithID lineSegment) {
-			this.y = y;
-			this.lineSegment = lineSegment;
-		}
+	private record LineSegmentWithY(double y, LineSegmentWithID lineSegment) implements Comparable<LineSegmentWithY> {
 
 		/**
 		 * Compare two line segments by Y value.

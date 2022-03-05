@@ -66,6 +66,19 @@ public abstract class Simulation {
 		state = State.STOPPED;
 	}
 
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 * @return
+	 */
+	public abstract Set<Agent> loadAgents(double step);
+
+	/**
+	 * TODO
+	 *
+	 * @param period Time in nanoseconds
+	 */
 	public final void start(long period) {
 		this.period = period;
 		if (!isRunning()) {
@@ -77,23 +90,41 @@ public abstract class Simulation {
 		state = State.RUNNING;
 
 		start();
-		simulationAgents.resumeSimulation(this);
+		simulationAgents.resumeSimulation(this, startTime);
 	}
 
 	protected abstract void start();
 
 	public final void stop() {
-		state = State.STOPPED;
-		simulationAgents.pauseSimulation();
-		stopSimulation();
+		if (state == State.RUNNING) {
+			state = State.STOPPED;
+			simulationAgents.pauseSimulation();
+			stopSimulation();
+		}
 	}
 
 	protected void updateStatistics(long agents) {
 		IntersectionMenu.setAgents(agents);
-		IntersectionMenu.setStep(step);
 		IntersectionMenu.setDelay(agentsDelay);
 		IntersectionMenu.setRejections(agentsRejected);
 	}
+
+	/**
+	 * TODO
+	 * @param step
+	 */
+	protected abstract void updateAgentsDelay(double step);
+
+	/**
+	 * TODO
+	 * @param agent
+	 * @return
+	 */
+	protected int getAgentsDelay(Agent agent) {
+		return agent.getPath().size() - getIntersectionGraph().getLines().get(agent.getEntry()).get(agent.getPath().get(agent.getPath().size() - 1)).size();
+	}
+
+	protected abstract void updateRejectedAgents(double step);
 
 	protected abstract void stopSimulation();
 
@@ -134,6 +165,15 @@ public abstract class Simulation {
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public Map<Long, Agent> getAllAgentsMap() {
+		return allAgents;
+	}
+
+	/**
 	 * Get generated agent with specified ID.
 	 *
 	 * @param id ID of the agent
@@ -148,6 +188,26 @@ public abstract class Simulation {
 	 */
 	public long getStep() {
 		return step;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param time
+	 * @return
+	 */
+	public double getStep(long time) {
+		return (time - startTime) / (double) period;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 * @return
+	 */
+	public long getTime(long step) {
+		return step * period + startTime;
 	}
 
 	/**

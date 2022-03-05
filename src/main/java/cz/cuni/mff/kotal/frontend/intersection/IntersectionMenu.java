@@ -358,6 +358,18 @@ public class IntersectionMenu extends VBox {
 	}
 
 	/**
+	 * Set value of both step labels.
+	 *
+	 * @param step Value to be shown on labels
+	 */
+	public static void setStep(double step) {
+		Platform.runLater(() -> {
+			STEPS_LABEL.setText(String.valueOf(step));
+			SimulationMenuTab3.getStepsLabel().setText(String.valueOf(step));
+		});
+	}
+
+	/**
 	 * Set value of both rejections labels.
 	 *
 	 * @param delay Value to be shown on labels

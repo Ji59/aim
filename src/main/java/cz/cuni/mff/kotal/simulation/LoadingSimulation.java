@@ -25,10 +25,12 @@ public class LoadingSimulation extends Simulation {
 
 	@Override
 	protected void start() {
-		long delay = isRunning() ? period : 0L;
+		long msPeriod = period / 1_000_000;
+		long delay = isRunning() ? msPeriod : 0L;
+		startTime = System.nanoTime() - (isRunning() ? period : 0);
 
 		timer = new Timer();
-		timer.scheduleAtFixedRate(getTimerTask(), delay, period);
+		timer.scheduleAtFixedRate(getTimerTask(), delay, msPeriod);
 	}
 
 	private TimerTask getTimerTask() {
@@ -66,7 +68,7 @@ public class LoadingSimulation extends Simulation {
 
 				Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, currentStep);
 				plannedAgents.forEach(agent -> {
-					simulationAgents.addAgent(stepTime, agent);
+					simulationAgents.addAgent(agent);
 					agent.setPlannedTime(currentStep);
 					long leavingTime = agent.getPath().size() + currentStep;
 					if (leavingTime > finalStep) {
@@ -82,7 +84,7 @@ public class LoadingSimulation extends Simulation {
 				agentsRejected += rejectedAgents.size();
 				agentsDelay += delayedAgents.values().parallelStream().mapToLong(Collection::size).sum();
 
-				agentsDelay += plannedAgents.stream().mapToLong(agent -> agent.getPath().size() - getIntersectionGraph().getLines().get(agent.getEntry()).get(agent.getPath().get(agent.getPath().size() - 1)).size()).sum();
+				agentsDelay += plannedAgents.stream().mapToLong(agent -> getAgentsDelay(agent)).sum();
 
 				updateStatistics(sortedAgentsIterator.nextIndex());
 
