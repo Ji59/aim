@@ -24,6 +24,10 @@ public class LoadingSimulation extends Simulation {
 	}
 
 	@Override
+	public void loadAgents(double step) {
+	}
+
+	@Override
 	protected void start() {
 		long msPeriod = period / 1_000_000;
 		long delay = isRunning() ? msPeriod : 0L;
@@ -33,65 +37,63 @@ public class LoadingSimulation extends Simulation {
 		timer.scheduleAtFixedRate(getTimerTask(), delay, msPeriod);
 	}
 
-	private TimerTask getTimerTask() {
-		return new TimerTask() {
-			@Override
-			public void run() {
-				step++;
-				long currentStep = getStep(); // TODO
-
-				long stepTime = System.nanoTime();
-				if (sortedAgentsIterator.hasNext()) {
-					List<Agent> newAgents = new ArrayList<>();
-					Agent nextAgent = null;
-					while (sortedAgentsIterator.hasNext() && (nextAgent = sortedAgentsIterator.next()).getArrivalTime() <= step) {
-						newAgents.add(nextAgent);
-					}
-					if (nextAgent != null && nextAgent.getArrivalTime() > step && sortedAgentsIterator.hasPrevious()) {
-						sortedAgentsIterator.previous();
-					}
-
-					newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
-				} else {
-
-					if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
-						if (step > finalStep) {
-							stop();
-						} else {
-							updateStatistics(sortedAgentsIterator.nextIndex());
-							return;
-						}
-					}
-				}
-
-				List<Agent> entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
-
-				Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, currentStep);
-				plannedAgents.forEach(agent -> {
-					simulationAgents.addAgent(agent);
-					agent.setPlannedTime(currentStep);
-					long leavingTime = agent.getPath().size() + currentStep;
-					if (leavingTime > finalStep) {
-						finalStep = leavingTime;
-					}
-				});
-
-				delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
-				// TODO replace with iterator
-				Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
-				delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
-
-				agentsRejected += rejectedAgents.size();
-				agentsDelay += delayedAgents.values().parallelStream().mapToLong(Collection::size).sum();
-
-				agentsDelay += plannedAgents.stream().mapToLong(agent -> getAgentsDelay(agent)).sum();
-
-				updateStatistics(sortedAgentsIterator.nextIndex());
-
-//				System.out.println(step); // TODO
-				assert getStep() == currentStep;
+	@Override
+	protected boolean loadAndUpdateStepAgents(long step) {
+		if (sortedAgentsIterator.hasNext()) {
+			List<Agent> newAgents = new ArrayList<>();
+			Agent nextAgent = null;
+			while (sortedAgentsIterator.hasNext() && (nextAgent = sortedAgentsIterator.next()).getArrivalTime() <= step) {
+				newAgents.add(nextAgent);
 			}
-		};
+			if (nextAgent != null && nextAgent.getArrivalTime() > step && sortedAgentsIterator.hasPrevious()) {
+				sortedAgentsIterator.previous();
+			}
+
+			newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
+		} else {
+
+			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
+				if (step > finalStep) {
+					stop();
+				} else {
+					updateStatistics(sortedAgentsIterator.nextIndex());
+				}
+				return false;
+			}
+		}
+
+		List<Agent> entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
+
+		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
+		plannedAgents.forEach(agent -> {
+			simulationAgents.addAgent(agent);
+			agent.setPlannedTime(step);
+			long leavingTime = agent.getPath().size() + step;
+			if (leavingTime > finalStep) {
+				finalStep = leavingTime;
+			}
+		});
+
+		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
+		// TODO replace with iterator
+		Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
+		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
+
+		loadedAgentsQueue.addAll(rejectedAgents);
+
+		updateStatistics(sortedAgentsIterator.nextIndex());
+
+		return false;
+	}
+
+	private ListIterator<Agent> loadAgents(String path) throws FileNotFoundException {
+		FileReader reader = new FileReader(path);
+		Gson gson = new Gson();
+		List<Agent> agents = gson.fromJson(reader, new TypeToken<List<Agent>>() {
+		}.getType());
+		agents.sort(Comparator.comparingDouble(Agent::getArrivalTime));
+		allAgents.putAll(agents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+		return agents.listIterator();
 	}
 
 	@Override
@@ -110,13 +112,20 @@ public class LoadingSimulation extends Simulation {
 		}
 	}
 
-	private ListIterator<Agent> loadAgents(String path) throws FileNotFoundException {
-		FileReader reader = new FileReader(path);
-		Gson gson = new Gson();
-		List<Agent> agents = gson.fromJson(reader, new TypeToken<List<Agent>>() {
-		}.getType());
-		agents.sort(Comparator.comparingDouble(Agent::getArrivalTime));
-		allAgents.putAll(agents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
-		return agents.listIterator();
+	private TimerTask getTimerTask() {
+		return new TimerTask() {
+			@Override
+			public void run() {
+				System.out.println(step);
+				long currentStep = getStep(); // TODO
+
+				loadAndUpdateStepAgents(currentStep);
+
+				updateAgentsDelay(currentStep);
+				updateRejectedAgents(currentStep);
+				updateStatistics(allAgents.size());
+				step++;
+			}
+		};
 	}
 }

@@ -32,13 +32,6 @@ public class GeneratingSimulation extends Simulation {
 	protected final long newAgentsMaximum;
 	protected final List<Long> distribution;
 
-	private long generatedStep = 0;
-	private static final double GENERATED_MINIMUM_STEP_AHEAD = 8;
-	private static final double GENERATED_MAXIMUM_STEP_AHEAD = 16;
-
-	protected PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
-	protected PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
-
 	private long finalStep = 0;
 
 	private Timer timer;
@@ -64,8 +57,12 @@ public class GeneratingSimulation extends Simulation {
 	}
 
 	@Override
-	public Set<Agent> loadAgents(double step) {
-		return null;
+	public void loadAgents(double step) {
+		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
+			for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
+				loadAndUpdateStepAgents(loadedStep);
+			}
+		}
 	}
 
 	/**
@@ -114,36 +111,6 @@ public class GeneratingSimulation extends Simulation {
 		}).start();
 	}
 
-	@Override
-	protected void updateAgentsDelay(double step) {
-		agentsDelay += delayedAgents.values().parallelStream().mapToLong(Collection::size).sum();
-
-		Iterator<Agent> iterator = plannedAgentsQueue.iterator();
-		while (iterator.hasNext()) {
-			Agent agent = iterator.next();
-			if (agent.getPlannedTime() > step) {
-				return;
-			}
-
-			agentsDelay += getAgentsDelay(agent);
-			iterator.remove();
-		}
-	}
-
-	@Override
-	protected void updateRejectedAgents(double step) {
-		Iterator<Agent> iterator = rejectedAgentsQueue.iterator();
-		while (iterator.hasNext()) {
-			Agent rejectedAgent = iterator.next();
-			if (rejectedAgent.getArrivalTime() + maximumDelay > step) {
-				return;
-			}
-
-			agentsRejected++;
-			iterator.remove();
-		}
-	}
-
 	/**
 	 * Stop this simulation.
 	 */
@@ -167,43 +134,21 @@ public class GeneratingSimulation extends Simulation {
 	}
 
 	/**
-	 * Create new timer task for creating new agents.
-	 *
-	 * @return New timer task
-	 */
-	@NotNull
-	private TimerTask getTimerTask() {
-		return new TimerTask() {
-			@Override
-			public void run() {
-				System.out.println(step);
-				long currentStep = getStep(); // TODO
-
-				generateAndUpdateAgents(currentStep);
-
-				updateAgentsDelay(currentStep);
-				updateRejectedAgents(currentStep);
-				updateStatistics(allAgents.size());
-				step++;
-			}
-		};
-	}
-
-	/**
 	 * TODO
 	 *
 	 * @param step
 	 * @return True if simulation has finished else false
 	 */
-	protected boolean generateAndUpdateAgents(long step) {
+	@Override
+	protected boolean loadAndUpdateStepAgents(long step) {
 		if (maximumSteps > 0 && step > maximumSteps) {
 			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
 				if (step > finalStep) {
 					stop();
 				} else {
 					updateStatistics(allAgents.size());
-					return true;
 				}
+				return true;
 			}
 		} else {
 			List<Agent> newAgents = generateAgents(allAgents.size());
@@ -229,9 +174,32 @@ public class GeneratingSimulation extends Simulation {
 		// TODO replace with iterator
 		Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
 		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
-		rejectedAgentsQueue.addAll(rejectedAgents);
+		loadedAgentsQueue.addAll(rejectedAgents);
 
 		return false;
+	}
+
+	/**
+	 * Create new timer task for creating new agents.
+	 *
+	 * @return New timer task
+	 */
+	@NotNull
+	private TimerTask getTimerTask() {
+		return new TimerTask() {
+			@Override
+			public void run() {
+				System.out.println(step);
+				long currentStep = getStep(); // TODO
+
+				loadAndUpdateStepAgents(currentStep);
+
+				updateAgentsDelay(currentStep);
+				updateRejectedAgents(currentStep);
+				updateStatistics(allAgents.size());
+				step++;
+			}
+		};
 	}
 
 	/**

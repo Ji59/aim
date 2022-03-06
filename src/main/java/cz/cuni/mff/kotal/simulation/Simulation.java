@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public abstract class Simulation {
+	protected static final double GENERATED_MINIMUM_STEP_AHEAD = 8;
+	protected static final double GENERATED_MAXIMUM_STEP_AHEAD = 16;
 	// TODO
 	public static long maximumDelay = 16;
 	protected final SimulationGraph intersectionGraph;
@@ -28,6 +30,10 @@ public abstract class Simulation {
 	protected long startTime;
 	protected long period;
 	protected State state;
+
+	protected long loadedStep = 0;
+	protected PriorityQueue<Agent> loadedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+	protected PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 
 	protected Simulation() {
 		state = State.INVALID;
@@ -49,9 +55,9 @@ public abstract class Simulation {
 		maximumDelay = intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
 
 		intersectionGraph.getEntryExitVertices().values().forEach(
-			directionList -> directionList.stream()
-				.filter(vertex -> vertex.getType().isEntry())
-				.forEach(entry -> delayedAgents.put(entry.getID(), new ArrayList<>()))
+						directionList -> directionList.stream()
+										.filter(vertex -> vertex.getType().isEntry())
+										.forEach(entry -> delayedAgents.put(entry.getID(), new ArrayList<>()))
 		);
 	}
 
@@ -70,9 +76,8 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param step
-	 * @return
 	 */
-	public abstract Set<Agent> loadAgents(double step);
+	public abstract void loadAgents(double step);
 
 	/**
 	 * TODO
@@ -111,12 +116,7 @@ public abstract class Simulation {
 
 	/**
 	 * TODO
-	 * @param step
-	 */
-	protected abstract void updateAgentsDelay(double step);
-
-	/**
-	 * TODO
+	 *
 	 * @param agent
 	 * @return
 	 */
@@ -124,7 +124,43 @@ public abstract class Simulation {
 		return agent.getPath().size() - getIntersectionGraph().getLines().get(agent.getEntry()).get(agent.getPath().get(agent.getPath().size() - 1)).size();
 	}
 
-	protected abstract void updateRejectedAgents(double step);
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 */
+	protected void updateAgentsDelay(double step) {
+		agentsDelay += delayedAgents.values().parallelStream().mapToLong(Collection::size).sum();
+
+		Iterator<Agent> iterator = plannedAgentsQueue.iterator();
+		while (iterator.hasNext()) {
+			Agent agent = iterator.next();
+			if (agent.getPlannedTime() > step) {
+				return;
+			}
+
+			agentsDelay += getAgentsDelay(agent);
+			iterator.remove();
+		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 */
+	protected void updateRejectedAgents(double step) {
+		Iterator<Agent> iterator = loadedAgentsQueue.iterator();
+		while (iterator.hasNext()) {
+			Agent rejectedAgent = iterator.next();
+			if (rejectedAgent.getArrivalTime() + maximumDelay > step) {
+				return;
+			}
+
+			agentsRejected++;
+			iterator.remove();
+		}
+	}
 
 	protected abstract void stopSimulation();
 
@@ -235,6 +271,14 @@ public abstract class Simulation {
 	public State getState() {
 		return state;
 	}
+
+	/**
+	 * TODDO
+	 *
+	 * @param step
+	 * @return
+	 */
+	protected abstract boolean loadAndUpdateStepAgents(long step);
 
 	public enum State {
 		RUNNING(true),
