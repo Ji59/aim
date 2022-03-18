@@ -56,15 +56,6 @@ public class GeneratingSimulation extends Simulation {
 		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getValue(), getDistribution().stream().filter(d -> d > 0).count());
 	}
 
-	@Override
-	public void loadAgents(double step) {
-		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
-			for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-				loadAndUpdateStepAgents(loadedStep);
-			}
-		}
-	}
-
 	/**
 	 * Create new simulation.
 	 *
@@ -143,6 +134,7 @@ public class GeneratingSimulation extends Simulation {
 	protected boolean loadAndUpdateStepAgents(long step) {
 		if (maximumSteps > 0 && step > maximumSteps) {
 			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
+				// FIXME refactor
 				if (step > finalStep) {
 					stop();
 				} else {
@@ -151,9 +143,10 @@ public class GeneratingSimulation extends Simulation {
 				return true;
 			}
 		} else {
-			List<Agent> newAgents = generateAgents(allAgents.size());
+			List<Agent> newAgents = generateAgents(step, allAgents.size());
 			allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 			newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
+			createdAgentsQueue.addAll(newAgents);
 		}
 
 		List<Agent> entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
@@ -164,17 +157,19 @@ public class GeneratingSimulation extends Simulation {
 			agent.setPlannedTime(step);
 			assert simulationAgents != null;
 			simulationAgents.addAgent(agent);
+
 			long leavingTime = agent.getPath().size() + step;
 			if (leavingTime > finalStep) {
 				finalStep = leavingTime;
 			}
 		});
+		plannedAgentsQueue.addAll(plannedAgents);
 
 		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
 		// TODO replace with iterator
-		Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
+		Set<Agent> rejectedAgents = delayedAgents.values().stream().flatMap(Collection::stream).filter(agent -> agent.getArrivalTime() + maximumDelay <= step).collect(Collectors.toSet());
 		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
-		loadedAgentsQueue.addAll(rejectedAgents);
+		rejectedAgentsQueue.addAll(rejectedAgents);
 
 		return false;
 	}
@@ -194,6 +189,8 @@ public class GeneratingSimulation extends Simulation {
 
 				loadAndUpdateStepAgents(currentStep);
 
+
+				updateTotalAgents(currentStep);
 				updateAgentsDelay(currentStep);
 				updateRejectedAgents(currentStep);
 				updateStatistics(allAgents.size());
@@ -208,7 +205,7 @@ public class GeneratingSimulation extends Simulation {
 	 * @param id ID of first generated agent; increases with reach generated agent
 	 * @return Set of newly generated agents
 	 */
-	protected List<Agent> generateAgents(int id) {
+	protected List<Agent> generateAgents(long step, int id) {
 		assert (distribution.stream().reduce(0L, Long::sum) == 100);
 		long newAgentsCount = generateRandomLong(newAgentsMinimum, newAgentsMaximum);
 
@@ -220,7 +217,7 @@ public class GeneratingSimulation extends Simulation {
 			long entryValue = generateRandomLong(100);
 			long exitValue = generateRandomLong(100);
 
-			Agent newAgent = generateAgent(id++, entryValue, exitValue, entries, exits);
+			Agent newAgent = generateAgent(step, id++, entryValue, exitValue, entries, exits);
 			newAgents.add(newAgent);
 		}
 
@@ -243,7 +240,7 @@ public class GeneratingSimulation extends Simulation {
 //					}
 //					return directionDifference;
 //				});
-				List<Vertex> directionEntries = getIntersectionGraph().getEntryExitVertices().get(entryDirection).parallelStream().filter(vertex -> vertex.getType().isEntry()).toList();
+				List<Vertex> directionEntries = getIntersectionGraph().getEntryExitVertices().get(entryDirection).stream().filter(vertex -> vertex.getType().isEntry()).toList(); // FIXME parallelStream?
 
 				for (Agent agent : directionAgents) {
 					long relativeExitDirection = myModulo(agent.getExitDirection() - entryDirection, directions) - 1;
@@ -303,7 +300,7 @@ public class GeneratingSimulation extends Simulation {
 	 * @param exits      Map of exits from different directions
 	 * @return Newly generated agent
 	 */
-	protected Agent generateAgent(int id, long entryValue, long exitValue, Map<Integer, List<Vertex>> entries, Map<Integer, List<Vertex>> exits) {
+	protected Agent generateAgent(double step, int id, long entryValue, long exitValue, Map<Integer, List<Vertex>> entries, Map<Integer, List<Vertex>> exits) {
 		// FIXME No agents from E to S in square
 		// TODO generate only directions
 		int entryDirection;
@@ -383,15 +380,10 @@ public class GeneratingSimulation extends Simulation {
 		GraphicalVertex entry = null;
 		double entryX = 0;
 		double entryY = 0;
-		if (randomEntry) {
-			assert generateEntry;
-			entry = (GraphicalVertex) directionEntries.get(generateRandomInt(directionEntries.size() - 1));
-			directionEntries.remove(entry);
-			entryX = entry.getX() * IntersectionModel.getPreferredHeight();
-			entryY = entry.getY() * IntersectionModel.getPreferredHeight();
-		} else {
-			directionEntries.remove(0);
-		}
+		entry = (GraphicalVertex) directionEntries.get(generateRandomInt(directionEntries.size() - 1));
+		directionEntries.remove(entry);
+		entryX = entry.getX() * IntersectionModel.getPreferredHeight();
+		entryY = entry.getY() * IntersectionModel.getPreferredHeight();
 
 		Vertex exit = null;
 		if (generateExit) {
@@ -399,7 +391,7 @@ public class GeneratingSimulation extends Simulation {
 			exit = directionExits.get(generateRandomInt(directionExits.size() - 1));
 		}
 
-		double arrivalTime = getStep() + Math.exp(-Math.random()) * maxDeviation;
+		double arrivalTime = step + Math.exp(-Math.random()) * maxDeviation;
 
 		return new Agent(id, randomEntry ? entry.getID() : -1, generateExit ? exit.getID() : -1, entryDirection, exitDirection, speed, arrivalTime, length, width, entryX, entryY);
 	}

@@ -340,8 +340,9 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static void setAgents(long agents) {
 		Platform.runLater(() -> {
-			AGENTS_LABEL.setText(String.valueOf(agents));
-			SimulationMenuTab3.getAgentsLabel().setText(String.valueOf(agents));
+			String agentsFormatted = String.format("%,d", agents);
+			AGENTS_LABEL.setText(agentsFormatted);
+			SimulationMenuTab3.getAgentsLabel().setText(agentsFormatted);
 		});
 	}
 
@@ -352,8 +353,9 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static void setStep(long step) {
 		Platform.runLater(() -> {
-			STEPS_LABEL.setText(String.valueOf(step));
-			SimulationMenuTab3.getStepsLabel().setText(String.valueOf(step));
+			String stepFormatted = String.format("%,d", step);
+			STEPS_LABEL.setText(stepFormatted);
+			SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
 		});
 	}
 
@@ -364,20 +366,22 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static void setStep(double step) {
 		Platform.runLater(() -> {
-			STEPS_LABEL.setText(String.valueOf(step));
-			SimulationMenuTab3.getStepsLabel().setText(String.valueOf(step));
+			String stepFormatted = String.format("%,.2f", step);  // TODO extract constant
+			STEPS_LABEL.setText(stepFormatted);
+			SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
 		});
 	}
 
 	/**
-	 * Set value of both rejections labels.
+	 * Set value of both delay labels.
 	 *
 	 * @param delay Value to be shown on labels
 	 */
 	public static void setDelay(long delay) {
 		Platform.runLater(() -> {
-			DELAY_LABEL.setText(String.valueOf(delay));
-			SimulationMenuTab3.getDelayLabel().setText(String.valueOf(delay));
+			String delayFormatted = String.format("%,d", delay);
+			DELAY_LABEL.setText(delayFormatted);
+			SimulationMenuTab3.getDelayLabel().setText(delayFormatted);
 		});
 	}
 
@@ -388,8 +392,9 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static void setRejections(long rejections) {
 		Platform.runLater(() -> {
-			REJECTIONS_LABEL.setText(String.valueOf(rejections));
-			SimulationMenuTab3.getRejectionsLabel().setText(String.valueOf(rejections));
+			String rejectionsFormatted = String.format("%,d", rejections);
+			REJECTIONS_LABEL.setText(rejectionsFormatted);
+			SimulationMenuTab3.getRejectionsLabel().setText(rejectionsFormatted);
 		});
 	}
 
@@ -400,8 +405,9 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static void setCollisions(long collisions) {
 		Platform.runLater(() -> {
-			COLLISIONS_LABEL.setText(String.valueOf(collisions));
-			SimulationMenuTab3.getCollisionsLabel().setText(String.valueOf(collisions));
+			String collisionsFormatted = String.valueOf(collisions);
+			COLLISIONS_LABEL.setText(collisionsFormatted);
+			SimulationMenuTab3.getCollisionsLabel().setText(collisionsFormatted);
 		});
 	}
 

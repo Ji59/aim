@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.frontend.simulation.timer;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
+import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.simulation.*;
 import cz.cuni.mff.kotal.helpers.Collisions;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -25,7 +26,7 @@ public class SimulationTimer extends AnimationTimer {
 
 	private final double cellSize;
 
-	private double generatedStep = 0;
+	private long generatedStep = -1;
 
 
 	/**
@@ -51,7 +52,10 @@ public class SimulationTimer extends AnimationTimer {
 		double step = simulationAgents.getSimulation().getStep(now);
 		IntersectionMenu.setStep(step);
 
+		simulationAgents.getSimulation().loadAgents(step);
 		addArrivedAgents(step);
+
+		simulationAgents.getSimulation().updateStatistics(step);
 
 		synchronized (agents) {
 			Set<Map.Entry<Long, AgentPane>> finishedAgents = agents.entrySet().stream().filter(a -> !a.getValue().isDisable() && a.getValue().handleTick(step)).collect(Collectors.toSet());
@@ -87,9 +91,18 @@ public class SimulationTimer extends AnimationTimer {
 					} catch (NullPointerException ignored) {
 					}
 				}).start();
-
 			});
+
+//			TODO
+//			long stepDiscrete = (long) step;
+//			if (stepDiscrete > generatedStep) {
+//				generatedStep = stepDiscrete;
+//				Collection<AgentPane> agentPanes = simulationAgents.addStepAgentPanes(generatedStep, agents.values());
+//				assert agentPanes == null;
+//				SimulationMenuTab3.setTimelineMaximum(stepDiscrete);
+//			}
 		}
+		SimulationMenuTab3.setTimelineMaximum(step);
 	}
 
 	/**

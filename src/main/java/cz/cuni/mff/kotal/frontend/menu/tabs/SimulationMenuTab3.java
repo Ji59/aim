@@ -22,7 +22,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	// TODO don't use static, use Component
 	// TODO extract constants and rename constants
 	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
-	private static final Slider timeline = new Slider(0, 1, 0);
+	private static final Slider timeline = new Slider(0, 0, 0);
 	private static final Label agensLabel = new Label("#n");
 	private static final Label stepsLabel = new Label("#n");
 	private static final Label delayLabel = new Label("#n");
@@ -42,6 +42,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 		createStatisticsGrid((GridPane) Parameters.STATISTICS.getParameter());
 
 		addSpeedSliderActions();
+		addTimelineSliderActions();
 		// TODO pridat akce na tlacitka a slidery
 
 		int row = 0;
@@ -99,6 +100,12 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 		SPEED_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> IntersectionScene.changeSimulation());
 	}
 
+	private void addTimelineSliderActions() {
+		timeline.valueProperty().addListener((observable, oldValue, newValue) -> {
+			IntersectionScene.startSimulationAt(newValue.longValue());
+		});
+	}
+
 	/**
 	 * @return Speed slider
 	 */
@@ -111,6 +118,10 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	 */
 	public static Slider getTimeline() {
 		return timeline;
+	}
+
+	public static void setTimelineMaximum(double maximum) {
+		timeline.setMax(maximum);
 	}
 
 	/**

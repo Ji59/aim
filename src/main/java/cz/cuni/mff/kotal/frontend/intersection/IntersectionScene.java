@@ -63,6 +63,12 @@ public class IntersectionScene extends Scene {
 		setButtonsProperties(menuWidth);
 	}
 
+	public static void startSimulationAt(long step) {
+		simulation.stop();
+		simulation.startAt(getPeriod(), step);
+
+	}
+
 	/**
 	 * Set minimum width for play and restart button.
 	 *
@@ -108,7 +114,7 @@ public class IntersectionScene extends Scene {
 			}
 
 			AGENTS.setSimulation(simulation);
-			simulation.start((long) getPeriod());
+			simulation.start(getPeriod());
 		}
 	}
 
@@ -117,8 +123,7 @@ public class IntersectionScene extends Scene {
 	 */
 	private static void resumeSimulation() {
 		assert simulation != null;
-		long period = (long) getPeriod();
-		simulation.start(period);
+		simulation.start(getPeriod());
 	}
 
 	/**
@@ -126,10 +131,10 @@ public class IntersectionScene extends Scene {
 	 *
 	 * @return Delay between steps in nanoseconds
 	 */
-	public static double getPeriod() {
+	public static long getPeriod() {
 		double speed = IntersectionMenu.getSpeed();
 		// TODO do speed properly
-		return (2500 - Math.sqrt(speed) * 73) * 1_000_000;
+		return (long) ((2500 - Math.sqrt(speed) * 78) * 1_000_000);
 	}
 
 	/**

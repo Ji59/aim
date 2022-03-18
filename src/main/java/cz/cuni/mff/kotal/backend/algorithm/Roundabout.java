@@ -157,7 +157,7 @@ public class Roundabout extends SafeLines {
 		exitsNeighboursVertices.parallelStream().forEach(exit -> {
 			Map<GraphicalVertex, List<Long>> exitMap = entriesNeighboursVertices.stream()
 				.collect(Collectors.toMap(Function.identity(), entry -> graph.shortestPath(exit, entry)));
-			distances.put(exit, exitMap);
+			distances.put(exit, exitMap); // TODO check thread safety
 		});
 
 		Pair<GraphicalVertex, GraphicalVertex> closest = null;

@@ -24,10 +24,6 @@ public class LoadingSimulation extends Simulation {
 	}
 
 	@Override
-	public void loadAgents(double step) {
-	}
-
-	@Override
 	protected void start() {
 		long msPeriod = period / 1_000_000;
 		long delay = isRunning() ? msPeriod : 0L;
@@ -50,9 +46,10 @@ public class LoadingSimulation extends Simulation {
 			}
 
 			newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
+			createdAgentsQueue.addAll(newAgents);
 		} else {
-
 			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
+				// FIXME refactor
 				if (step > finalStep) {
 					stop();
 				} else {
@@ -73,13 +70,14 @@ public class LoadingSimulation extends Simulation {
 				finalStep = leavingTime;
 			}
 		});
+		plannedAgentsQueue.addAll(plannedAgents);
 
 		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
 		// TODO replace with iterator
 		Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
 		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
 
-		loadedAgentsQueue.addAll(rejectedAgents);
+		rejectedAgentsQueue.addAll(rejectedAgents);
 
 		updateStatistics(sortedAgentsIterator.nextIndex());
 
@@ -121,6 +119,7 @@ public class LoadingSimulation extends Simulation {
 
 				loadAndUpdateStepAgents(currentStep);
 
+				updateTotalAgents(currentStep);
 				updateAgentsDelay(currentStep);
 				updateRejectedAgents(currentStep);
 				updateStatistics(allAgents.size());

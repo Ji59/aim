@@ -19,7 +19,8 @@ import java.util.*;
 public class SimulationAgents extends Pane {
 	private Simulation simulation;
 	private final Map<Long, AgentPane> agents = new HashMap<>();
-	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
+	private Map<Long, Collection<AgentPane>> stepAgentPanes = new HashMap<>();
 
 	private SimulationTimer timer;
 
@@ -53,6 +54,7 @@ public class SimulationAgents extends Pane {
 	 * @param agent  Agent to be added
 	 * @param period Time delay between simulation steps
 	 */
+	@Deprecated
 	public void addAgent(Agent agent, double period) {
 		long agentID = agent.getId();
 		double cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
@@ -67,6 +69,7 @@ public class SimulationAgents extends Pane {
 	}
 
 	/**
+	 * TODO
 	 * Create and add new agent pane to this simulation.
 	 *
 	 * @param agent Agent to be added
@@ -74,6 +77,13 @@ public class SimulationAgents extends Pane {
 	public void addAgent(Agent agent) {
 		arrivingAgents.add(agent);
 //		addAgent(agent, simulation.getPeriod());
+	}
+
+	/**
+	 * @param agents
+	 */
+	public void addAgents(Collection<Agent> agents) {
+		arrivingAgents.addAll(agents);
 	}
 
 	/**
@@ -152,13 +162,25 @@ public class SimulationAgents extends Pane {
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @param simulation Simulation to be resumed
+	 */
+	public void resumeSimulationWithAgents(Simulation simulation, long startTime, Collection<Agent> agents) {
+		resetSimulation();
+		addAgents(agents);
+		resumeSimulation(simulation, startTime);
+	}
+
+	/**
 	 * Restart whole pane to starting state.
 	 */
 	public void resetSimulation() {
 		synchronized (agents) {
 			timer.stop();
-			getChildren().removeAll(agents.values());
+			getChildren().clear();
 			agents.clear();
+			stepAgentPanes.clear();
 		}
 	}
 
@@ -215,5 +237,9 @@ public class SimulationAgents extends Pane {
 
 	public Simulation getSimulation() {
 		return simulation;
+	}
+
+	public Collection<AgentPane> addStepAgentPanes(long step, Collection<AgentPane> agentPanes) {
+		return stepAgentPanes.put(step, agentPanes);
 	}
 }
