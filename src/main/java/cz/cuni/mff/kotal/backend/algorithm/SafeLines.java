@@ -38,6 +38,12 @@ public class SafeLines implements Algorithm {
 	}
 
 	@Override
+	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
+		stepOccupiedVertices.entrySet().removeIf(occupiedVerticesEntry -> occupiedVerticesEntry.getKey() < step);
+		return agents.stream().filter(agent -> planAgent(agent, step) != null).toList();
+	}
+
+	@Override
 	public Agent planAgent(Agent agent, long step) {
 		List<Long> selectedPath = null;
 		double agentPerimeter = perimeter(agent.getL(), agent.getW()) * graph.getCellSize();

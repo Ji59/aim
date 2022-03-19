@@ -1,4 +1,4 @@
-module aim.main {
+open module aim.main {
 	// Require JavaFX
 	requires javafx.base;
 	requires javafx.graphics;
@@ -12,6 +12,6 @@ module aim.main {
 	exports cz.cuni.mff.kotal;
 
 	//  allow to access your classes via reflections
-	opens cz.cuni.mff.kotal.frontend to javafx.graphics;
-	opens cz.cuni.mff.kotal.simulation to com.google.gson;
+//	opens cz.cuni.mff.kotal.frontend to javafx.graphics;
+//	opens cz.cuni.mff.kotal.simulation to com.google.gson;
 }

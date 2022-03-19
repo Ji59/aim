@@ -124,6 +124,7 @@ public class SimulationTimer extends AnimationTimer {
 			if (agent.getPlannedTime() > step) {
 				 return;
 			}
+			assert agent.getPlannedTime() + agent.getPath().size() >= step;
 			addAgentPane(agent);
 			iterator.remove();
 		}

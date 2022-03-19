@@ -134,7 +134,7 @@ public class AgentPane extends StackPane {
 	/**
 	 * Update rotation and position of the pane.
 	 *
-	 * @param time System time of the update
+	 * @param time System time of the update FIXME what is time
 	 */
 	public void updateAgent(double time) {
 		updateRotation(time);
