@@ -63,6 +63,39 @@ public class Agent {
 		this.y = y;
 	}
 
+
+	/**
+	 * TODO
+	 *
+	 * @param time
+	 * @return
+	 */
+	public int getLastVisitedVertexIndex(double time) {
+		return (int) (time * speed);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param time
+	 * @return
+	 */
+	public int getNearestVertexIndex(double time) {
+		return (int) Math.round(time * speed);
+	}
+
+
+	/**
+	 * TODO
+	 *
+	 * @param time
+	 * @return
+	 */
+	public long getNearestPathVertexId(double time) {
+		return path.get(getNearestVertexIndex(time));
+	}
+
+
 	/**
 	 * Return previous and next target vertex ID at given time.
 	 * If time is before arrival, return twice ID of starting vertex.
@@ -83,8 +116,8 @@ public class Agent {
 			long exitID = path.get(path.size() - 1);
 			return new Pair<>(exitID, exitID);
 		}
-		int nextIndex = (int) Math.round((time) * speed + 0.5);
-		int previousIndex = nextIndex - 1;
+		int previousIndex = getLastVisitedVertexIndex(time);
+		int nextIndex = previousIndex + 1;
 		return new Pair<>(path.get(previousIndex), path.get(nextIndex));
 	}
 
@@ -159,7 +192,7 @@ public class Agent {
 	 * If exit was not yet set, set it to the last vertex of the path.
 	 * TODO
 	 *
-	 * @param path New path of this agent
+	 * @param path        New path of this agent
 	 * @param plannedTime
 	 */
 	public Agent setPath(List<Long> path, long plannedTime) {

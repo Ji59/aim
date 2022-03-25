@@ -28,6 +28,8 @@ public class SimulationTimer extends AnimationTimer {
 
 	private long generatedStep = -1;
 
+	private final long[] verticesUsage;
+	private long frames = 0;
 
 	/**
 	 * Create new timer.
@@ -39,6 +41,7 @@ public class SimulationTimer extends AnimationTimer {
 		this.agents = agents;
 		this.simulationAgents = simulationAgents;
 		cellSize = simulationAgents.getSimulation().getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
+		verticesUsage = new long[simulationAgents.getSimulation().getIntersectionGraph().getVertices().size()];
 	}
 
 	/**
@@ -48,6 +51,8 @@ public class SimulationTimer extends AnimationTimer {
 	 */
 	@Override
 	public void handle(long now) {
+		frames++;
+
 //		simulationAgents.resetRectangles(); TODO
 		double step = simulationAgents.getSimulation().getStep(now);
 		IntersectionMenu.setStep(step);
@@ -93,16 +98,30 @@ public class SimulationTimer extends AnimationTimer {
 				}).start();
 			});
 
-//			TODO
-//			long stepDiscrete = (long) step;
-//			if (stepDiscrete > generatedStep) {
+			long stepDiscrete = (long) step;
+			if (stepDiscrete > generatedStep) {
+//				TODO
 //				generatedStep = stepDiscrete;
 //				Collection<AgentPane> agentPanes = simulationAgents.addStepAgentPanes(generatedStep, agents.values());
 //				assert agentPanes == null;
 //				SimulationMenuTab3.setTimelineMaximum(stepDiscrete);
-//			}
+			}
+
+
 		}
 		SimulationMenuTab3.setTimelineMaximum(step);
+		updateVerticesUsage(step);
+	}
+
+	private void updateVerticesUsage(double step) {
+		agents.values().stream()
+			.filter(agentPane -> !agentPane.isDisable())
+			.map(AgentPane::getAgent)
+			.forEach(agent -> {
+				int vertex = (int) agent.getNearestPathVertexId(step - agent.getPlannedTime());
+				verticesUsage[vertex]++;
+			});
+		IntersectionModel.updateVertexNodesColors(verticesUsage, frames);
 	}
 
 	/**
@@ -122,7 +141,7 @@ public class SimulationTimer extends AnimationTimer {
 		while (iterator.hasNext()) {
 			Agent agent = iterator.next();
 			if (agent.getPlannedTime() > step) {
-				 return;
+				return;
 			}
 			assert agent.getPlannedTime() + agent.getPath().size() >= step;
 			addAgentPane(agent);

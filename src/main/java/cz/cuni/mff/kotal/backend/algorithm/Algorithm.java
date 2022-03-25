@@ -2,10 +2,8 @@ package cz.cuni.mff.kotal.backend.algorithm;
 
 
 import cz.cuni.mff.kotal.simulation.Agent;
-import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 
 import java.util.Collection;
-import java.util.List;
 
 
 public interface Algorithm {

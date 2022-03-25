@@ -13,14 +13,10 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Line;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.*;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
-import javafx.util.Pair;
 
 import java.util.*;
 
@@ -33,14 +29,16 @@ public class IntersectionModel extends Pane {
 	private static final double OCTAGON_RATIO = 1 / Math.E;
 	private static final double VERTEX_RATIO = GOLDEN_RATIO / 2;
 	private static final Color STROKE_COLOR = Color.BLACK;
+	public static final double MAX_COLOR_CHANGE = 0.00390625;
 
 	// TODO dont use static, use Component
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
-	private static List<Node> nodes = new ArrayList<>();
-	private static final Map<SimulationGraph, SimulationGraph> createdGraphs = new HashMap<>();
-	private static final Deque<SimulationGraph> historyPrevious = new ArrayDeque<>();
-	private static final Deque<SimulationGraph> historyNext = new ArrayDeque<>();
+	private List<Node> nodes = new ArrayList<>();
+	private static final Map<Long, Shape> vertexNodes = new HashMap<>();
+	private final Map<SimulationGraph, SimulationGraph> createdGraphs = new HashMap<>();
+	private final Deque<SimulationGraph> historyPrevious = new ArrayDeque<>();
+	private final Deque<SimulationGraph> historyNext = new ArrayDeque<>();
 
 
 	/**
@@ -68,14 +66,15 @@ public class IntersectionModel extends Pane {
 			Line l = new Line(vCoor(u.getX()), vCoor(u.getY()), vCoor(v.getX()), vCoor(v.getY()));
 			nodes.add(l);
 		}
-		for (GraphicalVertex v : graph.getVertices()) {
-			Circle c = new Circle(shift * VERTEX_RATIO, v.getType().getColor());
-			Text t = new Text(String.valueOf(v.getID()));
+		for (GraphicalVertex vertex : graph.getVertices()) {
+			Circle circle = new Circle(shift * VERTEX_RATIO, vertex.getType().getColor());
+			Text t = new Text(String.valueOf(vertex.getID()));
 			t.setBoundsType(TextBoundsType.VISUAL);
-			StackPane stack = new StackPane(c, t);
-			stack.setLayoutX(vCoor(v.getX()) - shift * VERTEX_RATIO);
-			stack.setLayoutY(vCoor(v.getY()) - shift * VERTEX_RATIO);
+			StackPane stack = new StackPane(circle, t);
+			stack.setLayoutX(vCoor(vertex.getX()) - shift * VERTEX_RATIO);
+			stack.setLayoutY(vCoor(vertex.getY()) - shift * VERTEX_RATIO);
 			nodes.add(stack);
+			vertexNodes.put(vertex.getID(), circle);
 		}
 	}
 
@@ -90,8 +89,8 @@ public class IntersectionModel extends Pane {
 		double shift = height / (granularity + 2);
 
 		if (!IntersectionMenu.isAbstract()) {
-			for (GraphicalVertex v : graph.getVertices()) {
-				drawSquare(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
+			for (GraphicalVertex vertex : graph.getVertices()) {
+				drawSquareVertex(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());
 			}
 		} else {
 			drawAbstractModel(shift);
@@ -111,11 +110,11 @@ public class IntersectionModel extends Pane {
 		if (IntersectionMenu.isAbstract()) {
 			drawAbstractModel(shift);
 		} else {
-			for (GraphicalVertex v : graph.getVertices()) {
-				if (v.getType() == Type.ROAD) {
-					drawHexagon(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
+			for (GraphicalVertex vertex : graph.getVertices()) {
+				if (vertex.getType() == Type.ROAD) {
+					drawHexagon(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());
 				} else {
-					drawHexagonEntry(shift, v);
+					drawHexagonEntry(shift, vertex);
 				}
 			}
 		}
@@ -132,15 +131,15 @@ public class IntersectionModel extends Pane {
 		double shift = height * graph.getCellSize();
 
 		if (!IntersectionMenu.isAbstract()) {
-			for (GraphicalVertex v : graph.getVertices()) {
-				if (v.getType() == Type.ROAD) {
-					if (v.getID() < granularity * granularity - 4) {
-						drawOctagon(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
+			for (GraphicalVertex vertex : graph.getVertices()) {
+				if (vertex.getType() == Type.ROAD) {
+					if (vertex.getID() < granularity * granularity - 4) {
+						drawOctagon(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());
 					} else {
-						drawObliqueSquare((1 - OCTAGON_RATIO) * shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor());
+						drawObliqueSquare((1 - OCTAGON_RATIO) * shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());
 					}
 				} else {
-					drawOctagonalEntry(shift, vCoor(v.getX()), vCoor(v.getY()), String.valueOf(v.getID()), v.getType().getColor(), v.getType().getDirection());
+					drawOctagonalEntry(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), String.valueOf(vertex.getID()), vertex.getType().getColor(), vertex.getType().getDirection());
 				}
 			}
 		} else {
@@ -149,15 +148,16 @@ public class IntersectionModel extends Pane {
 	}
 
 	/**
-	 * Draw square at specified location.
+	 * Draw square representing vertex at specified location.
+	 * Adds vertex node to map.
 	 *
 	 * @param size  Size of the square side
 	 * @param x     Coordinate X of center of the square
 	 * @param y     Coordinate Y of center of the square
-	 * @param text  The text inside the square
+	 * @param id    The id of vertex to be shown inside the square
 	 * @param color Color of the square
 	 */
-	private void drawSquare(double size, double x, double y, String text, Color color) {
+	private void drawSquareVertex(double size, double x, double y, long id, Color color) {
 		double halfSize = size / 2;
 
 		Rectangle square = new Rectangle(size, size, color);
@@ -165,39 +165,41 @@ public class IntersectionModel extends Pane {
 		square.setX(x - halfSize);
 		square.setY(y - halfSize);
 		nodes.add(square);
+		vertexNodes.put(id, square);
 
-		addTextField(x - halfSize, y - halfSize, size, size, text);
+		addTextField(x - halfSize, y - halfSize, size, size, String.valueOf(id));
 	}
 
 	/**
-	 * Draw rectangle with text in it.
+	 * Draw rectangle vertex with id in it.
 	 *
 	 * @param x      Coordinate X of the top left corner
 	 * @param y      Coordinate Y of the top left corner
 	 * @param width  Width of the rectangle
 	 * @param height Height of the rectangle
-	 * @param text   Text to be in the rectangle
+	 * @param id     ID to be shown inside the rectangle
 	 * @param color  Color inside the rectangle
 	 */
-	private void drawRectangle(double x, double y, double width, double height, String text, Color color) {
+	private void drawHexagonalModelRectangleEntry(double x, double y, double width, double height, long id, Color color) {
 		Rectangle rectangle = new Rectangle(x, y, width, height);
 		rectangle.setStroke(STROKE_COLOR);
 		rectangle.setFill(color);
 		nodes.add(rectangle);
+		vertexNodes.put(id, rectangle);
 
-		addTextField(x, y, width, height, text);
+		addTextField(x, y, width, height, String.valueOf(id));
 	}
 
 	/**
-	 * Draw hexagon.
+	 * Draw hexagon representing vertex.
 	 *
 	 * @param shift Distance between 2 opposite sides
 	 * @param x     Coordinate X of the center of the hexagon
 	 * @param y     Coordinate Y of the center of the hexagon
-	 * @param text  Text to be inside the hexagon
+	 * @param id    ID of the vertex to be shown inside the hexagon
 	 * @param color Color inside the hexagon
 	 */
-	private void drawHexagon(double shift, double x, double y, String text, Color color) {
+	private void drawHexagon(double shift, double x, double y, long id, Color color) {
 		double tan30HalfShift = Math.sqrt(3) * shift / 6;
 		double halfShift = shift / 2;
 
@@ -212,20 +214,21 @@ public class IntersectionModel extends Pane {
 		hexagon.setFill(color);
 		hexagon.setStroke(STROKE_COLOR);
 		nodes.add(hexagon);
+		vertexNodes.put(id, hexagon);
 
-		addTextField(x - 2 * tan30HalfShift, y - shift / 2, 4 * tan30HalfShift, shift, text);
+		addTextField(x - 2 * tan30HalfShift, y - shift / 2, 4 * tan30HalfShift, shift, String.valueOf(id));
 	}
 
 	/**
-	 * Draw octagon at specified location.
+	 * Draw octagon representing vertex at specified location.
 	 *
 	 * @param size  Distance between opposite sides
 	 * @param x     Coordinate X of center of the octagon
 	 * @param y     Coordinate Y of center of the octagon
-	 * @param text  The text inside the octagon
+	 * @param id    ID of vertex to be shown inside the octagon
 	 * @param color Color of the octagon
 	 */
-	private void drawOctagon(double size, double x, double y, String text, Color color) {
+	private void drawOctagon(double size, double x, double y, Long id, Color color) {
 		double halfSize = size / 2;
 		double shorterSize = OCTAGON_RATIO * halfSize;
 
@@ -243,20 +246,21 @@ public class IntersectionModel extends Pane {
 		octagon.setFill(color);
 		octagon.setStroke(STROKE_COLOR);
 		nodes.add(octagon);
+		vertexNodes.put(id, octagon);
 
-		addTextField(x - halfSize, y - halfSize, size, size, text);
+		addTextField(x - halfSize, y - halfSize, size, size, String.valueOf(id));
 	}
 
 	/**
-	 * Draw square at specified location rotated 45 deg.
+	 * Draw square at specified location rotated 45 deg representing vertex in octagonal model.
 	 *
 	 * @param size  Distance between opposite vertices
 	 * @param x     Coordinate X of center of the square
 	 * @param y     Coordinate Y of center of the square
-	 * @param text  The text inside the square
+	 * @param id    The ID of vertex to be shown inside the square
 	 * @param color Color of the square
 	 */
-	private void drawObliqueSquare(double size, double x, double y, String text, Color color) {
+	private void drawObliqueSquare(double size, double x, double y, long id, Color color) {
 		double halfSize = size / 2;
 
 		// create square
@@ -269,98 +273,100 @@ public class IntersectionModel extends Pane {
 		square.setFill(color);
 		square.setStroke(STROKE_COLOR);
 		nodes.add(square);
+		vertexNodes.put(id, square);
 
-		addTextField(x - halfSize, y - halfSize, size, size, text);
+		addTextField(x - halfSize, y - halfSize, size, size, String.valueOf(id));
 	}
 
 	/**
 	 * Draw an entry / exit.
 	 *
-	 * @param shift Distance between 2 opposite sides of hexagons in the model
-	 * @param v     Vertex symbolizing the entry / exit
+	 * @param shift  Distance between 2 opposite sides of hexagons in the model
+	 * @param vertex Vertex symbolizing the entry / exit
 	 */
-	private void drawHexagonEntry(double shift, GraphicalVertex v) {
-		switch (v.getType()) {
+	private void drawHexagonEntry(double shift, GraphicalVertex vertex) {
+		switch (vertex.getType()) {
 			case ENTRY2, EXIT2, ENTRY5, EXIT5 -> {
-				double x = v.getType() == Type.ENTRY5 || v.getType() == Type.EXIT5 ? 0 : vCoor(v.getX()) + (Math.sqrt(3) / 6 - 1) * shift;
-				double y = vCoor(v.getY()) - shift / 2;
+				double x = vertex.getType() == Type.ENTRY5 || vertex.getType() == Type.EXIT5 ? 0 : vCoor(vertex.getX()) + (Math.sqrt(3) / 6 - 1) * shift;
+				double y = vCoor(vertex.getY()) - shift / 2;
 				double width = (graph.getGranularity() - Math.sqrt(3) * (graph.getGranularity() - 2. / 3) / 2 + 0.5) * shift;
 				double height = shift;
-				drawRectangle(x, y, width, height, String.valueOf(v.getID()), v.getType().getColor());
+				drawHexagonalModelRectangleEntry(x, y, width, height, vertex.getID(), vertex.getType().getColor());
 				return;
 			}
 			case ENTRY0, EXIT0 -> {
-				double x0 = vCoor(v.getX()) + shift * (1. / 2 - 1 / Math.sqrt(3));
-				double y0 = vCoor(v.getY()) + Math.sqrt(3) * shift / 2;
-				double x1 = vCoor(v.getX()) + shift * (1 + Math.sqrt(3) / 3) / 2;
-				double y1 = vCoor(v.getY()) + (Math.sqrt(3) - 1) * shift / 2;
+				double x0 = vCoor(vertex.getX()) + shift * (1. / 2 - 1 / Math.sqrt(3));
+				double y0 = vCoor(vertex.getY()) + Math.sqrt(3) * shift / 2;
+				double x1 = vCoor(vertex.getX()) + shift * (1 + Math.sqrt(3) / 3) / 2;
+				double y1 = vCoor(vertex.getY()) + (Math.sqrt(3) - 1) * shift / 2;
 				double x2 = Math.max(x1 - Math.sqrt(3) * y1 / 3, 0);
 				double y2 = x2 == 0 ? y1 - Math.sqrt(3) * x1 : 0;
 				double x3 = Math.max(x0 - Math.sqrt(3) * y0 / 3, 0);
 				double y3 = x3 == 0 ? y0 - Math.sqrt(3) * x0 : 0;
-				drawHexagonalModelObliqueEntry(x0, y0, x1, y1, x2, y2, x3, y3, x3 == 0, y2 == 0, 0., v.getType().getColor());
+				if (x3 == 0 && y2 == 0) {
+					drawHexagonalModelObliqueEntries(vertex, x0, y0, x1, y1, x2, y2, 0, 0, x3, y3);
+				} else {
+					drawHexagonalModelObliqueEntries(vertex, x0, y0, x1, y1, x2, y2, x3, y3);
+				}
 			}
 			case ENTRY1, EXIT1 -> {
-				double x0 = vCoor(v.getX()) - shift * (1 + Math.sqrt(3) / 3) / 2;
-				double y0 = vCoor(v.getY()) + (Math.sqrt(3) - 1) * shift / 2;
-				double x1 = vCoor(v.getX()) + shift * (1 / Math.sqrt(3) - 1. / 2);
-				double y1 = vCoor(v.getY()) + Math.sqrt(3) * shift / 2;
+				double x0 = vCoor(vertex.getX()) - shift * (1 + Math.sqrt(3) / 3) / 2;
+				double y0 = vCoor(vertex.getY()) + (Math.sqrt(3) - 1) * shift / 2;
+				double x1 = vCoor(vertex.getX()) + shift * (1 / Math.sqrt(3) - 1. / 2);
+				double y1 = vCoor(vertex.getY()) + Math.sqrt(3) * shift / 2;
 				double x2 = Math.min(x1 + Math.sqrt(3) * y1 / 3, preferredHeight);
 				double y2 = x2 == preferredHeight ? y1 - Math.sqrt(3) * (preferredHeight - x1) : 0;
 				double x3 = Math.min(x0 + Math.sqrt(3) * y0 / 3, preferredHeight);
 				double y3 = x3 == preferredHeight ? y0 - Math.sqrt(3) * (preferredHeight - x0) : 0;
-				drawHexagonalModelObliqueEntry(x0, y0, x1, y1, x2, y2, x3, y3, x2 == preferredHeight, y3 == 0, preferredHeight, v.getType().getColor());
-			}
-			default -> {
+				if (x2 == preferredHeight && y3 == 0) {
+					drawHexagonalModelObliqueEntries(vertex, x0, y0, x1, y1, x2, y2, preferredHeight, 0, x3, y3);
+				} else {
+					drawHexagonalModelObliqueEntries(vertex, x0, y0, x1, y1, x2, y2, x3, y3);
+				}
 			}
 		}
-		addTextField(vCoor(v.getX()) - shift / 2, vCoor(v.getY()) - shift / 2, shift, shift, String.valueOf(v.getID()));
+		addTextField(vCoor(vertex.getX()) - shift / 2, vCoor(vertex.getY()) - shift / 2, shift, shift, String.valueOf(vertex.getID()));
 	}
 
 	/**
 	 * Create two quadrilaterals or pentagons symbolizing opposite oblique entries / exits for hexagonal model.
 	 * If the entry is over frame corner, it adds fifth point.
 	 *
-	 * @param x0      Coordinate X of bottom left corner
-	 * @param y0      Coordinate Y of bottom left corner
-	 * @param x1      Coordinate X of bottom right corner
-	 * @param y1      Coordinate Y of bottom right corner
-	 * @param x2      Coordinate X of top right corner
-	 * @param y2      Coordinate Y of top right corner
-	 * @param x3      Coordinate X of top left corner
-	 * @param y3      Coordinate Y of top left corner
-	 * @param zeroX   Flag if the entry is touching sides
-	 * @param zeroY   Flag if the entry is touching top side
-	 * @param cornerX Coordinate X of corner the entry is directing to
+	 * @param color  TODO
+	 * @param points Polygon points location in format x0, y0, x1, y1, ...
+	 * @return
 	 */
-	private void drawHexagonalModelObliqueEntry(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, boolean zeroX, boolean zeroY, double cornerX, Color color) {
+	private Polygon drawHexagonalModelObliqueEntry(Color color, double... points) {
 		// create associated entry
 		Polygon polygon = new Polygon(
-			x0, y0,
-			x1, y1,
-			x2, y2,
-			x3, y3
+			points
 		);
-		if (zeroX && zeroY) {
-			polygon.getPoints().addAll(6, Arrays.asList(cornerX, 0.));
-		}
 		polygon.setStroke(STROKE_COLOR);
 		polygon.setFill(color);
 		nodes.add(polygon);
+		return polygon;
+	}
 
-		// create opposite entry
-		Polygon polygon1 = new Polygon(
-			preferredHeight - x0, preferredHeight - y0,
-			preferredHeight - x1, preferredHeight - y1,
-			preferredHeight - x2, preferredHeight - y2,
-			preferredHeight - x3, preferredHeight - y3
-		);
-		if (zeroX && zeroY) {
-			polygon1.getPoints().addAll(6, Arrays.asList(preferredHeight - cornerX, preferredHeight));
+	/**
+	 * TODO
+	 *
+	 * @param vertex
+	 * @param points
+	 */
+	private void drawHexagonalModelObliqueEntries(GraphicalVertex vertex, double... points) {
+		Color color = vertex.getType().getColor();
+		long id = vertex.getID();
+
+		Polygon polygon = drawHexagonalModelObliqueEntry(color, points);
+		vertexNodes.put(id, polygon);
+
+		for (int i = 0; i < points.length; i++) {
+			points[i] = preferredHeight - points[i];
 		}
-		polygon1.setStroke(STROKE_COLOR);
-		polygon1.setFill(color);
-		nodes.add(polygon1);
+		id += 3;
+
+		polygon = drawHexagonalModelObliqueEntry(color, points);
+		vertexNodes.put(id, polygon);
 	}
 
 	/**
@@ -470,6 +476,8 @@ public class IntersectionModel extends Pane {
 				case SQUARE -> graph = new SquareGraph(granularity, entries, exits);
 				case HEXAGONAL -> graph = new HexagonalGraph(granularity, entries, exits);
 				case OCTAGONAL -> graph = new OctagonalGraph(granularity, entries, exits);
+				case CUSTOM -> {
+				}
 			}
 
 			createGraphNodes();
@@ -488,8 +496,9 @@ public class IntersectionModel extends Pane {
 	 */
 	private void setGraphFromAbstract(SimulationGraph graphAbstract) {
 		assert createdGraphs.containsKey(graphAbstract);
-		this.graph = createdGraphs.get(graphAbstract);
+		graph = createdGraphs.get(graphAbstract);
 		nodes.clear();
+		vertexNodes.clear();
 		createGraphNodes();
 		getChildren().setAll(nodes);
 	}
@@ -544,10 +553,30 @@ public class IntersectionModel extends Pane {
 	 */
 	private void drawBackground(double height) {
 		Rectangle backgroundSquare = new Rectangle(0, 0, height, height);
-		backgroundSquare.setFill(Color.LAWNGREEN);
+		backgroundSquare.setFill(Color.color(0.1875, 0.25, 0.1875));
 
 		getChildren().add(backgroundSquare);
 		backgroundSquare.toBack();
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param verticesUsage
+	 * @param frames
+	 */
+	public static void updateVertexNodesColors(long[] verticesUsage, double frames) {
+		for (long vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
+			Color color = graph.getVertex(vertexID).getType().getColor();
+
+			double oldColorShift = ((Color) vertexNodes.get(vertexID).getFill()).getGreen() / color.getGreen();
+			double colorShift = 1 - verticesUsage[(int) vertexID] / frames;
+			if (Math.abs(oldColorShift - colorShift) > MAX_COLOR_CHANGE) {
+				colorShift = oldColorShift + (colorShift > oldColorShift ? MAX_COLOR_CHANGE : -MAX_COLOR_CHANGE);
+			}
+
+			vertexNodes.get(vertexID).setFill(Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift));
+		}
 	}
 
 	/**

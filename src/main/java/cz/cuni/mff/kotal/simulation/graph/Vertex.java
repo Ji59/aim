@@ -13,9 +13,9 @@ import java.util.Set;
  * Class representing graph vertex.
  */
 public class Vertex {
-	private static final Color ROAD_COLOR = Color.LIGHTGREY;
-	private static final Color ENTRY_COLOR = Color.LIGHTSLATEGRAY;
-	private static final Color EXIT_COLOR = Color.GRAY;
+	private static final Color ROAD_COLOR = Color.color(0.75, 0.75, 0.75);
+	private static final Color ENTRY_COLOR = Color.color(0.875, 0.75, 0.625);
+	private static final Color EXIT_COLOR = Color.color(0.625, 0.75, 0.875);
 
 	protected final long id;
 	protected final Type type;
@@ -150,6 +150,16 @@ public class Vertex {
 		 */
 		public Color getColor() {
 			return color;
+		}
+
+
+		/**
+		 * TODO
+		 *
+		 * @return
+		 */
+		public double getBaseColorGreenValue() {
+			return color.getGreen();
 		}
 
 		/**

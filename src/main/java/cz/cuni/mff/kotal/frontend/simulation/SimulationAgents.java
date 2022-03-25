@@ -181,6 +181,7 @@ public class SimulationAgents extends Pane {
 			getChildren().clear();
 			agents.clear();
 			stepAgentPanes.clear();
+			arrivingAgents.clear();
 		}
 	}
 
