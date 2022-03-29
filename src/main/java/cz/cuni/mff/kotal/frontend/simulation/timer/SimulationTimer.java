@@ -28,8 +28,8 @@ public class SimulationTimer extends AnimationTimer {
 
 	private long generatedStep = -1;
 
-	private final long[] verticesUsage;
-	private long frames = 0;
+	private static long[] verticesUsage = null;
+	private static long frames = 0;
 
 	/**
 	 * Create new timer.
@@ -41,7 +41,10 @@ public class SimulationTimer extends AnimationTimer {
 		this.agents = agents;
 		this.simulationAgents = simulationAgents;
 		cellSize = simulationAgents.getSimulation().getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
-		verticesUsage = new long[simulationAgents.getSimulation().getIntersectionGraph().getVertices().size()];
+
+		if (verticesUsage == null) {
+			verticesUsage = new long[simulationAgents.getSimulation().getIntersectionGraph().getVertices().size()];
+		}
 	}
 
 	/**
@@ -111,6 +114,8 @@ public class SimulationTimer extends AnimationTimer {
 		}
 		SimulationMenuTab3.setTimelineMaximum(step);
 		updateVerticesUsage(step);
+
+		simulationAgents.setVertexLabelText();
 	}
 
 	private void updateVerticesUsage(double step) {
@@ -157,7 +162,20 @@ public class SimulationTimer extends AnimationTimer {
 
 		synchronized (agents) {
 			agents.put(agentID, agentPane);
+			simulationAgents.addAgentPane(agentPane);
 		}
-		simulationAgents.addAgentPane(agentPane);
+	}
+
+	public static double getVertexUsage(int id) {
+		if (frames <= 0) {
+			return 0;
+		}
+
+		return (double) verticesUsage[id] / frames;
+	}
+
+	public static void resetVerticesUsage() {
+		verticesUsage = null;
+		frames = 0;
 	}
 }

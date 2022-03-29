@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
@@ -14,6 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +27,7 @@ import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
  */
 public class AgentPane extends StackPane {
 
+	public final Color color = Color.rgb(generateRandomInt(255), generateRandomInt(255), generateRandomInt(255));
 	private final Map<Long, Vertex> simulationVertices;  // FIXME remove
 	private final Rectangle rectangle;
 	private final Rotate rotation = new Rotate();
@@ -72,13 +73,15 @@ public class AgentPane extends StackPane {
 
 
 		// TODO set color properly
-		rectangle.setFill(Color.rgb(generateRandomInt(255), generateRandomInt(255), generateRandomInt(255)));
+		rectangle.setFill(color);
 
 		// TODO set proper agent size
 		setPrefWidth(getW());
 		setPrefHeight(getL());
 
 		getChildren().addAll(rectangle, text);
+
+		setMouseTransparent(true);
 
 		updateAgent(0);
 	}
@@ -319,12 +322,22 @@ public class AgentPane extends StackPane {
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public Color getColor() {
+		return color;
+	}
+
+	/**
 	 * Set width of this pane.
 	 * Use only in tests.
 	 *
 	 * @param width New width of the pane
 	 */
 	@Override
+	@TestOnly
 	public void setWidth(double width) {
 		super.setWidth(width);
 	}
@@ -336,6 +349,7 @@ public class AgentPane extends StackPane {
 	 * @param height New height of the pane
 	 */
 	@Override
+	@TestOnly
 	public void setHeight(double height) {
 		super.setHeight(height);
 	}

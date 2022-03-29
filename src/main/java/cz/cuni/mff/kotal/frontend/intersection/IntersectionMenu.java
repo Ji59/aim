@@ -129,7 +129,12 @@ public class IntersectionMenu extends VBox {
 			try {
 				// TODO check simulation
 
+				IntersectionScene.stopSimulation();
+
 				File agentsFile = getAgentsSaveFile();
+				if (agentsFile == null) {
+					return;
+				}
 				while (!agentsFile.getPath().endsWith(".json")) {
 					AtomicInteger result = getWarningResult(agentsFile);
 
@@ -140,6 +145,10 @@ public class IntersectionMenu extends VBox {
 					}
 
 					agentsFile = getAgentsSaveFile();
+
+					if (agentsFile == null) {
+						return;
+					}
 				}
 
 				IntersectionScene.getSimulation().saveAgents(agentsFile);
@@ -168,6 +177,7 @@ public class IntersectionMenu extends VBox {
 
 	/**
 	 * TODO javadoc
+	 *
 	 * @param agentsFile
 	 * @return
 	 */
@@ -194,6 +204,7 @@ public class IntersectionMenu extends VBox {
 
 	/**
 	 * TODO javadoc
+	 *
 	 * @return
 	 */
 	private static File getAgentsSaveFile() {
@@ -202,8 +213,7 @@ public class IntersectionMenu extends VBox {
 		fileChooser.setInitialFileName("agents.json");
 		fileChooser.getExtensionFilters().add(new ExtensionFilter("Json documents", "*.json"));
 		fileChooser.setInitialDirectory(FileSystemView.getFileSystemView().getDefaultDirectory());
-		File agentsFile = fileChooser.showSaveDialog(null);
-		return agentsFile;
+		return fileChooser.showSaveDialog(null);
 	}
 
 	/**

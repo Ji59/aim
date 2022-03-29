@@ -8,17 +8,23 @@ import cz.cuni.mff.kotal.simulation.graph.*;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
+import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
+import javafx.stage.Popup;
 import javafx.stage.Screen;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 
 /**
@@ -27,9 +33,10 @@ import java.util.*;
 public class IntersectionModel extends Pane {
 	private static final double GOLDEN_RATIO = (Math.sqrt(5) - 1) / 2;
 	private static final double OCTAGON_RATIO = 1 / Math.E;
-	private static final double VERTEX_RATIO = GOLDEN_RATIO / 2;
+	public static final double VERTEX_RATIO = GOLDEN_RATIO / 2;
 	private static final Color STROKE_COLOR = Color.BLACK;
-	public static final double MAX_COLOR_CHANGE = 0.00390625;
+	public static final double MAX_COLOR_CHANGE = 0.0078125;
+	public static final Color BACKGROUND_COLOR = Color.color(0.25, 0.34375, 0.28125);
 
 	// TODO dont use static, use Component
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
@@ -139,7 +146,7 @@ public class IntersectionModel extends Pane {
 						drawObliqueSquare((1 - OCTAGON_RATIO) * shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());
 					}
 				} else {
-					drawOctagonalEntry(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), String.valueOf(vertex.getID()), vertex.getType().getColor(), vertex.getType().getDirection());
+					drawOctagonalEntry(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor(), vertex.getType().getDirection());
 				}
 			}
 		} else {
@@ -370,16 +377,16 @@ public class IntersectionModel extends Pane {
 	}
 
 	/**
-	 * Create rectangular entry / exit for octagonal model.
+	 * Create rectangular entry / exit vertex for octagonal model.
 	 *
 	 * @param size      "Width" of the road
 	 * @param x         Coordinate X of the entry / exit in graph
 	 * @param y         Coordinate Y of the entry / exit in graph
-	 * @param text      The text inside the entry / exit
+	 * @param id        The id to be displayed inside the entry / exit
 	 * @param color     Color of the rectangle
 	 * @param direction Direction of the entry / exit. (See Vertex object for more details)
 	 */
-	private void drawOctagonalEntry(double size, double x, double y, String text, Color color, int direction) {
+	private void drawOctagonalEntry(double size, double x, double y, long id, Color color, int direction) {
 		assert (direction < 4);
 		// create rectangle
 		Rectangle rectangle = new Rectangle();
@@ -399,30 +406,68 @@ public class IntersectionModel extends Pane {
 		rectangle.setWidth(width);
 		rectangle.setHeight(height);
 		nodes.add(rectangle);
+		vertexNodes.put(id, rectangle);
 
-		// add text
-		addTextField(xLocation, yLocation, width, height, text);
+		// add id
+		addTextField(xLocation, yLocation, width, height, String.valueOf(id));
 	}
 
 	/**
-	 * Adds rectangular text field.
+	 * Adds rectangular vertex id field.
 	 *
-	 * @param x      Coordinate X of the text field
-	 * @param y      Coordinate Y of the text field
-	 * @param width  Width of the text field
-	 * @param height Height of the text field
-	 * @param text   Text of the text field
+	 * @param x      Coordinate X of the id field
+	 * @param y      Coordinate Y of the id field
+	 * @param width  Width of the id field
+	 * @param height Height of the id field
+	 * @param id     Text of the id field
 	 */
-	private void addTextField(double x, double y, double width, double height, String text) {
-		TextField t = new TextField(text);
-		t.setBackground(Background.EMPTY);
-		t.setLayoutX(x);
-		t.setLayoutY(y);
-		t.setPrefWidth(width);
-		t.setPrefHeight(height);
-		t.setAlignment(Pos.CENTER);
-		t.setEditable(false);
-		nodes.add(t);
+	private void addTextField(double x, double y, double width, double height, String id) {
+		Label vertexLabel = new Label(id);
+		vertexLabel.setBackground(Background.EMPTY);
+		vertexLabel.setLayoutX(x);
+		vertexLabel.setLayoutY(y);
+		vertexLabel.setPrefWidth(width);
+		vertexLabel.setPrefHeight(height);
+		vertexLabel.setAlignment(Pos.CENTER);
+		nodes.add(vertexLabel);
+
+//		Label statsLabel = new Label(id);
+//		statsLabel.setVisible(false);
+//		statsLabel.setLabelFor(vertexLabel);
+//		statsLabel.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+//		nodes.add(statsLabel);
+
+//		Popup popup = new Popup();
+//		popup.getContent().add(statsLabel);
+
+//		vertexLabel.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(5), BorderStroke.DEFAULT_WIDTHS)));
+
+
+//		vertexLabel.setOnMouseClicked(mouseEvent -> {
+//			popup.show(vertexLabel, 0, 0);
+//			System.out.println(id + ": clicked");
+//			statsLabel.setVisible(false);
+//			vertexLabel.setBackground(new Background(new BackgroundFill(Color.BLACK, new CornerRadii(5), null)));
+//		});
+
+//		statsLabel.setOnMouseMoved(mouseEvent -> {
+//			System.out.println(id);
+//		});
+
+
+//		vertexLabel.hoverProperty().addListener((observableValue, oldValue, newValue) -> {
+//			System.out.println(id + ": " + oldValue + " " + newValue);
+//		vertexLabel.setOnMouseEntered(event -> {
+//			System.out.println(id + " entered.");
+//			statsLabel.setLayoutX(event.getSceneX());
+//			statsLabel.setLayoutY(event.getSceneY());
+//			statsLabel.setVisible(true);
+//		});
+
+//		vertexLabel.setOnMouseExited(event -> {
+//			System.out.println(id + " exited.");
+//			statsLabel.setVisible(false);
+//		});
 	}
 
 	/*
@@ -553,7 +598,7 @@ public class IntersectionModel extends Pane {
 	 */
 	private void drawBackground(double height) {
 		Rectangle backgroundSquare = new Rectangle(0, 0, height, height);
-		backgroundSquare.setFill(Color.color(0.1875, 0.25, 0.1875));
+		backgroundSquare.setFill(BACKGROUND_COLOR);
 
 		getChildren().add(backgroundSquare);
 		backgroundSquare.toBack();
@@ -576,6 +621,13 @@ public class IntersectionModel extends Pane {
 			}
 
 			vertexNodes.get(vertexID).setFill(Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift));
+		}
+	}
+
+	public static void resetVertexNodesColors() {
+		for (Map.Entry<Long, Shape> vertexNode : vertexNodes.entrySet()) {
+			Color color = graph.getVertex(vertexNode.getKey()).getType().getColor();
+			vertexNode.getValue().setFill(color);
 		}
 	}
 

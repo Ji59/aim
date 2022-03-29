@@ -3,12 +3,25 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
+import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
+import cz.cuni.mff.kotal.simulation.InvalidSimulation;
 import cz.cuni.mff.kotal.simulation.Simulation;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.TextAlignment;
 
 import java.util.*;
 
@@ -17,10 +30,16 @@ import java.util.*;
  * Pane with agent rectangles.
  */
 public class SimulationAgents extends Pane {
-	private Simulation simulation;
+	public static final int LABEL_MOUSE_OFFSET = 12;
+	private Simulation simulation = new InvalidSimulation();
 	private final Map<Long, AgentPane> agents = new HashMap<>();
 	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	private Map<Long, Collection<AgentPane>> stepAgentPanes = new HashMap<>();
+
+	private final Label vertexLabel = new Label();
+	private long vertexLabelID;
+	private final Label agentLabel = new Label();
+	private Set<Node> agentPath = null;
 
 	private SimulationTimer timer;
 
@@ -46,6 +65,39 @@ public class SimulationAgents extends Pane {
 	public SimulationAgents(double height) {
 		setPrefWidth(height);
 		setPrefHeight(height);
+
+		setLabelParameters(vertexLabel);
+		setLabelParameters(agentLabel);
+
+		setOnMouseMoved(this::onMouseMoveAction);
+	}
+
+	private void setLabelParameters(Label vertexLabel) {
+		vertexLabel.setTextAlignment(TextAlignment.CENTER);
+		vertexLabel.setMouseTransparent(true);
+		vertexLabel.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(4), new Insets(-4))));
+		vertexLabel.setVisible(false);
+		vertexLabel.toFront();
+		getChildren().add(vertexLabel);
+	}
+
+	/**
+	 * TODO
+	 */
+	public void setVertexLabelText() {
+		if (!vertexLabel.isVisible()) {
+			return;
+		}
+		double vertexUsage = SimulationTimer.getVertexUsage((int) vertexLabelID);
+		vertexLabel.setText(String.format("ID: %d%nUsage: %.2f", vertexLabelID, vertexUsage));
+	}
+
+	/**
+	 * TODO
+	 */
+	public void setAgentLabelText(Agent agent) {
+		Long exit = agent.getPath().get(agent.getPath().size() - 1);
+		agentLabel.setText(String.format("ID: %d%nArrival: %,.2f%nPlanned: %d%nEntry: %d%nExit: %d", agent.getId(), agent.getArrivalTime(), agent.getPlannedTime(), agent.getEntry(), exit));
 	}
 
 	/**
@@ -92,7 +144,10 @@ public class SimulationAgents extends Pane {
 	 * @param agentPane
 	 */
 	public void addAgentPane(AgentPane agentPane) {
-		Platform.runLater(() -> getChildren().add(agentPane));
+		Platform.runLater(() -> {
+			getChildren().add(agentPane);
+			agentPane.toBack();
+		});
 	}
 
 	/**
@@ -178,7 +233,7 @@ public class SimulationAgents extends Pane {
 	public void resetSimulation() {
 		synchronized (agents) {
 			timer.stop();
-			getChildren().clear();
+			getChildren().setAll(vertexLabel, agentLabel);
 			agents.clear();
 			stepAgentPanes.clear();
 			arrivingAgents.clear();
@@ -242,5 +297,121 @@ public class SimulationAgents extends Pane {
 
 	public Collection<AgentPane> addStepAgentPanes(long step, Collection<AgentPane> agentPanes) {
 		return stepAgentPanes.put(step, agentPanes);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param event
+	 */
+	private void onMouseMoveAction(MouseEvent event) {
+		double x = event.getX();
+		double y = event.getY();
+
+		SimulationGraph graph = IntersectionModel.getGraph();
+		double size = IntersectionModel.getPreferredHeight();
+		double cellSize = graph.getCellSize();
+
+		if (!simulation.isRunning() && coordinatesOverAgent(x, y, graph, size, cellSize)) {
+			return;
+		}
+		resetAgentPath();
+
+		x /= size;
+		y /= size;
+
+		double precision = cellSize * IntersectionModel.VERTEX_RATIO; // TODO extract constant
+
+		for (GraphicalVertex vertex : graph.getVertices()) {
+			if (MyNumberOperations.distance(x, y, vertex.getX(), vertex.getY()) <= precision) {
+				vertexLabelID = vertex.getID();
+				updateVertexLabelProperties(event);
+				return;
+			}
+		}
+		vertexLabel.setVisible(false);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param event
+	 */
+	private void updateVertexLabelProperties(MouseEvent event) {
+		setVertexLabelText();
+		vertexLabel.setLayoutX(event.getX() + 12);
+		vertexLabel.setLayoutY(event.getY() + 12);
+		vertexLabel.setVisible(true);
+	}
+
+	private void resetAgentPath() {
+		if (agentPath != null) {
+			agentLabel.setVisible(false);
+			getChildren().removeAll(agentPath);
+			agentPath = null;
+		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param x
+	 * @param y
+	 * @param graph
+	 * @param size
+	 * @param cellSize
+	 * @return
+	 */
+	private boolean coordinatesOverAgent(double x, double y, SimulationGraph graph, double size, double cellSize) {
+		double agentSizeScale = cellSize * size / 2;
+		for (AgentPane agentPane : agents.values()) {
+			Agent agent = agentPane.getAgent();
+			if (MyNumberOperations.distance(x, y, agent.getX(), agent.getY()) <= Math.min(agent.getW(), agent.getL()) * agentSizeScale) {
+				agentLabel.setLayoutX(x + LABEL_MOUSE_OFFSET);
+				agentLabel.setLayoutY(y + LABEL_MOUSE_OFFSET);
+
+				if (agentPath == null) {
+					SimulationAgents.this.setAgentLabelText(agent);
+					agentLabel.setVisible(true);
+					vertexLabel.setVisible(false);
+					createAgentPath(graph, size, agentPane, agent);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param graph
+	 * @param size
+	 * @param agentPane
+	 * @param agent
+	 */
+	private void createAgentPath(SimulationGraph graph, double size, AgentPane agentPane, Agent agent) {
+		List<Long> path = agent.getPath();
+		agentPath = new HashSet<>(path.size());
+		for (int i = 1; i < path.size(); i++) {
+			GraphicalVertex lastVertex = graph.getVertex(path.get(i - 1));
+			GraphicalVertex nextVertex = graph.getVertex(path.get(i));
+			Line line = new Line(lastVertex.getX() * size, lastVertex.getY() * size, nextVertex.getX() * size, nextVertex.getY() * size);
+			getChildren().add(line);
+			setPathLineProperties(agentPane, line);
+			agentPath.add(line);
+		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param agentPane
+	 * @param line
+	 */
+	private void setPathLineProperties(AgentPane agentPane, Line line) {
+		line.toBack();
+		line.setStroke(agentPane.getColor());
+		line.setStrokeLineCap(StrokeLineCap.ROUND);
 	}
 }

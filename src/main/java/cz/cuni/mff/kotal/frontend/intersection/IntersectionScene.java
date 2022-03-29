@@ -4,6 +4,7 @@ package cz.cuni.mff.kotal.frontend.intersection;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
+import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
 import cz.cuni.mff.kotal.simulation.GeneratingSimulation;
 import cz.cuni.mff.kotal.simulation.InvalidSimulation;
 import cz.cuni.mff.kotal.simulation.LoadingSimulation;
@@ -158,6 +159,9 @@ public class IntersectionScene extends Scene {
 		simulation.reset();
 
 		AGENTS.resetSimulation();
+
+		SimulationTimer.resetVerticesUsage();
+		IntersectionModel.resetVertexNodesColors();
 	}
 
 	/**
