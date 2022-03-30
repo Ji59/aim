@@ -36,11 +36,14 @@ public abstract class Simulation {
 	protected long period;
 	protected State state;
 
+
 	protected long loadedStep = 0;
 	protected long delayedStep = 0;
 	protected PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
 	protected PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	protected PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+
+	protected boolean ended = false;
 
 	protected Simulation() {
 		state = State.INVALID;
@@ -79,7 +82,6 @@ public abstract class Simulation {
 	public void loadAgents(double step) {
 		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
 			for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-				System.out.println("Loading agents for " + loadedStep + " step.");
 				loadAndUpdateStepAgents(loadedStep);
 			}
 		}
@@ -91,6 +93,10 @@ public abstract class Simulation {
 	 * @param period Time in nanoseconds
 	 */
 	public final void start(long period) {
+		if (ended) {
+			return;
+		}
+
 		this.period = period;
 		if (startingStep <= 0) {
 			loadAgents(0);
@@ -112,6 +118,10 @@ public abstract class Simulation {
 	 * @param period Time in nanoseconds
 	 */
 	public final void startAt(long period, double step) {
+		if (ended) {
+			return;
+		}
+
 		this.period = period;
 		state = State.RUNNING;
 		startingStep = step;
@@ -332,12 +342,21 @@ public abstract class Simulation {
 	}
 
 	/**
-	 * TODDO
+	 * TODO
 	 *
 	 * @param step
 	 * @return
 	 */
 	protected abstract boolean loadAndUpdateStepAgents(long step);
+
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public boolean isEnded() {
+		return ended;
+	}
 
 	public enum State {
 		RUNNING(true),

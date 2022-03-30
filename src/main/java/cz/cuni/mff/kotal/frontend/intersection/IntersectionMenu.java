@@ -9,6 +9,7 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -73,6 +74,32 @@ public class IntersectionMenu extends VBox {
 		createControlNodes(padding);
 	}
 
+	private static void startSimulation() {
+		SimulationGraph graph = IntersectionModel.getGraph();
+		AlgorithmMenuTab2.Parameters.Algorithm algorithmEnum = AlgorithmMenuTab2.getAlgorithm();
+		if (algorithmEnum == null) {
+			// TODO exception
+			return;
+		}
+		Algorithm algorithm;
+		try {
+			// TODO
+			algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class).newInstance(graph);
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
+			ex.printStackTrace();
+			return;
+		}
+		IntersectionScene.startSimulation(algorithm);
+		playing = true;
+		setPlayButtonPlaying(true);
+	}
+
+	public static void pauseSimulation() {
+		playing = false;
+		IntersectionScene.stopSimulation();
+		setPlayButtonPlaying(false);
+	}
+
 	/**
 	 * Create all nodes and set their parameters.
 	 *
@@ -129,7 +156,7 @@ public class IntersectionMenu extends VBox {
 			try {
 				// TODO check simulation
 
-				IntersectionScene.stopSimulation();
+				IntersectionMenu.pauseSimulation();
 
 				File agentsFile = getAgentsSaveFile();
 				if (agentsFile == null) {
@@ -232,31 +259,13 @@ public class IntersectionMenu extends VBox {
 	private static void addPlayButtonAction() {
 		// TODO extract constants
 		PLAY_BUTTON.setOnMouseClicked(e -> {
-			String newText;
+			PLAY_BUTTON.setDisable(true);
 			if (playing) {
-				newText = "Play"; // TODO
-				IntersectionScene.stopSimulation();
+				pauseSimulation();
 			} else {
-				SimulationGraph graph = IntersectionModel.getGraph();
-				AlgorithmMenuTab2.Parameters.Algorithm algorithmEnum = AlgorithmMenuTab2.getAlgorithm();
-				if (algorithmEnum == null) {
-					// TODO exception
-					return;
-				}
-				Algorithm algorithm = null;
-				try {
-					// TODO
-					algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class).newInstance(graph);
-				} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
-					ex.printStackTrace();
-					return;
-				}
-				IntersectionScene.startSimulation(algorithm);
-				newText = "Pause"; // TODO
+				startSimulation();
 			}
-			PLAY_BUTTON.setText(newText);
-			SimulationMenuTab3.getPlayButton().setText(newText);
-			playing = !playing;
+			PLAY_BUTTON.setDisable(false);
 		});
 	}
 
@@ -274,14 +283,9 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static void setPlayButtonPlaying(boolean playing) {
 		// TODO extract constants
-		IntersectionMenu.playing = playing;
-		if (playing) {
-			PLAY_BUTTON.setText("Pause");
-			SimulationMenuTab3.getPlayButton().setText("Pause");
-		} else {
-			PLAY_BUTTON.setText("Play");
-			SimulationMenuTab3.getPlayButton().setText("Play");
-		}
+		String text = playing ? "Pause" : "Play";// TODO
+		PLAY_BUTTON.setText(text); // TODO
+		SimulationMenuTab3.getPlayButton().setText(text);
 	}
 
 	/**

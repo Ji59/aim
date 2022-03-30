@@ -1,11 +1,12 @@
 package cz.cuni.mff.kotal.simulation;
 
-import java.util.Set;
-
 public class InvalidSimulation extends Simulation {
+	public InvalidSimulation() {
+		ended = true;
+	}
+
 	@Override
 	public void loadAgents(double step) {
-
 	}
 
 	@Override

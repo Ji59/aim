@@ -510,8 +510,7 @@ public class IntersectionModel extends Pane {
 
 		if (createdGraphs.containsKey(graphAbstract)) { // if graph already exists and model objects already exist
 			setGraphFromAbstract(graphAbstract);
-			IntersectionScene.stopSimulation();
-			IntersectionMenu.setPlayButtonPlaying(false);
+			IntersectionMenu.pauseSimulation();
 		} else { // create new graph and all the model nodes
 			IntersectionScene.resetSimulation();
 			historyNext.clear();

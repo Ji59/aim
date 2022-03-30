@@ -51,7 +51,7 @@ public class LoadingSimulation extends Simulation {
 			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
 				// FIXME refactor
 				if (step > finalStep) {
-					stop();
+					ended = true;
 				} else {
 					updateStatistics(sortedAgentsIterator.nextIndex());
 				}

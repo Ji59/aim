@@ -136,7 +136,7 @@ public class GeneratingSimulation extends Simulation {
 			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
 				// FIXME refactor
 				if (step > finalStep) {
-					stop();
+					ended = true;
 				} else {
 					updateStatistics(allAgents.size());
 				}
@@ -184,7 +184,6 @@ public class GeneratingSimulation extends Simulation {
 		return new TimerTask() {
 			@Override
 			public void run() {
-				System.out.println(step);
 				long currentStep = getStep(); // TODO
 
 				loadAndUpdateStepAgents(currentStep);

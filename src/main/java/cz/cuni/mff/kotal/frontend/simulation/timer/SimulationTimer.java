@@ -54,6 +54,10 @@ public class SimulationTimer extends AnimationTimer {
 	 */
 	@Override
 	public void handle(long now) {
+		if (simulationAgents.getSimulation().isEnded() && agents.isEmpty() && simulationAgents.getArrivingAgents().isEmpty()) {
+			IntersectionMenu.pauseSimulation();
+		}
+
 		frames++;
 
 //		simulationAgents.resetRectangles(); TODO
