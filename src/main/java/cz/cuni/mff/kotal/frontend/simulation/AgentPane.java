@@ -33,6 +33,7 @@ public class AgentPane extends StackPane {
 	private final Rotate rotation = new Rotate();
 	private final Agent agent;
 	private double distanceTraveled;
+	private double collisionStep = -1;
 
 	private double angle;
 
@@ -49,7 +50,7 @@ public class AgentPane extends StackPane {
 	 * @param period             Delay between steps
 	 * @param simulationVertices Intersection vertices the agent is travelling on
 	 */
-	public AgentPane(long startTime, Agent agent, double period, Map<Long, Vertex> simulationVertices, double cellSize) {
+	public AgentPane(long startTime, double firstStep, Agent agent, double period, Map<Long, Vertex> simulationVertices, double cellSize) {
 		this.agent = agent;
 		this.distanceTraveled = 0;
 		this.startTime = startTime;
@@ -83,7 +84,10 @@ public class AgentPane extends StackPane {
 
 		setMouseTransparent(true);
 
-		updateAgent(0);
+		boolean invalidAgent = handleTick(firstStep);
+		if (invalidAgent) {  // TODO
+			throw new RuntimeException("Creating agent pane failed.");
+		}
 	}
 
 	/**
@@ -181,7 +185,7 @@ public class AgentPane extends StackPane {
 	public boolean handleTick(double step) {
 		double time = step - agent.getPlannedTime();
 		try {
-			getAgent().computeNextXY(time, simulationVertices);
+			agent.computeNextXY(time, simulationVertices);
 		} catch (IndexOutOfBoundsException e) {
 			return true;
 		}
@@ -264,14 +268,23 @@ public class AgentPane extends StackPane {
 
 	/**
 	 * Set node parameters to fit collided agent state.
+	 *
+	 * @param step TODO
 	 */
-	public void collide() {
+	public void collide(double step) {
 		// TODO refactor
 //			this.stop();
+		this.setDisable(true); // TODO don't use this
 		rectangle.toBack();
 		rectangle.setFill(Color.RED);
 		rectangle.setOpacity(0.5);
-		this.setDisable(true); // TODO don't use this
+		collisionStep = step;
+	}
+
+	public void resetColors() {
+		setDisable(false);
+		rectangle.setFill(color);
+		rectangle.setOpacity(1);
 	}
 
 	/**
@@ -328,6 +341,10 @@ public class AgentPane extends StackPane {
 	 */
 	public Color getColor() {
 		return color;
+	}
+
+	public double getCollisionStep() {
+		return collisionStep;
 	}
 
 	/**

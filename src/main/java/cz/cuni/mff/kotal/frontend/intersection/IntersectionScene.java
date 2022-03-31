@@ -64,12 +64,6 @@ public class IntersectionScene extends Scene {
 		setButtonsProperties(menuWidth);
 	}
 
-	public static void startSimulationAt(long step) {
-		simulation.stop();
-		simulation.startAt(getPeriod(), step);
-
-	}
-
 	/**
 	 * Set minimum width for play and restart button.
 	 *
@@ -91,6 +85,14 @@ public class IntersectionScene extends Scene {
 		MENU.setPrefWidth(menuWidth);
 		MENU.setMinWidth(menuWidth);
 		MENU.setPadding(new Insets(PADDING, PADDING, PADDING, PADDING));
+	}
+
+	/**
+	 * Resume already started simulation.
+	 */
+	private static void resumeSimulation() {
+		assert simulation != null;
+		simulation.start(getPeriod());
 	}
 
 	/**
@@ -120,11 +122,18 @@ public class IntersectionScene extends Scene {
 	}
 
 	/**
-	 * Resume already started simulation.
+	 * TODO
+	 *
+	 * @param step
+	 * @param play
 	 */
-	private static void resumeSimulation() {
-		assert simulation != null;
-		simulation.start(getPeriod());
+	public static void startSimulationAt(double step, boolean play) {
+		simulation.stop();
+//		simulation.startAt(getPeriod(), step);
+		simulation.setStartAndAgents(step);
+		if (play) {
+			resumeSimulation();
+		}
 	}
 
 	/**
@@ -154,6 +163,7 @@ public class IntersectionScene extends Scene {
 		if (simulation == null || !simulation.getState().isValid()) {
 			return;
 		}
+
 		IntersectionMenu.setPlayButtonPlaying(false);
 
 		simulation.reset();

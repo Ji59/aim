@@ -32,9 +32,11 @@ import java.util.*;
 public class SimulationAgents extends Pane {
 	public static final int LABEL_MOUSE_OFFSET = 12;
 	private Simulation simulation = new InvalidSimulation();
-	private final Map<Long, AgentPane> agents = new HashMap<>();
+	private final Map<Long, AgentPane> activeAgents = new HashMap<>();
+	private final Map<Agent, AgentPane> allAgents = new HashMap<>();
 	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	private Map<Long, Collection<AgentPane>> stepAgentPanes = new HashMap<>();
+	private double cellSize; // FIXME move somewhere else
 
 	private final Label vertexLabel = new Label();
 	private long vertexLabelID;
@@ -111,10 +113,10 @@ public class SimulationAgents extends Pane {
 		long agentID = agent.getId();
 		double cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 		long startTime = simulation.getTime(agent.getPlannedTime());
-		AgentPane agentPane = new AgentPane(startTime, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
+		AgentPane agentPane = new AgentPane(startTime, 0, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
 
-		synchronized (agents) {
-			agents.put(agentID, agentPane);
+		synchronized (activeAgents) {
+			activeAgents.put(agentID, agentPane);
 		}
 
 		Platform.runLater(() -> getChildren().add(agentPane));
@@ -141,9 +143,33 @@ public class SimulationAgents extends Pane {
 	/**
 	 * TODO
 	 *
-	 * @param agentPane
+	 * @param agent
+	 * @param step
 	 */
-	public void addAgentPane(AgentPane agentPane) {
+
+	private void addAgentPane(Agent agent, double step) {
+		long agentID = agent.getId();
+		if (allAgents.containsKey(agent)) {
+			AgentPane agentPane = allAgents.get(agent);
+			if (agentPane.getCollisionStep() >= 0 && agentPane.getCollisionStep() <= step) {
+				return;
+			}
+			agentPane.resetColors();
+			agentPane.handleTick(step);
+			agentPane.setVisible(true);
+			synchronized (activeAgents) {
+				activeAgents.put(agentID, agentPane);
+			}
+			return;
+		}
+		long startTime = simulation.getTime(agent.getPlannedTime());
+		AgentPane agentPane = new AgentPane(startTime, step, agent, simulation.getPeriod(), simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
+
+		synchronized (activeAgents) {
+			activeAgents.put(agentID, agentPane);
+		}
+		allAgents.put(agent, agentPane);
+
 		Platform.runLater(() -> {
 			getChildren().add(agentPane);
 			agentPane.toBack();
@@ -157,14 +183,13 @@ public class SimulationAgents extends Pane {
 	 */
 	public void removeAgent(long agentID) {
 		AgentPane agentPane;
-		synchronized (agents) {
-			agentPane = agents.remove(agentID);
+		synchronized (activeAgents) {
+			agentPane = activeAgents.remove(agentID);
 			if (agentPane == null) {
 				return;
 			}
 		}
-		agentPane.setDisable(true);
-		getChildren().remove(agentPane);
+		removeAgentPane(agentPane);
 	}
 
 	/**
@@ -173,12 +198,17 @@ public class SimulationAgents extends Pane {
 	 * @param agentEntry Agent with its ID
 	 */
 	public void removeAgent(Map.Entry<Long, AgentPane> agentEntry) {
-		synchronized (agents) {
-			agents.remove(agentEntry.getKey());
+		synchronized (activeAgents) {
+			activeAgents.remove(agentEntry.getKey());
 		}
 		AgentPane agentPane = agentEntry.getValue();
+		removeAgentPane(agentPane);
+	}
+
+	private void removeAgentPane(AgentPane agentPane) {
 		agentPane.setDisable(true);
-		getChildren().remove(agentPane);
+		agentPane.setVisible(false);
+//		getChildren().remove(agentPane);
 	}
 
 	/**
@@ -209,10 +239,11 @@ public class SimulationAgents extends Pane {
 	public void resumeSimulation(Simulation simulation, long startTime) {
 		this.simulation = simulation;
 
-		synchronized (agents) {
-			agents.values().forEach(agentPane -> agentPane.resume(simulation.getPeriod(), startTime));
+		synchronized (activeAgents) {
+			activeAgents.values().forEach(agentPane -> agentPane.resume(simulation.getPeriod(), startTime));
 		}
-		timer = new SimulationTimer(agents, this);
+		cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
+		timer = new SimulationTimer(activeAgents, this);
 		timer.start();
 	}
 
@@ -221,22 +252,60 @@ public class SimulationAgents extends Pane {
 	 *
 	 * @param simulation Simulation to be resumed
 	 */
+	@Deprecated
 	public void resumeSimulationWithAgents(Simulation simulation, long startTime, Collection<Agent> agents) {
-		resetSimulation();
-		addAgents(agents);
+		setAgents(agents, simulation.getStep(startTime));
 		resumeSimulation(simulation, startTime);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param agents
+	 * @param step
+	 */
+	public void setAgents(Collection<Agent> agents, double step) {
+		clearActiveAgents();
+		addAgents(agents);
+		addArrivedAgents(step);
 	}
 
 	/**
 	 * Restart whole pane to starting state.
 	 */
 	public void resetSimulation() {
-		synchronized (agents) {
-			timer.stop();
-			getChildren().setAll(vertexLabel, agentLabel);
-			agents.clear();
-			stepAgentPanes.clear();
-			arrivingAgents.clear();
+		clearActiveAgents();
+		stepAgentPanes.clear();
+		allAgents.clear();
+		getChildren().setAll(vertexLabel, agentLabel);
+	}
+
+	/**
+	 * TODO
+	 */
+	private void clearActiveAgents() {
+		timer.stop();
+		activeAgents.values().forEach(agentPane -> agentPane.setVisible(false));
+		activeAgents.clear();
+		arrivingAgents.clear();
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 */
+	public void addArrivedAgents(double step) {
+		Iterator<Agent> iterator = arrivingAgents.iterator();
+		while (iterator.hasNext()) {
+			Agent agent = iterator.next();
+			if (agent.getPlannedTime() > step) {
+				return;
+			}
+			if (agent.getPlannedTime() + agent.getPath().size() > step + 1) {
+				addAgentPane(agent, step);
+			}
+			iterator.remove();
 		}
 	}
 
@@ -364,7 +433,7 @@ public class SimulationAgents extends Pane {
 	 */
 	private boolean coordinatesOverAgent(double x, double y, SimulationGraph graph, double size, double cellSize) {
 		double agentSizeScale = cellSize * size / 2;
-		for (AgentPane agentPane : agents.values()) {
+		for (AgentPane agentPane : activeAgents.values()) {
 			Agent agent = agentPane.getAgent();
 			if (MyNumberOperations.distance(x, y, agent.getX(), agent.getY()) <= Math.min(agent.getW(), agent.getL()) * agentSizeScale) {
 				agentLabel.setLayoutX(x + LABEL_MOUSE_OFFSET);

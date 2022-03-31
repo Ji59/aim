@@ -117,6 +117,7 @@ public abstract class Simulation {
 	 *
 	 * @param period Time in nanoseconds
 	 */
+	@Deprecated
 	public final void startAt(long period, double step) {
 		if (ended) {
 			return;
@@ -124,9 +125,19 @@ public abstract class Simulation {
 
 		this.period = period;
 		state = State.RUNNING;
-		startingStep = step;
+		setStartAndAgents(step);
+//		simulationAgents.resumeSimulationWithAgents(this, startTime, allAgents.values());
 		startTime = System.nanoTime();
-		simulationAgents.resumeSimulationWithAgents(this, startTime, allAgents.values());
+		simulationAgents.resumeSimulation(this, startTime);
+	}
+
+	/**
+	 * TODO
+	 * @param step
+	 */
+	public final void setStartAndAgents(double step) {
+		startingStep = step;
+		simulationAgents.setAgents(allAgents.values(),  step);
 	}
 
 	protected abstract void start();

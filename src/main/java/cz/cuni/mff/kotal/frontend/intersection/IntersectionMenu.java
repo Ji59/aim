@@ -9,7 +9,6 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -17,13 +16,13 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.swing.filechooser.FileSystemView;
+import java.util.function.DoubleConsumer;
 
 /**
  * Class representing Side menu on main window.
@@ -34,7 +33,7 @@ public class IntersectionMenu extends VBox {
 
 	// TODO extract constants
 	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
-	private static final Slider TIMELINE_SLIDER = new Slider(0, 1, 0);
+	private static final Slider TIMELINE_SLIDER = new Slider(0, 0, 0);
 
 	private static final Button INTERSECTION_MODE = new Button("Real");
 	private static final Button PLAY_BUTTON = new Button("Play");
@@ -90,12 +89,10 @@ public class IntersectionMenu extends VBox {
 			return;
 		}
 		IntersectionScene.startSimulation(algorithm);
-		playing = true;
 		setPlayButtonPlaying(true);
 	}
 
 	public static void pauseSimulation() {
-		playing = false;
 		IntersectionScene.stopSimulation();
 		setPlayButtonPlaying(false);
 	}
@@ -113,11 +110,12 @@ public class IntersectionMenu extends VBox {
 		sliders.addRow(1, TIMELINE_LABEL, TIMELINE_SLIDER);
 		sliders.setVgap(padding);
 
-		SPEED_SLIDER.valueProperty().addListener(getSliderValueListener(SimulationMenuTab3.getSpeedSlider()));
-		TIMELINE_SLIDER.valueProperty().addListener(getSliderValueListener(SimulationMenuTab3.getTimeline()));
-		SimulationMenuTab3.getSpeedSlider().valueProperty().addListener(getSliderValueListener(SPEED_SLIDER));
-		SimulationMenuTab3.getTimeline().valueProperty().addListener(getSliderValueListener(TIMELINE_SLIDER));
+		setSliderPropertyListeners(SPEED_SLIDER, SimulationMenuTab3.getSpeedSlider());
+		setSliderPropertyListeners(TIMELINE_SLIDER, SimulationMenuTab3.getTimelineSlider());
+		SimulationMenuTab3.getTimelineSlider().maxProperty().addListener(getSliderValueListener(TIMELINE_SLIDER::setMax));
 
+		addSpeedSliderActions();
+		addTimelineSliderActions();
 		addPlayButtonAction();
 		addResetButtonAction();
 		addSaveAgentsButtonAction();
@@ -142,10 +140,67 @@ public class IntersectionMenu extends VBox {
 	}
 
 	/**
+	 * Create new listener which sets its new value also to other slider.
+	 *
+	 * @return
+	 */
+	@NotNull
+	private ChangeListener<Number> getSliderValueListener(DoubleConsumer function) {
+		return (observable, oldValue, newValue) -> function.accept(newValue.doubleValue());
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param slider0
+	 * @param slider1
+	 */
+	private void setSliderPropertyListeners(Slider slider0, Slider slider1) {
+		slider0.valueProperty().addListener(getSliderValueListener(slider1::setValue));
+		slider1.valueProperty().addListener(getSliderValueListener(slider0::setValue));
+	}
+
+
+	/**
+	 * Add action to speed slider.
+	 */
+	private void addSpeedSliderActions() {
+		SPEED_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> IntersectionScene.changeSimulation());
+	}
+
+	private void addTimelineSliderActions() {
+		TIMELINE_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> {
+			if (!playing) {
+				setStep(newValue.doubleValue());
+				IntersectionScene.startSimulationAt(newValue.doubleValue(), false);  // FIXME set play parameter to playing
+			}
+		});
+	}
+
+	/**
+	 * Set action performed on play button press.
+	 */
+	private static void addPlayButtonAction() {
+		// TODO extract constants
+		PLAY_BUTTON.setOnMouseClicked(e -> {
+			PLAY_BUTTON.setDisable(true);
+			if (playing) {
+				pauseSimulation();
+			} else {
+				startSimulation();
+			}
+			PLAY_BUTTON.setDisable(false);
+		});
+	}
+
+	/**
 	 * Set action performed on reset button press.
 	 */
 	private static void addResetButtonAction() {
-		RESTART_BUTTON.setOnMouseClicked(e -> IntersectionScene.resetSimulation());
+		RESTART_BUTTON.setOnMouseClicked(e -> {
+			pauseSimulation();
+			IntersectionScene.resetSimulation();
+		});
 	}
 
 	/**
@@ -244,32 +299,6 @@ public class IntersectionMenu extends VBox {
 	}
 
 	/**
-	 * Create new listener which sets its new value also to other slider.
-	 *
-	 * @param affectedSlider Slider to have same values as the one calling the listener
-	 * @return Listener with defined action
-	 */
-	private static ChangeListener<Number> getSliderValueListener(Slider affectedSlider) {
-		return (observable, oldValue, newValue) -> affectedSlider.setValue(newValue.doubleValue());
-	}
-
-	/**
-	 * Set action performed on play button press.
-	 */
-	private static void addPlayButtonAction() {
-		// TODO extract constants
-		PLAY_BUTTON.setOnMouseClicked(e -> {
-			PLAY_BUTTON.setDisable(true);
-			if (playing) {
-				pauseSimulation();
-			} else {
-				startSimulation();
-			}
-			PLAY_BUTTON.setDisable(false);
-		});
-	}
-
-	/**
 	 * Set intersection button text based on actual graph visual mode.
 	 */
 	private static void setIntersectionModeButtonText() {
@@ -282,6 +311,7 @@ public class IntersectionMenu extends VBox {
 	 * @param playing True if simulation is running, otherwise false
 	 */
 	public static void setPlayButtonPlaying(boolean playing) {
+		IntersectionMenu.playing = playing;
 		// TODO extract constants
 		String text = playing ? "Pause" : "Play";// TODO
 		PLAY_BUTTON.setText(text); // TODO
@@ -310,6 +340,16 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static double getSpeed() {
 		return SPEED_SLIDER.getValue();
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param maximum
+	 */
+	public static void setTimelineMaximum(double value, double maximum) {
+		TIMELINE_SLIDER.setMax(maximum);
+		TIMELINE_SLIDER.setValue(value);
 	}
 
 	/**

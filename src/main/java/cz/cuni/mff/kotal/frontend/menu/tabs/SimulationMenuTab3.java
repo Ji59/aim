@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
@@ -22,7 +21,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	// TODO don't use static, use Component
 	// TODO extract constants and rename constants
 	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
-	private static final Slider timeline = new Slider(0, 0, 0);
+	private static final Slider TIMELINE_SLIDER = new Slider(0, 0, 0);
 	private static final Label agensLabel = new Label("#n");
 	private static final Label stepsLabel = new Label("#n");
 	private static final Label delayLabel = new Label("#n");
@@ -40,10 +39,6 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 		super(Tabs.T3.getText());
 
 		createStatisticsGrid((GridPane) Parameters.STATISTICS.getParameter());
-
-		addSpeedSliderActions();
-		addTimelineSliderActions();
-		// TODO pridat akce na tlacitka a slidery
 
 		int row = 0;
 		for (Parameters parameter : Parameters.values()) {
@@ -94,19 +89,6 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	}
 
 	/**
-	 * Add action to speed slider.
-	 */
-	private void addSpeedSliderActions() {
-		SPEED_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> IntersectionScene.changeSimulation());
-	}
-
-	private void addTimelineSliderActions() {
-		timeline.valueProperty().addListener((observable, oldValue, newValue) -> {
-			IntersectionScene.startSimulationAt(newValue.longValue());
-		});
-	}
-
-	/**
 	 * @return Speed slider
 	 */
 	public static Slider getSpeedSlider() {
@@ -116,12 +98,8 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	/**
 	 * @return Timeline slider
 	 */
-	public static Slider getTimeline() {
-		return timeline;
-	}
-
-	public static void setTimelineMaximum(double maximum) {
-		timeline.setMax(maximum);
+	public static Slider getTimelineSlider() {
+		return TIMELINE_SLIDER;
 	}
 
 	/**
@@ -192,7 +170,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	 */
 	public enum Parameters {
 		SPEED("Speed:", SimulationMenuTab3.SPEED_SLIDER),
-		TIMELINE("Timeline:", timeline),
+		TIMELINE("Timeline:", SimulationMenuTab3.TIMELINE_SLIDER),
 		// TODO remove constants
 		BUTTONS(null, new TilePane(Orientation.HORIZONTAL, 20, 0, PLAY_BUTTON, RESTART_BUTTON, SAVE_AGENTS_BUTTON)),
 		STATISTICS("Statistics:", new GridPane()),

@@ -3,11 +3,8 @@ package cz.cuni.mff.kotal.frontend.simulation.timer;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
-import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.simulation.*;
 import cz.cuni.mff.kotal.helpers.Collisions;
-import cz.cuni.mff.kotal.simulation.Agent;
-import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.util.Pair;
@@ -24,12 +21,11 @@ public class SimulationTimer extends AnimationTimer {
 	//	private final Map<Long, AgentPolygon> lastState = new HashMap<>();
 	private final SimulationAgents simulationAgents;
 
-	private final double cellSize;
-
 	private long generatedStep = -1;
 
 	private static long[] verticesUsage = null;
 	private static long frames = 0;
+	private static double maxStep = 0;
 
 	/**
 	 * Create new timer.
@@ -40,7 +36,6 @@ public class SimulationTimer extends AnimationTimer {
 	public SimulationTimer(Map<Long, AgentPane> agents, SimulationAgents simulationAgents) {
 		this.agents = agents;
 		this.simulationAgents = simulationAgents;
-		cellSize = simulationAgents.getSimulation().getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 
 		if (verticesUsage == null) {
 			verticesUsage = new long[simulationAgents.getSimulation().getIntersectionGraph().getVertices().size()];
@@ -65,7 +60,7 @@ public class SimulationTimer extends AnimationTimer {
 		IntersectionMenu.setStep(step);
 
 		simulationAgents.getSimulation().loadAgents(step);
-		addArrivedAgents(step);
+		simulationAgents.addArrivedAgents(step);
 
 		simulationAgents.getSimulation().updateStatistics(step);
 
@@ -81,8 +76,8 @@ public class SimulationTimer extends AnimationTimer {
 				AgentPane agentPane0 = agentPanePair.getKey();
 				AgentPane agentPane1 = agentPanePair.getValue();
 
-				agentPane0.collide();
-				agentPane1.collide();
+				agentPane0.collide(step);
+				agentPane1.collide(step);
 
 				simulationAgents.getSimulation().addCollision();
 
@@ -116,7 +111,9 @@ public class SimulationTimer extends AnimationTimer {
 
 
 		}
-		SimulationMenuTab3.setTimelineMaximum(step);
+
+		maxStep = Math.max(step, maxStep);
+		IntersectionMenu.setTimelineMaximum(step, maxStep);
 		updateVerticesUsage(step);
 
 		simulationAgents.setVertexLabelText();
@@ -145,31 +142,6 @@ public class SimulationTimer extends AnimationTimer {
 		}
 	}
 
-	private void addArrivedAgents(double step) {
-		Iterator<Agent> iterator = simulationAgents.getArrivingAgents().iterator();
-		while (iterator.hasNext()) {
-			Agent agent = iterator.next();
-			if (agent.getPlannedTime() > step) {
-				return;
-			}
-			assert agent.getPlannedTime() + agent.getPath().size() >= step;
-			addAgentPane(agent);
-			iterator.remove();
-		}
-	}
-
-	private void addAgentPane(Agent agent) {
-		long agentID = agent.getId();
-		Simulation simulation = simulationAgents.getSimulation();
-		long startTime = simulation.getTime(agent.getPlannedTime());
-		AgentPane agentPane = new AgentPane(startTime, agent, simulation.getPeriod(), simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
-
-		synchronized (agents) {
-			agents.put(agentID, agentPane);
-			simulationAgents.addAgentPane(agentPane);
-		}
-	}
-
 	public static double getVertexUsage(int id) {
 		if (frames <= 0) {
 			return 0;
@@ -181,5 +153,6 @@ public class SimulationTimer extends AnimationTimer {
 	public static void resetVerticesUsage() {
 		verticesUsage = null;
 		frames = 0;
+		maxStep = 0;
 	}
 }
