@@ -119,7 +119,11 @@ public class SimulationAgents extends Pane {
 			activeAgents.put(agentID, agentPane);
 		}
 
-		Platform.runLater(() -> getChildren().add(agentPane));
+		Platform.runLater(() -> {
+			if (simulation.isRunning()) {
+				getChildren().add(agentPane);
+			}
+		});
 	}
 
 	/**

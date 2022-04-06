@@ -110,9 +110,9 @@ public class IntersectionMenu extends VBox {
 		sliders.addRow(1, TIMELINE_LABEL, TIMELINE_SLIDER);
 		sliders.setVgap(padding);
 
-		setSliderPropertyListeners(SPEED_SLIDER, SimulationMenuTab3.getSpeedSlider());
-		setSliderPropertyListeners(TIMELINE_SLIDER, SimulationMenuTab3.getTimelineSlider());
-		SimulationMenuTab3.getTimelineSlider().maxProperty().addListener(getSliderValueListener(TIMELINE_SLIDER::setMax));
+		setSliderValuePropertyListeners(SPEED_SLIDER, SimulationMenuTab3.getSpeedSlider());
+		setSliderValuePropertyListeners(TIMELINE_SLIDER, SimulationMenuTab3.getTimelineSlider());
+		setSliderMaxPropertyListeners(TIMELINE_SLIDER, SimulationMenuTab3.getTimelineSlider());
 
 		addSpeedSliderActions();
 		addTimelineSliderActions();
@@ -155,9 +155,18 @@ public class IntersectionMenu extends VBox {
 	 * @param slider0
 	 * @param slider1
 	 */
-	private void setSliderPropertyListeners(Slider slider0, Slider slider1) {
+	private void setSliderValuePropertyListeners(Slider slider0, Slider slider1) {
 		slider0.valueProperty().addListener(getSliderValueListener(slider1::setValue));
 		slider1.valueProperty().addListener(getSliderValueListener(slider0::setValue));
+	}
+
+	/**
+	 * TODO
+	 *
+	 */
+	private void setSliderMaxPropertyListeners(Slider slider0, Slider slider1) {
+		slider0.maxProperty().addListener(getSliderValueListener(slider1::setMax));
+		slider1.maxProperty().addListener(getSliderValueListener(slider0::setMax));
 	}
 
 
@@ -169,12 +178,25 @@ public class IntersectionMenu extends VBox {
 	}
 
 	private void addTimelineSliderActions() {
-		TIMELINE_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> {
+		Slider menuTimelineSlider = SimulationMenuTab3.getTimelineSlider();
+		menuTimelineSlider.setBlockIncrement(1); // TODO extract constant
+		TIMELINE_SLIDER.setBlockIncrement(1);
+		ChangeListener<Boolean> focusListener = (observable, oldValue, newValue) -> {
+			if (Boolean.TRUE.equals(newValue)) {
+				pauseSimulation();
+			}
+		};
+		TIMELINE_SLIDER.focusedProperty().addListener(focusListener);
+		menuTimelineSlider.focusedProperty().addListener(focusListener);
+
+		ChangeListener<Number> valueListener = (observable, oldValue, newValue) -> {
 			if (!playing) {
 				setStep(newValue.doubleValue());
 				IntersectionScene.startSimulationAt(newValue.doubleValue(), false);  // FIXME set play parameter to playing
 			}
-		});
+		};
+		TIMELINE_SLIDER.valueProperty().addListener(valueListener);
+		menuTimelineSlider.valueProperty().addListener(valueListener);
 	}
 
 	/**

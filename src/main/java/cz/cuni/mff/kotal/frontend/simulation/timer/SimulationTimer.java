@@ -76,10 +76,15 @@ public class SimulationTimer extends AnimationTimer {
 				AgentPane agentPane0 = agentPanePair.getKey();
 				AgentPane agentPane1 = agentPanePair.getValue();
 
+				if (agentPane0.getCollisionStep() < 0) {
+					simulationAgents.getSimulation().addCollision();
+				}
+				if (agentPane1.getCollisionStep() < 0) {
+					simulationAgents.getSimulation().addCollision();
+				}
+
 				agentPane0.collide(step);
 				agentPane1.collide(step);
-
-				simulationAgents.getSimulation().addCollision();
 
 				// TODO remove log
 				System.out.println(agentPane0.getAgentID() + " collides with " + agentPane1.getAgentID());
