@@ -7,6 +7,8 @@ import java.util.List;
 /**
  * Polygon object representing agent shape.
  * Main use purpose is in collision algorithms.
+ *
+ * TODO
  */
 public class AgentPolygon {
 	private final long id;

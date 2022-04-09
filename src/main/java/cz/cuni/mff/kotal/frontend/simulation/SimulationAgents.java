@@ -35,7 +35,6 @@ public class SimulationAgents extends Pane {
 	private final Map<Long, AgentPane> activeAgents = new HashMap<>();
 	private final Map<Agent, AgentPane> allAgents = new HashMap<>();
 	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
-	private Map<Long, Collection<AgentPane>> stepAgentPanes = new HashMap<>();
 	private double cellSize; // FIXME move somewhere else
 
 	private final Label vertexLabel = new Label();
@@ -155,15 +154,23 @@ public class SimulationAgents extends Pane {
 		long agentID = agent.getId();
 		if (allAgents.containsKey(agent)) {
 			AgentPane agentPane = allAgents.get(agent);
-			if (agentPane.getCollisionStep() >= 0 && agentPane.getCollisionStep() <= step) {
-				return;
+			double collisionStep = agentPane.getCollisionStep();
+			if (collisionStep >= 0 && collisionStep <= step) {
+				if (collisionStep + SimulationTimer.COLLISION_AGENTS_SHOWN_STEPS > step) {
+					agentPane.collide();
+					agentPane.handleTick(collisionStep);
+				} else {
+					return;
+				}
+			} else {
+				agentPane.resetColors();
+				agentPane.handleTick(step);
 			}
-			agentPane.resetColors();
-			agentPane.handleTick(step);
-			agentPane.setVisible(true);
+
 			synchronized (activeAgents) {
 				activeAgents.put(agentID, agentPane);
 			}
+			addPaneToChildren(agentPane);
 			return;
 		}
 		long startTime = simulation.getTime(agent.getPlannedTime());
@@ -174,10 +181,17 @@ public class SimulationAgents extends Pane {
 		}
 		allAgents.put(agent, agentPane);
 
-		Platform.runLater(() -> {
-			getChildren().add(agentPane);
-			agentPane.toBack();
-		});
+		addPaneToChildren(agentPane);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param agentPane
+	 */
+	private void addPaneToChildren(AgentPane agentPane) {
+		getChildren().add(agentPane);
+		agentPane.toBack();
 	}
 
 	/**
@@ -209,10 +223,13 @@ public class SimulationAgents extends Pane {
 		removeAgentPane(agentPane);
 	}
 
-	private void removeAgentPane(AgentPane agentPane) {
-		agentPane.setDisable(true);
-		agentPane.setVisible(false);
-//		getChildren().remove(agentPane);
+	/**
+	 * TODO
+	 *
+	 * @param agentPane
+	 */
+	public void removeAgentPane(AgentPane agentPane) {
+		getChildren().remove(agentPane);
 	}
 
 	/**
@@ -229,10 +246,6 @@ public class SimulationAgents extends Pane {
 	 */
 	public void pauseSimulation() {
 		timer.stop();
-		// TODO
-//		synchronized (AGENTS) {
-//			AGENTS.values().forEach(a -> a.pause());
-//		}
 	}
 
 	/**
@@ -279,9 +292,7 @@ public class SimulationAgents extends Pane {
 	 */
 	public void resetSimulation() {
 		clearActiveAgents();
-		stepAgentPanes.clear();
 		allAgents.clear();
-		getChildren().setAll(vertexLabel, agentLabel);
 	}
 
 	/**
@@ -289,7 +300,7 @@ public class SimulationAgents extends Pane {
 	 */
 	private void clearActiveAgents() {
 		timer.stop();
-		activeAgents.values().forEach(agentPane -> agentPane.setVisible(false));
+		getChildren().setAll(vertexLabel, agentLabel);
 		activeAgents.clear();
 		arrivingAgents.clear();
 	}
@@ -366,10 +377,6 @@ public class SimulationAgents extends Pane {
 
 	public Simulation getSimulation() {
 		return simulation;
-	}
-
-	public Collection<AgentPane> addStepAgentPanes(long step, Collection<AgentPane> agentPanes) {
-		return stepAgentPanes.put(step, agentPanes);
 	}
 
 	/**

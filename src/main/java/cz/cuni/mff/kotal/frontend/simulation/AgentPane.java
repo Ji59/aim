@@ -273,16 +273,17 @@ public class AgentPane extends StackPane {
 	 */
 	public void collide(double step) {
 		// TODO refactor
-//			this.stop();
-		this.setDisable(true); // TODO don't use this
+		collisionStep = step;
+		collide();
+	}
+
+	public void collide() {
 		rectangle.toBack();
 		rectangle.setFill(Color.RED);
 		rectangle.setOpacity(0.5);
-		collisionStep = step;
 	}
 
 	public void resetColors() {
-		setDisable(false);
 		rectangle.setFill(color);
 		rectangle.setOpacity(1);
 	}

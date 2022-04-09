@@ -17,15 +17,16 @@ import java.util.stream.Collectors;
  * Timer to be tick every frame to redraw agents and check for collisions.
  */
 public class SimulationTimer extends AnimationTimer {
-	private final Map<Long, AgentPane> agents;
-	//	private final Map<Long, AgentPolygon> lastState = new HashMap<>();
-	private final SimulationAgents simulationAgents;
-
-	private long generatedStep = -1;
+	public static final int COLLISION_AGENTS_SHOWN_STEPS = 1;
 
 	private static long[] verticesUsage = null;
 	private static long frames = 0;
 	private static double maxStep = 0;
+
+	private final Map<Long, AgentPane> agents;
+	//	private final Map<Long, AgentPolygon> lastState = new HashMap<>();
+	private final SimulationAgents simulationAgents;
+
 
 	/**
 	 * Create new timer.
@@ -64,11 +65,27 @@ public class SimulationTimer extends AnimationTimer {
 
 		simulationAgents.getSimulation().updateStatistics(step);
 
+		Set<AgentPane> activeAgents = new HashSet<>(agents.size());
 		synchronized (agents) {
-			Set<Map.Entry<Long, AgentPane>> finishedAgents = agents.entrySet().stream().filter(a -> !a.getValue().isDisable() && a.getValue().handleTick(step)).collect(Collectors.toSet());
-			finishedAgents.forEach(simulationAgents::removeAgent);
+			Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator = agents.entrySet().iterator();
+			while (activeAgentsIterator.hasNext()) {
+				Map.Entry<Long, AgentPane> a = activeAgentsIterator.next();
+				AgentPane agentPane = a.getValue();
+				if (agentPane.getCollisionStep() <= 0 || agentPane.getCollisionStep() > step) {
+					boolean finished = agentPane.handleTick(step);
+					if (finished) {
+						removeAgent(activeAgentsIterator, agentPane);
+					} else {
+						activeAgents.add(agentPane);
+					}
+				} else {
+					if (agentPane.getCollisionStep() + COLLISION_AGENTS_SHOWN_STEPS <= step) {
+						removeAgent(activeAgentsIterator, agentPane);
+					}
+				}
+			}
 
-			Set<Pair<AgentPane, AgentPane>> overlappingAgents = Collisions.getBoundingBoxesOverlaps(agents);
+			Set<Pair<AgentPane, AgentPane>> overlappingAgents = Collisions.getBoundingBoxesOverlaps(activeAgents);
 			overlappingAgents = overlappingAgents.stream().filter(pair -> Collisions.inCollision(pair.getKey(), pair.getValue())).collect(Collectors.toSet());
 
 			// Handle collisions
@@ -90,31 +107,20 @@ public class SimulationTimer extends AnimationTimer {
 				System.out.println(agentPane0.getAgentID() + " collides with " + agentPane1.getAgentID());
 
 				// Change agents, set timer for removal
-				new Thread(() -> {
-					try {
-						// TODO replace with number of steps
-						Thread.sleep(simulationAgents.getSimulation().getPeriod() / 1_000_000); // TODO millis
-						Platform.runLater(() -> {
-							simulationAgents.removeAgent(agentPane0.getAgentID());
-							simulationAgents.removeAgent(agentPane1.getAgentID());
-						});
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					} catch (NullPointerException ignored) {
-					}
-				}).start();
+//				new Thread(() -> {
+//					try {
+//						// TODO replace with number of steps
+//						Thread.sleep(simulationAgents.getSimulation().getPeriod() / 1_000_000); // TODO millis
+//						Platform.runLater(() -> {
+//							simulationAgents.removeAgent(agentPane0.getAgentID());
+//							simulationAgents.removeAgent(agentPane1.getAgentID());
+//						});
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					} catch (NullPointerException ignored) {
+//					}
+//				}).start();
 			});
-
-			long stepDiscrete = (long) step;
-			if (stepDiscrete > generatedStep) {
-//				TODO
-//				generatedStep = stepDiscrete;
-//				Collection<AgentPane> agentPanes = simulationAgents.addStepAgentPanes(generatedStep, agents.values());
-//				assert agentPanes == null;
-//				SimulationMenuTab3.setTimelineMaximum(stepDiscrete);
-			}
-
-
 		}
 
 		maxStep = Math.max(step, maxStep);
@@ -122,6 +128,11 @@ public class SimulationTimer extends AnimationTimer {
 		updateVerticesUsage(step);
 
 		simulationAgents.setVertexLabelText();
+	}
+
+	private void removeAgent(Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
+		activeAgentsIterator.remove();
+		simulationAgents.removeAgentPane(agentPane);
 	}
 
 	private void updateVerticesUsage(double step) {

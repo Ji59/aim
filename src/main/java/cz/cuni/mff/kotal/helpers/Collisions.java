@@ -31,11 +31,9 @@ public class Collisions {
 	 * @param agents Map of agents and their ID to check
 	 * @return Set of agents with overlapping agent bounding boxes
 	 */
-	public static Set<Pair<AgentPane, AgentPane>> getBoundingBoxesOverlaps(Map<Long, AgentPane> agents) {
+	public static Set<Pair<AgentPane, AgentPane>> getBoundingBoxesOverlaps(Set<AgentPane> agents) {
 		List<AgentBoundingBox> boundingBoxes;
-		synchronized (agents) {
-			boundingBoxes = agents.values().stream().filter(a -> !a.isDisabled()).map(a -> new AgentBoundingBox(a, a.getBoundingBox())).sorted().toList();
-		}
+		boundingBoxes = agents.stream().map(a -> new AgentBoundingBox(a, a.getBoundingBox())).sorted().toList();
 
 		Set<Pair<AgentPane, AgentPane>> overlappingAgents = new HashSet<>();
 		List<AgentBoundingBox> actualBoundingBoxes = new LinkedList<>();
