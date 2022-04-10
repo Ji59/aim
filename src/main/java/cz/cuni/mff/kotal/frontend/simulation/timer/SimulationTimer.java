@@ -18,10 +18,16 @@ import java.util.stream.Collectors;
  */
 public class SimulationTimer extends AnimationTimer {
 	public static final int COLLISION_AGENTS_SHOWN_STEPS = 1;
+	public static final double MINIMUM_STEP_SIZE_PER_FRAME = 0.25;  // 2 ^ -2
+	public static final double MAXIMUM_STEP_SIZE_PER_FRAME = 0.375;  // 3 * 2 ^ -3
 
 	private static long[] verticesUsage = null;
 	private static long frames = 0;
 	private static double maxStep = 0;
+
+	private static double lastStep = -1;
+	private static long[] lastCalls = new long[128];
+	private static int lastCallsIt = 0;
 
 	private final Map<Long, AgentPane> agents;
 	//	private final Map<Long, AgentPolygon> lastState = new HashMap<>();
@@ -54,10 +60,18 @@ public class SimulationTimer extends AnimationTimer {
 			IntersectionMenu.pauseSimulation();
 		}
 
-		frames++;
-
 //		simulationAgents.resetRectangles(); TODO
 		double step = simulationAgents.getSimulation().getStep(now);
+
+//		if (lastStep > 0 && step - lastStep > MINIMUM_STEP_SIZE_PER_FRAME) {
+//			IntersectionMenu.decreaseSpeed();
+//			lastStep = -1;
+//		} else if (lastStep > 0 && step - lastStep < MAXIMUM_STEP_SIZE_PER_FRAME) {
+//			IntersectionMenu.increaseSpeed();
+//		} else {
+//			lastStep = step;
+//		}
+
 		IntersectionMenu.setStep(step);
 
 		simulationAgents.getSimulation().loadAgents(step);
@@ -123,11 +137,20 @@ public class SimulationTimer extends AnimationTimer {
 			});
 		}
 
+		if (maxStep < step) {
+			frames++;
+			updateVerticesUsage(step);
+			simulationAgents.setVertexLabelText();
+		}
+
 		maxStep = Math.max(step, maxStep);
 		IntersectionMenu.setTimelineMaximum(step, maxStep);
-		updateVerticesUsage(step);
 
-		simulationAgents.setVertexLabelText();
+		lastCallsIt = (lastCallsIt + 1) % 128;
+		if (lastCallsIt % 16 == 0) {
+			System.out.println("FPS: " + (1_000_000_000. * 128 / (now - lastCalls[lastCallsIt])));
+		}
+		lastCalls[lastCallsIt] = now;
 	}
 
 	private void removeAgent(Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
@@ -170,5 +193,6 @@ public class SimulationTimer extends AnimationTimer {
 		verticesUsage = null;
 		frames = 0;
 		maxStep = 0;
+		lastStep = -1;
 	}
 }

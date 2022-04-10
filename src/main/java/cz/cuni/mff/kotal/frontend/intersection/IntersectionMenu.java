@@ -162,7 +162,6 @@ public class IntersectionMenu extends VBox {
 
 	/**
 	 * TODO
-	 *
 	 */
 	private void setSliderMaxPropertyListeners(Slider slider0, Slider slider1) {
 		slider0.maxProperty().addListener(getSliderValueListener(slider1::setMax));
@@ -355,6 +354,22 @@ public class IntersectionMenu extends VBox {
 	public static void setAbstractMode(boolean abstractMode) {
 		IntersectionMenu.abstractMode = abstractMode;
 		setIntersectionModeButtonText();
+	}
+
+	/**
+	 * TODO
+	 */
+	public static void decreaseSpeed() {
+		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() - 1);
+//		SPEED_SLIDER.decrement();
+	}
+
+	/**
+	 * TODO
+	 */
+	public static void increaseSpeed() {
+		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() + 1);
+//		SPEED_SLIDER.increment();
 	}
 
 	/**

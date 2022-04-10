@@ -81,9 +81,11 @@ public abstract class Simulation {
 	 */
 	public void loadAgents(double step) {
 		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
-			for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-				loadAndUpdateStepAgents(loadedStep);
-			}
+			new Thread(() -> {
+				for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
+					loadAndUpdateStepAgents(loadedStep);
+				}
+			}).start();
 		}
 	}
 
