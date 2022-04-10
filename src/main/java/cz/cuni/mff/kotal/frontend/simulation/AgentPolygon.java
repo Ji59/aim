@@ -1,6 +1,9 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import org.jetbrains.annotations.TestOnly;
+
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -11,7 +14,6 @@ import java.util.List;
  * TODO
  */
 public class AgentPolygon {
-	private final long id;
 	private final List<Point> corners;
 
 	/**
@@ -21,15 +23,20 @@ public class AgentPolygon {
 	 * @param corners Corners of belonging agent; in format [x0, y0, x1, y1, ... , xn, yn]
 	 */
 	public AgentPolygon(long id, List<Point> corners) {
-		this.id = id;
 		this.corners = corners;
 	}
 
 	/**
-	 * @return ID of belonging agent
+	 *
+	 * @param id
+	 * @param points
 	 */
-	public long getId() {
-		return id;
+	@TestOnly
+	public AgentPolygon(long id, double ... points) {
+		this.corners = new ArrayList<>(points.length / 2);
+		for (int i = 0; i < points.length; i += 2) {
+			corners.add(new Point(points[i], points[i + 1]));
+		}
 	}
 
 	/**

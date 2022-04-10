@@ -179,6 +179,7 @@ public class Collisions {
 		while ((nextSegment = lineSegments.poll()) != null) {
 			LineSegmentWithID nextEnd;
 			while ((nextEnd = segmentEnds.peek()) != null && nextEnd.getX1() < nextSegment.getX0()) {
+				segmentEnds.remove();
 				newVerticalSegmentQueue = checkLineSegmentsCollisions(collidedSegments, newVerticalSegmentQueue, nextEnd.getX1());
 			}
 
@@ -186,7 +187,7 @@ public class Collisions {
 
 			final double startingY = nextSegment.getY0();
 			for (LineSegmentWithY lineSegmentWithY : newVerticalSegmentQueue) {
-				if (lineSegmentWithY.getY() == startingY) {
+				if (lineSegmentWithY.getY() == startingY && lineSegmentWithY.getLineSegment().getId() != nextSegment.getId()) {
 					collidedSegments.add(new Pair<>(lineSegmentWithY.getLineSegment(), nextSegment));
 				} else if (lineSegmentWithY.getY() > startingY) {
 					break;
@@ -197,11 +198,20 @@ public class Collisions {
 			segmentEnds.add(nextSegment);
 		}
 
+		//		for (Pair<LineSegmentWithID, LineSegmentWithID> lineSegmentPair: collidedSegments) {
+//			LineSegmentWithID line0 = lineSegmentPair.getKey();
+//			LineSegmentWithID line1 = lineSegmentPair.getValue();
+//			Collision collision = new Collision(line0.getId(), line1.getId(), line0.getIntersectionRatio(line1));
+//			if (collisionsSet.contains(collision)) {
+//				collisionsSet.remove(collision);
+//			}
+//		}
 		return collidedSegments.stream()
 			.map(lineSegmentPair -> {
 				LineSegmentWithID line0 = lineSegmentPair.getKey();
 				LineSegmentWithID line1 = lineSegmentPair.getValue();
-				return new Collision(line0.getId(), line1.getId(), line0.getIntersectionRatio(line1));
+				double intersectionRatio = line0.getIntersectionRatio(line1);
+				return new Collision(line0.getId(), line1.getId(), intersectionRatio);
 			})
 			.collect(Collectors.toSet());
 	}
@@ -302,7 +312,7 @@ public class Collisions {
 		@Override
 		public int compareTo(@NotNull Collisions.LineSegmentWithY lineSegment) {
 			int yDiff = Double.compare(y, lineSegment.y);
-			return yDiff == 0 ? this.compareTo(lineSegment) : yDiff;
+			return yDiff == 0 ? this.lineSegment.compareTo(lineSegment.lineSegment) : yDiff;
 		}
 
 		@Override

@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -87,13 +88,17 @@ public class LineSegment {
 			lineSegment.computeLineEquation();
 		}
 
-		if (a.isNaN()) {
-			if (lineSegment.a.isNaN()) {
+		if (Objects.equals(a, lineSegment.a) || (a.isInfinite() && lineSegment.a.isInfinite())) {
+
+		}
+
+		if (a.isInfinite()) {
+			if (lineSegment.a.isInfinite()) {
 				return 0;
 			}
 			return getVerticalRatio(lineSegment.a, lineSegment.b, b);
 		}
-		double x = lineSegment.a.isNaN() ? lineSegment.b : (lineSegment.b - b) / (a - lineSegment.a);
+		double x = lineSegment.a.isInfinite() ? lineSegment.b : (lineSegment.b - b) / (a - lineSegment.a);
 		return (x - getX0()) / (getX1() - getX0());
 	}
 
@@ -115,7 +120,7 @@ public class LineSegment {
 	 */
 	private void computeLineEquation() {
 		a = (getY1() - getY0()) / (getX1() - getX0());
-		if (a.isNaN()) {
+		if (a.isInfinite()) {
 			b = getX0();
 		} else {
 			b = getY0() - a * getX0();

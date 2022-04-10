@@ -81,10 +81,17 @@ public class Collision {
 	 */
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		Collision collision = (Collision) o;
-		return id0 == collision.id0 && id1 == collision.id1;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Collision collision)) {
+			return false;
+		}
+		boolean same = id0 == collision.id0 && id1 == collision.id1;
+		if (same && time < collision.time) {  // TODO
+			collision.time = time;
+		}
+		return same;
 	}
 
 	@Override
