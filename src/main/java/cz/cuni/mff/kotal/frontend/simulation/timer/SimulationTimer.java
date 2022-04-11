@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  */
 public class SimulationTimer extends AnimationTimer {
 	public static final int COLLISION_AGENTS_SHOWN_STEPS = 1;
-	public static final double MINIMUM_STEP_SIZE_PER_FRAME = 0.25;  // 2 ^ -2
+	public static final double MINIMUM_STEP_SIZE_PER_FRAME = 0.0625;  // 2 ^ -4
 	public static final double MAXIMUM_STEP_SIZE_PER_FRAME = 0.375;  // 3 * 2 ^ -3
 
 	private static long[] verticesUsage = null;
@@ -26,6 +26,7 @@ public class SimulationTimer extends AnimationTimer {
 	private static double maxStep = 0;
 
 	private static double lastStep = -1;
+	private static int overLimitCount = 0;
 	private static long[] lastCalls = new long[128];
 	private static int lastCallsIt = 0;
 
@@ -63,14 +64,23 @@ public class SimulationTimer extends AnimationTimer {
 //		simulationAgents.resetRectangles(); TODO
 		double step = simulationAgents.getSimulation().getStep(now);
 
-//		if (lastStep > 0 && step - lastStep > MINIMUM_STEP_SIZE_PER_FRAME) {
-//			IntersectionMenu.decreaseSpeed();
-//			lastStep = -1;
-//		} else if (lastStep > 0 && step - lastStep < MAXIMUM_STEP_SIZE_PER_FRAME) {
-//			IntersectionMenu.increaseSpeed();
-//		} else {
-//			lastStep = step;
-//		}
+		final double stepSize = step - lastStep;
+		if (lastStep > 0 && stepSize < MINIMUM_STEP_SIZE_PER_FRAME) {
+			if (++overLimitCount > 8) {
+				IntersectionMenu.increaseSpeed();
+				lastStep = -1;
+				overLimitCount = 0;
+			}
+		} else if (lastStep > 0 && stepSize > MAXIMUM_STEP_SIZE_PER_FRAME) {
+			if (--overLimitCount < 8) {
+				IntersectionMenu.decreaseSpeed();
+				lastStep = -1;
+				overLimitCount = 0;
+			}
+		} else {
+			lastStep = step;
+			overLimitCount = 0;
+		}
 
 		IntersectionMenu.setStep(step);
 
@@ -119,21 +129,6 @@ public class SimulationTimer extends AnimationTimer {
 
 				// TODO remove log
 				System.out.println(agentPane0.getAgentID() + " collides with " + agentPane1.getAgentID());
-
-				// Change agents, set timer for removal
-//				new Thread(() -> {
-//					try {
-//						// TODO replace with number of steps
-//						Thread.sleep(simulationAgents.getSimulation().getPeriod() / 1_000_000); // TODO millis
-//						Platform.runLater(() -> {
-//							simulationAgents.removeAgent(agentPane0.getAgentID());
-//							simulationAgents.removeAgent(agentPane1.getAgentID());
-//						});
-//					} catch (InterruptedException e) {
-//						e.printStackTrace();
-//					} catch (NullPointerException ignored) {
-//					}
-//				}).start();
 			});
 		}
 
@@ -194,5 +189,7 @@ public class SimulationTimer extends AnimationTimer {
 		frames = 0;
 		maxStep = 0;
 		lastStep = -1;
+		overLimitCount = 0;
+		lastCalls = new long[128];
 	}
 }

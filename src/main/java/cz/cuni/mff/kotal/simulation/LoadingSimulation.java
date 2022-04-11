@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.simulation;
 
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
@@ -11,6 +12,7 @@ import java.io.FileReader;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 
 public class LoadingSimulation extends Simulation {
 
@@ -45,21 +47,31 @@ public class LoadingSimulation extends Simulation {
 				sortedAgentsIterator.previous();
 			}
 
-			newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
-			createdAgentsQueue.addAll(newAgents);
+			synchronized (delayedAgents) {
+				newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
+			}
+
+			synchronized (createdAgentsQueue) {
+				createdAgentsQueue.addAll(newAgents);
+			}
 		} else {
-			if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
-				// FIXME refactor
-				if (step > finalStep) {
-					ended = true;
-				} else {
-					updateStatistics(sortedAgentsIterator.nextIndex());
+			synchronized (delayedAgents) {
+				if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
+					// FIXME refactor
+					if (step > finalStep) {
+						ended = true;
+					} else {
+						updateStatistics(sortedAgentsIterator.nextIndex());
+					}
+					return false;
 				}
-				return false;
 			}
 		}
 
-		List<Agent> entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
+		List<Agent> entriesAgents;
+		synchronized (delayedAgents) {
+			entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
+		}
 
 		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
 		plannedAgents.forEach(agent -> {
@@ -70,14 +82,22 @@ public class LoadingSimulation extends Simulation {
 				finalStep = leavingTime;
 			}
 		});
-		plannedAgentsQueue.addAll(plannedAgents);
+		synchronized (plannedAgentsQueue) {
+			plannedAgentsQueue.addAll(plannedAgents);
+		}
 
-		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
-		// TODO replace with iterator
-		Set<Agent> rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
-		delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
+		Set<Agent> rejectedAgents;
+		synchronized (delayedAgents) {
+			delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
 
-		rejectedAgentsQueue.addAll(rejectedAgents);
+			// TODO replace with iterator
+			rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
+			delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
+		}
+
+		synchronized (rejectedAgentsQueue) {
+			rejectedAgentsQueue.addAll(rejectedAgents);
+		}
 
 		updateStatistics(sortedAgentsIterator.nextIndex());
 

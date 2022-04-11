@@ -132,7 +132,9 @@ public class SimulationAgents extends Pane {
 	 * @param agent Agent to be added
 	 */
 	public void addAgent(Agent agent) {
-		arrivingAgents.add(agent);
+		synchronized (arrivingAgents) {
+			arrivingAgents.add(agent);
+		}
 //		addAgent(agent, simulation.getPeriod());
 	}
 
@@ -140,7 +142,9 @@ public class SimulationAgents extends Pane {
 	 * @param agents
 	 */
 	public void addAgents(Collection<Agent> agents) {
-		arrivingAgents.addAll(agents);
+		synchronized (arrivingAgents) {
+			arrivingAgents.addAll(agents);
+		}
 	}
 
 	/**
@@ -311,16 +315,18 @@ public class SimulationAgents extends Pane {
 	 * @param step
 	 */
 	public void addArrivedAgents(double step) {
-		Iterator<Agent> iterator = arrivingAgents.iterator();
-		while (iterator.hasNext()) {
-			Agent agent = iterator.next();
-			if (agent.getPlannedTime() > step) {
-				return;
+		synchronized (arrivingAgents) {
+			Iterator<Agent> iterator = arrivingAgents.iterator();
+			while (iterator.hasNext()) {
+				Agent agent = iterator.next();
+				if (agent.getPlannedTime() > step) {
+					return;
+				}
+				if (agent.getPlannedTime() + agent.getPath().size() > step + 1) {
+					addAgentPane(agent, step);
+				}
+				iterator.remove();
 			}
-			if (agent.getPlannedTime() + agent.getPath().size() > step + 1) {
-				addAgentPane(agent, step);
-			}
-			iterator.remove();
 		}
 	}
 

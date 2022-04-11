@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.simulation;
 
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
@@ -8,9 +9,14 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 
 /**
  * TODO
@@ -39,9 +45,11 @@ public abstract class Simulation {
 
 	protected long loadedStep = 0;
 	protected long delayedStep = 0;
-	protected PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
-	protected PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
-	protected PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+	protected final PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
+	protected final PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+
+	private final Lock loadAgentsLock = new ReentrantLock(false);
 
 	protected boolean ended = false;
 
@@ -82,8 +90,15 @@ public abstract class Simulation {
 	public void loadAgents(double step) {
 		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
 			new Thread(() -> {
-				for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-					loadAndUpdateStepAgents(loadedStep);
+				loadAgentsLock.lock();
+				try {
+					if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
+						for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
+							loadAndUpdateStepAgents(loadedStep);
+						}
+					}
+				} finally {
+					loadAgentsLock.unlock();
 				}
 			}).start();
 		}
@@ -135,11 +150,12 @@ public abstract class Simulation {
 
 	/**
 	 * TODO
+	 *
 	 * @param step
 	 */
 	public final void setStartAndAgents(double step) {
 		startingStep = step;
-		simulationAgents.setAgents(allAgents.values(),  step);
+		simulationAgents.setAgents(allAgents.values(), step);
 	}
 
 	protected abstract void start();
@@ -196,15 +212,17 @@ public abstract class Simulation {
 	 * @param step
 	 */
 	protected void updateTotalAgents(double step) {
-		Iterator<Agent> iterator = createdAgentsQueue.iterator();
-		while (iterator.hasNext()) {
-			Agent createdAgent = iterator.next();
-			if (createdAgent.getArrivalTime() > step) {
-				return;
-			}
+		synchronized (createdAgentsQueue) {
+			Iterator<Agent> iterator = createdAgentsQueue.iterator();
+			while (iterator.hasNext()) {
+				Agent createdAgent = iterator.next();
+				if (createdAgent.getArrivalTime() > step) {
+					return;
+				}
 
-			agentsTotal++;
-			iterator.remove();
+				agentsTotal++;
+				iterator.remove();
+			}
 		}
 	}
 
@@ -215,20 +233,24 @@ public abstract class Simulation {
 	 */
 	protected void updateAgentsDelay(double step) {
 		if (step > delayedStep) {
-			agentsDelay += delayedAgents.values().stream().flatMap(Collection::stream).filter(agent -> agent.getArrivalTime() <= step).count(); // FIXME use paralel stream?
+			synchronized (delayedAgents) {
+				agentsDelay += delayedAgents.values().stream().flatMap(Collection::stream).filter(agent -> agent.getArrivalTime() <= step).count();
+			}
 
 			delayedStep++;
 		}
 
-		Iterator<Agent> iterator = plannedAgentsQueue.iterator();
-		while (iterator.hasNext()) {
-			Agent agent = iterator.next();
-			if (agent.getPlannedTime() > step) {
-				return;
-			}
+		synchronized (plannedAgentsQueue) {
+			Iterator<Agent> iterator = plannedAgentsQueue.iterator();
+			while (iterator.hasNext()) {
+				Agent agent = iterator.next();
+				if (agent.getPlannedTime() > step) {
+					return;
+				}
 
-			agentsDelay += getAgentsDelay(agent);
-			iterator.remove();
+				agentsDelay += getAgentsDelay(agent);
+				iterator.remove();
+			}
 		}
 	}
 
@@ -238,15 +260,17 @@ public abstract class Simulation {
 	 * @param step
 	 */
 	protected void updateRejectedAgents(double step) {
-		Iterator<Agent> iterator = rejectedAgentsQueue.iterator();
-		while (iterator.hasNext()) {
-			Agent rejectedAgent = iterator.next();
-			if (isRejected(step, rejectedAgent)) {
-				return;
-			}
+		synchronized (rejectedAgentsQueue) {
+			Iterator<Agent> iterator = rejectedAgentsQueue.iterator();
+			while (iterator.hasNext()) {
+				Agent rejectedAgent = iterator.next();
+				if (isRejected(step, rejectedAgent)) {
+					return;
+				}
 
-			agentsRejected++;
-			iterator.remove();
+				agentsRejected++;
+				iterator.remove();
+			}
 		}
 	}
 

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.DoubleConsumer;
 
+
 /**
  * Class representing Side menu on main window.
  */
@@ -32,7 +33,7 @@ public class IntersectionMenu extends VBox {
 	// TODO dont use static, use Component
 
 	// TODO extract constants
-	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
+	private static final Slider SPEED_SLIDER = new Slider(0, 1999, 1500);
 	private static final Slider TIMELINE_SLIDER = new Slider(0, 0, 0);
 
 	private static final Button INTERSECTION_MODE = new Button("Real");
@@ -173,6 +174,7 @@ public class IntersectionMenu extends VBox {
 	 * Add action to speed slider.
 	 */
 	private void addSpeedSliderActions() {
+		SPEED_SLIDER.setBlockIncrement(4);
 		SPEED_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> IntersectionScene.changeSimulation());
 	}
 
@@ -360,16 +362,19 @@ public class IntersectionMenu extends VBox {
 	 * TODO
 	 */
 	public static void decreaseSpeed() {
-		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() - 1);
-//		SPEED_SLIDER.decrement();
+//		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() - 1);
+		SPEED_SLIDER.decrement();
+		System.out.println(SPEED_SLIDER.getValue());
+
 	}
 
 	/**
 	 * TODO
 	 */
 	public static void increaseSpeed() {
-		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() + 1);
-//		SPEED_SLIDER.increment();
+//		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() + 1);
+		SPEED_SLIDER.increment();
+		System.out.println(SPEED_SLIDER.getValue());
 	}
 
 	/**

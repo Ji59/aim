@@ -144,7 +144,8 @@ public class IntersectionScene extends Scene {
 	public static long getPeriod() {
 		double speed = IntersectionMenu.getSpeed();
 		// TODO do speed properly
-		return (long) ((2500 - Math.sqrt(speed) * 78) * 1_000_000);
+//		return (long) ((2000 - Math.sqrt(speed) * 78) * 1_000_000);
+		return (long) ((2000 - speed) * 1_000_000);
 	}
 
 	/**

@@ -430,44 +430,6 @@ public class IntersectionModel extends Pane {
 		vertexLabel.setPrefHeight(height);
 		vertexLabel.setAlignment(Pos.CENTER);
 		nodes.add(vertexLabel);
-
-//		Label statsLabel = new Label(id);
-//		statsLabel.setVisible(false);
-//		statsLabel.setLabelFor(vertexLabel);
-//		statsLabel.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-//		nodes.add(statsLabel);
-
-//		Popup popup = new Popup();
-//		popup.getContent().add(statsLabel);
-
-//		vertexLabel.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(5), BorderStroke.DEFAULT_WIDTHS)));
-
-
-//		vertexLabel.setOnMouseClicked(mouseEvent -> {
-//			popup.show(vertexLabel, 0, 0);
-//			System.out.println(id + ": clicked");
-//			statsLabel.setVisible(false);
-//			vertexLabel.setBackground(new Background(new BackgroundFill(Color.BLACK, new CornerRadii(5), null)));
-//		});
-
-//		statsLabel.setOnMouseMoved(mouseEvent -> {
-//			System.out.println(id);
-//		});
-
-
-//		vertexLabel.hoverProperty().addListener((observableValue, oldValue, newValue) -> {
-//			System.out.println(id + ": " + oldValue + " " + newValue);
-//		vertexLabel.setOnMouseEntered(event -> {
-//			System.out.println(id + " entered.");
-//			statsLabel.setLayoutX(event.getSceneX());
-//			statsLabel.setLayoutY(event.getSceneY());
-//			statsLabel.setVisible(true);
-//		});
-
-//		vertexLabel.setOnMouseExited(event -> {
-//			System.out.println(id + " exited.");
-//			statsLabel.setVisible(false);
-//		});
 	}
 
 	/*
