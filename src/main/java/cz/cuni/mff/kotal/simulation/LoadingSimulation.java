@@ -18,7 +18,6 @@ public class LoadingSimulation extends Simulation {
 
 	private Timer timer;
 	private final ListIterator<Agent> sortedAgentsIterator;
-	private long finalStep = 0;
 
 	public LoadingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents, String path) throws FileNotFoundException {
 		super(intersectionGraph, algorithm, simulationAgents);
@@ -26,6 +25,7 @@ public class LoadingSimulation extends Simulation {
 	}
 
 	@Override
+	@Deprecated
 	protected void start() {
 		long msPeriod = period / 1_000_000;
 		long delay = isRunning() ? msPeriod : 0L;
@@ -36,7 +36,7 @@ public class LoadingSimulation extends Simulation {
 	}
 
 	@Override
-	protected boolean loadAndUpdateStepAgents(long step) {
+	protected Collection<Agent> loadAgents(long step) {
 		if (sortedAgentsIterator.hasNext()) {
 			List<Agent> newAgents = new ArrayList<>();
 			Agent nextAgent = null;
@@ -46,62 +46,18 @@ public class LoadingSimulation extends Simulation {
 			if (nextAgent != null && nextAgent.getArrivalTime() > step && sortedAgentsIterator.hasPrevious()) {
 				sortedAgentsIterator.previous();
 			}
-
-			synchronized (delayedAgents) {
-				newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
-			}
-
-			synchronized (createdAgentsQueue) {
-				createdAgentsQueue.addAll(newAgents);
-			}
+			return newAgents;
 		} else {
 			synchronized (delayedAgents) {
 				if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
 					// FIXME refactor
 					if (step > finalStep) {
 						ended = true;
-					} else {
-						updateStatistics(sortedAgentsIterator.nextIndex());
 					}
-					return false;
 				}
 			}
 		}
-
-		List<Agent> entriesAgents;
-		synchronized (delayedAgents) {
-			entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
-		}
-
-		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
-		plannedAgents.forEach(agent -> {
-			simulationAgents.addAgent(agent);
-			agent.setPlannedTime(step);
-			long leavingTime = agent.getPath().size() + step;
-			if (leavingTime > finalStep) {
-				finalStep = leavingTime;
-			}
-		});
-		synchronized (plannedAgentsQueue) {
-			plannedAgentsQueue.addAll(plannedAgents);
-		}
-
-		Set<Agent> rejectedAgents;
-		synchronized (delayedAgents) {
-			delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(plannedAgents));
-
-			// TODO replace with iterator
-			rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::parallelStream).filter(agent -> agent.getArrivalTime() < getStep() - maximumDelay).collect(Collectors.toSet());
-			delayedAgents.values().parallelStream().forEach(entryList -> entryList.removeAll(rejectedAgents));
-		}
-
-		synchronized (rejectedAgentsQueue) {
-			rejectedAgentsQueue.addAll(rejectedAgents);
-		}
-
-		updateStatistics(sortedAgentsIterator.nextIndex());
-
-		return false;
+		return new ArrayList<>(0);
 	}
 
 	private ListIterator<Agent> loadAgents(String path) throws FileNotFoundException {
@@ -130,6 +86,7 @@ public class LoadingSimulation extends Simulation {
 		}
 	}
 
+	@Deprecated
 	private TimerTask getTimerTask() {
 		return new TimerTask() {
 			@Override
@@ -137,7 +94,7 @@ public class LoadingSimulation extends Simulation {
 				System.out.println(step);
 				long currentStep = getStep(); // TODO
 
-				loadAndUpdateStepAgents(currentStep);
+				loadAgents(currentStep);
 
 				updateTotalAgents(currentStep);
 				updateAgentsDelay(currentStep);

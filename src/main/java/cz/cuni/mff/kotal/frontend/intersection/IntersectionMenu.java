@@ -33,7 +33,7 @@ public class IntersectionMenu extends VBox {
 	// TODO dont use static, use Component
 
 	// TODO extract constants
-	private static final Slider SPEED_SLIDER = new Slider(0, 1999, 1500);
+	private static final Slider SPEED_SLIDER = new Slider(0, 4096, 2048);
 	private static final Slider TIMELINE_SLIDER = new Slider(0, 0, 0);
 
 	private static final Button INTERSECTION_MODE = new Button("Real");
@@ -111,9 +111,14 @@ public class IntersectionMenu extends VBox {
 		sliders.addRow(1, TIMELINE_LABEL, TIMELINE_SLIDER);
 		sliders.setVgap(padding);
 
-		setSliderValuePropertyListeners(SPEED_SLIDER, SimulationMenuTab3.getSpeedSlider());
-		setSliderValuePropertyListeners(TIMELINE_SLIDER, SimulationMenuTab3.getTimelineSlider());
-		setSliderMaxPropertyListeners(TIMELINE_SLIDER, SimulationMenuTab3.getTimelineSlider());
+		Slider tabSpeedSlider = SimulationMenuTab3.getSpeedSlider();
+		tabSpeedSlider.setMax(SPEED_SLIDER.getMax());
+		tabSpeedSlider.setMin(SPEED_SLIDER.getMin());
+		tabSpeedSlider.setValue(SPEED_SLIDER.getValue());
+		setSliderValuePropertyListeners(SPEED_SLIDER, tabSpeedSlider);
+		Slider tabTimelineSlider = SimulationMenuTab3.getTimelineSlider();
+		setSliderValuePropertyListeners(TIMELINE_SLIDER, tabTimelineSlider);
+		setSliderMaxPropertyListeners(TIMELINE_SLIDER, tabTimelineSlider);
 
 		addSpeedSliderActions();
 		addTimelineSliderActions();
@@ -174,7 +179,7 @@ public class IntersectionMenu extends VBox {
 	 * Add action to speed slider.
 	 */
 	private void addSpeedSliderActions() {
-		SPEED_SLIDER.setBlockIncrement(4);
+		SPEED_SLIDER.setBlockIncrement(8);
 		SPEED_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> IntersectionScene.changeSimulation());
 	}
 
@@ -337,8 +342,15 @@ public class IntersectionMenu extends VBox {
 		IntersectionMenu.playing = playing;
 		// TODO extract constants
 		String text = playing ? "Pause" : "Play";// TODO
-		PLAY_BUTTON.setText(text); // TODO
-		SimulationMenuTab3.getPlayButton().setText(text);
+		if (Platform.isFxApplicationThread()) {
+			PLAY_BUTTON.setText(text); // TODO
+			SimulationMenuTab3.getPlayButton().setText(text);
+		} else {
+			Platform.runLater(() -> {
+				PLAY_BUTTON.setText(text); // TODO
+				SimulationMenuTab3.getPlayButton().setText(text);
+			});
+		}
 	}
 
 	/**
@@ -361,20 +373,29 @@ public class IntersectionMenu extends VBox {
 	/**
 	 * TODO
 	 */
-	public static void decreaseSpeed() {
+	public static boolean decreaseSpeed() {
+		if (SPEED_SLIDER.getValue() <= SPEED_SLIDER.getMin()) {
+			return false;
+		}
+
 //		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() - 1);
 		SPEED_SLIDER.decrement();
 		System.out.println(SPEED_SLIDER.getValue());
-
+		return true;
 	}
 
 	/**
 	 * TODO
 	 */
-	public static void increaseSpeed() {
+	public static boolean increaseSpeed() {
+		if (SPEED_SLIDER.getValue() >= SPEED_SLIDER.getMax()) {
+			return false;
+		}
+
 //		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() + 1);
 		SPEED_SLIDER.increment();
 		System.out.println(SPEED_SLIDER.getValue());
+		return true;
 	}
 
 	/**
@@ -461,8 +482,8 @@ public class IntersectionMenu extends VBox {
 	 * @param step Value to be shown on labels
 	 */
 	public static void setStep(double step) {
+		String stepFormatted = String.format("%,.2f", step);  // TODO extract constant
 		Platform.runLater(() -> {
-			String stepFormatted = String.format("%,.2f", step);  // TODO extract constant
 			STEPS_LABEL.setText(stepFormatted);
 			SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
 		});

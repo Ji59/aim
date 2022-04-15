@@ -4,11 +4,9 @@ package cz.cuni.mff.kotal.frontend.intersection;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
-import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
-import cz.cuni.mff.kotal.simulation.GeneratingSimulation;
-import cz.cuni.mff.kotal.simulation.InvalidSimulation;
-import cz.cuni.mff.kotal.simulation.LoadingSimulation;
-import cz.cuni.mff.kotal.simulation.Simulation;
+import cz.cuni.mff.kotal.simulation.*;
+import cz.cuni.mff.kotal.simulation.timer.SimulationTimer;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
@@ -104,18 +102,21 @@ public class IntersectionScene extends Scene {
 		if (simulation.getState().isValid()) {
 			resumeSimulation();
 		} else {
+			SimulationGraph graph = IntersectionModel.getGraph();
 			if (AgentsMenuTab1.getInputType() == AgentsMenuTab1.Parameters.Input.FILE) {
 				try {
-					simulation = new LoadingSimulation(IntersectionModel.getGraph(), algorithm, AGENTS, AgentsMenuTab1.getFilePath().getText());
+					simulation = new LoadingSimulation(graph, algorithm, AGENTS, AgentsMenuTab1.getFilePath().getText());
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 					// TODO
 					return;
 				}
 			} else {
-				simulation = new GeneratingSimulation(IntersectionModel.getGraph(), algorithm, AGENTS);
+				simulation = new GeneratingSimulation(graph, algorithm, AGENTS);
 			}
 
+			SimulationHandler.resetValues(graph);
+			SimulationTimer.resetValues(graph);
 			AGENTS.setSimulation(simulation);
 			simulation.start(getPeriod());
 		}
@@ -145,7 +146,7 @@ public class IntersectionScene extends Scene {
 		double speed = IntersectionMenu.getSpeed();
 		// TODO do speed properly
 //		return (long) ((2000 - Math.sqrt(speed) * 78) * 1_000_000);
-		return (long) ((2000 - speed) * 1_000_000);
+		return (long) ((2049 - Math.sqrt(speed) * 32) * 1_000_000);
 	}
 
 	/**
@@ -171,7 +172,6 @@ public class IntersectionScene extends Scene {
 
 		AGENTS.resetSimulation();
 
-		SimulationTimer.resetVerticesUsage();
 		IntersectionModel.resetVertexNodesColors();
 	}
 
@@ -192,6 +192,15 @@ public class IntersectionScene extends Scene {
 	 */
 	public static IntersectionModel getIntersectionGraph() {
 		return GRAPH;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public static SimulationAgents getSimulationAgents() {
+		return AGENTS;
 	}
 
 	/**

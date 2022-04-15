@@ -3,14 +3,17 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.util.Pair;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
+import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
 
 
 /**
@@ -290,5 +293,13 @@ public class Agent {
 
 	public long getPlannedTime() {
 		return plannedTime;
+	}
+
+	public double getAgentPerimeter() {
+		return getAgentPerimeter(IntersectionModel.getGraph());
+	}
+
+	public double getAgentPerimeter(SimulationGraph graph) {
+		return perimeter(getL(), getW()) * graph.getCellSize();
 	}
 }

@@ -2,12 +2,13 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
-import cz.cuni.mff.kotal.frontend.simulation.timer.SimulationTimer;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.InvalidSimulation;
 import cz.cuni.mff.kotal.simulation.Simulation;
+import cz.cuni.mff.kotal.simulation.SimulationHandler;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.timer.SimulationTimer;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -22,6 +23,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.TextAlignment;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 
@@ -32,7 +34,7 @@ import java.util.*;
 public class SimulationAgents extends Pane {
 	public static final int LABEL_MOUSE_OFFSET = 12;
 	private Simulation simulation = new InvalidSimulation();
-	private final Map<Long, AgentPane> activeAgents = new HashMap<>();
+	private static final Map<Long, AgentPane> activeAgents = new HashMap<>();
 	private final Map<Agent, AgentPane> allAgents = new HashMap<>();
 	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	private double cellSize; // FIXME move somewhere else
@@ -154,17 +156,19 @@ public class SimulationAgents extends Pane {
 	 * @param step
 	 */
 
-	private void addAgentPane(Agent agent, double step) {
+	private AgentPane initAgentPane(Agent agent, double step) {
 		long agentID = agent.getId();
+		AgentPane agentPane;
+
 		if (allAgents.containsKey(agent)) {
-			AgentPane agentPane = allAgents.get(agent);
+			agentPane = allAgents.get(agent);
 			double collisionStep = agentPane.getCollisionStep();
-			if (collisionStep >= 0 && collisionStep <= step) {
+			if (collisionStep <= step) {
 				if (collisionStep + SimulationTimer.COLLISION_AGENTS_SHOWN_STEPS > step) {
 					agentPane.collide();
 					agentPane.handleTick(collisionStep);
 				} else {
-					return;
+					return null;
 				}
 			} else {
 				agentPane.resetColors();
@@ -174,18 +178,17 @@ public class SimulationAgents extends Pane {
 			synchronized (activeAgents) {
 				activeAgents.put(agentID, agentPane);
 			}
-			addPaneToChildren(agentPane);
-			return;
-		}
-		long startTime = simulation.getTime(agent.getPlannedTime());
-		AgentPane agentPane = new AgentPane(startTime, step, agent, simulation.getPeriod(), simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
+		} else {
+			long startTime = simulation.getTime(agent.getPlannedTime());
+			agentPane = new AgentPane(startTime, step, agent, simulation.getPeriod(), simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
 
-		synchronized (activeAgents) {
-			activeAgents.put(agentID, agentPane);
+			synchronized (activeAgents) {
+				activeAgents.put(agentID, agentPane);
+			}
+			allAgents.put(agent, agentPane);
 		}
-		allAgents.put(agent, agentPane);
 
-		addPaneToChildren(agentPane);
+		return agentPane;
 	}
 
 	/**
@@ -249,7 +252,10 @@ public class SimulationAgents extends Pane {
 	 * Stop running agent panes simulation.
 	 */
 	public void pauseSimulation() {
-		timer.stop();
+		SimulationHandler.stop();
+		if (timer != null) {
+			timer.stop();
+		}
 	}
 
 	/**
@@ -264,8 +270,14 @@ public class SimulationAgents extends Pane {
 			activeAgents.values().forEach(agentPane -> agentPane.resume(simulation.getPeriod(), startTime));
 		}
 		cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
-		timer = new SimulationTimer(activeAgents, this);
+
+		/**
+		SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
+		simulationHandler.start();
+		/*/
+		timer = new SimulationTimer(activeAgents, simulation);
 		timer.start();
+		/**/
 	}
 
 	/**
@@ -303,7 +315,9 @@ public class SimulationAgents extends Pane {
 	 * TODO
 	 */
 	private void clearActiveAgents() {
-		timer.stop();
+		if (timer != null) {
+			timer.stop();
+		}
 		getChildren().setAll(vertexLabel, agentLabel);
 		activeAgents.clear();
 		arrivingAgents.clear();
@@ -315,6 +329,15 @@ public class SimulationAgents extends Pane {
 	 * @param step
 	 */
 	public void addArrivedAgents(double step) {
+		addArrivedAgents(step, true);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 */
+	public void addArrivedAgents(double step, boolean showAgent) {
 		synchronized (arrivingAgents) {
 			Iterator<Agent> iterator = arrivingAgents.iterator();
 			while (iterator.hasNext()) {
@@ -323,7 +346,10 @@ public class SimulationAgents extends Pane {
 					return;
 				}
 				if (agent.getPlannedTime() + agent.getPath().size() > step + 1) {
-					addAgentPane(agent, step);
+					AgentPane agentPane = initAgentPane(agent, step);
+					if (agentPane != null && showAgent) {
+						addPaneToChildren(agentPane);
+					}
 				}
 				iterator.remove();
 			}
@@ -337,6 +363,7 @@ public class SimulationAgents extends Pane {
 	/**
 	 * Only for debug purposes
 	 */
+	@TestOnly
 	public void resetRectangles() {
 		getChildren().removeAll(rectangles);
 		rectangles.clear();
@@ -345,6 +372,7 @@ public class SimulationAgents extends Pane {
 	/**
 	 * Only for debug purposes
 	 */
+	@TestOnly
 	public void addRectangle(List<Point> cornerPoints) {
 		double[] points = new double[cornerPoints.size() * 2];
 		for (int i = 0; i < cornerPoints.size(); i++) {
@@ -357,6 +385,7 @@ public class SimulationAgents extends Pane {
 	/**
 	 * Only for debug purposes
 	 */
+	@TestOnly
 	public void addRectangle(double[] boundingBox) {
 		double[] points = new double[boundingBox.length * 2];
 		points[0] = boundingBox[0];
@@ -373,6 +402,7 @@ public class SimulationAgents extends Pane {
 	/**
 	 * Only for debug purposes
 	 */
+	@TestOnly
 	public void addRectangle(double[] points, int red) {
 		Polygon rectangle = new Polygon(points);
 		rectangle.setFill(Color.rgb(red, 0, 0, 0.3));
@@ -381,8 +411,22 @@ public class SimulationAgents extends Pane {
 		getChildren().add(rectangle);
 	}
 
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
 	public Simulation getSimulation() {
 		return simulation;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public static Map<Long, AgentPane> getActiveAgents() {
+		return activeAgents;
 	}
 
 	/**

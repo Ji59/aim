@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.frontend.simulation.timer;
+package cz.cuni.mff.kotal.simulation.timer;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.AgentPane;

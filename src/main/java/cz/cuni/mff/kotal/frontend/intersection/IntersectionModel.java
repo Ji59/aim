@@ -39,7 +39,7 @@ public class IntersectionModel extends Pane {
 	public static final Color BACKGROUND_COLOR = Color.color(0.25, 0.34375, 0.28125);
 
 	// TODO dont use static, use Component
-	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
+	private static double preferredHeight =  Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
 	private List<Node> nodes = new ArrayList<>();
 	private static final Map<Long, Shape> vertexNodes = new HashMap<>();
@@ -575,13 +575,16 @@ public class IntersectionModel extends Pane {
 		for (long vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
 			Color color = graph.getVertex(vertexID).getType().getColor();
 
-			double oldColorShift = ((Color) vertexNodes.get(vertexID).getFill()).getGreen() / color.getGreen();
+			Shape vertexNode = vertexNodes.get(vertexID);
+			double oldColorShift = ((Color) vertexNode.getFill()).getGreen() / color.getGreen();
 			double colorShift = 1 - verticesUsage[(int) vertexID] / frames;
 			if (Math.abs(oldColorShift - colorShift) > MAX_COLOR_CHANGE) {
 				colorShift = oldColorShift + (colorShift > oldColorShift ? MAX_COLOR_CHANGE : -MAX_COLOR_CHANGE);
 			}
 
-			vertexNodes.get(vertexID).setFill(Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift));
+			colorShift = Math.max(0, colorShift);
+
+			vertexNode.setFill(Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift));
 		}
 	}
 

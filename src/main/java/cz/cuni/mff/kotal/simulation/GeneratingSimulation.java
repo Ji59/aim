@@ -28,11 +28,10 @@ public class GeneratingSimulation extends Simulation {
 	private static final boolean generateEntry = true;
 	private static final boolean generateExit = false; // TODO
 
+	private final long maximumSteps;
 	protected final long newAgentsMinimum;
 	protected final long newAgentsMaximum;
 	protected final List<Long> distribution;
-
-	private long finalStep = 0;
 
 	private Timer timer;
 
@@ -46,7 +45,12 @@ public class GeneratingSimulation extends Simulation {
 	 */
 	public GeneratingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
 		super(intersectionGraph, algorithm, simulationAgents);
-		maximumDelay = intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
+		long steps = AgentsMenuTab1.getSteps();
+		if (steps <= 0) {
+			steps = Long.MAX_VALUE;
+		}
+		this.maximumSteps = steps;
+//		maximumDelay = intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
 
 
 		newAgentsMinimum = AgentsMenuTab1.getNewAgentsMinimum().getValue();
@@ -67,8 +71,9 @@ public class GeneratingSimulation extends Simulation {
 	 * @param simulationAgents  Agents simulation pane
 	 */
 	public GeneratingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution, SimulationAgents simulationAgents) {
-		super(intersectionGraph, algorithm, maximumSteps, simulationAgents);
+		super(intersectionGraph, algorithm, simulationAgents);
 
+		this.maximumSteps = maximumSteps;
 		this.newAgentsMinimum = newAgentsMinimum;
 		this.distribution = distribution;
 
@@ -82,6 +87,7 @@ public class GeneratingSimulation extends Simulation {
 	 * FIXME
 	 */
 	@Override
+	@Deprecated
 	public void start() {
 		long msPeriod = period / 1_000_000;
 		long delay = isRunning() ? msPeriod : 0L;
@@ -128,69 +134,25 @@ public class GeneratingSimulation extends Simulation {
 	 * TODO
 	 *
 	 * @param step
-	 * @return True if simulation has finished else false
+	 * @return
 	 */
 	@Override
-	protected boolean loadAndUpdateStepAgents(long step) {
-		if (maximumSteps > 0 && step > maximumSteps) {
+	protected Collection<Agent> loadAgents(long step) {
+		if (step > maximumSteps) {
 			synchronized (delayedAgents) {
 				if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
 					// FIXME refactor
 					if (step > finalStep) {
 						ended = true;
-					} else {
-						updateStatistics(allAgents.size());
 					}
-					return true;
 				}
 			}
 		} else {
 			List<Agent> newAgents = generateAgents(step, allAgents.size());
 			allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
-			synchronized (delayedAgents) {
-				newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
-			}
-
-			synchronized (createdAgentsQueue) {
-				createdAgentsQueue.addAll(newAgents);
-			}
+			return newAgents;
 		}
-
-		List<Agent> entriesAgents;
-		synchronized (delayedAgents) {
-			entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
-		}
-
-		assert algorithm != null;
-		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
-		plannedAgents.forEach(agent -> {
-			agent.setPlannedTime(step);
-			assert simulationAgents != null;
-			simulationAgents.addAgent(agent);
-
-			long leavingTime = agent.getPath().size() + step;
-			if (leavingTime > finalStep) {
-				finalStep = leavingTime;
-			}
-		});
-		synchronized (plannedAgentsQueue) {
-			plannedAgentsQueue.addAll(plannedAgents);
-		}
-
-		Set<Agent> rejectedAgents;
-		synchronized (delayedAgents) {
-			delayedAgents.values().forEach(entryList -> entryList.removeAll(plannedAgents));
-
-			// TODO replace with iterator
-			rejectedAgents = delayedAgents.values().stream().flatMap(Collection::stream).filter(agent -> agent.getArrivalTime() + maximumDelay <= step).collect(Collectors.toSet());
-			delayedAgents.values().forEach(entryList -> entryList.removeAll(rejectedAgents));
-		}
-
-		synchronized (rejectedAgentsQueue) {
-			rejectedAgentsQueue.addAll(rejectedAgents);
-		}
-
-		return false;
+		return new ArrayList<>(0);
 	}
 
 	/**
@@ -199,13 +161,14 @@ public class GeneratingSimulation extends Simulation {
 	 * @return New timer task
 	 */
 	@NotNull
+	@Deprecated
 	private TimerTask getTimerTask() {
 		return new TimerTask() {
 			@Override
 			public void run() {
 				long currentStep = getStep(); // TODO
 
-				loadAndUpdateStepAgents(currentStep);
+				loadAgents(currentStep);
 
 
 				updateTotalAgents(currentStep);

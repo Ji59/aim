@@ -19,7 +19,7 @@ public class BidirectionalRoundabout extends Roundabout {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		double agentPerimeter = perimeter(agent.getL(), agent.getW()) * graph.getCellSize();
+		double agentPerimeter = agent.getAgentPerimeter();
 		long entryNeighbour = graph.getVertex(agent.getEntry()).getNeighbourIDs().stream().findFirst().orElse(0L);
 		long firstExitNeighbour;
 		long lastExitNeighbour;

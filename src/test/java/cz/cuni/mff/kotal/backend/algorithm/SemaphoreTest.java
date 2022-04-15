@@ -33,14 +33,14 @@ class SemaphoreTest {
 	@Test
 	void safeStepTo() {
 		addPath(agent0);
-		boolean safeStep = semaphore.safeStepTo(agent1.getPlannedTime() + agent1.getPath().indexOf(9L), 9, 38, perimeter(agent1.getL(), agent1.getW()) * graph.getCellSize());
+		boolean safeStep = semaphore.safeStepTo(agent1.getPlannedTime() + agent1.getPath().indexOf(9L), 9, 38, agent1.getAgentPerimeter(graph));
 		assert !safeStep;
 	}
 
 	@Test
 	void safeStepFrom() {
 		addPath(agent1);
-		boolean safeStep = semaphore.safeStepFrom(agent0.getPlannedTime() + agent0.getPath().indexOf(9L), 9, 4, perimeter(agent1.getL(), agent1.getW()) * graph.getCellSize());
+		boolean safeStep = semaphore.safeStepFrom(agent0.getPlannedTime() + agent0.getPath().indexOf(9L), 9, 4, agent1.getAgentPerimeter(graph));
 		assert !safeStep;
 	}
 

@@ -46,7 +46,7 @@ public class SafeLines implements Algorithm {
 	@Override
 	public Agent planAgent(Agent agent, long step) {
 		List<Long> selectedPath = null;
-		double agentPerimeter = perimeter(agent.getL(), agent.getW()) * graph.getCellSize();
+		double agentPerimeter = agent.getAgentPerimeter();
 		if (agent.getExit() < 0) {
 			List<List<Long>> directionPaths = directionExits.get((int) agent.getExitDirection()).stream()
 				.map(exit -> graph.getLines().get(agent.getEntry()).get(exit.getID()))
@@ -135,7 +135,7 @@ public class SafeLines implements Algorithm {
 
 	private boolean checkNeighbour(long vertexID, long adjacentVertexID, long neighbourVertexID, double agentPerimeter, Agent neighbour) {
 
-		double neighbourPerimeter = perimeter(neighbour.getL(), neighbour.getW()) * graph.getCellSize();
+		double neighbourPerimeter = neighbour.getAgentPerimeter();
 
 		GraphicalVertex v = graph.getVertex(vertexID);
 		GraphicalVertex agentAdjacentVertex = graph.getVertex(adjacentVertexID);

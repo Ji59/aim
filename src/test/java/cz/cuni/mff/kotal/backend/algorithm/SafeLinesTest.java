@@ -35,7 +35,7 @@ class SafeLinesTest {
 
 	@Test
 	void validPath() {
-		double agentPerimeter = perimeter(agent1.getL(), agent1.getW()) * safeLines.graph.getCellSize();
+		double agentPerimeter = agent1.getAgentPerimeter();
 		assertThat(safeLines.validPath(agent1.getPlannedTime(), agent1.getPath(), agentPerimeter)).isFalse();
 	}
 }

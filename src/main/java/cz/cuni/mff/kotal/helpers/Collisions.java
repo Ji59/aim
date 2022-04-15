@@ -5,7 +5,7 @@ import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import cz.cuni.mff.kotal.frontend.simulation.AgentPolygon;
 import cz.cuni.mff.kotal.frontend.simulation.LineSegment;
 import cz.cuni.mff.kotal.frontend.simulation.Point;
-import cz.cuni.mff.kotal.frontend.simulation.timer.AgentBoundingBox;
+import cz.cuni.mff.kotal.simulation.timer.AgentBoundingBox;
 import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
 

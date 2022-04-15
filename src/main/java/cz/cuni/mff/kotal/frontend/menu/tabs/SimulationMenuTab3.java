@@ -20,7 +20,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 
 	// TODO don't use static, use Component
 	// TODO extract constants and rename constants
-	private static final Slider SPEED_SLIDER = new Slider(0, 1000, 815);
+	private static final Slider SPEED_SLIDER = new Slider();
 	private static final Slider TIMELINE_SLIDER = new Slider(0, 0, 0);
 	private static final Label agensLabel = new Label("#n");
 	private static final Label stepsLabel = new Label("#n");

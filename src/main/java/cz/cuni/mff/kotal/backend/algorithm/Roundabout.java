@@ -88,7 +88,6 @@ public class Roundabout extends SafeLines {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		double agentPerimeter = perimeter(agent.getL(), agent.getW()) * graph.getCellSize();
 		long exitNeighbour;
 		final long agentExit;
 		if (agent.getExit() < 0) {
@@ -120,7 +119,7 @@ public class Roundabout extends SafeLines {
 		path.add(exitNeighbour);
 		path.add(agentExit);
 
-		if (!validPath(step, path, agentPerimeter)) {
+		if (!validPath(step, path, agent.getAgentPerimeter())) {
 			return null;
 		}
 		agent.setPath(path, step);

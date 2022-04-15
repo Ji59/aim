@@ -1,12 +1,14 @@
 package cz.cuni.mff.kotal.simulation;
 
+import java.util.Collection;
+
 public class InvalidSimulation extends Simulation {
 	public InvalidSimulation() {
 		ended = true;
 	}
 
 	@Override
-	public void loadAgents(double step) {
+	public void loadAndUpdateAgents(double step) {
 	}
 
 	@Override
@@ -30,7 +32,7 @@ public class InvalidSimulation extends Simulation {
 	}
 
 	@Override
-	protected boolean loadAndUpdateStepAgents(long step) {
-		return true;
+	protected Collection<Agent> loadAgents(long step) {
+		return null;
 	}
 }

@@ -1,10 +1,10 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
@@ -33,7 +33,7 @@ public class AgentPane extends StackPane {
 	private final Rotate rotation = new Rotate();
 	private final Agent agent;
 	private double distanceTraveled;
-	private double collisionStep = -1;
+	private double collisionStep = Double.MAX_VALUE;
 
 	private double angle;
 
@@ -126,16 +126,28 @@ public class AgentPane extends StackPane {
 	 * @param time System time used in computation
 	 */
 	public void updateRotation(double time) {
-		Map<Long, Vertex> vertices = simulationVertices;
-		Pair<Long, Long> previousNext = agent.getPreviousNextVertexIDs(time);
-		GraphicalVertex start = (GraphicalVertex) vertices.get(previousNext.getKey());
-		GraphicalVertex end = (GraphicalVertex) vertices.get(previousNext.getValue());
-
-		double newAngle = MyNumberOperations.computeRotation(start.getX(), start.getY(), end.getX(), end.getY());
-		if (newAngle >= 0 && newAngle != angle) { // FIXME condition, why angle >= 0?
-			angle = newAngle;
+		if (computeNewAngle(time)) { // FIXME condition, why angle >= 0?
 			rotation.setAngle(angle);
 		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param time
+	 * @return
+	 */
+	private boolean computeNewAngle(double time) {
+		Pair<Long, Long> previousNext = agent.getPreviousNextVertexIDs(time);
+		GraphicalVertex start = (GraphicalVertex) simulationVertices.get(previousNext.getKey());
+		GraphicalVertex end = (GraphicalVertex) simulationVertices.get(previousNext.getValue());
+
+		double newAngle = MyNumberOperations.computeRotation(start.getX(), start.getY(), end.getX(), end.getY());
+		if (newAngle >= 0 && newAngle != angle) {
+			angle = newAngle;
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -194,6 +206,23 @@ public class AgentPane extends StackPane {
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @param step
+	 * @return
+	 */
+	public boolean handleSimulatedTick(double step) {
+		double time = step - agent.getPlannedTime();
+		try {
+			agent.computeNextXY(time, simulationVertices);
+		} catch (IndexOutOfBoundsException e) {
+			return true;
+		}
+		updateRotation(time);
+		return false;
+	}
+
+	/**
 	 * Compute coordinates of agent rectangle corner points.
 	 *
 	 * @return List of corner points
@@ -206,8 +235,8 @@ public class AgentPane extends StackPane {
 		double halfWidth = getW() / 2;
 		double halfHeight = getL() / 2;
 
-		double sx = getLayoutX() + getWidth() / 2;
-		double sy = getLayoutY() + getHeight() / 2;
+		double sx = agent.getX();
+		double sy = agent.getY();
 		double middleWidthX = halfWidth * cosAngle;
 		double middleWidthY = halfWidth * sinAngle;
 		double counterMiddleHeightX = halfHeight * sinAngle;
@@ -226,12 +255,18 @@ public class AgentPane extends StackPane {
 	 * @return Array containing node bounding box in format [mix_x, min_y, max_x, max_y]
 	 */
 	public double[] getBoundingBox() {
+		double perimeter = agent.getAgentPerimeter() * IntersectionModel.getPreferredHeight();
 		double[] corners = new double[4];
-		Bounds boundingBox = getBoundsInParent();
-		corners[0] = boundingBox.getMinX();
-		corners[1] = boundingBox.getMinY();
-		corners[2] = boundingBox.getMaxX();
-		corners[3] = boundingBox.getMaxY();
+		corners[0] = agent.getX() - perimeter;
+		corners[1] = agent.getY() - perimeter;
+		corners[2] = agent.getX() + perimeter;
+		corners[3] = agent.getY() + perimeter;
+
+//		Bounds boundingBox = getBoundsInParent();
+//		corners[0] = boundingBox.getMinX();
+//		corners[1] = boundingBox.getMinY();
+//		corners[2] = boundingBox.getMaxX();
+//		corners[3] = boundingBox.getMaxY();
 		return corners;
 	}
 
@@ -240,6 +275,7 @@ public class AgentPane extends StackPane {
 	 *
 	 * @param now System time at pause
 	 */
+	@Deprecated
 	public void pause(long now) {
 //			if (timer != null) {
 //				long now = System.nanoTime();

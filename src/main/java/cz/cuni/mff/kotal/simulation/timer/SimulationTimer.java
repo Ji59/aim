@@ -1,12 +1,14 @@
-package cz.cuni.mff.kotal.frontend.simulation.timer;
+package cz.cuni.mff.kotal.simulation.timer;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.*;
 import cz.cuni.mff.kotal.helpers.Collisions;
+import cz.cuni.mff.kotal.simulation.Simulation;
+import cz.cuni.mff.kotal.simulation.graph.Graph;
 import javafx.animation.AnimationTimer;
-import javafx.application.Platform;
 import javafx.util.Pair;
 
 import java.util.*;
@@ -19,34 +21,33 @@ import java.util.stream.Collectors;
 public class SimulationTimer extends AnimationTimer {
 	public static final int COLLISION_AGENTS_SHOWN_STEPS = 1;
 	public static final double MINIMUM_STEP_SIZE_PER_FRAME = 0.0625;  // 2 ^ -4
-	public static final double MAXIMUM_STEP_SIZE_PER_FRAME = 0.375;  // 3 * 2 ^ -3
+	public static final double MAXIMUM_STEP_SIZE_PER_FRAME = 0.25;  // 3 * 2 ^ -2
 
 	private static long[] verticesUsage = null;
 	private static long frames = 0;
 	private static double maxStep = 0;
 
-	private static double lastStep = -1;
+	private static double lastStep = Double.MAX_VALUE;
 	private static int overLimitCount = 0;
 	private static long[] lastCalls = new long[128];
 	private static int lastCallsIt = 0;
 
 	private final Map<Long, AgentPane> agents;
-	//	private final Map<Long, AgentPolygon> lastState = new HashMap<>();
-	private final SimulationAgents simulationAgents;
+	private final Simulation simulation;
 
 
 	/**
 	 * Create new timer.
 	 *
-	 * @param agents           Collection of agents to get data from
-	 * @param simulationAgents GUI node starting this timer
+	 * @param agents     Collection of agents to get data from
+	 * @param simulation GUI node starting this timer TODO
 	 */
-	public SimulationTimer(Map<Long, AgentPane> agents, SimulationAgents simulationAgents) {
+	public SimulationTimer(Map<Long, AgentPane> agents, Simulation simulation) {
 		this.agents = agents;
-		this.simulationAgents = simulationAgents;
+		this.simulation = simulation;
 
 		if (verticesUsage == null) {
-			verticesUsage = new long[simulationAgents.getSimulation().getIntersectionGraph().getVertices().size()];
+			verticesUsage = new long[simulation.getIntersectionGraph().getVertices().size()];
 		}
 	}
 
@@ -57,37 +58,36 @@ public class SimulationTimer extends AnimationTimer {
 	 */
 	@Override
 	public void handle(long now) {
-		if (simulationAgents.getSimulation().isEnded() && agents.isEmpty() && simulationAgents.getArrivingAgents().isEmpty()) {
+		//		simulationAgents.resetRectangles(); TODO
+		double step = simulation.getStep(now);
+
+		if (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().getArrivingAgents().isEmpty()) {
 			IntersectionMenu.pauseSimulation();
 		}
 
-//		simulationAgents.resetRectangles(); TODO
-		double step = simulationAgents.getSimulation().getStep(now);
-
 		final double stepSize = step - lastStep;
-		if (lastStep > 0 && stepSize < MINIMUM_STEP_SIZE_PER_FRAME) {
-			if (++overLimitCount > 8) {
-				IntersectionMenu.increaseSpeed();
-				lastStep = -1;
-				overLimitCount = 0;
-			}
-		} else if (lastStep > 0 && stepSize > MAXIMUM_STEP_SIZE_PER_FRAME) {
-			if (--overLimitCount < 8) {
-				IntersectionMenu.decreaseSpeed();
-				lastStep = -1;
-				overLimitCount = 0;
+//		if (stepSize < MINIMUM_STEP_SIZE_PER_FRAME) {
+//			if (++overLimitCount > 4 && IntersectionMenu.increaseSpeed()) {
+//				setLastStep(Double.MAX_VALUE);
+//			} else {
+//				lastStep = step;
+//			}
+//		} else
+		if (stepSize > MAXIMUM_STEP_SIZE_PER_FRAME) {
+			if ((--overLimitCount < 8 || stepSize > 1) && IntersectionMenu.decreaseSpeed()) {
+				setLastStep(Double.MAX_VALUE);
+			} else {
+				lastStep = step;
 			}
 		} else {
-			lastStep = step;
-			overLimitCount = 0;
+			setLastStep(step);
 		}
 
 		IntersectionMenu.setStep(step);
 
-		simulationAgents.getSimulation().loadAgents(step);
-		simulationAgents.addArrivedAgents(step);
-
-		simulationAgents.getSimulation().updateStatistics(step);
+		simulation.loadAndUpdateAgents(step);
+		IntersectionScene.getSimulationAgents().addArrivedAgents(step);
+		simulation.updateStatistics(step);
 
 		Set<AgentPane> activeAgents = new HashSet<>(agents.size());
 		synchronized (agents) {
@@ -95,7 +95,7 @@ public class SimulationTimer extends AnimationTimer {
 			while (activeAgentsIterator.hasNext()) {
 				Map.Entry<Long, AgentPane> a = activeAgentsIterator.next();
 				AgentPane agentPane = a.getValue();
-				if (agentPane.getCollisionStep() <= 0 || agentPane.getCollisionStep() > step) {
+				if (agentPane.getCollisionStep() > step) {
 					boolean finished = agentPane.handleTick(step);
 					if (finished) {
 						removeAgent(activeAgentsIterator, agentPane);
@@ -117,11 +117,11 @@ public class SimulationTimer extends AnimationTimer {
 				AgentPane agentPane0 = agentPanePair.getKey();
 				AgentPane agentPane1 = agentPanePair.getValue();
 
-				if (agentPane0.getCollisionStep() < 0) {
-					simulationAgents.getSimulation().addCollision();
+				if (step < agentPane0.getCollisionStep()) {
+					simulation.addCollision();
 				}
-				if (agentPane1.getCollisionStep() < 0) {
-					simulationAgents.getSimulation().addCollision();
+				if (step < agentPane1.getCollisionStep()) {
+					simulation.addCollision();
 				}
 
 				agentPane0.collide(step);
@@ -133,9 +133,8 @@ public class SimulationTimer extends AnimationTimer {
 		}
 
 		if (maxStep < step) {
-			frames++;
 			updateVerticesUsage(step);
-			simulationAgents.setVertexLabelText();
+			IntersectionScene.getSimulationAgents().setVertexLabelText();
 		}
 
 		maxStep = Math.max(step, maxStep);
@@ -150,10 +149,11 @@ public class SimulationTimer extends AnimationTimer {
 
 	private void removeAgent(Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
 		activeAgentsIterator.remove();
-		simulationAgents.removeAgentPane(agentPane);
+		IntersectionScene.getSimulationAgents().removeAgentPane(agentPane);
 	}
 
 	private void updateVerticesUsage(double step) {
+		frames++;
 		agents.values().stream()
 			.filter(agentPane -> !agentPane.isDisable())
 			.map(AgentPane::getAgent)
@@ -169,11 +169,11 @@ public class SimulationTimer extends AnimationTimer {
 	 */
 	@Override
 	public void stop() {
-		long now = System.nanoTime();
+//		long now = System.nanoTime();  TODO remove
 		super.stop();
-		synchronized (agents) {
-			agents.values().forEach(a -> a.pause(now));
-		}
+//		synchronized (agents) {
+//			agents.values().forEach(a -> a.pause(now));
+//		}
 	}
 
 	public static double getVertexUsage(int id) {
@@ -184,12 +184,26 @@ public class SimulationTimer extends AnimationTimer {
 		return (double) verticesUsage[id] / frames;
 	}
 
-	public static void resetVerticesUsage() {
-		verticesUsage = null;
+	/**
+	 * TODO
+	 *
+	 * @param value
+	 */
+	private static void setLastStep(double value) {
+		lastStep = value;
+		overLimitCount = 0;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param graph
+	 */
+	public static void resetValues(Graph graph) {
+		verticesUsage = new long[graph.getVertices().size()];
 		frames = 0;
 		maxStep = 0;
-		lastStep = -1;
-		overLimitCount = 0;
+		setLastStep(Double.MAX_VALUE);
 		lastCalls = new long[128];
 	}
 }
