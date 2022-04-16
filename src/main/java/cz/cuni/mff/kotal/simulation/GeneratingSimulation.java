@@ -50,14 +50,12 @@ public class GeneratingSimulation extends Simulation {
 			steps = Long.MAX_VALUE;
 		}
 		this.maximumSteps = steps;
-//		maximumDelay = intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
 
-
-		newAgentsMinimum = AgentsMenuTab1.getNewAgentsMinimum().getValue();
 		distribution = AgentsMenuTab1.getDirectionDistribution().getChildren().stream().map(node -> ((AgentsMenuTab1.DirectionSlider) node).getValue()).collect(Collectors.toList());
 
-//		newAgentsMaximum = AgentsMenuTab1.getNewAgentsMaximum().getValue(); TODO
-		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getValue(), getDistribution().stream().filter(d -> d > 0).count());
+		final long possibleEntries = intersectionGraph.getEntries() * getDistribution().stream().filter(d -> d > 0).count();
+		newAgentsMinimum = Math.min(AgentsMenuTab1.getNewAgentsMinimum().getValue(), possibleEntries);
+		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getValue(), possibleEntries);
 	}
 
 	/**
@@ -171,9 +169,7 @@ public class GeneratingSimulation extends Simulation {
 				loadAgents(currentStep);
 
 
-				updateTotalAgents(currentStep);
-				updateAgentsDelay(currentStep);
-				updateRejectedAgents(currentStep);
+				updateAgentsStats(step);
 				updateStatistics(allAgents.size());
 				step++;
 			}
@@ -203,17 +199,19 @@ public class GeneratingSimulation extends Simulation {
 		}
 
 		if (!randomEntry && generateEntry) {
-			Map<Long, List<Agent>> directionsAgents = new HashMap<>();
+			Map<Long, PriorityQueue<Agent>> directionsAgents = new HashMap<>();
 			int directions = getIntersectionGraph().getEntryExitVertices().size();
 			for (long direction = 0; direction < directions; direction++) {
-				directionsAgents.put(direction, new ArrayList<>());
+				directionsAgents.put(direction, new PriorityQueue<>((agent0, agent1) -> Long.compare(myModulo(agent1.getExitDirection() - agent1.getEntryDirection(), directions), myModulo(agent0.getExitDirection() - agent0.getEntryDirection(), directions))));  // descendant order
 			}
 			for (Agent agent : newAgents) {
 				directionsAgents.get(agent.getEntryDirection()).add(agent);
 			}
 
+			final Map<Long, Integer> delayedAgentsSize = delayedAgents.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size()));
+
 			for (int entryDirection = 0; entryDirection < directions; entryDirection++) {
-				List<Agent> directionAgents = directionsAgents.get((long) entryDirection);
+				PriorityQueue<Agent> directionAgents = directionsAgents.get((long) entryDirection);
 //				directionAgents.sort((agent0, agent1) -> {
 //					int directionDifference = Long.compare(myModulo(agent0.getEntryDirection(), directions), myModulo(agent1.getExitDirection(), directions));
 //					if (directionDifference == 0) {
@@ -223,48 +221,40 @@ public class GeneratingSimulation extends Simulation {
 //				});
 				List<Vertex> directionEntries = getIntersectionGraph().getEntryExitVertices().get(entryDirection).stream().filter(vertex -> vertex.getType().isEntry()).toList(); // FIXME parallelStream?
 
-				for (Agent agent : directionAgents) {
+				final int directionAgentsMaxIndex = directionAgents.size() - 1;
+				for (int agentIndex = 0; agentIndex <= directionAgentsMaxIndex; agentIndex++) {
+					Agent agent = directionAgents.poll();
+					assert agent != null;
 					long relativeExitDirection = myModulo(agent.getExitDirection() - entryDirection, directions) - 1;
 					int maxDirectionEntryIndex = directionEntries.size() - 1;
 					long goldenEntryIndex = maxDirectionEntryIndex - maxDirectionEntryIndex * relativeExitDirection / (directions - 2);
 					GraphicalVertex bestEntry = null;
 					long bestPriority = Long.MAX_VALUE;
-					for (int i = 0; i <= maxDirectionEntryIndex; i++) {
-						GraphicalVertex entry = (GraphicalVertex) directionEntries.get(i);
-						long queueSize = delayedAgents.get(entry.getID()).size();
-						long priority = queueSize + Math.abs(goldenEntryIndex - i);
-						if (priority < bestPriority || (priority == bestPriority && i <= goldenEntryIndex)) {
+					long bestQueueSize = Long.MAX_VALUE;
+					for (int entryIndex = 0; entryIndex <= maxDirectionEntryIndex; entryIndex++) {
+						if (maxDirectionEntryIndex - entryIndex < directionAgentsMaxIndex - agentIndex) {  // if there are fewer entries to the left than remaining agents on the left
+							break;
+						}
+						GraphicalVertex entry = (GraphicalVertex) directionEntries.get(entryIndex);
+						long queueSize = delayedAgentsSize.get(entry.getID());
+						long priority = queueSize + Math.abs(goldenEntryIndex - entryIndex);
+						if (priority < bestPriority ||
+							(queueSize == 0 && bestQueueSize > 0) ||
+							(priority == bestPriority &&
+								(queueSize < bestQueueSize ||
+									(queueSize == bestQueueSize && entryIndex <= goldenEntryIndex)
+								)
+							)
+						) {
 							bestEntry = entry;
 							bestPriority = priority;
+							bestQueueSize = queueSize;
 						}
 					}
 					assert bestEntry != null;
 					agent.setEntry(bestEntry);
+					delayedAgentsSize.replace(bestEntry.getID(), delayedAgentsSize.get(bestEntry.getID()) + 1);
 				}
-
-//				Agent agent;
-//				int highestEntryIndex = directionEntries.size() - 1;
-//				int lowest;
-//				for (lowest = 0; lowest < directionAgents.size() && myModulo((agent = directionAgents.get(lowest)).getExitDirection() - entryDirection, directions) < directions / 2; lowest++) {
-//					agent.setEntry((GraphicalVertex) directionEntries.get(highestEntryIndex--));
-//				}
-//
-//				int lowestEntryIndex = 0;
-//				int highest;
-//				for (highest = directionAgents.size() - 1; highest >= 0 && myModulo((agent = directionAgents.get(highest)).getExitDirection() + entryDirection, directions) > directions / 2; highest--) {
-//					agent.setEntry((GraphicalVertex) directionEntries.get(lowestEntryIndex++));
-//				}
-//
-//				for (; lowest <= highest; lowest++) {
-//					agent = directionAgents.get(lowest);
-//
-//					int agentsRemaining = highest - lowest + 1;
-//					int entriesRemaining = highestEntryIndex - lowestEntryIndex;
-//					int entryIndexShift = entriesRemaining / agentsRemaining;
-//					int entryIndex = entryIndexShift + lowestEntryIndex - 1;
-//					lowestEntryIndex += entryIndexShift;
-//					agent.setEntry((GraphicalVertex) directionEntries.get(entryIndex));
-//				}
 			}
 		}
 
