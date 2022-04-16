@@ -66,6 +66,20 @@ public class Agent {
 		this.y = y;
 	}
 
+	@TestOnly
+	public Agent(long id, double arrivalTime, long plannedTime, long entry) {
+		this.id = id;
+		this.arrivalTime = arrivalTime;
+		this.plannedTime = plannedTime;
+		this.entry = entry;
+		l = 0;
+		w = 0;
+		speed = 0;
+		exit = 0;
+		entryDirection = 0;
+		exitDirection = 0;
+	}
+
 
 	/**
 	 * TODO

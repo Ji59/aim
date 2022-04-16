@@ -96,9 +96,7 @@ public class LoadingSimulation extends Simulation {
 
 				loadAgents(currentStep);
 
-				updateTotalAgents(currentStep);
-				updateAgentsDelay(currentStep);
-				updateRejectedAgents(currentStep);
+				updateAgentsStats(step);
 				updateStatistics(allAgents.size());
 				step++;
 			}

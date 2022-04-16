@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -30,7 +31,6 @@ public abstract class Simulation {
 	protected final SortedMap<Long, Agent> allAgents = new TreeMap<>();
 	protected final Algorithm algorithm;
 	protected final SimulationAgents simulationAgents;
-	protected final Map<Long, List<Agent>> delayedAgents = new HashMap<>();
 	protected long step = 0;
 	protected long agentsTotal = 0;
 	protected long agentsDelay = 0;
@@ -44,6 +44,7 @@ public abstract class Simulation {
 
 	protected long loadedStep = 0;
 	protected long delayedStep = 0;
+	protected final Map<Long, List<Agent>> delayedAgents = new HashMap<>();
 	protected final PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
 	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	protected final PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
@@ -55,7 +56,7 @@ public abstract class Simulation {
 
 	protected Simulation() {
 		state = State.INVALID;
-		intersectionGraph = null;
+		intersectionGraph = new SquareGraph(4, 1, 1);
 		algorithm = null;
 		simulationAgents = null;
 	}
@@ -85,9 +86,10 @@ public abstract class Simulation {
 		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
 			loadAgentsLock.lock();
 			for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
+				updateRejectedAgents(loadedStep);
 				Collection<Agent> newAgents = loadAgents(loadedStep);
 				addCreatedAgents(newAgents);
-				updateDelayedRejectedAgents(loadedStep);
+				updateDelayedAgents(loadedStep);
 			}
 			loadAgentsLock.unlock();
 		}
@@ -199,7 +201,7 @@ public abstract class Simulation {
 	 */
 	protected abstract Collection<Agent> loadAgents(long step);
 
-	protected void updateDelayedRejectedAgents(long step) {
+	protected void updateDelayedAgents(long step) {
 		List<Agent> entriesAgents;
 		synchronized (delayedAgents) {
 			entriesAgents = delayedAgents.values().stream().map(entryList -> entryList.stream().findFirst().orElse(null)).filter(Objects::nonNull).toList();
@@ -221,12 +223,16 @@ public abstract class Simulation {
 			plannedAgentsQueue.addAll(plannedAgents);
 		}
 
-		Set<Agent> rejectedAgents;
 		synchronized (delayedAgents) {
 			delayedAgents.values().forEach(entryList -> entryList.removeAll(plannedAgents));
+		}
+	}
 
+	private void updateRejectedAgents(long step) {
+		Set<Agent> rejectedAgents;
+		synchronized (delayedAgents) {
 			// TODO replace with iterator
-			rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::stream).filter(agent -> agent.getArrivalTime() + maximumDelay <= step).collect(Collectors.toSet());
+			rejectedAgents = delayedAgents.values().parallelStream().flatMap(Collection::stream).filter(agent -> isRejected(step, agent)).collect(Collectors.toSet());
 			delayedAgents.values().forEach(entryList -> entryList.removeAll(rejectedAgents));
 		}
 
@@ -243,14 +249,24 @@ public abstract class Simulation {
 	}
 
 	public void updateStatistics(double step) {
-		updateTotalAgents(step);
-		updateAgentsDelay(step);
-		updateRejectedAgents(step);
+		updateAgentsStats(step);
 
 		assert agentsTotal == allAgents.values().stream().filter(agent -> agent.getArrivalTime() <= step).count();
 		IntersectionMenu.setAgents(agentsTotal);
 		IntersectionMenu.setDelay(agentsDelay);
 		IntersectionMenu.setRejections(agentsRejected);
+	}
+
+	protected void updateAgentsStats(double step) {
+		final long step_rounded = (long) step + 1;
+
+		// TODO maybe compute delay from actualAgentsQueue
+
+		updateTotalAgents(step);
+		updateAgentsDelay(step_rounded);
+		updateRejectedAgents(step, step_rounded);
+
+		delayedStep = step_rounded;
 	}
 
 	/**
@@ -288,21 +304,20 @@ public abstract class Simulation {
 	 *
 	 * @param step
 	 */
-	protected void updateAgentsDelay(double step) {
-		for (; delayedStep <= step; delayedStep++) {
-			synchronized (delayedAgents) {
-				agentsDelay += delayedAgents.values().parallelStream().flatMap(Collection::stream).mapToLong(agent -> Math.max(0, (long) (step - agent.getArrivalTime()))).sum();
-			}
+	protected void updateAgentsDelay(long step) {
+		synchronized (delayedAgents) {
+			agentsDelay += delayedAgents.values().parallelStream().flatMap(Collection::stream).mapToLong(agent -> Math.max(0, step - Math.max((long) agent.getArrivalTime(), delayedStep))).sum();
 		}
 
 		synchronized (plannedAgentsQueue) {
+			agentsDelay += plannedAgentsQueue.stream().filter(agent -> agent.getArrivalTime() <= step).mapToLong(agent -> Math.min(step, agent.getPlannedTime()) - Math.max((long) agent.getArrivalTime(), delayedStep)).sum();
+
 			Iterator<Agent> iterator = plannedAgentsQueue.iterator();
 			while (iterator.hasNext()) {
 				Agent agent = iterator.next();
 				if (agent.getPlannedTime() > delayedStep) {
 					return;
 				}
-
 				agentsDelay += getAgentsDelay(agent);
 				iterator.remove();
 			}
@@ -314,23 +329,25 @@ public abstract class Simulation {
 	 *
 	 * @param step
 	 */
-	protected void updateRejectedAgents(double step) {
+	protected void updateRejectedAgents(double step, long stepRounded) {
 		synchronized (rejectedAgentsQueue) {
 			Iterator<Agent> iterator = rejectedAgentsQueue.iterator();
 			while (iterator.hasNext()) {
 				Agent rejectedAgent = iterator.next();
-				if (isRejected(step, rejectedAgent)) {
+				if (rejectedAgent.getArrivalTime() >= delayedStep) {
 					return;
+				} else if (isRejected(step, rejectedAgent)) {
+					agentsRejected++;
+					iterator.remove();
+				} else {
+					agentsDelay += stepRounded - Math.max((long) rejectedAgent.getArrivalTime(), delayedStep);
 				}
-
-				agentsRejected++;
-				iterator.remove();
 			}
 		}
 	}
 
 	protected boolean isRejected(double step, Agent rejectedAgent) {
-		return rejectedAgent.getArrivalTime() + maximumDelay > step;
+		return rejectedAgent.getArrivalTime() + maximumDelay <= step;
 	}
 
 	public void saveAgents(File file) throws IOException {

@@ -62,6 +62,7 @@ public class SimulationTimer extends AnimationTimer {
 		double step = simulation.getStep(now);
 
 		if (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().getArrivingAgents().isEmpty()) {
+			simulation.updateStatistics(step);
 			IntersectionMenu.pauseSimulation();
 		}
 
