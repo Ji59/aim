@@ -179,8 +179,7 @@ public class SimulationAgents extends Pane {
 				activeAgents.put(agentID, agentPane);
 			}
 		} else {
-			long startTime = simulation.getTime(agent.getPlannedTime());
-			agentPane = new AgentPane(startTime, step, agent, simulation.getPeriod(), simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
+			agentPane = new AgentPane(step, agent, simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
 
 			synchronized (activeAgents) {
 				activeAgents.put(agentID, agentPane);
@@ -266,15 +265,15 @@ public class SimulationAgents extends Pane {
 	public void resumeSimulation(Simulation simulation, long startTime) {
 		this.simulation = simulation;
 
-		synchronized (activeAgents) {
-			activeAgents.values().forEach(agentPane -> agentPane.resume(simulation.getPeriod(), startTime));
-		}
+//		synchronized (activeAgents) {
+//			activeAgents.values().forEach(agentPane -> agentPane.resume(simulation.getPeriod(), startTime));
+//		}
 		cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 
 		/**
-		SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
-		simulationHandler.start();
-		/*/
+		 SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
+		 simulationHandler.start();
+		 /*/
 		timer = new SimulationTimer(activeAgents, simulation);
 		timer.start();
 		/**/

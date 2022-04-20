@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.simulation;
 
 
+import com.google.gson.annotations.Expose;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
@@ -31,11 +32,27 @@ public class Agent {
 	private final double arrivalTime;
 
 	private transient long plannedTime = -1;
+
 	private transient List<Long> path = new ArrayList<>();
 	private transient double x; // location
 	private transient double y;
 
 	private static final double PROXIMITY = 0.0001; // TODO
+
+	/**
+	 * TODO
+	 * Cause gson
+	 */
+	public Agent() {
+		id = 0;
+		l = 0;
+		w = 0;
+		exit = 0;
+		entryDirection = 0;
+		exitDirection = 0;
+		speed = 0;
+		arrivalTime = 0;
+	}
 
 	/**
 	 * Create new agent with specified attributes.

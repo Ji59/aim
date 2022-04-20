@@ -5,14 +5,13 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import javafx.geometry.Pos;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
+import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.LinkedList;
@@ -32,14 +31,18 @@ public class AgentPane extends StackPane {
 	private final Rectangle rectangle;
 	private final Rotate rotation = new Rotate();
 	private final Agent agent;
+	@Deprecated
 	private double distanceTraveled;
 	private double collisionStep = Double.MAX_VALUE;
 
 	private double angle;
 
 	// TODO extract to timer
+	@Deprecated
 	private long startTime;
+	@Deprecated
 	private double period; // period in nanoseconds
+	@Deprecated
 	private double relativeDistanceTraveled; // TODO is this necessary?
 
 	/**
@@ -50,6 +53,7 @@ public class AgentPane extends StackPane {
 	 * @param period             Delay between steps
 	 * @param simulationVertices Intersection vertices the agent is travelling on
 	 */
+	@Deprecated
 	public AgentPane(long startTime, double firstStep, Agent agent, double period, Map<Long, Vertex> simulationVertices, double cellSize) {
 		this.agent = agent;
 		this.distanceTraveled = 0;
@@ -57,19 +61,40 @@ public class AgentPane extends StackPane {
 		this.period = period;
 		this.simulationVertices = simulationVertices;
 
-		// Create rectangle representing agent
-		rectangle = new Rectangle(agent.getW() * cellSize, agent.getL() * cellSize);
+		this.rectangle = createNodes(agent, cellSize);
 
-		// TODO change to label
-		// Create ID text field
-		TextField text = new TextField(String.valueOf(agent.getId()));
-		text.setAlignment(Pos.CENTER);
-		text.setBackground(Background.EMPTY);
+		boolean invalidAgent = handleTick(firstStep);
+		if (invalidAgent) {  // TODO
+			throw new RuntimeException("Creating agent pane failed.");
+		}
+	}
+
+	public AgentPane(double firstStep, Agent agent, Map<Long, Vertex> simulationVertices, double cellSize) {
+		this.agent = agent;
+		this.simulationVertices = simulationVertices;
+
+		this.rectangle = createNodes(agent, cellSize);
+
+		boolean invalidAgent = handleTick(firstStep);
+		if (invalidAgent) {  // TODO
+			throw new RuntimeException("Creating agent pane failed.");
+		}
+	}
+
+	@NotNull
+	private Rectangle createNodes(Agent agent, double cellSize) {
+		// Create rectangle representing agent
+		double width = agent.getW() * cellSize;
+		double height = agent.getL() * cellSize;
+		final Rectangle rectangle = new Rectangle(width, height);
+
+		// Create ID label
+		Label label = new Label(String.valueOf(agent.getId()));
 
 		// TODO set rotation based on the arriving location
 		// Add rotation parameters
-		rotation.setPivotX(rectangle.getWidth() / 2);
-		rotation.setPivotY(rectangle.getHeight() / 2);
+		rotation.setPivotX(width / 2);
+		rotation.setPivotY(height / 2);
 		rectangle.getTransforms().add(rotation);
 
 
@@ -77,17 +102,14 @@ public class AgentPane extends StackPane {
 		rectangle.setFill(color);
 
 		// TODO set proper agent size
-		setPrefWidth(getW());
-		setPrefHeight(getL());
+		setPrefWidth(width);
+		setPrefHeight(height);
 
-		getChildren().addAll(rectangle, text);
+		getChildren().addAll(rectangle, label);
 
 		setMouseTransparent(true);
 
-		boolean invalidAgent = handleTick(firstStep);
-		if (invalidAgent) {  // TODO
-			throw new RuntimeException("Creating agent pane failed.");
-		}
+		return rectangle;
 	}
 
 	/**
@@ -164,6 +186,7 @@ public class AgentPane extends StackPane {
 	 * @param time Given system time
 	 * @return number of steps already traveled, could be rational number
 	 */
+	@Deprecated
 	public double getRelativeTimeTraveled(long time) {
 		return (time - startTime) / period;
 	}
@@ -175,6 +198,7 @@ public class AgentPane extends StackPane {
 	 * @param now System time of time moment
 	 * @return True if agent is out of simulation, otherwise false
 	 */
+	@Deprecated
 	public boolean handleTick(long now) {
 		double time = relativeDistanceTraveled + getRelativeTimeTraveled(now);
 		try {
@@ -291,6 +315,7 @@ public class AgentPane extends StackPane {
 	 * @param period Delay between steps
 	 * @param now    System time of resume
 	 */
+	@Deprecated
 	public void resume(double period, long now) {
 		// TODO refactor
 //			assert timer == null;

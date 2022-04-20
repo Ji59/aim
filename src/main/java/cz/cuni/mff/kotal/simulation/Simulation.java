@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
  * TODO
  */
 public abstract class Simulation {
-	protected static final double GENERATED_MINIMUM_STEP_AHEAD = 16;
-	protected static final double GENERATED_MAXIMUM_STEP_AHEAD = 24;
+	protected static final double GENERATED_MINIMUM_STEP_AHEAD = 8;
+	protected static final double GENERATED_MAXIMUM_STEP_AHEAD = 16;
 	// TODO
 	public static long maximumDelay = 16;
 	protected final SimulationGraph intersectionGraph;
@@ -83,30 +83,58 @@ public abstract class Simulation {
 	 * @param step
 	 */
 	public void loadAndUpdateAgents(double step) {
-		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
-			loadAgentsLock.lock();
-			for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-				updateRejectedAgents(loadedStep);
-				Collection<Agent> newAgents = loadAgents(loadedStep);
-				addCreatedAgents(newAgents);
-				updateDelayedAgents(loadedStep);
+		double stepDiff = loadedStep - step;
+
+		/**
+		 if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
+		 loadAgentsLock.lock();
+		 for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
+		 updateRejectedAgents(loadedStep);
+		 Collection<Agent> newAgents = loadAgents(loadedStep);
+		 addCreatedAgents(newAgents);
+		 updateDelayedAgents(loadedStep);
+		 }
+		 loadAgentsLock.unlock();
+		 }
+
+		 /*/
+
+		if (stepDiff <= GENERATED_MINIMUM_STEP_AHEAD / 2) {
+			try {
+				loadAgentsLock.lock();
+				for (; loadedStep - step <= GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
+					loadAndUpdateAgents(loadedStep);
+				}
+			} finally {
+				loadAgentsLock.unlock();
 			}
-			loadAgentsLock.unlock();
 		}
-//		if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
-//			new Thread(() -> {
-//				loadAgentsLock.lock();
-//				try {
-//					if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
-//						for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-//							loadAndUpdateStepAgents(loadedStep);
-//						}
-//					}
-//				} finally {
-//					loadAgentsLock.unlock();
-//				}
-//			}).start();
-//		}
+
+		if (stepDiff <= GENERATED_MINIMUM_STEP_AHEAD) {
+			new Thread(() -> {
+				loadAgentsLock.lock();
+				try {
+					for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
+						loadAndUpdateAgents(loadedStep);
+					}
+				} finally {
+					loadAgentsLock.unlock();
+				}
+			}).start();
+		}
+		/**/
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 */
+	private void loadAndUpdateAgents(long step) {
+		updateRejectedAgents(step);
+		Collection<Agent> newAgents = loadAgents(step);
+		addCreatedAgents(newAgents);
+		updateDelayedAgents(step);
 	}
 
 	/**
@@ -121,7 +149,7 @@ public abstract class Simulation {
 
 		this.period = period;
 		if (startingStep <= 0) {
-			loadAndUpdateAgents(0);
+			loadAndUpdateAgents(0.);
 			IntersectionMenu.setAgents(0);
 			IntersectionMenu.setStep(0);
 			IntersectionMenu.setDelay(0);
