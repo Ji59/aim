@@ -11,9 +11,9 @@ class GraphTest {
    private static final Vertex v0 = new Vertex(0),
       v1 = new Vertex(50),
       v2 = new Vertex(100);
-   private static final Edge   e0 = new Edge(v0, v1, null),
-      e1 = new Edge(v0, v2, null),
-      e2 = new Edge(v1, v0, null);
+   private static final Edge   e0 = new Edge(v0, v1, 0),
+      e1 = new Edge(v0, v2, 0),
+      e2 = new Edge(v1, v0, 0);
 
    @Test
    public void testGraph() {
@@ -25,6 +25,6 @@ class GraphTest {
 
       // check edges
       assert g.getEdges().size() == 4;
-      assert g.getEdges().containsAll(Set.of(new Edge(v0, v1, null), new Edge(v2, v0, null), new Edge(v1, v0, null), new Edge(v0, v2, null)));
+      assert g.getEdges().containsAll(Set.of(new Edge(v0, v1, 0), new Edge(v2, v0, 0), new Edge(v1, v0, 0), new Edge(v0, v2, 0)));
    }
 }

@@ -14,7 +14,7 @@ public class Edge {
 
 	private final Vertex u;
 	private final Vertex v;
-	private final BigDecimal value;
+	private final double distance;
 
 	/**
 	 * Create new edge between specified vertices with specified value.
@@ -23,10 +23,10 @@ public class Edge {
 	 * @param v     Second vertex
 	 * @param value Value of the edge
 	 */
-	public Edge(@NotNull Vertex u, @NotNull Vertex v, BigDecimal value) {
+	public Edge(@NotNull Vertex u, @NotNull Vertex v, double value) {
 		this.u = u;
 		this.v = v;
-		this.value = value;
+		this.distance = value;
 	}
 
 	/**
@@ -36,14 +36,14 @@ public class Edge {
 	 * @param v Second vertex
 	 */
 	public Edge(Vertex u, Vertex v) {
-		this(u, v, BigDecimal.ONE);
+		this(u, v, 1.);
 	}
 
 	/**
 	 * @return New Edge with vertices reversed
 	 */
 	public Edge reverse() {
-		return new Edge(v, u, value);
+		return new Edge(v, u, distance);
 	}
 
 	/**
@@ -66,8 +66,8 @@ public class Edge {
 	 *
 	 * @return Edge value
 	 */
-	public BigDecimal getValue() {
-		return value;
+	public double getDistance() {
+		return distance;
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class Edge {
 		if (o == null || getClass() != o.getClass()) return false;
 		Edge edge = (Edge) o;
 		if (u.equals(edge.u) && v.equals(edge.v)) {
-			assert Objects.equals(value, edge.value);
+			assert Objects.equals(distance, edge.distance);
 			return true;
 		}
 		return false;
@@ -84,6 +84,6 @@ public class Edge {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(u, v, value);
+		return Objects.hash(u, v, distance);
 	}
 }

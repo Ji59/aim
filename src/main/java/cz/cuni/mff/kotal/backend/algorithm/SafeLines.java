@@ -20,7 +20,7 @@ public class SafeLines implements Algorithm {
 	public SafeLines(SimulationGraph graph) {
 		this.graph = graph;
 
-		List<GraphicalVertex> sortedGraphicalVertices = graph.getVertices().parallelStream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingLong(Vertex::getID)).toList();
+		List<GraphicalVertex> sortedGraphicalVertices = graph.getVertices().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingLong(Vertex::getID)).toList();
 		sortedGraphicalVertices.forEach(v -> verticesDistances.put(v.getID(), new PriorityQueue<>(sortedGraphicalVertices.size())));
 		sortedGraphicalVertices.parallelStream().forEach(v0 -> {
 			List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()
@@ -80,8 +80,8 @@ public class SafeLines implements Algorithm {
 			if (stepOccupiedVertices.containsKey(actualStep)) {
 				Long vertexID = path.get(i);
 				if (!safeVertex(actualStep, vertexID, agentPerimeter) ||
-					(i >= 1 && stepOccupiedVertices.containsKey(actualStep - 1) && !safeStepTo(actualStep, vertexID, path.get(i - 1), agentPerimeter)) ||
-					(i < path.size() - 1 && stepOccupiedVertices.containsKey(actualStep + 1) && !safeStepFrom(actualStep, vertexID, path.get(i + 1), agentPerimeter))
+					(i >= 1 && !safeStepTo(actualStep, vertexID, path.get(i - 1), agentPerimeter)) ||
+					(i < path.size() - 1 && !safeStepFrom(actualStep, vertexID, path.get(i + 1), agentPerimeter))
 				) {
 					return false;
 				}
@@ -92,14 +92,18 @@ public class SafeLines implements Algorithm {
 		return true;
 	}
 
-	private boolean safeVertex(long step, long vertexID, double agentPerimeter) {
+	protected boolean safeVertex(long step, long vertexID, double agentPerimeter) {
+		assert stepOccupiedVertices.containsKey(step);
 		return verticesDistances.get(vertexID).stream()
 			.takeWhile(v -> v.distance() <= agentPerimeter)
 			.noneMatch(v -> stepOccupiedVertices.get(step).containsKey(v.vertexID()));
 	}
 
-	boolean safeStepTo(long step, long vertexID, long previousVertexID, double agentPerimeter) {
-		assert stepOccupiedVertices.containsKey(step - 1);
+	protected boolean safeStepTo(long step, long vertexID, long previousVertexID, double agentPerimeter) {
+		if (!stepOccupiedVertices.containsKey(step - 1)) {
+			return true;
+		}
+
 		Agent neighbour = stepOccupiedVertices.get(step - 1).get(vertexID);
 		if (neighbour == null) {
 			return true;
@@ -111,8 +115,10 @@ public class SafeLines implements Algorithm {
 		return checkNeighbour(vertexID, previousVertexID, neighbourVertexID, agentPerimeter, neighbour);
 	}
 
-	boolean safeStepFrom(long step, long vertexID, long nextVertexID, double agentPerimeter) {
-		assert stepOccupiedVertices.containsKey(step + 1);
+	protected boolean safeStepFrom(long step, long vertexID, long nextVertexID, double agentPerimeter) {
+		if (!stepOccupiedVertices.containsKey(step + 1)) {
+			return true;
+		}
 		Agent neighbour = stepOccupiedVertices.get(step + 1).get(vertexID);
 		if (neighbour == null) {
 			return true;

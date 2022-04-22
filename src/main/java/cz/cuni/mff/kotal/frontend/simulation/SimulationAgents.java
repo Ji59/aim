@@ -270,7 +270,7 @@ public class SimulationAgents extends Pane {
 //		}
 		cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 
-		/**
+		/**/
 		 SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
 		 simulationHandler.start();
 		 /*/

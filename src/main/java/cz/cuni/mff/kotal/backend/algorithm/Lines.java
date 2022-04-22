@@ -21,8 +21,8 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 	public Agent planAgent(Agent agent, long step) {
 		final long exit;
 		if (agent.getExit() < 0) {
-			List<Vertex> directionExits = graph.getEntryExitVertices().get((int) agent.getExitDirection()).stream().filter(vertex -> vertex.getType().isExit()).toList();
-			List<Vertex> directionEntries = graph.getEntryExitVertices().get((int) agent.getEntryDirection()).stream().filter(vertex -> vertex.getType().isEntry()).toList();
+			List<Vertex> directionExits = graph.getEntryExitVertices().get(agent.getExitDirection()).stream().filter(vertex -> vertex.getType().isExit()).toList();
+			List<Vertex> directionEntries = graph.getEntryExitVertices().get(agent.getEntryDirection()).stream().filter(vertex -> vertex.getType().isEntry()).toList();
 			int entryIndex = directionEntries.indexOf(graph.getVertex(agent.getEntry()));
 			entryIndex = directionEntries.size() - entryIndex - 1; // invert index
 			exit = directionExits.get(entryIndex * directionExits.size() / directionEntries.size()).getID();

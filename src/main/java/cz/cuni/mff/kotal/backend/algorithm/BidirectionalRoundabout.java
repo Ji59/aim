@@ -28,7 +28,7 @@ public class BidirectionalRoundabout extends Roundabout {
 		int entryNeighbourIndex = roundTrip.indexOf(entryNeighbour);
 
 		if (agent.getExit() < 0) {
-			List<Long> exitNeighbourIndexes = directionExits.get((int) agent.getExitDirection()).stream()
+			List<Long> exitNeighbourIndexes = directionExits.get(agent.getExitDirection()).stream()
 				.map(exit -> getExitsNeighboursMapping().get(exit.getID()))
 				.toList();
 			for (int i = 0; i < roundTrip.size(); i++) {

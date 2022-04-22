@@ -21,6 +21,7 @@ public abstract class SimulationGraph extends Graph {
 	protected final long entries;
 	protected final long exits;
 	protected Map<Long, Map<Long, List<Long>>> shortestPaths;
+	protected Map<Long, Map<Long, Double>> distances;
 
 	protected double cellSize;
 
@@ -138,6 +139,128 @@ public abstract class SimulationGraph extends Graph {
 		return vertexDistances;
 	}
 
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public Map<Long, Map<Long, Double>> getDistances() {
+		if (distances == null) {
+			System.out.println("Initializing distances.");
+			initializeDistancesMap();
+			System.out.println("Initializing distances finished.");
+
+			computeDistances();
+		}
+
+		return distances;
+	}
+
+	private void computeDistances() {
+
+		int directions = entryExitVertices.size();
+		int entriesVertices = (int) (directions * entries);
+		int exitsVertices = (int) (directions * exits);
+
+		long[] verticesEdgesTo = new long[vertices.size() - entriesVertices];
+		int to = 0;
+		long[] verticesEdgesFrom = new long[vertices.size() - exitsVertices];
+		int from = 0;
+		long[] verticesBoth = new long[vertices.size() - entriesVertices - exitsVertices];
+		int both = 0;
+
+		for (Vertex vertex : vertices.values()) {
+			long id = vertex.getID();
+			if (vertex.getType().isEntry()) {
+				verticesEdgesFrom[from++] = id;
+			} else if (vertex.getType().isExit()) {
+				verticesEdgesTo[to++] = id;
+			} else {
+				verticesEdgesFrom[from++] = id;
+				verticesBoth[both++] = id;
+				verticesEdgesTo[to++] = id;
+			}
+		}
+
+		System.out.println("Computing distances.");
+		long time = System.nanoTime();
+		// Perform Floyd–Warshall update algorithm
+		for (long k : verticesBoth) {
+			for (long i : verticesEdgesFrom) {
+				Double distIK;
+				if (i == k || (distIK = distances.get(i).get(k)).isInfinite()) {
+					continue;
+				}
+
+				/**/
+				Arrays.stream(verticesEdgesTo).parallel().forEach(j -> {
+					Double distKJ;
+					if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
+						return;
+					}
+
+					double distIJ = distances.get(i).get(j);
+					if (distIJ > distIK + distKJ) {
+						distances.get(i).replace(j, distKJ);
+					}
+				});
+				/*/
+				Double distKJ;
+				for (long j : verticesEdgesTo) {
+					if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
+						continue;
+					}
+
+					double distIJ = distances.get(i).get(j);
+					if (distIJ > distIK + distKJ) {
+						distances.get(i).replace(j, distKJ);
+					}
+				}
+				/**/
+			}
+		}
+		System.out.println("Computing distances finished after " + (System.nanoTime() - time) + " ns.");
+	}
+
+	private void initializeDistancesMap() {
+		int capacity = 8 * vertices.size(); // TODO
+		distances = new HashMap<>(capacity);
+		for (Vertex vertex : vertices.values()) {
+			HashMap<Long, Double> vertexDistances = new HashMap<>(capacity);
+			for (Vertex u : vertices.values()) {
+				Edge edge = getEdge(vertex, u);
+				double initialDistance;
+				if (edge != null) {
+					initialDistance = edge.getDistance();
+				} else if (vertex.equals(u)) {
+					initialDistance = 0.;
+				} else {
+					initialDistance = Double.POSITIVE_INFINITY;
+				}
+				vertexDistances.put(u.getID(), initialDistance);
+			}
+			distances.put(vertex.getID(), vertexDistances);
+		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param from
+	 * @param to
+	 * @return
+	 */
+	public double getDistance(long from, long to) {
+		return getDistances().get(from).get(to);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param from
+	 * @param to
+	 * @return
+	 */
 	public List<Long> shortestPath(GraphicalVertex from, GraphicalVertex to) {
 		return shortestPath(from, to, 0);
 	}
@@ -233,11 +356,11 @@ public abstract class SimulationGraph extends Graph {
 	 * @param v1
 	 * @return
 	 */
-	public Edge getEdge(GraphicalVertex v0, GraphicalVertex v1) {
+	public Edge getEdge(Vertex v0, Vertex v1) {
 		if (verticesDistances.isEmpty()) {
 			initializeVerticesDistances();
 		}
-		return verticesDistances.get(v0).get(v1);
+		return verticesDistances.get((GraphicalVertex) v0).get((GraphicalVertex) v1);
 	}
 
 	/**
@@ -302,7 +425,7 @@ public abstract class SimulationGraph extends Graph {
 			double yDiff = previous.getY() - getY();
 			this.angle = computeAngle(xDiff, yDiff);
 
-			double verticesDistance = edge == null ? Math.sqrt(xDiff * xDiff + yDiff * yDiff) / cellDistance : edge.getValue().doubleValue();
+			double verticesDistance = edge == null ? Math.sqrt(xDiff * xDiff + yDiff * yDiff) / cellDistance : edge.getDistance();
 
 			double angleDiff = Math.abs(this.angle - previous.getAngle());
 			if (angleDiff > Math.PI) {
@@ -314,6 +437,22 @@ public abstract class SimulationGraph extends Graph {
 //			double middleDistance = Math.sqrt(middleDistanceX * middleDistanceX + middleDistanceY * middleDistanceY);  // TODO
 
 			this.distance = previous.getDistance() + verticesDistance + angleDiff * EPSILON; // + middleDistance * EPSILON * EPSILON;
+			this.parent = previous;
+			this.estimate = estimate;
+		}
+
+		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, double distance, double estimate) {
+			super(actual);
+			double xDiff = previous.getX() - getX();
+			double yDiff = previous.getY() - getY();
+			this.angle = computeAngle(xDiff, yDiff);
+
+			double angleDiff = Math.abs(this.angle - previous.getAngle());
+			if (angleDiff > Math.PI) {
+				angleDiff = 2 * Math.PI - angleDiff;
+			}
+
+			this.distance = previous.getDistance() + distance + angleDiff * EPSILON; // + middleDistance * EPSILON * EPSILON;
 			this.parent = previous;
 			this.estimate = estimate;
 		}
@@ -344,7 +483,7 @@ public abstract class SimulationGraph extends Graph {
 			return computeAngle(xDiff, yDiff);
 		}
 
-		private static double computeAngle(double xDiff, double yDiff) {
+		public static double computeAngle(double xDiff, double yDiff) {
 			return Math.atan2(yDiff, xDiff);
 		}
 

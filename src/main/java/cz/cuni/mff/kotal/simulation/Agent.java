@@ -26,8 +26,8 @@ public class Agent {
 	private final double w; // Width of the agent
 	private long entry;
 	private final long exit;
-	private final long entryDirection;
-	private final long exitDirection;
+	private final int entryDirection;
+	private final int exitDirection;
 	private final double speed;
 	private final double arrivalTime;
 
@@ -69,7 +69,7 @@ public class Agent {
 	 * @param x              Coordinate X of the agent
 	 * @param y              Coordinate Y of the agent
 	 */
-	public Agent(long id, long entry, long exit, long entryDirection, long exitDirection, double speed, double arrivalTime, double l, double w, double x, double y) {
+	public Agent(long id, long entry, long exit, int entryDirection, int exitDirection, double speed, double arrivalTime, double l, double w, double x, double y) {
 		this.id = id;
 		this.entry = entry;
 		this.exit = exit;
@@ -196,14 +196,14 @@ public class Agent {
 	/**
 	 * @return ID of direction in which agent appears
 	 */
-	public long getEntryDirection() {
+	public int getEntryDirection() {
 		return entryDirection;
 	}
 
 	/**
 	 * @return ID of direction in which agent leaves the intersection
 	 */
-	public long getExitDirection() {
+	public int getExitDirection() {
 		return exitDirection;
 	}
 

@@ -20,6 +20,7 @@ import static cz.cuni.mff.kotal.helpers.MyNumberOperations.myModulo;
 
 
 /**
+ * TODO
  * Class representing simulation.
  */
 public class GeneratingSimulation extends Simulation {
@@ -199,9 +200,9 @@ public class GeneratingSimulation extends Simulation {
 		}
 
 		if (!randomEntry && generateEntry) {
-			Map<Long, PriorityQueue<Agent>> directionsAgents = new HashMap<>();
+			Map<Integer, PriorityQueue<Agent>> directionsAgents = new HashMap<>();
 			int directions = getIntersectionGraph().getEntryExitVertices().size();
-			for (long direction = 0; direction < directions; direction++) {
+			for (int direction = 0; direction < directions; direction++) {
 				directionsAgents.put(direction, new PriorityQueue<>((agent0, agent1) -> Long.compare(myModulo(agent1.getExitDirection() - agent1.getEntryDirection(), directions), myModulo(agent0.getExitDirection() - agent0.getEntryDirection(), directions))));  // descendant order
 			}
 			for (Agent agent : newAgents) {
@@ -211,7 +212,7 @@ public class GeneratingSimulation extends Simulation {
 			final Map<Long, Integer> delayedAgentsSize = delayedAgents.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size()));
 
 			for (int entryDirection = 0; entryDirection < directions; entryDirection++) {
-				PriorityQueue<Agent> directionAgents = directionsAgents.get((long) entryDirection);
+				PriorityQueue<Agent> directionAgents = directionsAgents.get(entryDirection);
 //				directionAgents.sort((agent0, agent1) -> {
 //					int directionDifference = Long.compare(myModulo(agent0.getEntryDirection(), directions), myModulo(agent1.getExitDirection(), directions));
 //					if (directionDifference == 0) {
