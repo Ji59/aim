@@ -1,10 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
-import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
-import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -12,7 +9,7 @@ import java.util.stream.Collectors;
 
 class SimulationGraphTest {
 	SimulationGraph graph;
-	private long granularity = 4;
+	private int granularity = 4;
 
 	// FIXME
 
@@ -167,9 +164,9 @@ class SimulationGraphTest {
 //		assert totalDegree == graph.getEdges().size();
 //	}
 
-	private int checkNeighbourIDs(int id, long... neighbours) {
+	private int checkNeighbourIDs(int id, int... neighbours) {
 		GraphicalVertex vertex = graph.getVertex(id);
-		Set<Long> neighbourIDs = vertex.getNeighbourIDs();
+		Set<Integer> neighbourIDs = vertex.getNeighbourIDs();
 		assert neighbourIDs.containsAll(Arrays.stream(neighbours).boxed().collect(Collectors.toSet()));
 		assert neighbourIDs.size() == neighbours.length;
 		assert neighbourIDs.stream().map(idn -> graph.getVertex(idn)).allMatch(neighbour -> graph.getEdges().stream().anyMatch(edge -> edge.getU() == vertex && edge.getV() == neighbour));

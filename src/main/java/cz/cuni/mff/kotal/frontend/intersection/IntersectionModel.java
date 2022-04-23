@@ -9,22 +9,16 @@ import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
-import javafx.scene.shape.Polygon;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
-import javafx.stage.Popup;
 import javafx.stage.Screen;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 
 /**
@@ -39,10 +33,10 @@ public class IntersectionModel extends Pane {
 	public static final Color BACKGROUND_COLOR = Color.color(0.25, 0.34375, 0.28125);
 
 	// TODO dont use static, use Component
-	private static double preferredHeight =  Screen.getPrimary().getVisualBounds().getHeight();
+	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
 	private List<Node> nodes = new ArrayList<>();
-	private static final Map<Long, Shape> vertexNodes = new HashMap<>();
+	private static final Map<Integer, Shape> vertexNodes = new HashMap<>();
 	private final Map<SimulationGraph, SimulationGraph> createdGraphs = new HashMap<>();
 	private final Deque<SimulationGraph> historyPrevious = new ArrayDeque<>();
 	private final Deque<SimulationGraph> historyNext = new ArrayDeque<>();
@@ -164,7 +158,7 @@ public class IntersectionModel extends Pane {
 	 * @param id    The id of vertex to be shown inside the square
 	 * @param color Color of the square
 	 */
-	private void drawSquareVertex(double size, double x, double y, long id, Color color) {
+	private void drawSquareVertex(double size, double x, double y, int id, Color color) {
 		double halfSize = size / 2;
 
 		Rectangle square = new Rectangle(size, size, color);
@@ -187,7 +181,7 @@ public class IntersectionModel extends Pane {
 	 * @param id     ID to be shown inside the rectangle
 	 * @param color  Color inside the rectangle
 	 */
-	private void drawHexagonalModelRectangleEntry(double x, double y, double width, double height, long id, Color color) {
+	private void drawHexagonalModelRectangleEntry(double x, double y, double width, double height, int id, Color color) {
 		Rectangle rectangle = new Rectangle(x, y, width, height);
 		rectangle.setStroke(STROKE_COLOR);
 		rectangle.setFill(color);
@@ -206,17 +200,17 @@ public class IntersectionModel extends Pane {
 	 * @param id    ID of the vertex to be shown inside the hexagon
 	 * @param color Color inside the hexagon
 	 */
-	private void drawHexagon(double shift, double x, double y, long id, Color color) {
+	private void drawHexagon(double shift, double x, double y, int id, Color color) {
 		double tan30HalfShift = Math.sqrt(3) * shift / 6;
 		double halfShift = shift / 2;
 
 		Polygon hexagon = new Polygon(
-			x + tan30HalfShift, y - halfShift, // top right
-			x + 2 * tan30HalfShift, y,                 // right
-			x + tan30HalfShift, y + halfShift,         // bottom right
-			x - tan30HalfShift, y + halfShift,         // bottom left
-			x - 2 * tan30HalfShift, y,                 // left
-			x - tan30HalfShift, y - halfShift          // top left
+						x + tan30HalfShift, y - halfShift, // top right
+						x + 2 * tan30HalfShift, y,                 // right
+						x + tan30HalfShift, y + halfShift,         // bottom right
+						x - tan30HalfShift, y + halfShift,         // bottom left
+						x - 2 * tan30HalfShift, y,                 // left
+						x - tan30HalfShift, y - halfShift          // top left
 		);
 		hexagon.setFill(color);
 		hexagon.setStroke(STROKE_COLOR);
@@ -235,20 +229,20 @@ public class IntersectionModel extends Pane {
 	 * @param id    ID of vertex to be shown inside the octagon
 	 * @param color Color of the octagon
 	 */
-	private void drawOctagon(double size, double x, double y, Long id, Color color) {
+	private void drawOctagon(double size, double x, double y, int id, Color color) {
 		double halfSize = size / 2;
 		double shorterSize = OCTAGON_RATIO * halfSize;
 
 		// create polygon
 		Polygon octagon = new Polygon(
-			x - shorterSize, y - halfSize, // top left
-			x + shorterSize, y - halfSize, // top right
-			x + halfSize, y - shorterSize, // mid-top right
-			x + halfSize, y + shorterSize, // mid-bot right
-			x + shorterSize, y + halfSize, // bot right
-			x - shorterSize, y + halfSize, // bot left
-			x - halfSize, y + shorterSize, // mid-bot left
-			x - halfSize, y - shorterSize  // mid-top left
+						x - shorterSize, y - halfSize, // top left
+						x + shorterSize, y - halfSize, // top right
+						x + halfSize, y - shorterSize, // mid-top right
+						x + halfSize, y + shorterSize, // mid-bot right
+						x + shorterSize, y + halfSize, // bot right
+						x - shorterSize, y + halfSize, // bot left
+						x - halfSize, y + shorterSize, // mid-bot left
+						x - halfSize, y - shorterSize  // mid-top left
 		);
 		octagon.setFill(color);
 		octagon.setStroke(STROKE_COLOR);
@@ -267,15 +261,15 @@ public class IntersectionModel extends Pane {
 	 * @param id    The ID of vertex to be shown inside the square
 	 * @param color Color of the square
 	 */
-	private void drawObliqueSquare(double size, double x, double y, long id, Color color) {
+	private void drawObliqueSquare(double size, double x, double y, int id, Color color) {
 		double halfSize = size / 2;
 
 		// create square
 		Polygon square = new Polygon(
-			x, y - halfSize, // top
-			x - halfSize, y, // left
-			x, y + halfSize, // bottom
-			x + halfSize, y  // right
+						x, y - halfSize, // top
+						x - halfSize, y, // left
+						x, y + halfSize, // bottom
+						x + halfSize, y  // right
 		);
 		square.setFill(color);
 		square.setStroke(STROKE_COLOR);
@@ -346,7 +340,7 @@ public class IntersectionModel extends Pane {
 	private Polygon drawHexagonalModelObliqueEntry(Color color, double... points) {
 		// create associated entry
 		Polygon polygon = new Polygon(
-			points
+						points
 		);
 		polygon.setStroke(STROKE_COLOR);
 		polygon.setFill(color);
@@ -362,7 +356,7 @@ public class IntersectionModel extends Pane {
 	 */
 	private void drawHexagonalModelObliqueEntries(GraphicalVertex vertex, double... points) {
 		Color color = vertex.getType().getColor();
-		long id = vertex.getID();
+		int id = vertex.getID();
 
 		Polygon polygon = drawHexagonalModelObliqueEntry(color, points);
 		vertexNodes.put(id, polygon);
@@ -386,7 +380,7 @@ public class IntersectionModel extends Pane {
 	 * @param color     Color of the rectangle
 	 * @param direction Direction of the entry / exit. (See Vertex object for more details)
 	 */
-	private void drawOctagonalEntry(double size, double x, double y, long id, Color color, int direction) {
+	private void drawOctagonalEntry(double size, double x, double y, int id, Color color, int direction) {
 		assert (direction < 4);
 		// create rectangle
 		Rectangle rectangle = new Rectangle();
@@ -454,9 +448,9 @@ public class IntersectionModel extends Pane {
 	 */
 	public void redraw(boolean ignoreOld) {
 		// get graph properties
-		long granularity = IntersectionMenuTab0.getGranularity().getValue();
-		long entries = IntersectionMenuTab0.getEntries().getValue();
-		long exits = IntersectionMenuTab0.getExits().getValue();
+		int granularity = IntersectionMenuTab0.getGranularity().getValue();
+		int entries = IntersectionMenuTab0.getEntries().getValue();
+		int exits = IntersectionMenuTab0.getExits().getValue();
 		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
@@ -572,12 +566,12 @@ public class IntersectionModel extends Pane {
 	 * @param frames
 	 */
 	public static void updateVertexNodesColors(long[] verticesUsage, double frames) {
-		for (long vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
+		for (int vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
 			Color color = graph.getVertex(vertexID).getType().getColor();
 
 			Shape vertexNode = vertexNodes.get(vertexID);
 			double oldColorShift = ((Color) vertexNode.getFill()).getGreen() / color.getGreen();
-			double colorShift = 1 - verticesUsage[(int) vertexID] / frames;
+			double colorShift = 1 - verticesUsage[vertexID] / frames;
 			if (Math.abs(oldColorShift - colorShift) > MAX_COLOR_CHANGE) {
 				colorShift = oldColorShift + (colorShift > oldColorShift ? MAX_COLOR_CHANGE : -MAX_COLOR_CHANGE);
 			}
@@ -589,7 +583,7 @@ public class IntersectionModel extends Pane {
 	}
 
 	public static void resetVertexNodesColors() {
-		for (Map.Entry<Long, Shape> vertexNode : vertexNodes.entrySet()) {
+		for (Map.Entry<Integer, Shape> vertexNode : vertexNodes.entrySet()) {
 			Color color = graph.getVertex(vertexNode.getKey()).getType().getColor();
 			vertexNode.getValue().setFill(color);
 		}

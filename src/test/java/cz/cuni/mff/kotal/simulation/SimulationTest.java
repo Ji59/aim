@@ -1,13 +1,10 @@
 package cz.cuni.mff.kotal.simulation;
 
 
-import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +13,7 @@ class SimulationTest {
 
 	@Test
 	void updateAgentsStats() {
-		final List<Long> path = List.of(16L, 4L, 5L, 6L, 77L, 22L);
+		final List<Integer> path = List.of(16, 4, 5, 6, 77, 22);
 		Agent a0 = new Agent(0, 0, 4, 16).setPath(path);
 		Agent a1 = new Agent(1, 0, 1, 16).setPath(path);
 		Agent a2 = new Agent(2, 1, -1, 16).setPath(path);
@@ -31,10 +28,10 @@ class SimulationTest {
 		simulation.allAgents.put(2L, a2);
 		simulation.allAgents.put(3L, a3);
 
-		simulation.delayedAgents.put(0L, new ArrayList<>(1));
-		simulation.delayedAgents.get(0L).add(a0);
-		simulation.delayedAgents.get(0L).add(a2);
-		simulation.delayedAgents.get(0L).add(a3);
+		simulation.delayedAgents.put(0, new ArrayList<>(1));
+		simulation.delayedAgents.get(0).add(a0);
+		simulation.delayedAgents.get(0).add(a2);
+		simulation.delayedAgents.get(0).add(a3);
 
 		simulation.plannedAgentsQueue.add(a1);
 
@@ -60,8 +57,8 @@ class SimulationTest {
 
 		simulation.plannedAgentsQueue.add(a0);
 
-		simulation.delayedAgents.get(0L).clear();
-		simulation.delayedAgents.get(0L).add(a3);
+		simulation.delayedAgents.get(0).clear();
+		simulation.delayedAgents.get(0).add(a3);
 
 		simulation.rejectedAgentsQueue.add(a2);
 
@@ -70,7 +67,7 @@ class SimulationTest {
 		}
 		assertThat(simulation.agentsDelay).isEqualTo(16);
 
-		simulation.delayedAgents.get(0L).clear();
+		simulation.delayedAgents.get(0).clear();
 		simulation.plannedAgentsQueue.add(a3);
 
 		for (; step < 8; step += 0.125) {

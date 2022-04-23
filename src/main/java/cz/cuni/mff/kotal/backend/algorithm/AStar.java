@@ -21,15 +21,15 @@ public class AStar extends SafeLines {
 			return null;
 		}
 
-		Set<Long> exitIDs;
+		Set<Integer> exitIDs;
 		if (agent.getExit() > 0) {
 			exitIDs = Set.of(agent.getExit());
 		} else {
 			exitIDs = directionExits.get(agent.getExitDirection()).stream().map(Vertex::getID).collect(Collectors.toSet());
 		}
 
-		Map<Long, Double> heuristic = new HashMap<>();
-		long entryID = agent.getEntry();
+		Map<Integer, Double> heuristic = new HashMap<>();
+		int entryID = agent.getEntry();
 		heuristic.put(entryID, getHeuristic(exitIDs, entryID));
 
 		PriorityQueue<State> queue = new PriorityQueue<>();
@@ -37,7 +37,7 @@ public class AStar extends SafeLines {
 
 		State state;
 		while ((state = queue.poll()) != null) {
-			long vertexID = state.getID();
+			int vertexID = state.getID();
 			if (heuristic.get(vertexID) < 0) {
 				continue;
 			} else {
@@ -45,9 +45,9 @@ public class AStar extends SafeLines {
 			}
 
 			if (exitIDs.contains(vertexID)) {
-				LinkedList<Long> path = new LinkedList<>();
+				LinkedList<Integer> path = new LinkedList<>();
 				while (state != null) {
-					long id = state.getID();
+					int id = state.getID();
 					path.addFirst(id);
 					stepOccupiedVertices.get(state.getStep()).put(id, agent);
 
@@ -59,18 +59,18 @@ public class AStar extends SafeLines {
 			}
 
 			long stateStep = state.getStep();
-			for (long neighbourID : graph.getVertex(vertexID).getNeighbourIDs()) {
+			for (int neighbourID : graph.getVertex(vertexID).getNeighbourIDs()) {
 				long neighbourStep = stateStep + 1;
 				heuristic.putIfAbsent(neighbourID, getHeuristic(exitIDs, neighbourID));
 
 				if (
-					(stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null ||
-						(
-							safeVertex(neighbourStep, neighbourID, agentsPerimeter) &&
-								safeStepTo(neighbourStep, neighbourID, state.getID(), agentsPerimeter)
-						)
-					) &&
-						safeStepFrom(stateStep, state.getID(), neighbourID, agentsPerimeter)
+								(stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null ||
+												(
+																safeVertex(neighbourStep, neighbourID, agentsPerimeter) &&
+																				safeStepTo(neighbourStep, neighbourID, state.getID(), agentsPerimeter)
+												)
+								) &&
+												safeStepFrom(stateStep, state.getID(), neighbourID, agentsPerimeter)
 				) {
 					double distance = graph.getDistance(vertexID, neighbourID);
 					queue.add(new State(state, graph.getVertex(neighbourID), distance, heuristic.get(neighbourID)));
@@ -81,7 +81,7 @@ public class AStar extends SafeLines {
 		return null;
 	}
 
-	private double getHeuristic(Set<Long> exitIDs, long entryID) {
+	private double getHeuristic(Set<Integer> exitIDs, int entryID) {
 		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(entryID, exitID)).min().orElse(0);
 	}
 

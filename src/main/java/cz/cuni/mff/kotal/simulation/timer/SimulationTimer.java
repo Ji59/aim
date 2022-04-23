@@ -159,7 +159,7 @@ public class SimulationTimer extends AnimationTimer {
 			.filter(agentPane -> !agentPane.isDisable())
 			.map(AgentPane::getAgent)
 			.forEach(agent -> {
-				int vertex = (int) agent.getNearestPathVertexId(step - agent.getPlannedTime());
+				int vertex = agent.getNearestPathVertexId(step - agent.getPlannedTime());
 				verticesUsage[vertex]++;
 			});
 		IntersectionModel.updateVertexNodesColors(verticesUsage, frames);

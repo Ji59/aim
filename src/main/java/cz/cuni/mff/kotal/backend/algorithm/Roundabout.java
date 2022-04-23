@@ -11,11 +11,9 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
-
 public class Roundabout extends SafeLines {
-	List<Long> roundTrip = new ArrayList<>();
-	private final Map<Long, Long> exitsNeighboursMapping = new HashMap<>();
+	List<Integer> roundTrip = new ArrayList<>();
+	private final Map<Integer, Integer> exitsNeighboursMapping = new HashMap<>();
 
 	public Roundabout(SimulationGraph graph) {
 		super(graph);
@@ -26,9 +24,9 @@ public class Roundabout extends SafeLines {
 		} else if (entriesExits.size() == 1) {
 			entriesExits.forEach(e -> roundTrip.addAll(sortEntriesExits(e, graph)));
 		}
-		List<List<Long>> directionParts = entriesExits.parallelStream().map(directionList -> sortEntriesExits(directionList, graph)).toList();
+		List<List<Integer>> directionParts = entriesExits.parallelStream().map(directionList -> sortEntriesExits(directionList, graph)).toList();
 
-		Map<Integer, Map<Integer, List<Long>>> distances = new HashMap<>(directionParts.size());
+		Map<Integer, Map<Integer, List<Integer>>> distances = new HashMap<>(directionParts.size());
 		int from = 0;
 		int to = 0;
 		int shortest = Integer.MAX_VALUE;
@@ -40,13 +38,13 @@ public class Roundabout extends SafeLines {
 				GraphicalVertex iDirectionOneButLast = graph.getVertex(directionParts.get(i).get(iDirectionPartsSize - 2));
 				angle = VertexWithDirection.computeAngle(iDirectionOneButLast, iDirectionLast);
 			}
-			Map<Integer, List<Long>> iDistances = new HashMap<>();
+			Map<Integer, List<Integer>> iDistances = new HashMap<>();
 			for (int j = 0; j < directionParts.size(); j++) {
 				if (i == j) {
 					continue;
 				}
 				GraphicalVertex jDirectionFirst = graph.getVertex(directionParts.get(j).get(0));
-				List<Long> path = graph.shortestPath(iDirectionLast, jDirectionFirst, angle);
+				List<Integer> path = graph.shortestPath(iDirectionLast, jDirectionFirst, angle);
 				if (path.size() < shortest) {
 					from = i;
 					to = j;
@@ -59,12 +57,12 @@ public class Roundabout extends SafeLines {
 
 		int start = from;
 		while (!distances.isEmpty()) {
-			List<Long> directionVertices = directionParts.get(from);
+			List<Integer> directionVertices = directionParts.get(from);
 			if (!roundTrip.isEmpty() && roundTrip.get(roundTrip.size() - 1).equals(directionVertices.get(0))) {
 				directionVertices.remove(0);
 			}
 			roundTrip.addAll(directionVertices);
-			List<Long> pathIDs = distances.get(from).get(to);
+			List<Integer> pathIDs = distances.get(from).get(to);
 			if (pathIDs.size() > 2) {
 				pathIDs.remove(0);
 				pathIDs.remove(pathIDs.size() - 1);
@@ -88,21 +86,21 @@ public class Roundabout extends SafeLines {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		long exitNeighbour;
-		final long agentExit;
+		int exitNeighbour;
+		final Integer agentExit;
 		if (agent.getExit() < 0) {
-			int exitNeighbourIndex = directionExits.get((int) agent.getExitDirection()).stream()
-				.mapToLong(exit -> exitsNeighboursMapping.get(exit.getID()))
-				.mapToInt(exit -> roundTrip.indexOf(exit)).min().orElse(0);
+			int exitNeighbourIndex = directionExits.get(agent.getExitDirection()).stream()
+				.mapToInt(exit -> roundTrip.indexOf(exitsNeighboursMapping.get(exit.getID())))
+				.min().orElse(0);
 			exitNeighbour = roundTrip.get(exitNeighbourIndex);
-			agentExit = exitsNeighboursMapping.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToLong(Map.Entry::getKey).findFirst().orElse(0L);
+			agentExit = exitsNeighboursMapping.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToInt(Map.Entry::getKey).findFirst().orElse(0);
 		} else {
 			exitNeighbour = exitsNeighboursMapping.get(agent.getExit());
 			agentExit = agent.getExit();
 		}
 
-		long entryNeighbour = graph.getVertex(agent.getEntry()).getNeighbourIDs().stream().findFirst().orElse(0L);
-		List<Long> path = new ArrayList<>(roundTrip.size());
+		int entryNeighbour = graph.getVertex(agent.getEntry()).getNeighbourIDs().stream().findFirst().orElse(0);
+		List<Integer> path = new ArrayList<>(roundTrip.size());
 		path.add(agent.getEntry());
 		int startIndex;
 		for (startIndex = 0; startIndex < roundTrip.size(); startIndex++) {
@@ -111,7 +109,7 @@ public class Roundabout extends SafeLines {
 			}
 		}
 		int index = startIndex;
-		long vertexID;
+		int vertexID;
 		while ((vertexID = roundTrip.get(index)) != exitNeighbour) {
 			path.add(vertexID);
 			index = (index + 1) % roundTrip.size();
@@ -129,12 +127,12 @@ public class Roundabout extends SafeLines {
 		return agent;
 	}
 
-	private List<Long> sortEntriesExits(List<Vertex> directionEntriesExits, SimulationGraph graph) {
+	private List<Integer> sortEntriesExits(List<Vertex> directionEntriesExits, SimulationGraph graph) {
 		List<GraphicalVertex> entriesNeighboursVertices = new ArrayList<>();
 		List<GraphicalVertex> exitsNeighboursVertices = new ArrayList<>();
 		directionEntriesExits.forEach(v -> {
 			if (v.getType().isEntry()) {
-				Long neighbour = v.getNeighbourIDs().stream().findFirst().orElse(null);
+				Integer neighbour = v.getNeighbourIDs().stream().findFirst().orElse(null);
 				if (neighbour == null) {
 					// TODO
 					throw new RuntimeException("Neighbour of entry " + v.getID() + " not found.");
@@ -152,18 +150,18 @@ public class Roundabout extends SafeLines {
 			}
 		});
 
-		Map<GraphicalVertex, Map<GraphicalVertex, List<Long>>> distances = new HashMap<>();
+		Map<GraphicalVertex, Map<GraphicalVertex, List<Integer>>> distances = new HashMap<>();
 		exitsNeighboursVertices.parallelStream().forEach(exit -> {
-			Map<GraphicalVertex, List<Long>> exitMap = entriesNeighboursVertices.stream()
+			Map<GraphicalVertex, List<Integer>> exitMap = entriesNeighboursVertices.stream()
 				.collect(Collectors.toMap(Function.identity(), entry -> graph.shortestPath(exit, entry)));
 			distances.put(exit, exitMap); // TODO check thread safety
 		});
 
 		Pair<GraphicalVertex, GraphicalVertex> closest = null;
 		int closestDistance = Integer.MAX_VALUE;
-		for (Map.Entry<GraphicalVertex, Map<GraphicalVertex, List<Long>>> exitDistances : distances.entrySet()) {
+		for (Map.Entry<GraphicalVertex, Map<GraphicalVertex, List<Integer>>> exitDistances : distances.entrySet()) {
 			GraphicalVertex exit = exitDistances.getKey();
-			for (Map.Entry<GraphicalVertex, List<Long>> entryDistances : exitDistances.getValue().entrySet()) {
+			for (Map.Entry<GraphicalVertex, List<Integer>> entryDistances : exitDistances.getValue().entrySet()) {
 				GraphicalVertex entry = entryDistances.getKey();
 				int distance = entryDistances.getValue().size();
 				if (distance < closestDistance) {
@@ -198,11 +196,11 @@ public class Roundabout extends SafeLines {
 			.map(Map.Entry::getKey)
 			.forEach(pathPoints::addLast);
 
-		List<Long> path = new ArrayList<>();
+		List<Integer> path = new ArrayList<>();
 		GraphicalVertex previous = null;
 		for (GraphicalVertex vertex : pathPoints) {
 			if (previous != null) {
-				List<Long> nextPath = graph.shortestPath(previous, vertex);
+				List<Integer> nextPath = graph.shortestPath(previous, vertex);
 				assert !nextPath.isEmpty();
 				nextPath.remove(0);
 				path.addAll(nextPath);
@@ -217,7 +215,7 @@ public class Roundabout extends SafeLines {
 	/**
 	 * @return map containing mapping between exits IDs and their neighbours IDs both ways
 	 */
-	protected Map<Long, Long> getExitsNeighboursMapping() {
+	protected Map<Integer, Integer> getExitsNeighboursMapping() {
 		return exitsNeighboursMapping;
 	}
 }

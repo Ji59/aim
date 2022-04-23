@@ -209,7 +209,7 @@ public class GeneratingSimulation extends Simulation {
 				directionsAgents.get(agent.getEntryDirection()).add(agent);
 			}
 
-			final Map<Long, Integer> delayedAgentsSize = delayedAgents.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size()));
+			final Map<Integer, Integer> delayedAgentsSize = delayedAgents.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size()));
 
 			for (int entryDirection = 0; entryDirection < directions; entryDirection++) {
 				PriorityQueue<Agent> directionAgents = directionsAgents.get(entryDirection);
@@ -349,9 +349,9 @@ public class GeneratingSimulation extends Simulation {
 		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.42, 0.3);
 
 		List<Vertex> directionEntries = entries.get(entryDirection);
-		GraphicalVertex entry = null;
-		double entryX = 0;
-		double entryY = 0;
+		GraphicalVertex entry;
+		double entryX;
+		double entryY;
 		entry = (GraphicalVertex) directionEntries.get(generateRandomInt(directionEntries.size() - 1));
 		directionEntries.remove(entry);
 		entryX = entry.getX() * IntersectionModel.getPreferredHeight();

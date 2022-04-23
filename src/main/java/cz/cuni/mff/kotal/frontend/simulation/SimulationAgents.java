@@ -40,7 +40,7 @@ public class SimulationAgents extends Pane {
 	private double cellSize; // FIXME move somewhere else
 
 	private final Label vertexLabel = new Label();
-	private long vertexLabelID;
+	private int vertexLabelID;
 	private final Label agentLabel = new Label();
 	private Set<Node> agentPath = null;
 
@@ -99,7 +99,7 @@ public class SimulationAgents extends Pane {
 	 * TODO
 	 */
 	public void setAgentLabelText(Agent agent) {
-		Long exit = agent.getPath().get(agent.getPath().size() - 1);
+		int exit = agent.getPath().get(agent.getPath().size() - 1);
 		agentLabel.setText(String.format("ID: %d%nArrival: %,.2f%nPlanned: %d%nEntry: %d%nExit: %d", agent.getId(), agent.getArrivalTime(), agent.getPlannedTime(), agent.getEntry(), exit));
 	}
 
@@ -520,7 +520,7 @@ public class SimulationAgents extends Pane {
 	 * @param agent
 	 */
 	private void createAgentPath(SimulationGraph graph, double size, AgentPane agentPane, Agent agent) {
-		List<Long> path = agent.getPath();
+		List<Integer> path = agent.getPath();
 		agentPath = new HashSet<>(path.size());
 		for (int i = 1; i < path.size(); i++) {
 			GraphicalVertex lastVertex = graph.getVertex(path.get(i - 1));

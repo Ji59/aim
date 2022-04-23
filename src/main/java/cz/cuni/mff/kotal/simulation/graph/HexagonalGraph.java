@@ -17,7 +17,7 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param entries     Number of entries from each direction
 	 * @param exits       Number of exits from each direction
 	 */
-	public HexagonalGraph(long granularity, long entries, long exits) {
+	public HexagonalGraph(int granularity, int entries, int exits) {
 		super(HEXAGONAL, granularity, entries, exits);
 
 		cellSize = 1. / (2 * granularity + 1);
@@ -37,17 +37,17 @@ public class HexagonalGraph extends SimulationGraph {
 		double centerY = 0.5;
 
 		// create center vertex
-		long id = vertices.size();
+		int id = vertices.size();
 		GraphicalVertex v = new GraphicalVertex(id++, centerX, centerY);
-		v.addNeighbourID(1L, 2L, 3L, 4L, 5L, 6L);
-		vertices.put(0L, v);
+		v.addNeighbourID(1, 2, 3, 4, 5, 6);
+		vertices.put(0, v);
 
 
-		long id0 = id;
+		int id0 = id;
 		double sin60Shift = shift * Math.sqrt(3) / 2;
 		double halfShift = shift / 2;
 
-		for (long i = 1; i < granularity; i++, id0 += (i - 1) * 5) {
+		for (int i = 1; i < granularity; i++, id0 += (i - 1) * 5) {
 			// compute initial positions
 			double x1 = centerX;
 			double y1 = centerY - i * shift;
@@ -64,7 +64,7 @@ public class HexagonalGraph extends SimulationGraph {
 
 			boolean notLast = i < granularity - 1;
 
-			for (long j = 0; j < i; j++, id0++,
+			for (int j = 0; j < i; j++, id0++,
 				x1 += sin60Shift, y1 += halfShift,
 				y2 += shift,
 				x3 -= sin60Shift, y3 += halfShift,
@@ -99,7 +99,7 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param x5      Coordinate X of left hexagon edge vertex
 	 * @param y5      Coordinate Y of left hexagon edge vertex
 	 */
-	private void createLayerVertices(long i, long j, boolean notLast, long id0, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double x5, double y5) {
+	private void createLayerVertices(int i, int j, boolean notLast, Integer id0, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4, double x5, double y5) {
 		createHexagonalGraphEdgeVertices(i, j, notLast, id0, x0, y0, 0);
 		createHexagonalGraphEdgeVertices(i, j, notLast, id0 + i, x1, y1, 1);
 		createHexagonalGraphEdgeVertices(i, j, notLast, id0 + 2 * i, x2, y2, 2);
@@ -119,12 +119,12 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param y       Coordinate Y of the vertex
 	 * @param side    Number of edge of the hexagon. 0 is top left, then incrementally clockwise
 	 */
-	private void createHexagonalGraphEdgeVertices(long i, long j, boolean notLast, long id, double x, double y, int side) {
+	private void createHexagonalGraphEdgeVertices(int i, int j, boolean notLast, int id, double x, double y, int side) {
 		// create vertex
 		GraphicalVertex v = new GraphicalVertex(id, x, y);
 
 		// add neighbour IDs
-		long previousLayerNeighbour = id - (i - 1) * 6 - side;
+		int previousLayerNeighbour = id - (i - 1) * 6 - side;
 		v.addNeighbourID(i == 1 ? 0 : previousLayerNeighbour);
 		if (side > 0 || j > 0) {
 			v.addNeighbourID(id - 1);
@@ -136,7 +136,7 @@ public class HexagonalGraph extends SimulationGraph {
 		}
 
 		if (notLast) {
-			long nextLayerNeighbour = id + i * 6 + side;
+			int nextLayerNeighbour = id + i * 6 + side;
 			v.addNeighbourID(nextLayerNeighbour, nextLayerNeighbour + 1);
 			if (j == 0) {
 				v.addNeighbourID(nextLayerNeighbour - 1);
@@ -164,13 +164,13 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param exits   Number of exits
 	 * @param shift   Distance between 2 vertices
 	 */
-	private void createHexagonalGraphEntriesExits(long entries, long exits, double shift) {
+	private void createHexagonalGraphEntriesExits(int entries, int exits, double shift) {
 		// compute outer empty spaces
-		long empty = granularity - entries - exits;
-		long padding = empty / 3;
-		long index = empty % 3 == 2 ? ++padding : padding;
+		int empty = granularity - entries - exits;
+		int padding = empty / 3;
+		int index = empty % 3 == 2 ? ++padding : padding;
 
-		long id = vertices.size();
+		int id = vertices.size();
 
 		// draw all the entries
 		double e0x = shift * (granularity + Math.sqrt(3) * (index - granularity + 1) / 2);
@@ -182,8 +182,8 @@ public class HexagonalGraph extends SimulationGraph {
 		createHexagonalGraphEntries(entries, shift, index, id, e0x, e0y, e1x, e1y, e5x, e2y, true);
 
 		// skip middle empty space
-		long middleEmpty = empty % 3 == 2 ? empty - 2 * padding : padding;
-		long indexShift = middleEmpty + entries;
+		int middleEmpty = empty % 3 == 2 ? empty - 2 * padding : padding;
+		int indexShift = middleEmpty + entries;
 		index += indexShift;
 
 		// draw all the exits
@@ -210,13 +210,13 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param e5x     Coordinate X of the first left entry
 	 * @param e2y     Coordinate Y of the first right entry
 	 */
-	private void createHexagonalGraphEntries(long entries, double shift, long index, long id, double e0x, double e0y, double e1x, double e1y, double e5x, double e2y, boolean entry) {
+	private void createHexagonalGraphEntries(int entries, double shift, int index, Integer id, double e0x, double e0y, double e1x, double e1y, double e5x, double e2y, boolean entry) {
 		while (entries-- > 0) {
-			long id1 = id + 1;
-			long id2 = id + 2;
-			long id3 = id + 3;
-			long id4 = id + 4;
-			long id5 = id + 5;
+			Integer id1 = id + 1;
+			Integer id2 = id + 2;
+			Integer id3 = id + 3;
+			Integer id4 = id + 4;
+			Integer id5 = id + 5;
 
 			GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Vertex.Type.ENTRY0 : Vertex.Type.EXIT0);                // top left
 			GraphicalVertex v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Vertex.Type.ENTRY1 : Vertex.Type.EXIT1);               // top right
@@ -257,8 +257,8 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param index Index of entries
 	 * @param id    ID of the top left entry
 	 */
-	private void addHexagonalEntriesEdges(long index, long id, boolean entry) {
-		long start = 6 * (granularity - 1) * (granularity - 2) / 2 + 1 + index;
+	private void addHexagonalEntriesEdges(int index, int id, boolean entry) {
+		int start = 6 * (granularity - 1) * (granularity - 2) / 2 + 1 + index;
 		addHexagonalEntryEdge(id++, start, entry);
 		start += granularity - 1;
 		addHexagonalEntryEdge(id++, start, entry);
@@ -278,7 +278,7 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param id  ID of the entry / exit vertex
 	 * @param idn ID of the neighbour
 	 */
-	private void addHexagonalEntryEdge(long id, long idn, boolean entry) {
+	private void addHexagonalEntryEdge(int id, int idn, boolean entry) {
 		Vertex v = vertices.get(id);
 		Vertex vn = vertices.get(idn);
 		Vertex from = entry ? v : vn;

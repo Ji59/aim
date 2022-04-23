@@ -19,7 +19,7 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 	 */
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		final long exit;
+		final int exit;
 		if (agent.getExit() < 0) {
 			List<Vertex> directionExits = graph.getEntryExitVertices().get(agent.getExitDirection()).stream().filter(vertex -> vertex.getType().isExit()).toList();
 			List<Vertex> directionEntries = graph.getEntryExitVertices().get(agent.getEntryDirection()).stream().filter(vertex -> vertex.getType().isEntry()).toList();
@@ -30,7 +30,7 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 			exit = agent.getExit();
 		}
 
-		List<Long> path = graph.getLines().get(agent.getEntry()).get(exit);
+		List<Integer> path = graph.getLines().get(agent.getEntry()).get(exit);
 		if (path == null) {
 			return null;
 		}

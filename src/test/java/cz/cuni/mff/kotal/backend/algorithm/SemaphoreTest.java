@@ -10,18 +10,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
-import static org.junit.jupiter.api.Assertions.*;
-
 class SemaphoreTest {
 	private final SimulationGraph graph = new OctagonalGraph(5, 2, 1);
 	private final Semaphore semaphore = new Semaphore(graph);
-	private final Map<Long, Map<Long, Agent>> stepOccupiedVertices = semaphore.getStepOccupiedVertices();
+	private final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = semaphore.getStepOccupiedVertices();
 
 	private final Agent agent0 = new Agent(0, 22, 32, 1, 3, 1, 248, 0.44999999999999996, 0.30000000000000004, 0, 0)
-		.setPath(Arrays.asList(22L, 18L, 14L, 9L, 4L, 0L, 32L), 266);
+		.setPath(Arrays.asList(22, 18, 14, 9, 4, 0, 32), 266);
 	private final Agent agent1 = new Agent(1, 28, 29, 3, 0, 1, 255, 0.44999999999999996, 0.30000000000000004, 0, 0)
-		.setPath(Arrays.asList(28L, 1L, 5L, 38L, 9L, 41L, 13L, 29L), 266);
+		.setPath(Arrays.asList(28, 1, 5, 38, 9, 41, 13, 29), 266);
 
 	@BeforeEach
 	void setUp() {
@@ -33,14 +30,14 @@ class SemaphoreTest {
 	@Test
 	void safeStepTo() {
 		addPath(agent0);
-		boolean safeStep = semaphore.safeStepTo(agent1.getPlannedTime() + agent1.getPath().indexOf(9L), 9, 38, agent1.getAgentPerimeter(graph));
+		boolean safeStep = semaphore.safeStepTo(agent1.getPlannedTime() + agent1.getPath().indexOf(9), 9, 38, agent1.getAgentPerimeter(graph));
 		assert !safeStep;
 	}
 
 	@Test
 	void safeStepFrom() {
 		addPath(agent1);
-		boolean safeStep = semaphore.safeStepFrom(agent0.getPlannedTime() + agent0.getPath().indexOf(9L), 9, 4, agent1.getAgentPerimeter(graph));
+		boolean safeStep = semaphore.safeStepFrom(agent0.getPlannedTime() + agent0.getPath().indexOf(9), 9, 4, agent1.getAgentPerimeter(graph));
 		assert !safeStep;
 	}
 

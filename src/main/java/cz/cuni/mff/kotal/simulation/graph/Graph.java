@@ -4,6 +4,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 public class Graph {
 
 	protected final boolean oriented;
-	protected Map<Long, Vertex> vertices;
+	protected Map<Integer, Vertex> vertices;
 	protected Map<Integer, List<Vertex>> entryExitVertices;
 	protected Set<Edge> edges;
 
@@ -64,10 +65,10 @@ public class Graph {
 	 *
 	 * @param id ID of the vertex
 	 */
-	protected void addGraphEdges(long id) {
+	protected void addGraphEdges(Integer id) {
 		cz.cuni.mff.kotal.simulation.graph.Vertex vertex = vertices.get(id);
 		assert (vertex != null);
-		for (Long neighbourID : vertex.getNeighbourIDs()) {
+		for (Integer neighbourID : vertex.getNeighbourIDs()) {
 			if (neighbourID < id) {
 				GraphicalVertex neighbour = (GraphicalVertex) vertices.get(neighbourID);
 
@@ -97,16 +98,15 @@ public class Graph {
 		return vertices.values();
 	}
 
-	public Map<Long, Vertex> getVerticesWithIDs() {
+	public Map<Integer, Vertex> getVerticesWithIDs() {
 		return vertices;
 	}
 
 	/**
-	 *
 	 * @param id ID of desired vertex
 	 * @return Vertex from this graph with specified ID
 	 */
-	public Vertex getVertex(long id) {
+	public Vertex getVertex(int id) {
 		return vertices.get(id);
 	}
 

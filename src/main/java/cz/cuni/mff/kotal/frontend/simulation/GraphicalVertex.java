@@ -21,7 +21,7 @@ public class GraphicalVertex extends Vertex {
 	 * @param y    Y coordinate of the vertex
 	 * @param type Vertex type
 	 */
-	public GraphicalVertex(long id, double x, double y, Type type) {
+	public GraphicalVertex(int id, double x, double y, Type type) {
 		super(id, type);
 		this.x = x;
 		this.y = y;
@@ -34,7 +34,7 @@ public class GraphicalVertex extends Vertex {
 	 * @param x  X coordinate of the vertex
 	 * @param y  Y coordinate of the vertex
 	 */
-	public GraphicalVertex(long id, double x, double y) {
+	public GraphicalVertex(int id, double x, double y) {
 		super(id);
 		this.x = x;
 		this.y = y;
@@ -46,7 +46,7 @@ public class GraphicalVertex extends Vertex {
 		this.y = vertex.getY();
 	}
 
-	public GraphicalVertex(long id, double x, double y, Type type, Set<Long> neighbourIDs) {
+	public GraphicalVertex(int id, double x, double y, Type type, Set<Integer> neighbourIDs) {
 		super(id, type, neighbourIDs);
 		this.x = x;
 		this.y = y;

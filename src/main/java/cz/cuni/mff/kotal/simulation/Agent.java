@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.simulation;
 
 
-import com.google.gson.annotations.Expose;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
@@ -24,8 +23,8 @@ public class Agent {
 	private final long id;
 	private final double l; // Length of the agent
 	private final double w; // Width of the agent
-	private long entry;
-	private final long exit;
+	private int entry;
+	private final int exit;
 	private final int entryDirection;
 	private final int exitDirection;
 	private final double speed;
@@ -33,7 +32,7 @@ public class Agent {
 
 	private transient long plannedTime = -1;
 
-	private transient List<Long> path = new ArrayList<>();
+	private transient List<Integer> path = new ArrayList<>();
 	private transient double x; // location
 	private transient double y;
 
@@ -69,7 +68,7 @@ public class Agent {
 	 * @param x              Coordinate X of the agent
 	 * @param y              Coordinate Y of the agent
 	 */
-	public Agent(long id, long entry, long exit, int entryDirection, int exitDirection, double speed, double arrivalTime, double l, double w, double x, double y) {
+	public Agent(long id, Integer entry, Integer exit, int entryDirection, int exitDirection, double speed, double arrivalTime, double l, double w, double x, double y) {
 		this.id = id;
 		this.entry = entry;
 		this.exit = exit;
@@ -84,7 +83,7 @@ public class Agent {
 	}
 
 	@TestOnly
-	public Agent(long id, double arrivalTime, long plannedTime, long entry) {
+	public Agent(long id, double arrivalTime, long plannedTime, Integer entry) {
 		this.id = id;
 		this.arrivalTime = arrivalTime;
 		this.plannedTime = plannedTime;
@@ -125,7 +124,7 @@ public class Agent {
 	 * @param time
 	 * @return
 	 */
-	public long getNearestPathVertexId(double time) {
+	public Integer getNearestPathVertexId(double time) {
 		return path.get(getNearestVertexIndex(time));
 	}
 
@@ -140,14 +139,14 @@ public class Agent {
 	 * @return Pair od IDs of the previous and next vertex at given time
 	 * @throws IndexOutOfBoundsException TODO
 	 */
-	public Pair<Long, Long> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
+	public Pair<Integer, Integer> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
 		// TODO add exception
 		if (time < 0) {
-			Long first = path.get(0);
+			int first = path.get(0);
 			return new Pair<>(first, first);
 		}
 		if (doubleAlmostEqual(time, (path.size() - 1) / speed, PROXIMITY)) {
-			long exitID = path.get(path.size() - 1);
+			int exitID = path.get(path.size() - 1);
 			return new Pair<>(exitID, exitID);
 		}
 		int previousIndex = getLastVisitedVertexIndex(time);
@@ -167,7 +166,7 @@ public class Agent {
 	 *
 	 * @param entry ID of starting vertex
 	 */
-	public Agent setEntry(long entry) {
+	public Agent setEntry(Integer entry) {
 		this.entry = entry;
 		return this;
 	}
@@ -182,14 +181,14 @@ public class Agent {
 	/**
 	 * @return ID of starting vertex of this agent
 	 */
-	public long getEntry() {
+	public Integer getEntry() {
 		return entry;
 	}
 
 	/**
 	 * @return ID of ending vertex of this agent
 	 */
-	public long getExit() {
+	public Integer getExit() {
 		return exit;
 	}
 
@@ -217,7 +216,7 @@ public class Agent {
 	/**
 	 * @return Path of this agent
 	 */
-	public List<Long> getPath() {
+	public List<Integer> getPath() {
 		return path;
 	}
 
@@ -229,7 +228,7 @@ public class Agent {
 	 * @param path        New path of this agent
 	 * @param plannedTime
 	 */
-	public Agent setPath(List<Long> path, long plannedTime) {
+	public Agent setPath(List<Integer> path, long plannedTime) {
 		this.path = path;
 		this.plannedTime = plannedTime;
 		return this;
@@ -241,7 +240,7 @@ public class Agent {
 	 *
 	 * @param path New path of this agent
 	 */
-	protected Agent setPath(List<Long> path) {
+	protected Agent setPath(List<Integer> path) {
 		this.path = path;
 		return this;
 	}
@@ -253,10 +252,10 @@ public class Agent {
 	 * @param vertices Map of vertices and their IDs of the graph the agent is moving on
 	 * @throws IndexOutOfBoundsException TODO
 	 */
-	public void computeNextXY(double time, Map<Long, Vertex> vertices) throws IndexOutOfBoundsException {
+	public void computeNextXY(double time, Map<Integer, Vertex> vertices) throws IndexOutOfBoundsException {
 		double currentEdgeTravelPart = (time * speed) % 1;
 		double currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
-		Pair<Long, Long> previousNextGoalID = getPreviousNextVertexIDs(time);
+		Pair<Integer, Integer> previousNextGoalID = getPreviousNextVertexIDs(time);
 		GraphicalVertex previousGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getKey());
 		GraphicalVertex nextGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getValue());
 
@@ -275,7 +274,7 @@ public class Agent {
 	 * @param vertices Map of vertices to get entry vertex object.
 	 * @throws RuntimeException TODO
 	 */
-	public void setStartingXY(Map<Long, Vertex> vertices) {
+	public void setStartingXY(Map<Integer, Vertex> vertices) {
 		if (entry < 0 || exit < 0) {
 			throw new RuntimeException("Agent not planned.");
 		}

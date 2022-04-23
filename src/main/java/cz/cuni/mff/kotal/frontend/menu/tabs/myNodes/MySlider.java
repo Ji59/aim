@@ -105,8 +105,8 @@ public class MySlider extends HBox {
 	/**
 	 * @return Long value of the slider
 	 */
-	public long getValue() {
-		return Math.round(slider.getValue());
+	public int getValue() {
+		return (int) Math.round(slider.getValue());
 	}
 
 	/**

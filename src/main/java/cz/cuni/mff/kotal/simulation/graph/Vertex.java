@@ -3,10 +3,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 import javafx.scene.paint.Color;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -17,9 +14,9 @@ public class Vertex {
 	private static final Color ENTRY_COLOR = Color.color(0.875, 0.75, 0.625);
 	private static final Color EXIT_COLOR = Color.color(0.625, 0.75, 0.875);
 
-	protected final long id;
+	protected final int id;
 	protected final Type type;
-	protected final Set<Long> neighbourIds = new HashSet<>();
+	protected final Set<Integer> neighbourIds = new HashSet<>();
 
 	/**
 	 * Create vertex with specified ID and type.
@@ -27,7 +24,7 @@ public class Vertex {
 	 * @param id   Desired ID of the vertex
 	 * @param type Desired type of the vertex
 	 */
-	public Vertex(long id, Type type, Set<Long> neighbourIDs) {
+	public Vertex(int id, Type type, Set<Integer> neighbourIDs) {
 		this.id = id;
 		this.type = type;
 		this.getNeighbourIDs().addAll(neighbourIDs);
@@ -39,7 +36,7 @@ public class Vertex {
 	 * @param id   Desired ID of the vertex
 	 * @param type Desired type of the vertex
 	 */
-	public Vertex(long id, Type type) {
+	public Vertex(int id, Type type) {
 		this.id = id;
 		this.type = type;
 	}
@@ -49,7 +46,7 @@ public class Vertex {
 	 *
 	 * @param id Desired ID of the vertex
 	 */
-	public Vertex(long id) {
+	public Vertex(int id) {
 		this.id = id;
 		this.type = Type.ROAD;
 	}
@@ -66,7 +63,7 @@ public class Vertex {
 	 * @param ids IDs of neighbour vertices
 	 * @return True if neighbour IDs set changed
 	 */
-	public boolean addNeighbourID(Long... ids) {
+	public boolean addNeighbourID(Integer ... ids) {
 		if (ids.length == 1) {
 			return neighbourIds.add(ids[0]);
 		}
@@ -88,7 +85,7 @@ public class Vertex {
 	/**
 	 * @return ID of the vertex
 	 */
-	public long getID() {
+	public int getID() {
 		return id;
 	}
 
@@ -102,7 +99,7 @@ public class Vertex {
 	/**
 	 * @return IDs of neighbours
 	 */
-	public Set<Long> getNeighbourIDs() {
+	public Set<Integer> getNeighbourIDs() {
 		return neighbourIds;
 	}
 

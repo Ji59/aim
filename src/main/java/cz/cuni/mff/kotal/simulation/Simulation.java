@@ -44,7 +44,7 @@ public abstract class Simulation {
 
 	protected long loadedStep = 0;
 	protected long delayedStep = 0;
-	protected final Map<Long, List<Agent>> delayedAgents = new HashMap<>();
+	protected final Map<Integer, List<Agent>> delayedAgents = new HashMap<>();
 	protected final PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
 	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	protected final PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
@@ -68,7 +68,7 @@ public abstract class Simulation {
 
 		state = State.STOPPED;
 
-		maximumDelay = intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
+		maximumDelay = (long) intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
 
 		intersectionGraph.getEntryExitVertices().values().forEach(
 			directionList -> directionList.stream()

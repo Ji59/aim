@@ -17,11 +17,11 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Paramete
 public abstract class SimulationGraph extends Graph {
 	public static final double EPSILON = 1e-1;
 	private final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
-	protected final long granularity;
-	protected final long entries;
-	protected final long exits;
-	protected Map<Long, Map<Long, List<Long>>> shortestPaths;
-	protected Map<Long, Map<Long, Double>> distances;
+	protected final int granularity;
+	protected final int entries;
+	protected final int exits;
+	protected Map<Integer, Map<Integer, List<Integer>>> shortestPaths;
+	protected Map<Integer, HashMap<Integer, Double>> distances;
 
 	protected double cellSize;
 
@@ -36,7 +36,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param entryExitVertices Map of vertices in each entry / exit direction
 	 * @param edges             Graph edges
 	 */
-	protected SimulationGraph(long granularity, long entries, long exits, boolean oriented, Set<GraphicalVertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges) {
+	protected SimulationGraph(int granularity, int entries, int exits, boolean oriented, Set<GraphicalVertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges) {
 		super(oriented, vertices, entryExitVertices, edges);
 		this.granularity = granularity;
 		this.entries = entries;
@@ -51,7 +51,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param entries     Number of entries from each direction
 	 * @param exits       Number of exits from each direction
 	 */
-	protected SimulationGraph(Parameters.Models model, long granularity, long entries, long exits) {
+	protected SimulationGraph(Parameters.Models model, int granularity, int entries, int exits) {
 		super(false, model.getDirections().size());
 		this.granularity = granularity;
 		this.entries = entries;
@@ -76,9 +76,9 @@ public abstract class SimulationGraph extends Graph {
 	}
 
 	// TODO create exception if path does not exists
-	public Map<Long, Map<Long, List<Long>>> getLines() {
+	public Map<Integer, Map<Integer, List<Integer>>> getLines() {
 		if (shortestPaths == null) {
-			shortestPaths = new HashMap<>((int) (entries * getModel().getDirections().size()));
+			shortestPaths = new HashMap<>(entries * getModel().getDirections().size());
 			initializeVerticesDistances();
 
 			entryExitVertices.values().parallelStream()
@@ -97,12 +97,12 @@ public abstract class SimulationGraph extends Graph {
 		}
 	}
 
-	private Map<Long, List<Long>> shortestPaths(GraphicalVertex start) {
+	private Map<Integer, List<Integer>> shortestPaths(GraphicalVertex start) {
 
 		VertexWithDirection startWithDirection = new VertexWithDirection(start);
-		Map<Long, List<Long>> allPaths = ucs(startWithDirection);
+		Map<Integer, List<Integer>> allPaths = ucs(startWithDirection);
 
-		Map<Long, List<Long>> paths = new HashMap<>();
+		Map<Integer, List<Integer>> paths = new HashMap<>();
 		entryExitVertices.values().stream()
 			.flatMap(Collection::stream)
 			.filter(exit -> exit.getType().isExit())
@@ -112,8 +112,8 @@ public abstract class SimulationGraph extends Graph {
 		return paths;
 	}
 
-	private Map<Long, List<Long>> ucs(VertexWithDirection startingVertex) {
-		Map<Long, List<Long>> vertexDistances = new HashMap<>(vertices.size());
+	private Map<Integer, List<Integer>> ucs(VertexWithDirection startingVertex) {
+		Map<Integer, List<Integer>> vertexDistances = new HashMap<>(vertices.size());
 
 		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
 		queue.add(startingVertex);
@@ -124,7 +124,7 @@ public abstract class SimulationGraph extends Graph {
 				if (vertex.getParent() == null) {
 					vertexDistances.put(vertex.getID(), Collections.singletonList(vertex.getID()));
 				} else {
-					List<Long> vertexPath = new ArrayList<>(vertexDistances.get(vertex.getParent().getID()));
+					List<Integer> vertexPath = new ArrayList<>(vertexDistances.get(vertex.getParent().getID()));
 					vertexPath.add(vertex.getID());
 					vertexDistances.put(vertex.getID(), vertexPath);
 				}
@@ -144,7 +144,7 @@ public abstract class SimulationGraph extends Graph {
 	 *
 	 * @return
 	 */
-	public Map<Long, Map<Long, Double>> getDistances() {
+	public Map<Integer, HashMap<Integer, Double>> getDistances() {
 		if (distances == null) {
 			System.out.println("Initializing distances.");
 			initializeDistancesMap();
@@ -159,18 +159,18 @@ public abstract class SimulationGraph extends Graph {
 	private void computeDistances() {
 
 		int directions = entryExitVertices.size();
-		int entriesVertices = (int) (directions * entries);
-		int exitsVertices = (int) (directions * exits);
+		int entriesVertices = directions * entries;
+		int exitsVertices = directions * exits;
 
-		long[] verticesEdgesTo = new long[vertices.size() - entriesVertices];
+		Integer[] verticesEdgesTo = new Integer[vertices.size() - entriesVertices];
 		int to = 0;
-		long[] verticesEdgesFrom = new long[vertices.size() - exitsVertices];
+		Integer[] verticesEdgesFrom = new Integer[vertices.size() - exitsVertices];
 		int from = 0;
-		long[] verticesBoth = new long[vertices.size() - entriesVertices - exitsVertices];
+		Integer[] verticesBoth = new Integer[vertices.size() - entriesVertices - exitsVertices];
 		int both = 0;
 
 		for (Vertex vertex : vertices.values()) {
-			long id = vertex.getID();
+			int id = vertex.getID();
 			if (vertex.getType().isEntry()) {
 				verticesEdgesFrom[from++] = id;
 			} else if (vertex.getType().isExit()) {
@@ -185,14 +185,14 @@ public abstract class SimulationGraph extends Graph {
 		System.out.println("Computing distances.");
 		long time = System.nanoTime();
 		// Perform Floyd–Warshall update algorithm
-		for (long k : verticesBoth) {
-			for (long i : verticesEdgesFrom) {
+		for (int k : verticesBoth) {
+			for (int i : verticesEdgesFrom) {
 				Double distIK;
 				if (i == k || (distIK = distances.get(i).get(k)).isInfinite()) {
 					continue;
 				}
 
-				/**/
+				/**
 				Arrays.stream(verticesEdgesTo).parallel().forEach(j -> {
 					Double distKJ;
 					if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
@@ -206,7 +206,7 @@ public abstract class SimulationGraph extends Graph {
 				});
 				/*/
 				Double distKJ;
-				for (long j : verticesEdgesTo) {
+				for (Integer j : verticesEdgesTo) {
 					if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
 						continue;
 					}
@@ -226,7 +226,7 @@ public abstract class SimulationGraph extends Graph {
 		int capacity = 8 * vertices.size(); // TODO
 		distances = new HashMap<>(capacity);
 		for (Vertex vertex : vertices.values()) {
-			HashMap<Long, Double> vertexDistances = new HashMap<>(capacity);
+			HashMap<Integer, Double> vertexDistances = new HashMap<>(capacity);
 			for (Vertex u : vertices.values()) {
 				Edge edge = getEdge(vertex, u);
 				double initialDistance;
@@ -250,7 +250,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param to
 	 * @return
 	 */
-	public double getDistance(long from, long to) {
+	public double getDistance(int from, int to) {
 		return getDistances().get(from).get(to);
 	}
 
@@ -261,23 +261,23 @@ public abstract class SimulationGraph extends Graph {
 	 * @param to
 	 * @return
 	 */
-	public List<Long> shortestPath(GraphicalVertex from, GraphicalVertex to) {
+	public List<Integer> shortestPath(GraphicalVertex from, GraphicalVertex to) {
 		return shortestPath(from, to, 0);
 	}
 
 	// TODO
 
-	public List<Long> shortestPath(GraphicalVertex from, GraphicalVertex to, double startingAngle) {
+	public List<Integer> shortestPath(GraphicalVertex from, GraphicalVertex to, double startingAngle) {
 		if (verticesDistances.isEmpty()) {
 			initializeVerticesDistances();
 		}
 		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
-		HashSet<Long> visitedIDs = new HashSet<>();
+		HashSet<Integer> visitedIDs = new HashSet<>();
 		queue.add(new VertexWithDirection(from, startingAngle));
 		while (!queue.isEmpty()) {
 			VertexWithDirection vertex = queue.poll();
 			if (vertex.getID() == to.getID()) {
-				LinkedList<Long> path = new LinkedList<>();
+				LinkedList<Integer> path = new LinkedList<>();
 				VertexWithDirection vertexPath = vertex;
 				while (vertexPath != null) {
 					path.addFirst(vertexPath.getID());
@@ -296,8 +296,8 @@ public abstract class SimulationGraph extends Graph {
 		return new ArrayList<>();
 	}
 
-	private void dfs(Map<Long, VertexWithDirection> vertices, VertexWithDirection vertex) {
-		for (long neighbourID : vertex.getNeighbourIDs()) {
+	private void dfs(Map<Integer, VertexWithDirection> vertices, VertexWithDirection vertex) {
+		for (Integer neighbourID : vertex.getNeighbourIDs()) {
 			GraphicalVertex neighbourVertex;
 			neighbourVertex = (GraphicalVertex) this.vertices.get(neighbourID);
 			if (vertices.containsKey(neighbourID)) {
@@ -345,7 +345,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param id ID of desired vertex
 	 * @return
 	 */
-	public GraphicalVertex getVertex(long id) {
+	public GraphicalVertex getVertex(int id) {
 		return (GraphicalVertex) vertices.get(id);
 	}
 
@@ -366,21 +366,21 @@ public abstract class SimulationGraph extends Graph {
 	/**
 	 * @return Granularity of the graph
 	 */
-	public long getGranularity() {
+	public int getGranularity() {
 		return granularity;
 	}
 
 	/**
 	 * @return Entries to this graph
 	 */
-	public long getEntries() {
+	public int getEntries() {
 		return entries;
 	}
 
 	/**
 	 * @return Exits to this graph
 	 */
-	public long getExits() {
+	public int getExits() {
 		return exits;
 	}
 

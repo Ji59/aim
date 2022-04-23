@@ -15,7 +15,7 @@ import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 
 
 public class BreadthFirstSearch implements Algorithm {
-	private final Map<Long, VertexWithVisit> vertices;
+	private final Map<Integer, VertexWithVisit> vertices;
 
 	/**
 	 * Create new instance working with graph from provided simulation.
@@ -35,7 +35,7 @@ public class BreadthFirstSearch implements Algorithm {
 	public BreadthFirstSearch(SimulationGraph graph) {
 		vertices = graph.getVertices()
 			.stream()
-			.map(vertex -> new VertexWithVisit((GraphicalVertex) vertex))
+			.map(VertexWithVisit::new)
 			.collect(Collectors.toMap(Vertex::getID, Function.identity()));
 	}
 
@@ -48,9 +48,9 @@ public class BreadthFirstSearch implements Algorithm {
 	 */
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		final long exit;
+		final int exit;
 		if (agent.getExit() < 0) {
-			List<VertexWithVisit> directionExits = vertices.values().stream().filter(vertex -> vertex.getType().isExit() && vertex.getType().getDirection() == agent.getExitDirection()).collect(Collectors.toList());
+			List<VertexWithVisit> directionExits = vertices.values().stream().filter(vertex -> vertex.getType().isExit() && vertex.getType().getDirection() == agent.getExitDirection()).toList();
 			exit = directionExits.get(generateRandomInt(directionExits.size() - 1)).getID();
 		} else {
 			exit = agent.getExit();
@@ -71,7 +71,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 * @return Found path as list
 	 * @throws RuntimeException If no path was found.
 	 */
-	private List<Long> bfs(long startID, long endID) {
+	private List<Integer> bfs(int startID, int endID) {
 		VertexWithVisit start = vertices.get(startID);
 
 		// TODO add excepion
@@ -85,7 +85,7 @@ public class BreadthFirstSearch implements Algorithm {
 		while (!queue.isEmpty()) {
 			VertexWithVisit first = queue.poll();
 			if (first.getNeighbourIDs().contains(endID)) {
-				List<Long> path = first.getPath();
+				List<Integer> path = first.getPath();
 				path.add(endID);
 
 				resetVisitedVertices();
@@ -113,7 +113,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 */
 	private static class VertexWithVisit extends GraphicalVertex {
 		private boolean visited = false;
-		private List<Long> path;
+		private List<Integer> path;
 
 		/**
 		 * Create new vertex with provided parameters.
@@ -122,7 +122,7 @@ public class BreadthFirstSearch implements Algorithm {
 		 * @param type         Type of the vertex
 		 * @param neighbourIDs Set of neighbour vertices of the vertex
 		 */
-		public VertexWithVisit(long id, double x, double y, Type type, Set<Long> neighbourIDs) {
+		public VertexWithVisit(int id, double x, double y, Type type, Set<Integer> neighbourIDs) {
 			super(id, x, y, type, neighbourIDs);
 		}
 
@@ -132,7 +132,7 @@ public class BreadthFirstSearch implements Algorithm {
 		 * @param id   ID of the vertex
 		 * @param type Type of the vertex
 		 */
-		public VertexWithVisit(long id, double x, double y, Type type) {
+		public VertexWithVisit(int id, double x, double y, Type type) {
 			super(id, x, y, type);
 		}
 
@@ -164,7 +164,7 @@ public class BreadthFirstSearch implements Algorithm {
 		/**
 		 * @return Path to this vertex
 		 */
-		public List<Long> getPath() {
+		public List<Integer> getPath() {
 			return path;
 		}
 
@@ -173,7 +173,7 @@ public class BreadthFirstSearch implements Algorithm {
 		 *
 		 * @param path Path to append itself to
 		 */
-		public void setPathAndAddSelf(List<Long> path) {
+		public void setPathAndAddSelf(List<Integer> path) {
 			this.path = path;
 			path.add(id);
 		}

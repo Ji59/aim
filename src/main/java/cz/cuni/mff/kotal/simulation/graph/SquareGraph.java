@@ -4,8 +4,6 @@ package cz.cuni.mff.kotal.simulation.graph;
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 
-import java.util.Objects;
-
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.*;
 
 
@@ -18,7 +16,7 @@ public class SquareGraph extends SimulationGraph {
 	 * @param entries     Number of entries from each direction
 	 * @param exits       Number of exits from each direction
 	 */
-	public SquareGraph(long granularity, long entries, long exits) {
+	public SquareGraph(int granularity, int entries, int exits) {
 		super(SQUARE, granularity, entries, exits);
 
 		cellSize = 1. / (granularity + 2);
@@ -36,7 +34,7 @@ public class SquareGraph extends SimulationGraph {
 	 * @param exits          Number of exits from each direction
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
-	protected SquareGraph(IntersectionMenuTab0.Parameters.Models model, long granularity, long entries, long exits, double shift, boolean withoutCorners) {
+	protected SquareGraph(IntersectionMenuTab0.Parameters.Models model, int granularity, int entries, int exits, double shift, boolean withoutCorners) {
 		super(model, granularity, entries, exits);
 
 		createSquareGraphVertices(shift, withoutCorners);
@@ -51,10 +49,10 @@ public class SquareGraph extends SimulationGraph {
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
 	protected void createSquareGraphVertices(double shift, boolean withoutCorners) {
-		long g = granularity;
-		long id = vertices.size();
-		for (long i = 0; i < granularity; i++) {
-			for (long j = 0; j < granularity; j++) {
+		int g = granularity;
+		int id = vertices.size();
+		for (int i = 0; i < granularity; i++) {
+			for (int j = 0; j < granularity; j++) {
 				// check if in corner
 				if (withoutCorners &&
 					(i == 0 || i == g - 1) &&
@@ -83,10 +81,10 @@ public class SquareGraph extends SimulationGraph {
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
 	private void createSquareGraphAddNeighbours(GraphicalVertex vertex, boolean withoutCorners) {
-		long g = granularity;
-		long id = vertex.getID();
-		long i = id / granularity;
-		long j = id % granularity;
+		int g = granularity;
+		int id = vertex.getID();
+		int i = id / granularity;
+		int j = id % granularity;
 
 		if (withoutCorners) {
 			int idOffset;
@@ -136,13 +134,13 @@ public class SquareGraph extends SimulationGraph {
 	 * @param shift          distance between 2 neighbour vertices
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
-	protected void createSquareGraphEntryVertices(long entries, long exits, double shift, boolean withoutCorners) {
+	protected void createSquareGraphEntryVertices(int entries, int exits, double shift, boolean withoutCorners) {
 		assert (entries + exits <= granularity - (withoutCorners ? 2 : 0));
 
 		// compute outer empty spaces
-		long empty = granularity - entries - exits;
-		long padding = empty / 3;
-		long index = empty % 3 == 2 ? ++padding + 1 : padding + 1;
+		int empty = granularity - entries - exits;
+		int padding = empty / 3;
+		int index = empty % 3 == 2 ? ++padding + 1 : padding + 1;
 
 		// draw all the entries
 		createSquareGraphEntries(entries, shift, index, withoutCorners, true);
@@ -165,14 +163,14 @@ public class SquareGraph extends SimulationGraph {
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 * @param entry          Define if creating entries or exits
 	 */
-	private void createSquareGraphEntries(long entries, double shift, long index, boolean withoutCorners, boolean entry) {
+	private void createSquareGraphEntries(int entries, double shift, int index, boolean withoutCorners, boolean entry) {
 		double topX = (index + 0.5) * shift;
 		double topY = shift * 0.5;
 		double botX = (granularity - index + 1.5) * shift;
 		double botY = (granularity + 1 + 0.5) * shift;
 
 		// find first unused id
-		long id = vertices.size();
+		int id = vertices.size();
 
 		for (int i = 0; i < entries; i++) {
 

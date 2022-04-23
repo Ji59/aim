@@ -13,14 +13,14 @@ import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
 public class SafeLines implements Algorithm {
 	protected final SimulationGraph graph;
-	protected final Map<Long, Map<Long, Agent>> stepOccupiedVertices = new HashMap<>();
+	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, List<Vertex>> directionExits = new HashMap<>();
-	protected final Map<Long, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
+	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
 
 	public SafeLines(SimulationGraph graph) {
 		this.graph = graph;
 
-		List<GraphicalVertex> sortedGraphicalVertices = graph.getVertices().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingLong(Vertex::getID)).toList();
+		List<GraphicalVertex> sortedGraphicalVertices = graph.getVertices().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
 		sortedGraphicalVertices.forEach(v -> verticesDistances.put(v.getID(), new PriorityQueue<>(sortedGraphicalVertices.size())));
 		sortedGraphicalVertices.parallelStream().forEach(v0 -> {
 			List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()
@@ -45,20 +45,20 @@ public class SafeLines implements Algorithm {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		List<Long> selectedPath = null;
+		List<Integer> selectedPath = null;
 		double agentPerimeter = agent.getAgentPerimeter();
 		if (agent.getExit() < 0) {
-			List<List<Long>> directionPaths = directionExits.get((int) agent.getExitDirection()).stream()
+			List<List<Integer>> directionPaths = directionExits.get(agent.getExitDirection()).stream()
 				.map(exit -> graph.getLines().get(agent.getEntry()).get(exit.getID()))
 				.sorted(Comparator.comparingInt(List::size)).toList();
-			for (List<Long> path : directionPaths) {
+			for (List<Integer> path : directionPaths) {
 				if (validPath(step, path, agentPerimeter)) {
 					selectedPath = path;
 					break;
 				}
 			}
 		} else {
-			List<Long> path = graph.getLines().get(agent.getEntry()).get(agent.getExit());
+			List<Integer> path = graph.getLines().get(agent.getEntry()).get(agent.getExit());
 			if (validPath(step, path, agentPerimeter)) {
 				selectedPath = path;
 			}
@@ -74,11 +74,11 @@ public class SafeLines implements Algorithm {
 		return agent;
 	}
 
-	boolean validPath(long step, @NotNull List<Long> path, double agentPerimeter) {
+	boolean validPath(long step, List<Integer> path, double agentPerimeter) {
 		for (int i = 0; i < path.size(); i++) {
 			long actualStep = step + i;
 			if (stepOccupiedVertices.containsKey(actualStep)) {
-				Long vertexID = path.get(i);
+				int vertexID = path.get(i);
 				if (!safeVertex(actualStep, vertexID, agentPerimeter) ||
 					(i >= 1 && !safeStepTo(actualStep, vertexID, path.get(i - 1), agentPerimeter)) ||
 					(i < path.size() - 1 && !safeStepFrom(actualStep, vertexID, path.get(i + 1), agentPerimeter))
@@ -92,14 +92,14 @@ public class SafeLines implements Algorithm {
 		return true;
 	}
 
-	protected boolean safeVertex(long step, long vertexID, double agentPerimeter) {
+	protected boolean safeVertex(long step, int vertexID, double agentPerimeter) {
 		assert stepOccupiedVertices.containsKey(step);
 		return verticesDistances.get(vertexID).stream()
 			.takeWhile(v -> v.distance() <= agentPerimeter)
 			.noneMatch(v -> stepOccupiedVertices.get(step).containsKey(v.vertexID()));
 	}
 
-	protected boolean safeStepTo(long step, long vertexID, long previousVertexID, double agentPerimeter) {
+	protected boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
 		if (!stepOccupiedVertices.containsKey(step - 1)) {
 			return true;
 		}
@@ -108,14 +108,14 @@ public class SafeLines implements Algorithm {
 		if (neighbour == null) {
 			return true;
 		}
-		long neighbourVertexID = getNeighbourVertexID(step, neighbour);
+		int neighbourVertexID = getNeighbourVertexID(step, neighbour);
 		if (neighbourVertexID < 0) {
 			return true;
 		}
 		return checkNeighbour(vertexID, previousVertexID, neighbourVertexID, agentPerimeter, neighbour);
 	}
 
-	protected boolean safeStepFrom(long step, long vertexID, long nextVertexID, double agentPerimeter) {
+	protected boolean safeStepFrom(long step, int vertexID, int nextVertexID, double agentPerimeter) {
 		if (!stepOccupiedVertices.containsKey(step + 1)) {
 			return true;
 		}
@@ -123,14 +123,14 @@ public class SafeLines implements Algorithm {
 		if (neighbour == null) {
 			return true;
 		}
-		long neighbourVertexID = getNeighbourVertexID(step, neighbour);
+		int neighbourVertexID = getNeighbourVertexID(step, neighbour);
 		if (neighbourVertexID < 0) {
 			return true;
 		}
 		return checkNeighbour(vertexID, neighbourVertexID, nextVertexID, agentPerimeter, neighbour);
 	}
 
-	private long getNeighbourVertexID(long step, Agent neighbour) {
+	private int getNeighbourVertexID(long step, Agent neighbour) {
 		long plannedTime = neighbour.getPlannedTime() >= 0 ? neighbour.getPlannedTime() : step;
 		int neighbourStep = (int) (step - plannedTime);
 		if (neighbourStep >= neighbour.getPath().size()) {
@@ -139,7 +139,7 @@ public class SafeLines implements Algorithm {
 		return neighbour.getPath().get(neighbourStep);
 	}
 
-	private boolean checkNeighbour(long vertexID, long adjacentVertexID, long neighbourVertexID, double agentPerimeter, Agent neighbour) {
+	private boolean checkNeighbour(int vertexID, int adjacentVertexID, int neighbourVertexID, double agentPerimeter, Agent neighbour) {
 
 		double neighbourPerimeter = neighbour.getAgentPerimeter();
 
@@ -178,11 +178,11 @@ public class SafeLines implements Algorithm {
 		return xDiffAtT + yDiffAtT > perimetersSquared;
 	}
 
-	Map<Long, Map<Long, Agent>> getStepOccupiedVertices() {
+	Map<Long, Map<Integer, Agent>> getStepOccupiedVertices() {
 		return stepOccupiedVertices;
 	}
 
-	protected record VertexDistance(long vertexID, double distance) implements Comparable<VertexDistance> {
+	protected record VertexDistance(int vertexID, double distance) implements Comparable<VertexDistance> {
 
 		@Override
 		public int compareTo(@NotNull VertexDistance o) {

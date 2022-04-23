@@ -34,8 +34,8 @@ class RoundaboutTest {
 		roundabout.planAgent(previousAgent, 0);
 		previousAgent.setPlannedTime(0);
 
-//		assertThat(previousAgent.getPath(), contains(19L, 2L, 3L, 7L, 11L, 15L, 14L, 13L, 12L, 8L, 20L));
-		assertThat(previousAgent.getPath()).contains(19L, 2L, 3L, 7L, 11L, 15L, 14L, 13L, 12L, 8L, 20L);
+//		assertThat(previousAgent.getPath(), contains(19, 2, 3, 7, 11, 15, 14, 13, 12, 8, 20));
+		assertThat(previousAgent.getPath()).contains(19, 2, 3, 7, 11, 15, 14, 13, 12, 8, 20);
 
 		Agent plannedAgent = roundabout.planAgent(nextAgent, NEXT_AGENT_START);
 //		assertThat(plannedAgent, not(nullValue()));
