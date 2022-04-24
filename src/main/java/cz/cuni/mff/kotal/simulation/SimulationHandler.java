@@ -138,7 +138,7 @@ public class SimulationHandler {
 
 	public static void resetValues(Graph graph) {
 		terminated = true;
-		verticesUsage = new long[graph.getVertices().size()];
+		verticesUsage = new long[graph.getVertices().length];
 		frames = 0;
 		maxStep = 0;
 	}

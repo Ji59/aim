@@ -67,7 +67,8 @@ public class IntersectionModel extends Pane {
 			Line l = new Line(vCoor(u.getX()), vCoor(u.getY()), vCoor(v.getX()), vCoor(v.getY()));
 			nodes.add(l);
 		}
-		for (GraphicalVertex vertex : graph.getVertices()) {
+		for (Vertex v : graph.getVertices()) {
+			GraphicalVertex vertex = (GraphicalVertex) v;
 			Circle circle = new Circle(shift * VERTEX_RATIO, vertex.getType().getColor());
 			Text t = new Text(String.valueOf(vertex.getID()));
 			t.setBoundsType(TextBoundsType.VISUAL);
@@ -90,7 +91,8 @@ public class IntersectionModel extends Pane {
 		double shift = height / (granularity + 2);
 
 		if (!IntersectionMenu.isAbstract()) {
-			for (GraphicalVertex vertex : graph.getVertices()) {
+			for (Vertex v : graph.getVertices()) {
+				GraphicalVertex vertex = (GraphicalVertex) v;
 				drawSquareVertex(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());
 			}
 		} else {
@@ -111,7 +113,8 @@ public class IntersectionModel extends Pane {
 		if (IntersectionMenu.isAbstract()) {
 			drawAbstractModel(shift);
 		} else {
-			for (GraphicalVertex vertex : graph.getVertices()) {
+			for (Vertex v : graph.getVertices()) {
+				GraphicalVertex vertex = (GraphicalVertex) v;
 				if (vertex.getType() == Type.ROAD) {
 					drawHexagon(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());
 				} else {
@@ -132,7 +135,8 @@ public class IntersectionModel extends Pane {
 		double shift = height * graph.getCellSize();
 
 		if (!IntersectionMenu.isAbstract()) {
-			for (GraphicalVertex vertex : graph.getVertices()) {
+			for (Vertex v : graph.getVertices()) {
+				GraphicalVertex vertex = (GraphicalVertex) v;
 				if (vertex.getType() == Type.ROAD) {
 					if (vertex.getID() < granularity * granularity - 4) {
 						drawOctagon(shift, vCoor(vertex.getX()), vCoor(vertex.getY()), vertex.getID(), vertex.getType().getColor());

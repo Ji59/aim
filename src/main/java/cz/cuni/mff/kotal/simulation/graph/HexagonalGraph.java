@@ -3,8 +3,9 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.*;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.HEXAGONAL;
 
 
 public class HexagonalGraph extends SimulationGraph {
@@ -18,7 +19,7 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param exits       Number of exits from each direction
 	 */
 	public HexagonalGraph(int granularity, int entries, int exits) {
-		super(HEXAGONAL, granularity, entries, exits);
+		super(HEXAGONAL, granularity, entries, exits, (granularity * (granularity - 1) / 2 + entries + exits) * 6 + 1);
 
 		cellSize = 1. / (2 * granularity + 1);
 
@@ -37,10 +38,10 @@ public class HexagonalGraph extends SimulationGraph {
 		double centerY = 0.5;
 
 		// create center vertex
-		int id = vertices.size();
+		int id = vertices.length;
 		GraphicalVertex v = new GraphicalVertex(id++, centerX, centerY);
 		v.addNeighbourID(1, 2, 3, 4, 5, 6);
-		vertices.put(0, v);
+		vertices[0] = v;
 
 
 		int id0 = id;
@@ -65,18 +66,21 @@ public class HexagonalGraph extends SimulationGraph {
 			boolean notLast = i < granularity - 1;
 
 			for (int j = 0; j < i; j++, id0++,
-				x1 += sin60Shift, y1 += halfShift,
-				y2 += shift,
-				x3 -= sin60Shift, y3 += halfShift,
-				x4 -= sin60Shift, y4 -= halfShift,
-				y5 -= shift,
-				x0 += sin60Shift, y0 -= halfShift
+							x1 += sin60Shift, y1 += halfShift,
+							y2 += shift,
+							x3 -= sin60Shift, y3 += halfShift,
+							x4 -= sin60Shift, y4 -= halfShift,
+							y5 -= shift,
+							x0 += sin60Shift, y0 -= halfShift
 			) {
 				createLayerVertices(i, j, notLast, id0, x0, y0, x1, y1, x2, y2, x3, y3, x4, y4, x5, y5);
 			}
 		}
 
-		vertices.keySet().forEach(this::addGraphEdges);
+		for (int i = 0; i < vertices.length; i++) {
+			addGraphEdges(i);
+		}
+//		vertices.keySet().forEach(this::addGraphEdges);  TODO remove
 	}
 
 	/**
@@ -152,9 +156,9 @@ public class HexagonalGraph extends SimulationGraph {
 			v.addNeighbourID(id + i * 6 - 1);
 		}
 
-		// add vertex to vertices map
-		cz.cuni.mff.kotal.simulation.graph.Vertex last1 = vertices.put(id, v);
-		assert (last1 == null);
+		// add vertex to vertices
+		assert vertices[id] == null;
+		vertices[id] = v;
 	}
 
 	/**
@@ -170,7 +174,7 @@ public class HexagonalGraph extends SimulationGraph {
 		int padding = empty / 3;
 		int index = empty % 3 == 2 ? ++padding : padding;
 
-		int id = vertices.size();
+		int id = vertices.length;
 
 		// draw all the entries
 		double e0x = shift * (granularity + Math.sqrt(3) * (index - granularity + 1) / 2);
@@ -187,7 +191,7 @@ public class HexagonalGraph extends SimulationGraph {
 		index += indexShift;
 
 		// draw all the exits
-		id = vertices.size();
+		id = vertices.length;
 		e0x += indexShift * Math.sqrt(3) * shift / 2;
 		e0y -= indexShift * shift / 2;
 		e1x += indexShift * Math.sqrt(3) * shift / 2;
@@ -210,26 +214,26 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param e5x     Coordinate X of the first left entry
 	 * @param e2y     Coordinate Y of the first right entry
 	 */
-	private void createHexagonalGraphEntries(int entries, double shift, int index, Integer id, double e0x, double e0y, double e1x, double e1y, double e5x, double e2y, boolean entry) {
+	private void createHexagonalGraphEntries(int entries, double shift, int index, int id, double e0x, double e0y, double e1x, double e1y, double e5x, double e2y, boolean entry) {
 		while (entries-- > 0) {
-			Integer id1 = id + 1;
-			Integer id2 = id + 2;
-			Integer id3 = id + 3;
-			Integer id4 = id + 4;
-			Integer id5 = id + 5;
+			int id1 = id + 1;
+			int id2 = id + 2;
+			int id3 = id + 3;
+			int id4 = id + 4;
+			int id5 = id + 5;
 
-			GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Vertex.Type.ENTRY0 : Vertex.Type.EXIT0);                // top left
-			GraphicalVertex v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Vertex.Type.ENTRY1 : Vertex.Type.EXIT1);               // top right
-			GraphicalVertex v2 = new GraphicalVertex(id2, 1 - e5x, e2y, entry ? Vertex.Type.ENTRY2 : Vertex.Type.EXIT2);        // right
-			GraphicalVertex v3 = new GraphicalVertex(id3, 1 - e0x, 1 - e0y, entry ? Vertex.Type.ENTRY3 : Vertex.Type.EXIT3); // bottom right
-			GraphicalVertex v4 = new GraphicalVertex(id4, 1 - e1x, 1 - e1y, entry ? Vertex.Type.ENTRY4 : Vertex.Type.EXIT4); // bottom left
-			GraphicalVertex v5 = new GraphicalVertex(id5, e5x, 1 - e2y, entry ? Vertex.Type.ENTRY5 : Vertex.Type.EXIT5);        // left
-			vertices.put(id, v0);
-			vertices.put(id1, v1);
-			vertices.put(id2, v2);
-			vertices.put(id3, v3);
-			vertices.put(id4, v4);
-			vertices.put(id5, v5);
+			GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Type.ENTRY0 : Type.EXIT0);                // top left
+			GraphicalVertex v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Type.ENTRY1 : Type.EXIT1);               // top right
+			GraphicalVertex v2 = new GraphicalVertex(id2, 1 - e5x, e2y, entry ? Type.ENTRY2 : Type.EXIT2);        // right
+			GraphicalVertex v3 = new GraphicalVertex(id3, 1 - e0x, 1 - e0y, entry ? Type.ENTRY3 : Type.EXIT3); // bottom right
+			GraphicalVertex v4 = new GraphicalVertex(id4, 1 - e1x, 1 - e1y, entry ? Type.ENTRY4 : Type.EXIT4); // bottom left
+			GraphicalVertex v5 = new GraphicalVertex(id5, e5x, 1 - e2y, entry ? Type.ENTRY5 : Type.EXIT5);        // left
+			vertices[id] = v0;
+			vertices[id1] = v1;
+			vertices[id2] = v2;
+			vertices[id3] = v3;
+			vertices[id4] = v4;
+			vertices[id5] = v5;
 
 			entryExitVertices.get(0).add(v0);
 			entryExitVertices.get(1).add(v1);
@@ -279,8 +283,8 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param idn ID of the neighbour
 	 */
 	private void addHexagonalEntryEdge(int id, int idn, boolean entry) {
-		Vertex v = vertices.get(id);
-		Vertex vn = vertices.get(idn);
+		Vertex v = vertices[id];
+		Vertex vn = vertices[idn];
 		Vertex from = entry ? v : vn;
 		Vertex to = entry ? vn : v;
 

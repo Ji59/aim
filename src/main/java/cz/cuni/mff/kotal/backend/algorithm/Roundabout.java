@@ -139,7 +139,7 @@ public class Roundabout extends SafeLines {
 				}
 				entriesNeighboursVertices.add(graph.getVertex(neighbour));
 			} else {
-				GraphicalVertex neighbour = graph.getVertices().stream().filter(n -> n.getNeighbourIDs().contains(v.getID())).findFirst().orElse(null);
+				GraphicalVertex neighbour = graph.getVerticesSet().stream().filter(n -> n.getNeighbourIDs().contains(v.getID())).findFirst().orElse(null);
 				if (neighbour == null) {
 					// TODO
 					throw new RuntimeException("Neighbour of exit " + v.getID() + " not found.");

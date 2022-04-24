@@ -1,10 +1,10 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
-import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
+import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.*;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.SQUARE;
 
 
 public class SquareGraph extends SimulationGraph {
@@ -17,13 +17,13 @@ public class SquareGraph extends SimulationGraph {
 	 * @param exits       Number of exits from each direction
 	 */
 	public SquareGraph(int granularity, int entries, int exits) {
-		super(SQUARE, granularity, entries, exits);
+		super(SQUARE, granularity, entries, exits, granularity * granularity + 4 * (entries + exits));
 
 		cellSize = 1. / (granularity + 2);
 
-		createSquareGraphVertices(cellSize, false);
+		int id = createSquareGraphVertices(0, cellSize, false);
 
-		createSquareGraphEntryVertices(entries, exits, cellSize, false);
+		createSquareGraphEntryVertices(id, entries, exits, cellSize, false);
 	}
 
 	/**
@@ -34,12 +34,12 @@ public class SquareGraph extends SimulationGraph {
 	 * @param exits          Number of exits from each direction
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
-	protected SquareGraph(IntersectionMenuTab0.Parameters.Models model, int granularity, int entries, int exits, double shift, boolean withoutCorners) {
-		super(model, granularity, entries, exits);
+	protected SquareGraph(Models model, int granularity, int entries, int exits, int vertices, double shift, boolean withoutCorners) {
+		super(model, granularity, entries, exits, vertices);
 
-		createSquareGraphVertices(shift, withoutCorners);
+		int id = createSquareGraphVertices(0, shift, withoutCorners);
 
-		createSquareGraphEntryVertices(entries, exits, shift, withoutCorners);
+		createSquareGraphEntryVertices(id, entries, exits, shift, withoutCorners);
 	}
 
 	/**
@@ -47,23 +47,24 @@ public class SquareGraph extends SimulationGraph {
 	 *
 	 * @param shift          Distance between 2 vertices
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
+	 *
+	 * @return TODO
 	 */
-	protected void createSquareGraphVertices(double shift, boolean withoutCorners) {
+	protected int createSquareGraphVertices(int id, double shift, boolean withoutCorners) {
 		int g = granularity;
-		int id = vertices.size();
 		for (int i = 0; i < granularity; i++) {
 			for (int j = 0; j < granularity; j++) {
 				// check if in corner
 				if (withoutCorners &&
-					(i == 0 || i == g - 1) &&
-					(j == 0 || j == g - 1)
+								(i == 0 || i == g - 1) &&
+								(j == 0 || j == g - 1)
 				) {
 					continue;
 				}
 
 				// create vertex
 				GraphicalVertex vertex = new GraphicalVertex(id, (i + 1.5) * shift, (j + 1.5) * shift);
-				vertices.put(id, vertex);
+				vertices[id] = vertex;
 
 				// add neighbours ids
 				createSquareGraphAddNeighbours(vertex, withoutCorners);
@@ -72,6 +73,8 @@ public class SquareGraph extends SimulationGraph {
 				addGraphEdges(id++);
 			}
 		}
+
+		return id;
 	}
 
 	/**
@@ -134,7 +137,7 @@ public class SquareGraph extends SimulationGraph {
 	 * @param shift          distance between 2 neighbour vertices
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
-	protected void createSquareGraphEntryVertices(int entries, int exits, double shift, boolean withoutCorners) {
+	protected int createSquareGraphEntryVertices(int id, int entries, int exits, double shift, boolean withoutCorners) {
 		assert (entries + exits <= granularity - (withoutCorners ? 2 : 0));
 
 		// compute outer empty spaces
@@ -143,14 +146,15 @@ public class SquareGraph extends SimulationGraph {
 		int index = empty % 3 == 2 ? ++padding + 1 : padding + 1;
 
 		// draw all the entries
-		createSquareGraphEntries(entries, shift, index, withoutCorners, true);
+		id = createSquareGraphEntries(id, entries, shift, index, withoutCorners, true);
 		index += entries;
 
 		// skip middle empty space
 		index += empty - 2 * padding;
 
 		// draw all the exits
-		createSquareGraphEntries(exits, shift, index, withoutCorners, false);
+		id = createSquareGraphEntries(id, exits, shift, index, withoutCorners, false);
+		return id;
 	}
 
 
@@ -163,14 +167,11 @@ public class SquareGraph extends SimulationGraph {
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 * @param entry          Define if creating entries or exits
 	 */
-	private void createSquareGraphEntries(int entries, double shift, int index, boolean withoutCorners, boolean entry) {
+	private int createSquareGraphEntries(int id, int entries, double shift, int index, boolean withoutCorners, boolean entry) {
 		double topX = (index + 0.5) * shift;
 		double topY = shift * 0.5;
 		double botX = (granularity - index + 1.5) * shift;
 		double botY = (granularity + 1 + 0.5) * shift;
-
-		// find first unused id
-		int id = vertices.size();
 
 		for (int i = 0; i < entries; i++) {
 
@@ -181,10 +182,10 @@ public class SquareGraph extends SimulationGraph {
 			GraphicalVertex leftE = new GraphicalVertex(id++, topY, botX, entry ? Vertex.Type.ENTRY3 : Vertex.Type.EXIT3);
 
 			// add graph vertices
-			vertices.put(topE.getID(), topE);
-			vertices.put(bottomE.getID(), bottomE);
-			vertices.put(leftE.getID(), leftE);
-			vertices.put(rightE.getID(), rightE);
+			vertices[topE.getID()] = topE;
+			vertices[bottomE.getID()] = bottomE;
+			vertices[leftE.getID()] = leftE;
+			vertices[rightE.getID()] = rightE;
 
 			entryExitVertices.get(topE.getType().getDirection()).add(topE);
 			entryExitVertices.get(rightE.getType().getDirection()).add(rightE);
@@ -193,10 +194,10 @@ public class SquareGraph extends SimulationGraph {
 
 
 			// create edges
-			cz.cuni.mff.kotal.simulation.graph.Vertex topN = vertices.get((index - 1) * granularity - (withoutCorners ? 2 : 0));
-			cz.cuni.mff.kotal.simulation.graph.Vertex bottomN = vertices.get((granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1));
-			cz.cuni.mff.kotal.simulation.graph.Vertex leftN = vertices.get(granularity - index - (withoutCorners ? 1 : 0));
-			cz.cuni.mff.kotal.simulation.graph.Vertex rightN = vertices.get((granularity - 1) * granularity + index - (withoutCorners ? 4 : 1));
+			cz.cuni.mff.kotal.simulation.graph.Vertex topN = vertices[(index - 1) * granularity - (withoutCorners ? 2 : 0)];
+			cz.cuni.mff.kotal.simulation.graph.Vertex bottomN = vertices[(granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)];
+			cz.cuni.mff.kotal.simulation.graph.Vertex leftN = vertices[granularity - index - (withoutCorners ? 1 : 0)];
+			cz.cuni.mff.kotal.simulation.graph.Vertex rightN = vertices[(granularity - 1) * granularity + index - (withoutCorners ? 4 : 1)];
 			assert (topN != null && bottomN != null && leftN != null && rightN != null);
 			if (entry) {
 				topE.getNeighbourIDs().add(topN.getID());
@@ -224,13 +225,15 @@ public class SquareGraph extends SimulationGraph {
 			topX += shift;
 			botX -= shift;
 		}
+
+		return id;
 	}
 
 	/**
 	 * @return Model Type of square graph
 	 */
 	@Override
-	public IntersectionMenuTab0.Parameters.Models getModel() {
+	public Models getModel() {
 		return SQUARE;
 	}
 

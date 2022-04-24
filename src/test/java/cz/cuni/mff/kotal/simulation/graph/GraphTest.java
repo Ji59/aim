@@ -20,8 +20,8 @@ class GraphTest {
       Graph g = new Graph(false, Set.of(v0, v1, v2), new HashMap<>(), Set.of(e0, e1, e2));
 
       // check vertices
-      assert g.getVertices().size() == 3;
-      assert g.getVertices().containsAll(Set.of(v0, v1, v2));
+      assert g.getVertices().length == 3;
+      assert List.of(g.getVertices()).containsAll(Set.of(v0, v1, v2)); // TODO refactor
 
       // check edges
       assert g.getEdges().size() == 4;

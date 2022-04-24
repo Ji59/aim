@@ -33,7 +33,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 * @param graph Graph to search on
 	 */
 	public BreadthFirstSearch(SimulationGraph graph) {
-		vertices = graph.getVertices()
+		vertices = graph.getVerticesSet()
 			.stream()
 			.map(VertexWithVisit::new)
 			.collect(Collectors.toMap(Vertex::getID, Function.identity()));

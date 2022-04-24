@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters;
 
@@ -51,8 +52,8 @@ public abstract class SimulationGraph extends Graph {
 	 * @param entries     Number of entries from each direction
 	 * @param exits       Number of exits from each direction
 	 */
-	protected SimulationGraph(Parameters.Models model, int granularity, int entries, int exits) {
-		super(false, model.getDirections().size());
+	protected SimulationGraph(Parameters.Models model, int granularity, int entries, int exits, int vertices) {
+		super(false, vertices, model.getDirections().size());
 		this.granularity = granularity;
 		this.entries = entries;
 		this.exits = exits;
@@ -70,7 +71,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param graph Graph to be cloned
 	 */
 	public void addGraphVertices(Graph graph) {
-		this.vertices = graph.getVerticesWithIDs();
+		this.vertices = graph.getVertices();
 		this.entryExitVertices = graph.getEntryExitVertices();
 		this.edges = graph.getEdges();
 	}
@@ -82,16 +83,18 @@ public abstract class SimulationGraph extends Graph {
 			initializeVerticesDistances();
 
 			entryExitVertices.values().parallelStream()
-				.flatMap(Collection::stream)
-				.filter(entry -> entry.getType().isEntry())
-				.map(GraphicalVertex.class::cast)
-				.forEach(entry -> shortestPaths.put(entry.getID(), shortestPaths(entry)));
+							.flatMap(Collection::stream)
+							.filter(entry -> entry.getType().isEntry())
+							.map(GraphicalVertex.class::cast)
+							.forEach(entry -> shortestPaths.put(entry.getID(), shortestPaths(entry)));
 		}
 		return shortestPaths;
 	}
 
 	private void initializeVerticesDistances() {
-		vertices.values().forEach(vertex -> verticesDistances.put((GraphicalVertex) vertex, new HashMap<>()));
+		for (Vertex vertex : vertices) {
+			verticesDistances.put((GraphicalVertex) vertex, new HashMap<>());
+		}
 		for (Edge edge : this.edges) {
 			verticesDistances.get((GraphicalVertex) edge.getU()).put((GraphicalVertex) edge.getV(), edge);
 		}
@@ -104,16 +107,16 @@ public abstract class SimulationGraph extends Graph {
 
 		Map<Integer, List<Integer>> paths = new HashMap<>();
 		entryExitVertices.values().stream()
-			.flatMap(Collection::stream)
-			.filter(exit -> exit.getType().isExit())
-			.map(Vertex::getID)
-			.forEach(vertexID -> paths.put(vertexID, allPaths.get(vertexID)));
+						.flatMap(Collection::stream)
+						.filter(exit -> exit.getType().isExit())
+						.map(Vertex::getID)
+						.forEach(vertexID -> paths.put(vertexID, allPaths.get(vertexID)));
 
 		return paths;
 	}
 
 	private Map<Integer, List<Integer>> ucs(VertexWithDirection startingVertex) {
-		Map<Integer, List<Integer>> vertexDistances = new HashMap<>(vertices.size());
+		Map<Integer, List<Integer>> vertexDistances = new HashMap<>(vertices.length);
 
 		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
 		queue.add(startingVertex);
@@ -162,14 +165,14 @@ public abstract class SimulationGraph extends Graph {
 		int entriesVertices = directions * entries;
 		int exitsVertices = directions * exits;
 
-		Integer[] verticesEdgesTo = new Integer[vertices.size() - entriesVertices];
+		Integer[] verticesEdgesTo = new Integer[vertices.length - entriesVertices];
 		int to = 0;
-		Integer[] verticesEdgesFrom = new Integer[vertices.size() - exitsVertices];
+		Integer[] verticesEdgesFrom = new Integer[vertices.length - exitsVertices];
 		int from = 0;
-		Integer[] verticesBoth = new Integer[vertices.size() - entriesVertices - exitsVertices];
+		Integer[] verticesBoth = new Integer[vertices.length - entriesVertices - exitsVertices];
 		int both = 0;
 
-		for (Vertex vertex : vertices.values()) {
+		for (Vertex vertex : vertices) {
 			int id = vertex.getID();
 			if (vertex.getType().isEntry()) {
 				verticesEdgesFrom[from++] = id;
@@ -193,18 +196,18 @@ public abstract class SimulationGraph extends Graph {
 				}
 
 				/**
-				Arrays.stream(verticesEdgesTo).parallel().forEach(j -> {
-					Double distKJ;
-					if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
-						return;
-					}
+				 Arrays.stream(verticesEdgesTo).parallel().forEach(j -> {
+				 Double distKJ;
+				 if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
+				 return;
+				 }
 
-					double distIJ = distances.get(i).get(j);
-					if (distIJ > distIK + distKJ) {
-						distances.get(i).replace(j, distKJ);
-					}
-				});
-				/*/
+				 double distIJ = distances.get(i).get(j);
+				 if (distIJ > distIK + distKJ) {
+				 distances.get(i).replace(j, distKJ);
+				 }
+				 });
+				 /*/
 				Double distKJ;
 				for (Integer j : verticesEdgesTo) {
 					if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
@@ -223,11 +226,11 @@ public abstract class SimulationGraph extends Graph {
 	}
 
 	private void initializeDistancesMap() {
-		int capacity = 8 * vertices.size(); // TODO
+		int capacity = 8 * vertices.length; // TODO
 		distances = new HashMap<>(capacity);
-		for (Vertex vertex : vertices.values()) {
+		for (Vertex vertex : vertices) {
 			HashMap<Integer, Double> vertexDistances = new HashMap<>(capacity);
-			for (Vertex u : vertices.values()) {
+			for (Vertex u : vertices) {
 				Edge edge = getEdge(vertex, u);
 				double initialDistance;
 				if (edge != null) {
@@ -296,10 +299,11 @@ public abstract class SimulationGraph extends Graph {
 		return new ArrayList<>();
 	}
 
+	@Deprecated
 	private void dfs(Map<Integer, VertexWithDirection> vertices, VertexWithDirection vertex) {
 		for (Integer neighbourID : vertex.getNeighbourIDs()) {
 			GraphicalVertex neighbourVertex;
-			neighbourVertex = (GraphicalVertex) this.vertices.get(neighbourID);
+			neighbourVertex = (GraphicalVertex) this.vertices[neighbourID];
 			if (vertices.containsKey(neighbourID)) {
 				double distance = VertexWithDirection.getDistance(vertex, neighbourVertex);
 				if (distance >= vertices.get(neighbourID).getDistance()) {
@@ -334,9 +338,8 @@ public abstract class SimulationGraph extends Graph {
 	/**
 	 * @return Set of vertices of the graph
 	 */
-	@Override
-	public Collection<GraphicalVertex> getVertices() {
-		return vertices.values().stream().map(GraphicalVertex.class::cast).collect(Collectors.toSet());
+	public Collection<GraphicalVertex> getVerticesSet() {
+		return Stream.of(vertices).map(GraphicalVertex.class::cast).collect(Collectors.toSet());
 	}
 
 	/**
@@ -346,7 +349,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @return
 	 */
 	public GraphicalVertex getVertex(int id) {
-		return (GraphicalVertex) vertices.get(id);
+		return (GraphicalVertex) vertices[id];
 	}
 
 	/**

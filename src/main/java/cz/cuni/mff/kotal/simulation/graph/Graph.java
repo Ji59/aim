@@ -1,12 +1,10 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
-import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
-
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -15,7 +13,7 @@ import java.util.stream.Collectors;
 public class Graph {
 
 	protected final boolean oriented;
-	protected Map<Integer, Vertex> vertices;
+	protected Vertex[] vertices;
 	protected Map<Integer, List<Vertex>> entryExitVertices;
 	protected Set<Edge> edges;
 
@@ -31,7 +29,8 @@ public class Graph {
 		this.oriented = oriented;
 		this.entryExitVertices = entryExitVertices;
 		if (vertices != null) {
-			this.vertices = vertices.stream().collect(Collectors.toMap(Vertex::getID, Function.identity()));
+			this.vertices = new Vertex[vertices.size()];
+			vertices.forEach(vertex -> this.vertices[vertex.getID()] = vertex);
 		} else {
 			this.vertices = null;
 		}
@@ -49,9 +48,9 @@ public class Graph {
 	 * @param oriented   True if and only if this graph is oriented
 	 * @param entrySides Number of entry directions
 	 */
-	public Graph(boolean oriented, int entrySides) {
+	public Graph(boolean oriented, int vertices, int entrySides) {
 		this.oriented = oriented;
-		vertices = new HashMap<>();
+		this.vertices = new Vertex[vertices];
 		edges = new HashSet<>();
 
 		entryExitVertices = new HashMap<>();
@@ -66,11 +65,11 @@ public class Graph {
 	 * @param id ID of the vertex
 	 */
 	protected void addGraphEdges(Integer id) {
-		cz.cuni.mff.kotal.simulation.graph.Vertex vertex = vertices.get(id);
+		Vertex vertex = vertices[id];
 		assert (vertex != null);
 		for (Integer neighbourID : vertex.getNeighbourIDs()) {
 			if (neighbourID < id) {
-				GraphicalVertex neighbour = (GraphicalVertex) vertices.get(neighbourID);
+				Vertex neighbour = vertices[neighbourID];
 
 				assert (neighbour != null);
 				assert (neighbour.getNeighbourIDs().contains(id));
@@ -94,12 +93,13 @@ public class Graph {
 	/**
 	 * @return Set of vertices of the graph
 	 */
-	public Collection<? extends Vertex> getVertices() {
-		return vertices.values();
+	public Vertex[] getVertices() {
+		return this.vertices;
 	}
 
+	@Deprecated
 	public Map<Integer, Vertex> getVerticesWithIDs() {
-		return vertices;
+		return Stream.of(vertices).collect(Collectors.toMap(Vertex::getID, Function.identity()));
 	}
 
 	/**
@@ -107,7 +107,7 @@ public class Graph {
 	 * @return Vertex from this graph with specified ID
 	 */
 	public Vertex getVertex(int id) {
-		return vertices.get(id);
+		return vertices[id];
 	}
 
 	/**

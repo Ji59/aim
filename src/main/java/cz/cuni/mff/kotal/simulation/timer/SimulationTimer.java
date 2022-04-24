@@ -47,7 +47,7 @@ public class SimulationTimer extends AnimationTimer {
 		this.simulation = simulation;
 
 		if (verticesUsage == null) {
-			verticesUsage = new long[simulation.getIntersectionGraph().getVertices().size()];
+			verticesUsage = new long[simulation.getIntersectionGraph().getVertices().length];
 		}
 	}
 
@@ -201,7 +201,7 @@ public class SimulationTimer extends AnimationTimer {
 	 * @param graph
 	 */
 	public static void resetValues(Graph graph) {
-		verticesUsage = new long[graph.getVertices().size()];
+		verticesUsage = new long[graph.getVertices().length];
 		frames = 0;
 		maxStep = 0;
 		setLastStep(Double.MAX_VALUE);

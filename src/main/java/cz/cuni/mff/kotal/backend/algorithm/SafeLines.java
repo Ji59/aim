@@ -20,7 +20,7 @@ public class SafeLines implements Algorithm {
 	public SafeLines(SimulationGraph graph) {
 		this.graph = graph;
 
-		List<GraphicalVertex> sortedGraphicalVertices = graph.getVertices().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
+		List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
 		sortedGraphicalVertices.forEach(v -> verticesDistances.put(v.getID(), new PriorityQueue<>(sortedGraphicalVertices.size())));
 		sortedGraphicalVertices.parallelStream().forEach(v0 -> {
 			List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()

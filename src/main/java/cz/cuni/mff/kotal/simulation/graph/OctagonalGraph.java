@@ -17,11 +17,10 @@ public class OctagonalGraph extends SquareGraph {
 	 * @param exits       Number of exits from each direction
 	 */
 	public OctagonalGraph(int granularity, int entries, int exits) {
-		super(OCTAGONAL, granularity, entries, exits, 1. / (granularity + 2), true);
+		super(OCTAGONAL, granularity, entries, exits, 2 * granularity * granularity - 2 * granularity + 4 * (entries + exits) + 1, 1. / (granularity + 2), true);
 		cellSize = 1. / (granularity + 2);
 
-		createOctagonalGraphInBetweenVertices(cellSize);
-
+		createOctagonalGraphInBetweenVertices(granularity * granularity + 4 * (entries + exits), cellSize);
 	}
 
 	/**
@@ -29,29 +28,27 @@ public class OctagonalGraph extends SquareGraph {
 	 *
 	 * @param shift Distance between 2 vertices in main grid
 	 */
-	protected void createOctagonalGraphInBetweenVertices(double shift) {
-		Integer id = vertices.size();
-
+	protected void createOctagonalGraphInBetweenVertices(int id, double shift) {
 		// create first column
 		for (int j = 0; j < granularity - 1; j++, id++) {
 			GraphicalVertex v = new GraphicalVertex(id, 2 * shift, (j + 2) * shift);
 
 			int rightTopNeighbourID = granularity - 2 + j;
 			v.addNeighbourID(rightTopNeighbourID, rightTopNeighbourID + 1);
-			vertices.get(rightTopNeighbourID).addNeighbourID(id);
-			vertices.get(rightTopNeighbourID + 1).addNeighbourID(id);
+			vertices[rightTopNeighbourID].addNeighbourID(id);
+			vertices[rightTopNeighbourID + 1].addNeighbourID(id);
 			if (j > 0) {
 				int leftTopNeighbourID = j - 1;
 				v.addNeighbourID(leftTopNeighbourID);
-				vertices.get(leftTopNeighbourID).addNeighbourID(id);
+				vertices[leftTopNeighbourID].addNeighbourID(id);
 			}
 			if (j < granularity - 2) {
 				int leftTopNeighbourID = j;
 				v.addNeighbourID(leftTopNeighbourID);
-				vertices.get(leftTopNeighbourID).addNeighbourID(id);
+				vertices[leftTopNeighbourID].addNeighbourID(id);
 			}
 
-			vertices.put(id, v);
+			vertices[id] = v;
 			addGraphEdges(id);
 		}
 
@@ -63,12 +60,12 @@ public class OctagonalGraph extends SquareGraph {
 				int leftTopNeighbourID = i * granularity - 2 + j;
 				int rightTopNeighbourID = leftTopNeighbourID + granularity;
 				v.addNeighbourID(leftTopNeighbourID, leftTopNeighbourID + 1, rightTopNeighbourID, rightTopNeighbourID + 1);
-				vertices.get(leftTopNeighbourID).addNeighbourID(id);
-				vertices.get(leftTopNeighbourID + 1).addNeighbourID(id);
-				vertices.get(rightTopNeighbourID).addNeighbourID(id);
-				vertices.get(rightTopNeighbourID + 1).addNeighbourID(id);
+				vertices[leftTopNeighbourID].addNeighbourID(id);
+				vertices[leftTopNeighbourID + 1].addNeighbourID(id);
+				vertices[rightTopNeighbourID].addNeighbourID(id);
+				vertices[rightTopNeighbourID + 1].addNeighbourID(id);
 
-				vertices.put(id, v);
+				vertices[id] = v;
 				addGraphEdges(id);
 			}
 		}
@@ -81,20 +78,20 @@ public class OctagonalGraph extends SquareGraph {
 
 			int leftTopNeighbourID = lastButOneColumnIDStartMinusTwo + j;
 			v.addNeighbourID(leftTopNeighbourID, leftTopNeighbourID + 1);
-			vertices.get(leftTopNeighbourID).addNeighbourID(id);
-			vertices.get(leftTopNeighbourID + 1).addNeighbourID(id);
+			vertices[leftTopNeighbourID].addNeighbourID(id);
+			vertices[leftTopNeighbourID + 1].addNeighbourID(id);
 			if (j > 0) {
 				int rightTopNeighbourID = lastColumnIDStartMinusTwo + j - 1;
 				v.addNeighbourID(rightTopNeighbourID);
-				vertices.get(rightTopNeighbourID).addNeighbourID(id);
+				vertices[rightTopNeighbourID].addNeighbourID(id);
 			}
 			if (j < granularity - 2) {
 				int rightBottomNeighbourID = lastColumnIDStartMinusTwo + j;
 				v.addNeighbourID(rightBottomNeighbourID);
-				vertices.get(rightBottomNeighbourID).addNeighbourID(id);
+				vertices[rightBottomNeighbourID].addNeighbourID(id);
 			}
 
-			vertices.put(id, v);
+			vertices[id] = v;
 			addGraphEdges(id);
 		}
 	}

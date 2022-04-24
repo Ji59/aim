@@ -8,6 +8,7 @@ import cz.cuni.mff.kotal.simulation.InvalidSimulation;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.SimulationHandler;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import cz.cuni.mff.kotal.simulation.timer.SimulationTimer;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -114,7 +115,7 @@ public class SimulationAgents extends Pane {
 		long agentID = agent.getId();
 		double cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 		long startTime = simulation.getTime(agent.getPlannedTime());
-		AgentPane agentPane = new AgentPane(startTime, 0, agent, period, simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
+		AgentPane agentPane = new AgentPane(startTime, 0, agent, period, simulation.getIntersectionGraph().getVertices(), cellSize);
 
 		synchronized (activeAgents) {
 			activeAgents.put(agentID, agentPane);
@@ -179,7 +180,7 @@ public class SimulationAgents extends Pane {
 				activeAgents.put(agentID, agentPane);
 			}
 		} else {
-			agentPane = new AgentPane(step, agent, simulation.getIntersectionGraph().getVerticesWithIDs(), cellSize);
+			agentPane = new AgentPane(step, agent, simulation.getIntersectionGraph().getVertices(), cellSize);
 
 			synchronized (activeAgents) {
 				activeAgents.put(agentID, agentPane);
@@ -271,8 +272,8 @@ public class SimulationAgents extends Pane {
 		cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 
 		/**/
-		 SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
-		 simulationHandler.start();
+		SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
+		simulationHandler.start();
 		 /*/
 		timer = new SimulationTimer(activeAgents, simulation);
 		timer.start();
@@ -451,7 +452,8 @@ public class SimulationAgents extends Pane {
 
 		double precision = cellSize * IntersectionModel.VERTEX_RATIO; // TODO extract constant
 
-		for (GraphicalVertex vertex : graph.getVertices()) {
+		for (Vertex v : graph.getVertices()) {
+			GraphicalVertex vertex = (GraphicalVertex) v;
 			if (MyNumberOperations.distance(x, y, vertex.getX(), vertex.getY()) <= precision) {
 				vertexLabelID = vertex.getID();
 				updateVertexLabelProperties(event);

@@ -16,7 +16,6 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 
@@ -27,7 +26,7 @@ import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 public class AgentPane extends StackPane {
 
 	public final Color color = Color.rgb(generateRandomInt(255), generateRandomInt(255), generateRandomInt(255));
-	private final Map<Integer, Vertex> simulationVertices;  // FIXME remove
+	private final Vertex[] simulationVertices;  // FIXME remove
 	private final Rectangle rectangle;
 	private final Rotate rotation = new Rotate();
 	private final Agent agent;
@@ -54,7 +53,7 @@ public class AgentPane extends StackPane {
 	 * @param simulationVertices Intersection vertices the agent is travelling on
 	 */
 	@Deprecated
-	public AgentPane(long startTime, double firstStep, Agent agent, double period, Map<Integer, Vertex> simulationVertices, double cellSize) {
+	public AgentPane(long startTime, double firstStep, Agent agent, double period, Vertex[] simulationVertices, double cellSize) {
 		this.agent = agent;
 		this.distanceTraveled = 0;
 		this.startTime = startTime;
@@ -69,7 +68,7 @@ public class AgentPane extends StackPane {
 		}
 	}
 
-	public AgentPane(double firstStep, Agent agent, Map<Integer, Vertex> simulationVertices, double cellSize) {
+	public AgentPane(double firstStep, Agent agent, Vertex[] simulationVertices, double cellSize) {
 		this.agent = agent;
 		this.simulationVertices = simulationVertices;
 
@@ -161,8 +160,8 @@ public class AgentPane extends StackPane {
 	 */
 	private boolean computeNewAngle(double time) {
 		Pair<Integer, Integer> previousNext = agent.getPreviousNextVertexIDs(time);
-		GraphicalVertex start = (GraphicalVertex) simulationVertices.get(previousNext.getKey());
-		GraphicalVertex end = (GraphicalVertex) simulationVertices.get(previousNext.getValue());
+		GraphicalVertex start = (GraphicalVertex) simulationVertices[previousNext.getKey()];
+		GraphicalVertex end = (GraphicalVertex) simulationVertices[previousNext.getValue()];
 
 		double newAngle = MyNumberOperations.computeRotation(start.getX(), start.getY(), end.getX(), end.getY());
 		if (newAngle >= 0 && newAngle != angle) {

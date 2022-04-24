@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
 
@@ -26,17 +25,17 @@ class AgentTest {
 		arrivalTime = 0, nonTrivialArrivalTime = 0.75;
 	private Agent agent, nonTrivialAgent;
 	private List<Integer> path; // X-Y: 0-1, 3-2, 4-5, 7-6, 8-9, 11-10, 12-13, 15-14
-	private Map<Integer, Vertex> vertices;
+	private Vertex[] vertices;
 
 	@BeforeEach
 	void startUp() {
 		agent = new Agent(id, start, end, 0, 0, speed, arrivalTime, l, w, x, y); // FIXME fix entry / exit directions
 		path = new ArrayList<>();
-		vertices = new HashMap<>();
+		vertices = new Vertex[end + 1];
 		for (Integer i = start; i <= end; i++) {
 			path.add(i);
 			Vertex vertex = new GraphicalVertex(i, i % 2 == 0 ? 2 * i : 2 * i + 1, i % 2 == 0 ? 2 * i + 1 : 2 * i);
-			vertices.put(i, vertex);
+			vertices[i] = vertex;
 		}
 		agent.setPath(path);
 

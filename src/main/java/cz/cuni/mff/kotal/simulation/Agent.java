@@ -252,12 +252,12 @@ public class Agent {
 	 * @param vertices Map of vertices and their IDs of the graph the agent is moving on
 	 * @throws IndexOutOfBoundsException TODO
 	 */
-	public void computeNextXY(double time, Map<Integer, Vertex> vertices) throws IndexOutOfBoundsException {
+	public void computeNextXY(double time, Vertex[] vertices) throws IndexOutOfBoundsException {
 		double currentEdgeTravelPart = (time * speed) % 1;
 		double currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
 		Pair<Integer, Integer> previousNextGoalID = getPreviousNextVertexIDs(time);
-		GraphicalVertex previousGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getKey());
-		GraphicalVertex nextGoal = (GraphicalVertex) vertices.get(previousNextGoalID.getValue());
+		GraphicalVertex previousGoal = (GraphicalVertex) vertices[previousNextGoalID.getKey()];
+		GraphicalVertex nextGoal = (GraphicalVertex) vertices[previousNextGoalID.getValue()];
 
 		// TODO optimize
 		double previousGoalX = previousGoal.getX() * IntersectionModel.getPreferredHeight();
