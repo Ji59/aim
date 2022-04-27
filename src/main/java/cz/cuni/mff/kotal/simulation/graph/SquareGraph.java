@@ -47,7 +47,6 @@ public class SquareGraph extends SimulationGraph {
 	 *
 	 * @param shift          Distance between 2 vertices
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
-	 *
 	 * @return TODO
 	 */
 	protected int createSquareGraphVertices(int id, double shift, boolean withoutCorners) {
@@ -56,8 +55,8 @@ public class SquareGraph extends SimulationGraph {
 			for (int j = 0; j < granularity; j++) {
 				// check if in corner
 				if (withoutCorners &&
-								(i == 0 || i == g - 1) &&
-								(j == 0 || j == g - 1)
+					(i == 0 || i == g - 1) &&
+					(j == 0 || j == g - 1)
 				) {
 					continue;
 				}
@@ -194,10 +193,10 @@ public class SquareGraph extends SimulationGraph {
 
 
 			// create edges
-			cz.cuni.mff.kotal.simulation.graph.Vertex topN = vertices[(index - 1) * granularity - (withoutCorners ? 2 : 0)];
-			cz.cuni.mff.kotal.simulation.graph.Vertex bottomN = vertices[(granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)];
-			cz.cuni.mff.kotal.simulation.graph.Vertex leftN = vertices[granularity - index - (withoutCorners ? 1 : 0)];
-			cz.cuni.mff.kotal.simulation.graph.Vertex rightN = vertices[(granularity - 1) * granularity + index - (withoutCorners ? 4 : 1)];
+			Vertex topN = vertices[(index - 1) * granularity - (withoutCorners ? 2 : 0)];
+			Vertex bottomN = vertices[(granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)];
+			Vertex leftN = vertices[granularity - index - (withoutCorners ? 1 : 0)];
+			Vertex rightN = vertices[(granularity - 1) * granularity + index - (withoutCorners ? 4 : 1)];
 			assert (topN != null && bottomN != null && leftN != null && rightN != null);
 			if (entry) {
 				topE.getNeighbourIDs().add(topN.getID());

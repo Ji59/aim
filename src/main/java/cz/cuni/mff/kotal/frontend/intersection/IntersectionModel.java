@@ -36,7 +36,7 @@ public class IntersectionModel extends Pane {
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
 	private List<Node> nodes = new ArrayList<>();
-	private static final Map<Integer, Shape> vertexNodes = new HashMap<>();
+	private static Shape[] vertexNodes;
 	private final Map<SimulationGraph, SimulationGraph> createdGraphs = new HashMap<>();
 	private final Deque<SimulationGraph> historyPrevious = new ArrayDeque<>();
 	private final Deque<SimulationGraph> historyNext = new ArrayDeque<>();
@@ -76,7 +76,7 @@ public class IntersectionModel extends Pane {
 			stack.setLayoutX(vCoor(vertex.getX()) - shift * VERTEX_RATIO);
 			stack.setLayoutY(vCoor(vertex.getY()) - shift * VERTEX_RATIO);
 			nodes.add(stack);
-			vertexNodes.put(vertex.getID(), circle);
+			vertexNodes[vertex.getID()] = circle;
 		}
 	}
 
@@ -170,7 +170,7 @@ public class IntersectionModel extends Pane {
 		square.setX(x - halfSize);
 		square.setY(y - halfSize);
 		nodes.add(square);
-		vertexNodes.put(id, square);
+		vertexNodes[id] = square;
 
 		addTextField(x - halfSize, y - halfSize, size, size, String.valueOf(id));
 	}
@@ -190,7 +190,7 @@ public class IntersectionModel extends Pane {
 		rectangle.setStroke(STROKE_COLOR);
 		rectangle.setFill(color);
 		nodes.add(rectangle);
-		vertexNodes.put(id, rectangle);
+		vertexNodes[id] = rectangle;
 
 		addTextField(x, y, width, height, String.valueOf(id));
 	}
@@ -209,17 +209,17 @@ public class IntersectionModel extends Pane {
 		double halfShift = shift / 2;
 
 		Polygon hexagon = new Polygon(
-						x + tan30HalfShift, y - halfShift, // top right
-						x + 2 * tan30HalfShift, y,                 // right
-						x + tan30HalfShift, y + halfShift,         // bottom right
-						x - tan30HalfShift, y + halfShift,         // bottom left
-						x - 2 * tan30HalfShift, y,                 // left
-						x - tan30HalfShift, y - halfShift          // top left
+			x + tan30HalfShift, y - halfShift, // top right
+			x + 2 * tan30HalfShift, y,                 // right
+			x + tan30HalfShift, y + halfShift,         // bottom right
+			x - tan30HalfShift, y + halfShift,         // bottom left
+			x - 2 * tan30HalfShift, y,                 // left
+			x - tan30HalfShift, y - halfShift          // top left
 		);
 		hexagon.setFill(color);
 		hexagon.setStroke(STROKE_COLOR);
 		nodes.add(hexagon);
-		vertexNodes.put(id, hexagon);
+		vertexNodes[id] = hexagon;
 
 		addTextField(x - 2 * tan30HalfShift, y - shift / 2, 4 * tan30HalfShift, shift, String.valueOf(id));
 	}
@@ -239,19 +239,19 @@ public class IntersectionModel extends Pane {
 
 		// create polygon
 		Polygon octagon = new Polygon(
-						x - shorterSize, y - halfSize, // top left
-						x + shorterSize, y - halfSize, // top right
-						x + halfSize, y - shorterSize, // mid-top right
-						x + halfSize, y + shorterSize, // mid-bot right
-						x + shorterSize, y + halfSize, // bot right
-						x - shorterSize, y + halfSize, // bot left
-						x - halfSize, y + shorterSize, // mid-bot left
-						x - halfSize, y - shorterSize  // mid-top left
+			x - shorterSize, y - halfSize, // top left
+			x + shorterSize, y - halfSize, // top right
+			x + halfSize, y - shorterSize, // mid-top right
+			x + halfSize, y + shorterSize, // mid-bot right
+			x + shorterSize, y + halfSize, // bot right
+			x - shorterSize, y + halfSize, // bot left
+			x - halfSize, y + shorterSize, // mid-bot left
+			x - halfSize, y - shorterSize  // mid-top left
 		);
 		octagon.setFill(color);
 		octagon.setStroke(STROKE_COLOR);
 		nodes.add(octagon);
-		vertexNodes.put(id, octagon);
+		vertexNodes[id] = octagon;
 
 		addTextField(x - halfSize, y - halfSize, size, size, String.valueOf(id));
 	}
@@ -270,15 +270,15 @@ public class IntersectionModel extends Pane {
 
 		// create square
 		Polygon square = new Polygon(
-						x, y - halfSize, // top
-						x - halfSize, y, // left
-						x, y + halfSize, // bottom
-						x + halfSize, y  // right
+			x, y - halfSize, // top
+			x - halfSize, y, // left
+			x, y + halfSize, // bottom
+			x + halfSize, y  // right
 		);
 		square.setFill(color);
 		square.setStroke(STROKE_COLOR);
 		nodes.add(square);
-		vertexNodes.put(id, square);
+		vertexNodes[id] = square;
 
 		addTextField(x - halfSize, y - halfSize, size, size, String.valueOf(id));
 	}
@@ -344,7 +344,7 @@ public class IntersectionModel extends Pane {
 	private Polygon drawHexagonalModelObliqueEntry(Color color, double... points) {
 		// create associated entry
 		Polygon polygon = new Polygon(
-						points
+			points
 		);
 		polygon.setStroke(STROKE_COLOR);
 		polygon.setFill(color);
@@ -363,7 +363,7 @@ public class IntersectionModel extends Pane {
 		int id = vertex.getID();
 
 		Polygon polygon = drawHexagonalModelObliqueEntry(color, points);
-		vertexNodes.put(id, polygon);
+		vertexNodes[id] = polygon;
 
 		for (int i = 0; i < points.length; i++) {
 			points[i] = preferredHeight - points[i];
@@ -371,7 +371,7 @@ public class IntersectionModel extends Pane {
 		id += 3;
 
 		polygon = drawHexagonalModelObliqueEntry(color, points);
-		vertexNodes.put(id, polygon);
+		vertexNodes[id] = polygon;
 	}
 
 	/**
@@ -404,7 +404,7 @@ public class IntersectionModel extends Pane {
 		rectangle.setWidth(width);
 		rectangle.setHeight(height);
 		nodes.add(rectangle);
-		vertexNodes.put(id, rectangle);
+		vertexNodes[id] = rectangle;
 
 		// add id
 		addTextField(xLocation, yLocation, width, height, String.valueOf(id));
@@ -474,7 +474,6 @@ public class IntersectionModel extends Pane {
 		} else { // create new graph and all the model nodes
 			IntersectionScene.resetSimulation();
 			historyNext.clear();
-			nodes = new ArrayList<>();
 
 			switch (model) {
 				case SQUARE -> graph = new SquareGraph(granularity, entries, exits);
@@ -501,8 +500,6 @@ public class IntersectionModel extends Pane {
 	private void setGraphFromAbstract(SimulationGraph graphAbstract) {
 		assert createdGraphs.containsKey(graphAbstract);
 		graph = createdGraphs.get(graphAbstract);
-		nodes.clear();
-		vertexNodes.clear();
 		createGraphNodes();
 		getChildren().setAll(nodes);
 	}
@@ -511,6 +508,9 @@ public class IntersectionModel extends Pane {
 	 * Create graphical nodes from graph.
 	 */
 	private void createGraphNodes() {
+		nodes.clear();
+		vertexNodes = new Shape[graph.getVertices().length];
+
 		final long granularity = graph.getGranularity();
 		switch (graph.getModel()) {
 			case SQUARE -> drawSquareModel(granularity);
@@ -573,7 +573,7 @@ public class IntersectionModel extends Pane {
 		for (int vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
 			Color color = graph.getVertex(vertexID).getType().getColor();
 
-			Shape vertexNode = vertexNodes.get(vertexID);
+			Shape vertexNode = vertexNodes[vertexID];
 			double oldColorShift = ((Color) vertexNode.getFill()).getGreen() / color.getGreen();
 			double colorShift = 1 - verticesUsage[vertexID] / frames;
 			if (Math.abs(oldColorShift - colorShift) > MAX_COLOR_CHANGE) {
@@ -587,9 +587,10 @@ public class IntersectionModel extends Pane {
 	}
 
 	public static void resetVertexNodesColors() {
-		for (Map.Entry<Integer, Shape> vertexNode : vertexNodes.entrySet()) {
-			Color color = graph.getVertex(vertexNode.getKey()).getType().getColor();
-			vertexNode.getValue().setFill(color);
+		for (int i = 0; i < vertexNodes.length; i++) {
+			Shape vertexNode = vertexNodes[i];
+			Color color = graph.getVertex(i).getType().getColor();
+			vertexNode.setFill(color);
 		}
 	}
 

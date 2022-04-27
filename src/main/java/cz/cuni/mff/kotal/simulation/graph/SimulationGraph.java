@@ -2,7 +2,6 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
-import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -16,13 +15,9 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Paramete
  * Graph with added attributes for graphical usage.
  */
 public abstract class SimulationGraph extends Graph {
-	public static final double EPSILON = 1e-1;
-	private final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
-	protected final int granularity;
-	protected final int entries;
-	protected final int exits;
+	public static final double EPSILON = 0.0625;  // 2 ^ -4
+	protected final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
 	protected Map<Integer, Map<Integer, List<Integer>>> shortestPaths;
-	protected Map<Integer, HashMap<Integer, Double>> distances;
 
 	protected double cellSize;
 
@@ -38,10 +33,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param edges             Graph edges
 	 */
 	protected SimulationGraph(int granularity, int entries, int exits, boolean oriented, Set<GraphicalVertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges) {
-		super(oriented, vertices, entryExitVertices, edges);
-		this.granularity = granularity;
-		this.entries = entries;
-		this.exits = exits;
+		super(oriented, vertices, entryExitVertices, edges, granularity, entries, exits);
 	}
 
 	/**
@@ -53,10 +45,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param exits       Number of exits from each direction
 	 */
 	protected SimulationGraph(Parameters.Models model, int granularity, int entries, int exits, int vertices) {
-		super(false, vertices, model.getDirections().size());
-		this.granularity = granularity;
-		this.entries = entries;
-		this.exits = exits;
+		super(false, vertices, model.getDirections().size(), granularity, entries, exits);
 
 
 		for (int i = 0; i < model.getDirections().size(); i++) {
@@ -83,21 +72,12 @@ public abstract class SimulationGraph extends Graph {
 			initializeVerticesDistances();
 
 			entryExitVertices.values().parallelStream()
-							.flatMap(Collection::stream)
-							.filter(entry -> entry.getType().isEntry())
-							.map(GraphicalVertex.class::cast)
-							.forEach(entry -> shortestPaths.put(entry.getID(), shortestPaths(entry)));
+				.flatMap(Collection::stream)
+				.filter(entry -> entry.getType().isEntry())
+				.map(GraphicalVertex.class::cast)
+				.forEach(entry -> shortestPaths.put(entry.getID(), shortestPaths(entry)));
 		}
 		return shortestPaths;
-	}
-
-	private void initializeVerticesDistances() {
-		for (Vertex vertex : vertices) {
-			verticesDistances.put((GraphicalVertex) vertex, new HashMap<>());
-		}
-		for (Edge edge : this.edges) {
-			verticesDistances.get((GraphicalVertex) edge.getU()).put((GraphicalVertex) edge.getV(), edge);
-		}
 	}
 
 	private Map<Integer, List<Integer>> shortestPaths(GraphicalVertex start) {
@@ -107,10 +87,10 @@ public abstract class SimulationGraph extends Graph {
 
 		Map<Integer, List<Integer>> paths = new HashMap<>();
 		entryExitVertices.values().stream()
-						.flatMap(Collection::stream)
-						.filter(exit -> exit.getType().isExit())
-						.map(Vertex::getID)
-						.forEach(vertexID -> paths.put(vertexID, allPaths.get(vertexID)));
+			.flatMap(Collection::stream)
+			.filter(exit -> exit.getType().isExit())
+			.map(Vertex::getID)
+			.forEach(vertexID -> paths.put(vertexID, allPaths.get(vertexID)));
 
 		return paths;
 	}
@@ -145,121 +125,6 @@ public abstract class SimulationGraph extends Graph {
 	/**
 	 * TODO
 	 *
-	 * @return
-	 */
-	public Map<Integer, HashMap<Integer, Double>> getDistances() {
-		if (distances == null) {
-			System.out.println("Initializing distances.");
-			initializeDistancesMap();
-			System.out.println("Initializing distances finished.");
-
-			computeDistances();
-		}
-
-		return distances;
-	}
-
-	private void computeDistances() {
-
-		int directions = entryExitVertices.size();
-		int entriesVertices = directions * entries;
-		int exitsVertices = directions * exits;
-
-		Integer[] verticesEdgesTo = new Integer[vertices.length - entriesVertices];
-		int to = 0;
-		Integer[] verticesEdgesFrom = new Integer[vertices.length - exitsVertices];
-		int from = 0;
-		Integer[] verticesBoth = new Integer[vertices.length - entriesVertices - exitsVertices];
-		int both = 0;
-
-		for (Vertex vertex : vertices) {
-			int id = vertex.getID();
-			if (vertex.getType().isEntry()) {
-				verticesEdgesFrom[from++] = id;
-			} else if (vertex.getType().isExit()) {
-				verticesEdgesTo[to++] = id;
-			} else {
-				verticesEdgesFrom[from++] = id;
-				verticesBoth[both++] = id;
-				verticesEdgesTo[to++] = id;
-			}
-		}
-
-		System.out.println("Computing distances.");
-		long time = System.nanoTime();
-		// Perform Floyd–Warshall update algorithm
-		for (int k : verticesBoth) {
-			for (int i : verticesEdgesFrom) {
-				Double distIK;
-				if (i == k || (distIK = distances.get(i).get(k)).isInfinite()) {
-					continue;
-				}
-
-				/**
-				 Arrays.stream(verticesEdgesTo).parallel().forEach(j -> {
-				 Double distKJ;
-				 if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
-				 return;
-				 }
-
-				 double distIJ = distances.get(i).get(j);
-				 if (distIJ > distIK + distKJ) {
-				 distances.get(i).replace(j, distKJ);
-				 }
-				 });
-				 /*/
-				Double distKJ;
-				for (Integer j : verticesEdgesTo) {
-					if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
-						continue;
-					}
-
-					double distIJ = distances.get(i).get(j);
-					if (distIJ > distIK + distKJ) {
-						distances.get(i).replace(j, distKJ);
-					}
-				}
-				/**/
-			}
-		}
-		System.out.println("Computing distances finished after " + (System.nanoTime() - time) + " ns.");
-	}
-
-	private void initializeDistancesMap() {
-		int capacity = 8 * vertices.length; // TODO
-		distances = new HashMap<>(capacity);
-		for (Vertex vertex : vertices) {
-			HashMap<Integer, Double> vertexDistances = new HashMap<>(capacity);
-			for (Vertex u : vertices) {
-				Edge edge = getEdge(vertex, u);
-				double initialDistance;
-				if (edge != null) {
-					initialDistance = edge.getDistance();
-				} else if (vertex.equals(u)) {
-					initialDistance = 0.;
-				} else {
-					initialDistance = Double.POSITIVE_INFINITY;
-				}
-				vertexDistances.put(u.getID(), initialDistance);
-			}
-			distances.put(vertex.getID(), vertexDistances);
-		}
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param from
-	 * @param to
-	 * @return
-	 */
-	public double getDistance(int from, int to) {
-		return getDistances().get(from).get(to);
-	}
-
-	/**
-	 * TODO
-	 *
 	 * @param from
 	 * @param to
 	 * @return
@@ -289,19 +154,24 @@ public abstract class SimulationGraph extends Graph {
 				return path;
 			}
 			visitedIDs.add(vertex.getID());
-			verticesDistances.get(vertex).forEach((neighbour, edge) -> {
-				if (!visitedIDs.contains(neighbour.getID())) {
-					double distance = MyNumberOperations.distance(neighbour.getX(), neighbour.getY(), to.getX(), to.getY());
-					queue.add(new VertexWithDirection(vertex, neighbour, edge, getCellSize(), distance)); // TODO refactor
-				}
-			});
+			for (int neighbourID : vertex.getVertex().getNeighbourIDs()) {
+				double distance = distances[vertex.getID()][neighbourID];
+				double heuristic = distances[neighbourID][to.getID()];
+				queue.add(new VertexWithDirection(vertex, getVertex(neighbourID), distance, heuristic));
+			}
+//			verticesDistances.get(vertex).forEach((neighbour, edge) -> {
+//				if (!visitedIDs.contains(neighbour.getID())) {
+//					double distance = distances[neighbour.getID()][to.getID()];
+//					queue.add(new VertexWithDirection(vertex, neighbour, edge, getCellSize(), distance));
+//				}
+//			});
 		}
 		return new ArrayList<>();
 	}
 
 	@Deprecated
 	private void dfs(Map<Integer, VertexWithDirection> vertices, VertexWithDirection vertex) {
-		for (Integer neighbourID : vertex.getNeighbourIDs()) {
+		for (Integer neighbourID : vertex.getVertex().getNeighbourIDs()) {
 			GraphicalVertex neighbourVertex;
 			neighbourVertex = (GraphicalVertex) this.vertices[neighbourID];
 			if (vertices.containsKey(neighbourID)) {
@@ -353,20 +223,6 @@ public abstract class SimulationGraph extends Graph {
 	}
 
 	/**
-	 * TODO
-	 *
-	 * @param v0
-	 * @param v1
-	 * @return
-	 */
-	public Edge getEdge(Vertex v0, Vertex v1) {
-		if (verticesDistances.isEmpty()) {
-			initializeVerticesDistances();
-		}
-		return verticesDistances.get((GraphicalVertex) v0).get((GraphicalVertex) v1);
-	}
-
-	/**
 	 * @return Granularity of the graph
 	 */
 	public int getGranularity() {
@@ -398,7 +254,31 @@ public abstract class SimulationGraph extends Graph {
 	 */
 	public abstract double getCellSize();
 
-	public static class VertexWithDirection extends GraphicalVertex implements Comparable<VertexWithDirection> {
+	protected void initializeVerticesDistances() {
+		for (Vertex vertex : vertices) {
+			verticesDistances.put((GraphicalVertex) vertex, new HashMap<>());
+		}
+		for (Edge edge : this.edges) {
+			verticesDistances.get((GraphicalVertex) edge.getU()).put((GraphicalVertex) edge.getV(), edge);
+		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param v0
+	 * @param v1
+	 * @return
+	 */
+	public Edge getEdge(Vertex v0, Vertex v1) {
+		if (verticesDistances.isEmpty()) {
+			initializeVerticesDistances();
+		}
+		return verticesDistances.get((GraphicalVertex) v0).get((GraphicalVertex) v1);
+	}
+
+	public static class VertexWithDirection implements Comparable<VertexWithDirection> {
+		private final GraphicalVertex vertex;
 		private final double angle;
 		private final double distance;
 		private final double estimate;
@@ -409,11 +289,15 @@ public abstract class SimulationGraph extends Graph {
 		}
 
 		public VertexWithDirection(GraphicalVertex vertex, double angle) {
-			super(vertex);
+			this(vertex, angle, 0);
+		}
+
+		public VertexWithDirection(GraphicalVertex vertex, double angle, double estimate) {
+			this.vertex = vertex;
 			this.angle = angle;
 			this.distance = 0;
 			parent = null;
-			estimate = 0;
+			this.estimate = estimate;
 		}
 
 		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, Edge edge, double cellDistance) {
@@ -422,17 +306,23 @@ public abstract class SimulationGraph extends Graph {
 
 		// TODO refactor
 		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, Edge edge, double cellDistance, double estimate) {
-			super(actual);
+			vertex = actual;
 
-			double xDiff = previous.getX() - getX();
-			double yDiff = previous.getY() - getY();
+			GraphicalVertex previousVertex = previous.getVertex();
+			double xDiff = previousVertex.getX() - vertex.getX();
+			double yDiff = previousVertex.getY() - vertex.getY();
 			this.angle = computeAngle(xDiff, yDiff);
 
 			double verticesDistance = edge == null ? Math.sqrt(xDiff * xDiff + yDiff * yDiff) / cellDistance : edge.getDistance();
 
-			double angleDiff = Math.abs(this.angle - previous.getAngle());
-			if (angleDiff > Math.PI) {
-				angleDiff = 2 * Math.PI - angleDiff;
+			double angleDiff;
+			if (previous.getParent() == null || previous.getID() == getID()) {
+				angleDiff = 0;
+			} else {
+				angleDiff = Math.abs(this.angle - previous.getAngle());
+				if (angleDiff > Math.PI) {
+					angleDiff = 2 * Math.PI - angleDiff;
+				}
 			}
 
 //			double middleDistanceX = getX() - 0.5;
@@ -445,14 +335,20 @@ public abstract class SimulationGraph extends Graph {
 		}
 
 		public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, double distance, double estimate) {
-			super(actual);
-			double xDiff = previous.getX() - getX();
-			double yDiff = previous.getY() - getY();
+			vertex = actual;
+			GraphicalVertex previousVertex = previous.getVertex();
+			double xDiff = previousVertex.getX() - vertex.getX();
+			double yDiff = previousVertex.getY() - vertex.getY();
 			this.angle = computeAngle(xDiff, yDiff);
 
-			double angleDiff = Math.abs(this.angle - previous.getAngle());
-			if (angleDiff > Math.PI) {
-				angleDiff = 2 * Math.PI - angleDiff;
+			double angleDiff;
+			if (previous.getParent() == null || previous.getID() == getID()) {
+				angleDiff = 0;
+			} else {
+				angleDiff = Math.abs(this.angle - previous.getAngle());
+				if (angleDiff > Math.PI) {
+					angleDiff = 2 * Math.PI - angleDiff;
+				}
 			}
 
 			this.distance = previous.getDistance() + distance + angleDiff * EPSILON; // + middleDistance * EPSILON * EPSILON;
@@ -480,6 +376,25 @@ public abstract class SimulationGraph extends Graph {
 			return parent;
 		}
 
+		public int getID() {
+			return vertex.getID();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o instanceof Vertex vertexObject) {
+				return vertex.getID() == vertexObject.getID();
+			} else if (o instanceof VertexWithDirection vertexWithDirection) {
+				return vertex.getID() == vertexWithDirection.getVertex().getID();
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(vertex.getID());
+		}
+
 		public static double computeAngle(GraphicalVertex start, GraphicalVertex end) {
 			double xDiff = start.getX() - end.getX();
 			double yDiff = start.getY() - end.getY();
@@ -490,9 +405,14 @@ public abstract class SimulationGraph extends Graph {
 			return Math.atan2(yDiff, xDiff);
 		}
 
+		public GraphicalVertex getVertex() {
+			return vertex;
+		}
+
 		public static double getDistance(VertexWithDirection start, GraphicalVertex end) {
-			double x0 = start.getX();
-			double y0 = start.getY();
+			GraphicalVertex startVertex = start.getVertex();
+			double x0 = startVertex.getX();
+			double y0 = startVertex.getY();
 			double x1 = end.getX();
 			double y1 = end.getY();
 
@@ -512,14 +432,5 @@ public abstract class SimulationGraph extends Graph {
 		public int compareTo(@NotNull SimulationGraph.VertexWithDirection o) {
 			return Double.compare(distance + estimate, o.getDistance() + o.estimate);
 		}
-
-// FIXME
-//		@Override
-//		public boolean equals(Object o) {
-//			if (o instanceof Vertex vertex) {
-//				return id == vertex.getID();
-//			}
-//			return false;
-//		}
 	}
 }

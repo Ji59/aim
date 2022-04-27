@@ -89,8 +89,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 				granularityDifference = 0;
 			}
 			granularity.setMin(2L + granularityDifference);
-			entries.setMax(granularity.getValue() - granularityDifference - 1);
-			exits.setMax(granularity.getValue() - granularityDifference - 1);
+			correctEntriesExitsValues(granularity.getValue());
 
 			IntersectionScene.getIntersectionGraph().redraw();
 
@@ -103,6 +102,17 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		});
 	}
 
+	private void correctEntriesExitsValues(long granularityValue) {
+		long maxValue = granularityValue - granularityDifference - 1;
+		entries.setMax(maxValue);
+		exits.setMax(maxValue);
+
+		// correct exits value for the entries to fit
+		if (entries.getValue() + exits.getValue() + granularityDifference > granularityValue) {
+			exits.setValue(granularityValue - entries.getValue() - granularityDifference);
+		}
+	}
+
 	/**
 	 * Add action to granularity slider.
 	 */
@@ -111,11 +121,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 			setSlidersDisable(true);
 
 			long newVal = newValue.longValue();
-			entries.setMax(newVal - granularityDifference - 1);
-			exits.setMax(newVal - granularityDifference - 1);
-			if (entries.getValue() + exits.getValue() + granularityDifference > newVal) {
-				exits.setValue(newVal - entries.getValue() - granularityDifference);
-			}
+			correctEntriesExitsValues(newVal);
 
 			IntersectionScene.getIntersectionGraph().redraw();
 

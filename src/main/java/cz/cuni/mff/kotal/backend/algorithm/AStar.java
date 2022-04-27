@@ -3,12 +3,15 @@ package cz.cuni.mff.kotal.backend.algorithm;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph.VertexWithDirection;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class AStar extends SafeLines {
+	private final int maximumVertexVisits = 2;
+
 	public AStar(SimulationGraph graph) {
 		super(graph);
 	}
@@ -16,6 +19,8 @@ public class AStar extends SafeLines {
 	@Override
 	public Agent planAgent(Agent agent, long step) {
 		double agentsPerimeter = agent.getAgentPerimeter();
+
+		Map<Integer, Set<Long>> stepVisitedVertices = new HashMap<>(graph.getVertices().length * 2);
 
 		if (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, agent.getEntry(), agentsPerimeter)) {
 			return null;
@@ -30,19 +35,24 @@ public class AStar extends SafeLines {
 
 		Map<Integer, Double> heuristic = new HashMap<>();
 		int entryID = agent.getEntry();
-		heuristic.put(entryID, getHeuristic(exitIDs, entryID));
+		double startEstimate = getHeuristic(exitIDs, entryID);
+		heuristic.put(entryID, startEstimate);
 
 		PriorityQueue<State> queue = new PriorityQueue<>();
-		queue.add(new State(graph.getVertex(entryID), step));
+		queue.add(new State(graph.getVertex(entryID), startEstimate, step));
 
 		State state;
 		while ((state = queue.poll()) != null) {
 			int vertexID = state.getID();
-			if (heuristic.get(vertexID) < 0) {
+			stepVisitedVertices.putIfAbsent(vertexID, new HashSet<>());
+
+			if (heuristic.get(vertexID) < 0 || stepVisitedVertices.get(vertexID).contains(state.step)) {
 				continue;
-			} else {
-				heuristic.put(vertexID, -1.);
 			}
+			stepVisitedVertices.get(vertexID).add(state.getStep());
+//			else {  TODO
+//				heuristic.put(vertexID, -1.);
+//			}
 
 			if (exitIDs.contains(vertexID)) {
 				LinkedList<Integer> path = new LinkedList<>();
@@ -58,23 +68,40 @@ public class AStar extends SafeLines {
 				return agent;
 			}
 
+//			boolean plannedNeighbour = false;
 			long stateStep = state.getStep();
-			for (int neighbourID : graph.getVertex(vertexID).getNeighbourIDs()) {
+			for (int neighbourID : state.getVertex().getNeighbourIDs()) {
 				long neighbourStep = stateStep + 1;
 				heuristic.putIfAbsent(neighbourID, getHeuristic(exitIDs, neighbourID));
+				double estimate;
 
-				if (
-								(stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null ||
-												(
-																safeVertex(neighbourStep, neighbourID, agentsPerimeter) &&
-																				safeStepTo(neighbourStep, neighbourID, state.getID(), agentsPerimeter)
-												)
-								) &&
-												safeStepFrom(stateStep, state.getID(), neighbourID, agentsPerimeter)
+				if (Double.isFinite(estimate = heuristic.get(neighbourID)) &&
+					canVisitVertex(state, neighbourID) &&
+					(
+						stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
+							|| (
+							safeVertex(neighbourStep, neighbourID, agentsPerimeter) &&
+								safeStepTo(neighbourStep, neighbourID, state.getID(), agentsPerimeter)
+						)
+					) &&
+					safeStepFrom(stateStep, state.getID(), neighbourID, agentsPerimeter)
 				) {
 					double distance = graph.getDistance(vertexID, neighbourID);
-					queue.add(new State(state, graph.getVertex(neighbourID), distance, heuristic.get(neighbourID)));
+					estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);
+					queue.add(new State(state, graph.getVertex(neighbourID), distance, estimate));
+//					plannedNeighbour = true;
 				}
+			}
+
+			if (
+//				!plannedNeighbour
+//				state.getParent() != null && state.getID() != state.getParent().getID()
+				canVisitVertex(state, vertexID)
+					&& (
+					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentsPerimeter)
+				)
+			) {
+				queue.add(new State(state));
 			}
 		}
 
@@ -85,12 +112,32 @@ public class AStar extends SafeLines {
 		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(entryID, exitID)).min().orElse(0);
 	}
 
-	private static class State extends SimulationGraph.VertexWithDirection {
-		final long step;
+	private boolean canVisitVertex(VertexWithDirection state, int vertexID) {
+		int visitCount = 0;
+		while (state != null) {
+			if (state.getID() == vertexID) {
+				visitCount++;
+				if (visitCount >= maximumVertexVisits) {
+					return false;
+				}
+			}
+			state = state.getParent();
+		}
 
-		public State(GraphicalVertex vertex, long step) {
-			super(vertex);
+		return true;
+	}
+
+	private static class State extends VertexWithDirection {
+		private final long step;
+
+		public State(GraphicalVertex vertex, double estimate, long step) {
+			super(vertex, 0, estimate);
 			this.step = step;
+		}
+
+		public State(State state) {
+			super(state, state.getVertex(), 1, state.getEstimate() - 0.00390625);
+			step = state.getStep() + 1;
 		}
 
 		public State(State previous, GraphicalVertex actual, double distance, double estimate) {

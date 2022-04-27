@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -67,5 +68,15 @@ public class GraphicalVertex extends Vertex {
 		return y;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof Vertex vertex)) return false;
+		return vertex.getID() == id;
+	}
 
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
 }

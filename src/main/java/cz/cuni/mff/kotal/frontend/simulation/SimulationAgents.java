@@ -92,7 +92,7 @@ public class SimulationAgents extends Pane {
 		if (!vertexLabel.isVisible()) {
 			return;
 		}
-		double vertexUsage = SimulationTimer.getVertexUsage((int) vertexLabelID);
+		double vertexUsage = SimulationTimer.getVertexUsage(vertexLabelID);
 		vertexLabel.setText(String.format("ID: %d%nUsage: %.2f", vertexLabelID, vertexUsage));
 	}
 
@@ -271,7 +271,7 @@ public class SimulationAgents extends Pane {
 //		}
 		cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 
-		/**/
+		/**
 		SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
 		simulationHandler.start();
 		 /*/

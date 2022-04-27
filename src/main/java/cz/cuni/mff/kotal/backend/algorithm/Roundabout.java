@@ -26,55 +26,66 @@ public class Roundabout extends SafeLines {
 		}
 		List<List<Integer>> directionParts = entriesExits.parallelStream().map(directionList -> sortEntriesExits(directionList, graph)).toList();
 
-		Map<Integer, Map<Integer, List<Integer>>> distances = new HashMap<>(directionParts.size());
+		int directions = directionParts.size();
+		double[][] distances = new double[directions][directions];
 		int from = 0;
 		int to = 0;
-		int shortest = Integer.MAX_VALUE;
-		for (int i = 0; i < directionParts.size(); i++) {
+		double shortest = Double.MAX_VALUE;
+		for (int i = 0; i < directions; i++) {
 			int iDirectionPartsSize = directionParts.get(i).size();
-			GraphicalVertex iDirectionLast = graph.getVertex(directionParts.get(i).get(iDirectionPartsSize - 1));
-			double angle = 0;
-			if (iDirectionPartsSize >= 2) {
-				GraphicalVertex iDirectionOneButLast = graph.getVertex(directionParts.get(i).get(iDirectionPartsSize - 2));
-				angle = VertexWithDirection.computeAngle(iDirectionOneButLast, iDirectionLast);
-			}
-			Map<Integer, List<Integer>> iDistances = new HashMap<>();
-			for (int j = 0; j < directionParts.size(); j++) {
+			int iID = directionParts.get(i).get(iDirectionPartsSize - 1);
+			double[] iDistances = distances[i];
+			for (int j = 0; j < directions; j++) {
 				if (i == j) {
 					continue;
 				}
-				GraphicalVertex jDirectionFirst = graph.getVertex(directionParts.get(j).get(0));
-				List<Integer> path = graph.shortestPath(iDirectionLast, jDirectionFirst, angle);
-				if (path.size() < shortest) {
+				int jID = directionParts.get(j).get(0);
+				double pathDistance = graph.getDistance(iID, jID);
+				if (pathDistance < shortest) {
 					from = i;
 					to = j;
-					shortest = path.size();
+					shortest = pathDistance;
 				}
-				iDistances.put(j, path);
+				iDistances[j] = pathDistance;
 			}
-			distances.put(i, iDistances);
 		}
 
 		int start = from;
-		while (!distances.isEmpty()) {
+		for (int i = 0; i < directions; i++) {
 			List<Integer> directionVertices = directionParts.get(from);
+
 			if (!roundTrip.isEmpty() && roundTrip.get(roundTrip.size() - 1).equals(directionVertices.get(0))) {
 				directionVertices.remove(0);
 			}
 			roundTrip.addAll(directionVertices);
-			List<Integer> pathIDs = distances.get(from).get(to);
+
+			int directionVerticesSize = directionVertices.size();
+			GraphicalVertex directionLast = graph.getVertex(directionVertices.get(directionVertices.size() - 1));
+			double angle = 0;
+			if (directionVerticesSize >= 2) {
+				GraphicalVertex directionOneButLast = graph.getVertex(directionVertices.get(directionVerticesSize - 2));
+				angle = VertexWithDirection.computeAngle(directionOneButLast, directionLast);
+			}
+			GraphicalVertex toDirectionFirst = graph.getVertex(directionParts.get(to).get(0));
+			List<Integer> pathIDs = graph.shortestPath(directionLast, toDirectionFirst, angle);
+
 			if (pathIDs.size() > 2) {
 				pathIDs.remove(0);
 				pathIDs.remove(pathIDs.size() - 1);
 				roundTrip.addAll(pathIDs);
 			}
-			distances.remove(from);
+			distances[from] = null;
 			from = to;
-			if (distances.size() >= 2) {
-				to = distances.get(from).entrySet().stream()
-					.filter(e -> distances.containsKey(e.getKey()))
-					.min(Comparator.comparingInt(e -> e.getValue().size()))
-					.map(Map.Entry::getKey).orElse(0);
+			if (i < directions - 1) {
+				to = 0;
+				shortest = Double.MAX_VALUE;
+				double[] distancesFrom = distances[from];
+				for (int j = 0; j < directions; j++) {
+					if (from != j && distances[j] != null && distancesFrom[j] < shortest) {
+						shortest = distancesFrom[j];
+						to = j;
+					}
+				}
 			} else {
 				to = start;
 			}
@@ -150,20 +161,31 @@ public class Roundabout extends SafeLines {
 			}
 		});
 
-		Map<GraphicalVertex, Map<GraphicalVertex, List<Integer>>> distances = new HashMap<>();
-		exitsNeighboursVertices.parallelStream().forEach(exit -> {
-			Map<GraphicalVertex, List<Integer>> exitMap = entriesNeighboursVertices.stream()
-				.collect(Collectors.toMap(Function.identity(), entry -> graph.shortestPath(exit, entry)));
-			distances.put(exit, exitMap); // TODO check thread safety
-		});
+
+//		Map<GraphicalVertex, Map<GraphicalVertex, List<Integer>>> distances = new HashMap<>();
+//		exitsNeighboursVertices.parallelStream().forEach(exit -> {
+//			Map<GraphicalVertex, List<Integer>> exitMap = entriesNeighboursVertices.stream()
+//				.collect(Collectors.toMap(Function.identity(), entry -> graph.shortestPath(exit, entry)));
+//			distances.put(exit, exitMap); // TODO check thread safety
+//		});
 
 		Pair<GraphicalVertex, GraphicalVertex> closest = null;
-		int closestDistance = Integer.MAX_VALUE;
-		for (Map.Entry<GraphicalVertex, Map<GraphicalVertex, List<Integer>>> exitDistances : distances.entrySet()) {
-			GraphicalVertex exit = exitDistances.getKey();
-			for (Map.Entry<GraphicalVertex, List<Integer>> entryDistances : exitDistances.getValue().entrySet()) {
-				GraphicalVertex entry = entryDistances.getKey();
-				int distance = entryDistances.getValue().size();
+		double closestDistance = Double.MAX_VALUE;
+//		for (Map.Entry<GraphicalVertex, Map<GraphicalVertex, List<Integer>>> exitDistances : distances.entrySet()) {
+//			GraphicalVertex exit = exitDistances.getKey();
+//			for (Map.Entry<GraphicalVertex, List<Integer>> entryDistances : exitDistances.getValue().entrySet()) {
+//				GraphicalVertex entry = entryDistances.getKey();
+//				int distance = entryDistances.getValue().size();
+//				if (distance < closestDistance) {
+//					closest = new Pair<>(exit, entry);
+//					closestDistance = distance;
+//				}
+//			}
+//		}
+
+		for (GraphicalVertex exit : exitsNeighboursVertices) {
+			for (GraphicalVertex entry : entriesNeighboursVertices) {
+				double distance = graph.getDistance(exit.getID(), entry.getID());
 				if (distance < closestDistance) {
 					closest = new Pair<>(exit, entry);
 					closestDistance = distance;
@@ -181,19 +203,15 @@ public class Roundabout extends SafeLines {
 		LinkedList<GraphicalVertex> pathPoints = new LinkedList<>();
 		pathPoints.add(exit);
 		pathPoints.addLast(entry);
-//		exitsNeighboursVertices.remove(exit);
-//		entriesNeighboursVertices.remove(entry);
+		exitsNeighboursVertices.remove(exit);
+		entriesNeighboursVertices.remove(entry);
 
-		distances.entrySet().stream()
-			.filter(e -> e.getKey() != exit)
-			.map(e -> new Pair<>(e.getKey(), e.getValue().get(entry).size()))
-			.sorted(Comparator.comparingInt(Pair::getValue))
-			.forEach(p -> pathPoints.addFirst(p.getKey()));
+		exitsNeighboursVertices.stream()
+			.sorted(Comparator.comparingDouble(exitNeighbour -> graph.getDistance(exitNeighbour.getID(), entry.getID())))
+			.forEach(pathPoints::addFirst);
 
-		distances.get(exit).entrySet().stream()
-			.filter(e -> e.getKey() != entry)
-			.sorted(Comparator.comparingInt(e -> e.getValue().size()))
-			.map(Map.Entry::getKey)
+		entriesNeighboursVertices.stream()
+			.sorted(Comparator.comparingDouble(entryNeighbour -> graph.getDistance(exit.getID(), entryNeighbour.getID())))
 			.forEach(pathPoints::addLast);
 
 		List<Integer> path = new ArrayList<>();

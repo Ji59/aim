@@ -17,10 +17,10 @@ public class OctagonalGraph extends SquareGraph {
 	 * @param exits       Number of exits from each direction
 	 */
 	public OctagonalGraph(int granularity, int entries, int exits) {
-		super(OCTAGONAL, granularity, entries, exits, 2 * granularity * granularity - 2 * granularity + 4 * (entries + exits) + 1, 1. / (granularity + 2), true);
+		super(OCTAGONAL, granularity, entries, exits, 2 * granularity * granularity - 2 * granularity + 4 * (entries + exits - 1) + 1, 1. / (granularity + 2), true);
 		cellSize = 1. / (granularity + 2);
 
-		createOctagonalGraphInBetweenVertices(granularity * granularity + 4 * (entries + exits), cellSize);
+		createOctagonalGraphInBetweenVertices(granularity * granularity + 4 * (entries + exits - 1), cellSize);
 	}
 
 	/**
