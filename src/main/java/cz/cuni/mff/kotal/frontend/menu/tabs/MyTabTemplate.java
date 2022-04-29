@@ -33,6 +33,18 @@ public abstract class MyTabTemplate extends Tab {
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @param index
+	 * @param node
+	 * @return
+	 */
+	public MyTabTemplate addRowNode(int index, Node node) {
+		grid.add(node, 0, index, grid.getColumnCount(), 1);
+		return this;
+	}
+
+	/**
 	 * Add row of nodes to the grid.
 	 *
 	 * @param index    Index of row

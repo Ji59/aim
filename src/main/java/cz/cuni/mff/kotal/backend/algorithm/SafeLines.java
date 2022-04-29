@@ -12,6 +12,10 @@ import java.util.*;
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
 public class SafeLines implements Algorithm {
+	public static final Map<String, Integer> PARAMETERS = Map.of("Safe distance", 1);
+
+
+	private final int safeDistance;
 	protected final SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, List<Vertex>> directionExits = new HashMap<>();
@@ -35,6 +39,7 @@ public class SafeLines implements Algorithm {
 		});
 
 		graph.getEntryExitVertices().forEach((key, value) -> directionExits.put(key, value.stream().filter(vertex -> vertex.getType().isExit()).toList()));
+		safeDistance = PARAMETERS.get("Safe distance");
 	}
 
 	@Override
