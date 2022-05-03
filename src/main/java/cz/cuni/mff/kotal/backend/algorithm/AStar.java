@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
+import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
@@ -10,10 +11,23 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AStar extends SafeLines {
-	private final int maximumVertexVisits = 2;
+
+	protected static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
+	protected static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
+	protected static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
+	protected static final boolean ALLOW_AGENT_STOP_DEF = false;
+
+	public static final Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF, MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF, ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
+
+
+	private final int maximumVertexVisits;
+	private final boolean allowAgentStop;
 
 	public AStar(SimulationGraph graph) {
 		super(graph);
+
+		maximumVertexVisits = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);
+		allowAgentStop = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
 	}
 
 	@Override
@@ -68,7 +82,6 @@ public class AStar extends SafeLines {
 				return agent;
 			}
 
-//			boolean plannedNeighbour = false;
 			long stateStep = state.getStep();
 			for (int neighbourID : state.getVertex().getNeighbourIDs()) {
 				long neighbourStep = stateStep + 1;
@@ -89,14 +102,12 @@ public class AStar extends SafeLines {
 					double distance = graph.getDistance(vertexID, neighbourID);
 					estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);
 					queue.add(new State(state, graph.getVertex(neighbourID), distance, estimate));
-//					plannedNeighbour = true;
 				}
 			}
 
 			if (
-//				!plannedNeighbour
-//				state.getParent() != null && state.getID() != state.getParent().getID()
-				canVisitVertex(state, vertexID)
+				allowAgentStop && vertexID != entryID &&
+					canVisitVertex(state, vertexID)
 					&& (
 					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentsPerimeter)
 				)

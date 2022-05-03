@@ -6,14 +6,12 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 /**
  * Tab in menu window for algorithm.
@@ -49,6 +47,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		PARAMETERS.setHgap(20);
 		PARAMETERS.setVgap(50);
 		addRow(2, new MenuLabel(Parameters.ALGORITHM_PARAMETERS.getText()), PARAMETERS);
+		GridPane.setConstraints(PARAMETERS, 1, 2, 2, 1);
 
 	}
 
@@ -61,25 +60,33 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	}
 
 	private void setParameters(Parameters.Algorithm algorithm) {
-		Map<String, Integer> parameters;
+		Map<String, Object> parameters = new HashMap<>();
 		try {
-			parameters = (Map<String, Integer>) algorithm.getAlgorithmClass().getField("PARAMETERS").get(null);
+			parameters = (Map<String, Object>) algorithm.getAlgorithmClass().getField("PARAMETERS").get(null);
 		} catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
 			// TODO
 			throw new RuntimeException(e);
 		}
 		PARAMETERS.getChildren().clear();
 
-		Iterator<Map.Entry<String, Integer>> iterator = parameters.entrySet().iterator();
+		Iterator<Map.Entry<String, Object>> iterator = parameters.entrySet().iterator();
 		for (int i = 0; iterator.hasNext(); i++) {
-			Map.Entry<String, Integer> entry = iterator.next();
+			Map.Entry<String, Object> entry = iterator.next();
 			String name = entry.getKey();
-			Integer value = entry.getValue();
 			MenuLabel nameLabel = new MenuLabel(name);
-			TextField valueField = new TextField(value.toString());
-			valueField.setPrefWidth(69);
-			valueField.setId(name);
-			PARAMETERS.addRow(i, nameLabel, valueField);
+			Node valueNode;
+			Object value = entry.getValue();
+			if (value instanceof Boolean booleanValue) {
+				CheckBox checkBox = new CheckBox();
+				checkBox.setSelected(booleanValue);
+				valueNode = checkBox;
+			} else {
+				TextField textField = new TextField(value.toString());
+				textField.setPrefWidth(42);
+				valueNode = textField;
+			}
+			valueNode.setId(name);
+			PARAMETERS.addRow(i, nameLabel, valueNode);
 		}
 	}
 
@@ -94,6 +101,66 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		}
 		// TODO throw exception
 		return null;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param parameterName
+	 * @param defaultValue
+	 * @return
+	 */
+	public static double getDoubleParameter(String parameterName, double defaultValue) {
+		return getParameter(parameterName, defaultValue, Double.class);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param parameterName
+	 * @param defaultValue
+	 * @return
+	 */
+	public static int getIntegerParameter(String parameterName, int defaultValue) {
+		return getParameter(parameterName, defaultValue, Integer.class);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param parameterName
+	 * @param defaultValue
+	 * @return
+	 */
+	public static boolean getBooleanParameter(String parameterName, boolean defaultValue) {
+		return getParameter(parameterName, defaultValue, Boolean.class);
+	}
+
+
+	/**
+	 * TODO
+	 *
+	 * @param parameterName
+	 * @param defaultValue
+	 * @return
+	 */
+	public static <T> T getParameter(String parameterName, T defaultValue, Class<T> tClass) {
+		for (Node child : PARAMETERS.getChildren()) {
+			if (parameterName.equals(child.getId())) {
+				try {
+					if (tClass == Boolean.class) {
+						return (T) Boolean.valueOf(((CheckBox) child).isSelected());
+					} else {
+						return tClass.getConstructor(String.class).newInstance(((TextField) child).getText());
+					}
+				} catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+					// TODO
+					((TextField) child).setText(String.valueOf(defaultValue));
+					return defaultValue;
+				}
+			}
+		}
+		return defaultValue;
 	}
 
 	/**

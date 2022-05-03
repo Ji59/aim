@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
+import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -12,10 +13,12 @@ import java.util.*;
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
 public class SafeLines implements Algorithm {
-	public static final Map<String, Integer> PARAMETERS = Map.of("Safe distance", 1);
+	protected static final String SAFE_DISTANCE_NAME = "Safe distance";
+	protected static final double SAFE_DISTANCE_DEF = 0.;
+	public static final Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF);
 
 
-	private final int safeDistance;
+	private final double safeDistance;
 	protected final SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, List<Vertex>> directionExits = new HashMap<>();
@@ -39,7 +42,8 @@ public class SafeLines implements Algorithm {
 		});
 
 		graph.getEntryExitVertices().forEach((key, value) -> directionExits.put(key, value.stream().filter(vertex -> vertex.getType().isExit()).toList()));
-		safeDistance = PARAMETERS.get("Safe distance");
+
+		safeDistance = AlgorithmMenuTab2.getDoubleParameter(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF) * graph.getCellSize();
 	}
 
 	@Override
@@ -100,7 +104,7 @@ public class SafeLines implements Algorithm {
 	protected boolean safeVertex(long step, int vertexID, double agentPerimeter) {
 		assert stepOccupiedVertices.containsKey(step);
 		return verticesDistances.get(vertexID).stream()
-			.takeWhile(v -> v.distance() <= agentPerimeter)
+			.takeWhile(v -> v.distance() <= agentPerimeter + safeDistance)
 			.noneMatch(v -> stepOccupiedVertices.get(step).containsKey(v.vertexID()));
 	}
 
@@ -164,9 +168,11 @@ public class SafeLines implements Algorithm {
 		double x1 = xA - x;
 		double y1 = yA - y;
 
+		double perimetersSquared = neighbourPerimeter + agentPerimeter + safeDistance;
+		perimetersSquared *= perimetersSquared;
+
 		if (doubleAlmostEqual(Math.abs(x0), 0, graph.getCellSize() / 0x100) && MyNumberOperations.doubleAlmostEqual(Math.abs(y0), 0, graph.getCellSize() / 0x100)) {
-			double perimetersSum = agentPerimeter + neighbourPerimeter;
-			return x1 * x1 + y1 * y1 > perimetersSum * perimetersSum;
+			return x1 * x1 + y1 * y1 > perimetersSquared;
 		}
 
 		double closestTime = (x1 * x0 + y1 * y0) / (x0 * x0 + y0 * y0);
@@ -176,9 +182,6 @@ public class SafeLines implements Algorithm {
 		double yDiffAtT = closestTime * y0 - y1;
 		assert doubleAlmostEqual(Math.abs(yDiffAtT), Math.abs((closestTime * y + (1 - closestTime) * yA) - (closestTime * yN + (1 - closestTime) * y)), 1e-7);
 		yDiffAtT *= yDiffAtT;
-
-		double perimetersSquared = neighbourPerimeter + agentPerimeter;
-		perimetersSquared *= perimetersSquared;
 
 		return xDiffAtT + yDiffAtT > perimetersSquared;
 	}

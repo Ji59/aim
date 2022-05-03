@@ -2,7 +2,6 @@ package cz.cuni.mff.kotal.backend.algorithm;
 
 
 import cz.cuni.mff.kotal.simulation.Agent;
-import javafx.util.Pair;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,7 +10,7 @@ import java.util.Map;
 
 public interface Algorithm {
 
-	Map<String, Integer> PARAMETERS = Collections.emptyMap();  // parameters in form of parameter name, default value
+	Map<String, Object> PARAMETERS = Collections.emptyMap();  // floating point parameters in form of parameter name, default value
 
 	/**
 	 * Try to plan all provided agents using an algorithm.
@@ -33,13 +32,4 @@ public interface Algorithm {
 	 * @return Agent if planning was successful, otherwise null
 	 */
 	Agent planAgent(Agent agent, long step);
-
-	/**
-	 * TODO
-	 *
-	 * @return
-	 */
-	static Map<String, Object> getParameters() {
-		return Collections.emptyMap();
-	}
 }
