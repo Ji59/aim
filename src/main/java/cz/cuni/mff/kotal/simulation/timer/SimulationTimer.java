@@ -106,6 +106,8 @@ public class SimulationTimer extends AnimationTimer {
 				} else {
 					if (agentPane.getCollisionStep() + COLLISION_AGENTS_SHOWN_STEPS <= step) {
 						removeAgent(activeAgentsIterator, agentPane);
+					} else {
+						agentPane.collide();
 					}
 				}
 			}
@@ -127,9 +129,6 @@ public class SimulationTimer extends AnimationTimer {
 
 				agentPane0.collide(step);
 				agentPane1.collide(step);
-
-				// TODO remove log
-				System.out.println(agentPane0.getAgentID() + " collides with " + agentPane1.getAgentID());
 			});
 		}
 

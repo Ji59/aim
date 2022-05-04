@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SimulationHandler {
-	public static final double MAXIMUM_STEP_SIZE_PER_FRAME = 0.25;  // 2 ^ -2
+	public static final double MAXIMUM_STEP_SIZE_PER_FRAME = 0.125;  // 2 ^ -3
 
 	private static long[] verticesUsage = null;
 	private static long frames = 0;
@@ -97,22 +97,14 @@ public class SimulationHandler {
 
 			agents.remove(agentPane0.getAgentID());
 			agents.remove(agentPane1.getAgentID());
-
-			// TODO remove log
-			System.out.println(agentPane0.getAgentID() + " collides with " + agentPane1.getAgentID());
 		});
 	}
 
 	public void updateSimulation(double step) {
-		simulation.loadAndUpdateAgents(step); // TODO wait if steps not generated
+		simulation.loadAndUpdateAgents(step);
 		IntersectionScene.getSimulationAgents().addArrivedAgents(step, false);
 		IntersectionMenu.setStep(step);
 		simulation.updateStatistics(step);
-		try {
-			Thread.sleep(1);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
 	}
 
 	public static void updateVerticesUsage(double step) {
@@ -125,7 +117,7 @@ public class SimulationHandler {
 			.filter(agentPane -> !agentPane.isDisable())
 			.map(AgentPane::getAgent)
 			.forEach(agent -> {
-				int vertex = (int) agent.getNearestPathVertexId(step - agent.getPlannedTime());
+				int vertex = agent.getNearestPathVertexId(step - agent.getPlannedTime());
 				verticesUsage[vertex]++;
 			});
 

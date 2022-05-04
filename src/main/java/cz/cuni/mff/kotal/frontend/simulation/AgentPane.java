@@ -16,6 +16,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 
@@ -32,7 +33,6 @@ public class AgentPane extends StackPane {
 	private final Agent agent;
 	@Deprecated
 	private double distanceTraveled;
-	private double collisionStep = Double.MAX_VALUE;
 
 	private double angle;
 
@@ -333,11 +333,16 @@ public class AgentPane extends StackPane {
 	 */
 	public void collide(double step) {
 		// TODO refactor
-		collisionStep = step;
-		collide();
+		agent.setCollisionStep(step);
+		collidePane();
 	}
 
 	public void collide() {
+		handleTick(getCollisionStep());
+		collidePane();
+	}
+
+	private void collidePane() {
 		rectangle.toBack();
 		rectangle.setFill(Color.RED);
 		rectangle.setOpacity(0.5);
@@ -405,7 +410,7 @@ public class AgentPane extends StackPane {
 	}
 
 	public double getCollisionStep() {
-		return collisionStep;
+		return agent.getCollisionStep();
 	}
 
 	/**

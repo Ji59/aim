@@ -63,10 +63,10 @@ public class LoadingSimulation extends Simulation {
 	private ListIterator<Agent> loadAgents(String path) throws FileNotFoundException {
 		FileReader reader = new FileReader(path);
 		Gson gson = new Gson();
-		List<Agent> agents = gson.fromJson(reader, new TypeToken<List<Agent>>() {
+		List<BasicAgent> basicAgents = gson.fromJson(reader, new TypeToken<List<BasicAgent>>() {
 		}.getType());
-		agents.sort(Comparator.comparingDouble(Agent::getArrivalTime));
-		allAgents.putAll(agents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
+		List<Agent> agents = basicAgents.stream().sorted(Comparator.comparingDouble(BasicAgent::getArrivalTime)).map(Agent::new).toList();
+		allAgents.putAll(agents.stream().collect(Collectors.toMap(BasicAgent::getId, Function.identity())));
 		return agents.listIterator();
 	}
 

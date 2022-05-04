@@ -3,7 +3,6 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
-import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.util.Pair;
 import org.jetbrains.annotations.TestOnly;
@@ -13,45 +12,20 @@ import java.util.List;
 import java.util.Map;
 
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
-import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
 
 
 /**
  * Class representing agent.
  */
-public class Agent {
-	private final long id;
-	private final double l; // Length of the agent
-	private final double w; // Width of the agent
-	private int entry;
-	private final int exit;
-	private final int entryDirection;
-	private final int exitDirection;
-	private final double speed;
-	private final double arrivalTime;
+public class Agent extends BasicAgent {
 
-	private transient long plannedTime = -1;
-
-	private transient List<Integer> path = new ArrayList<>();
+	private long plannedTime = -1;
+	private List<Integer> path = new ArrayList<>();
+	private double collisionStep = Double.POSITIVE_INFINITY;
 	private transient double x; // location
 	private transient double y;
 
 	private static final double PROXIMITY = 0.0001; // TODO
-
-	/**
-	 * TODO
-	 * Cause gson
-	 */
-	public Agent() {
-		id = 0;
-		l = 0;
-		w = 0;
-		exit = 0;
-		entryDirection = 0;
-		exitDirection = 0;
-		speed = 0;
-		arrivalTime = 0;
-	}
 
 	/**
 	 * Create new agent with specified attributes.
@@ -69,31 +43,25 @@ public class Agent {
 	 * @param y              Coordinate Y of the agent
 	 */
 	public Agent(long id, Integer entry, Integer exit, int entryDirection, int exitDirection, double speed, double arrivalTime, double l, double w, double x, double y) {
-		this.id = id;
-		this.entry = entry;
-		this.exit = exit;
-		this.entryDirection = entryDirection;
-		this.exitDirection = exitDirection;
-		this.speed = speed;
-		this.arrivalTime = arrivalTime;
-		this.l = l;
-		this.w = w;
+		super(id, entry, exit, entryDirection, exitDirection, speed, arrivalTime, l, w);
 		this.x = x;
 		this.y = y;
 	}
 
+	/**
+	 * TODO
+	 * For loading from GSON.
+	 *
+	 * @param basicAgent
+	 */
+	public Agent(BasicAgent basicAgent) {
+		super(basicAgent);
+	}
+
 	@TestOnly
 	public Agent(long id, double arrivalTime, long plannedTime, Integer entry) {
-		this.id = id;
-		this.arrivalTime = arrivalTime;
+		super(id, arrivalTime, entry);
 		this.plannedTime = plannedTime;
-		this.entry = entry;
-		l = 0;
-		w = 0;
-		speed = 0;
-		exit = 0;
-		entryDirection = 0;
-		exitDirection = 0;
 	}
 
 
@@ -104,7 +72,7 @@ public class Agent {
 	 * @return
 	 */
 	public int getLastVisitedVertexIndex(double time) {
-		return (int) (time * speed);
+		return (int) (time * getSpeed());
 	}
 
 	/**
@@ -114,7 +82,7 @@ public class Agent {
 	 * @return
 	 */
 	public int getNearestVertexIndex(double time) {
-		return (int) Math.round(time * speed);
+		return (int) Math.round(time * getSpeed());
 	}
 
 
@@ -145,7 +113,7 @@ public class Agent {
 			int first = path.get(0);
 			return new Pair<>(first, first);
 		}
-		if (doubleAlmostEqual(time, (path.size() - 1) / speed, PROXIMITY)) {
+		if (doubleAlmostEqual(time, (path.size() - 1) / getSpeed(), PROXIMITY)) {
 			int exitID = path.get(path.size() - 1);
 			return new Pair<>(exitID, exitID);
 		}
@@ -155,20 +123,52 @@ public class Agent {
 	}
 
 	/**
-	 * @return ID of the agent
+	 * Compute coordinates X and Y at given time.
+	 *
+	 * @param time     Time in steps since agent appeared
+	 * @param vertices Map of vertices and their IDs of the graph the agent is moving on
+	 * @throws IndexOutOfBoundsException TODO
 	 */
-	public long getId() {
-		return id;
+	public void computeNextXY(double time, Vertex[] vertices) throws IndexOutOfBoundsException {
+		double currentEdgeTravelPart = (time * getSpeed()) % 1;
+		double currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
+		Pair<Integer, Integer> previousNextGoalID = getPreviousNextVertexIDs(time);
+		GraphicalVertex previousGoal = (GraphicalVertex) vertices[previousNextGoalID.getKey()];
+		GraphicalVertex nextGoal = (GraphicalVertex) vertices[previousNextGoalID.getValue()];
+
+		// TODO optimize
+		double previousGoalX = previousGoal.getX() * IntersectionModel.getPreferredHeight();
+		double nextGoalX = nextGoal.getX() * IntersectionModel.getPreferredHeight();
+		this.x = previousGoalX * currentEdgeTravelRemain + nextGoalX * currentEdgeTravelPart;
+		double previousGoalY = previousGoal.getY() * IntersectionModel.getPreferredHeight();
+		double nextGoalY = nextGoal.getY() * IntersectionModel.getPreferredHeight();
+		this.y = previousGoalY * currentEdgeTravelRemain + nextGoalY * currentEdgeTravelPart;
 	}
 
 	/**
-	 * Set starting vertex in case only direction is generated.
+	 * Set X and Y coordinates according to entry vertex ID.
 	 *
-	 * @param entry ID of starting vertex
+	 * @param vertices Map of vertices to get entry vertex object.
+	 * @throws RuntimeException TODO
 	 */
-	public Agent setEntry(Integer entry) {
-		this.entry = entry;
+	public void setStartingXY(Map<Integer, Vertex> vertices) {
+		if (getEntry() < 0 || getExit() < 0) {
+			throw new RuntimeException("Agent not planned.");
+		}
+		GraphicalVertex entryVertex = (GraphicalVertex) vertices.get(getEntry());
+		x = entryVertex.getX();
+		y = entryVertex.getY();
+	}
+
+	// TODO
+
+	public Agent setPlannedTime(long plannedTime) {
+		this.plannedTime = plannedTime;
 		return this;
+	}
+
+	public long getPlannedTime() {
+		return plannedTime;
 	}
 
 	public void setEntry(GraphicalVertex vertex) {
@@ -176,41 +176,6 @@ public class Agent {
 		entry = vertex.getID();
 		x = vertex.getX();
 		y = vertex.getY();
-	}
-
-	/**
-	 * @return ID of starting vertex of this agent
-	 */
-	public Integer getEntry() {
-		return entry;
-	}
-
-	/**
-	 * @return ID of ending vertex of this agent
-	 */
-	public Integer getExit() {
-		return exit;
-	}
-
-	/**
-	 * @return ID of direction in which agent appears
-	 */
-	public int getEntryDirection() {
-		return entryDirection;
-	}
-
-	/**
-	 * @return ID of direction in which agent leaves the intersection
-	 */
-	public int getExitDirection() {
-		return exitDirection;
-	}
-
-	/**
-	 * @return Speed of this agent
-	 */
-	public double getSpeed() {
-		return speed;
 	}
 
 	/**
@@ -245,56 +210,13 @@ public class Agent {
 		return this;
 	}
 
-	/**
-	 * Compute coordinates X and Y at given time.
-	 *
-	 * @param time     Time in steps since agent appeared
-	 * @param vertices Map of vertices and their IDs of the graph the agent is moving on
-	 * @throws IndexOutOfBoundsException TODO
-	 */
-	public void computeNextXY(double time, Vertex[] vertices) throws IndexOutOfBoundsException {
-		double currentEdgeTravelPart = (time * speed) % 1;
-		double currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
-		Pair<Integer, Integer> previousNextGoalID = getPreviousNextVertexIDs(time);
-		GraphicalVertex previousGoal = (GraphicalVertex) vertices[previousNextGoalID.getKey()];
-		GraphicalVertex nextGoal = (GraphicalVertex) vertices[previousNextGoalID.getValue()];
-
-		// TODO optimize
-		double previousGoalX = previousGoal.getX() * IntersectionModel.getPreferredHeight();
-		double nextGoalX = nextGoal.getX() * IntersectionModel.getPreferredHeight();
-		this.x = previousGoalX * currentEdgeTravelRemain + nextGoalX * currentEdgeTravelPart;
-		double previousGoalY = previousGoal.getY() * IntersectionModel.getPreferredHeight();
-		double nextGoalY = nextGoal.getY() * IntersectionModel.getPreferredHeight();
-		this.y = previousGoalY * currentEdgeTravelRemain + nextGoalY * currentEdgeTravelPart;
+	public double getCollisionStep() {
+		return collisionStep;
 	}
 
-	/**
-	 * Set X and Y coordinates according to entry vertex ID.
-	 *
-	 * @param vertices Map of vertices to get entry vertex object.
-	 * @throws RuntimeException TODO
-	 */
-	public void setStartingXY(Map<Integer, Vertex> vertices) {
-		if (entry < 0 || exit < 0) {
-			throw new RuntimeException("Agent not planned.");
-		}
-		GraphicalVertex entryVertex = (GraphicalVertex) vertices.get(entry);
-		x = entryVertex.getX();
-		y = entryVertex.getY();
-	}
-
-	/**
-	 * @return Length of the agent
-	 */
-	public double getL() {
-		return l;
-	}
-
-	/**
-	 * @return Width of the agent
-	 */
-	public double getW() {
-		return w;
+	public Agent setCollisionStep(double step) {
+		this.collisionStep = step;
+		return this;
 	}
 
 	/**
@@ -311,25 +233,4 @@ public class Agent {
 		return y;
 	}
 
-	public double getArrivalTime() {
-		return arrivalTime;
-	}
-
-	// TODO
-	public Agent setPlannedTime(long plannedTime) {
-		this.plannedTime = plannedTime;
-		return this;
-	}
-
-	public long getPlannedTime() {
-		return plannedTime;
-	}
-
-	public double getAgentPerimeter() {
-		return getAgentPerimeter(IntersectionModel.getGraph());
-	}
-
-	public double getAgentPerimeter(SimulationGraph graph) {
-		return perimeter(getL(), getW()) * graph.getCellSize();
-	}
 }

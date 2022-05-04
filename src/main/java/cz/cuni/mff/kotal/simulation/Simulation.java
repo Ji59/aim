@@ -361,7 +361,7 @@ public abstract class Simulation {
 	public void saveAgents(File file) throws IOException {
 		FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8, false);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		gson.toJson(allAgents.values(), writer);
+		gson.toJson(allAgents.values().stream().filter(createdAgentsQueue::contains).map(BasicAgent::new).toList(), writer);
 		writer.close();
 	}
 
