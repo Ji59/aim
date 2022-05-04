@@ -84,21 +84,6 @@ public abstract class Simulation {
 	 */
 	public void loadAndUpdateAgents(double step) {
 		double stepDiff = loadedStep - step;
-
-		/**
-		 if (loadedStep <= step + GENERATED_MINIMUM_STEP_AHEAD) {
-		 loadAgentsLock.lock();
-		 for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-		 updateRejectedAgents(loadedStep);
-		 Collection<Agent> newAgents = loadAgents(loadedStep);
-		 addCreatedAgents(newAgents);
-		 updateDelayedAgents(loadedStep);
-		 }
-		 loadAgentsLock.unlock();
-		 }
-
-		 /*/
-
 		if (stepDiff <= GENERATED_MINIMUM_STEP_AHEAD / 2) {
 			try {
 				loadAgentsLock.lock();
@@ -122,7 +107,6 @@ public abstract class Simulation {
 				}
 			}).start();
 		}
-		/**/
 	}
 
 	/**
@@ -143,10 +127,6 @@ public abstract class Simulation {
 	 * @param period Time in nanoseconds
 	 */
 	public final void start(long period) {
-		if (ended) {
-			return;
-		}
-
 		this.period = period;
 		if (startingStep <= 0) {
 			loadAndUpdateAgents(0.);
