@@ -201,7 +201,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 			DELAY("Total delay:", delayLabel),
 			REJECTIONS("Rejections:", rejectionsLabel),
 			COLLISIONS("Collisions:", collisionsLabel),
-			REMAINS("Remaining time:", remainingLabel),
+//			REMAINS("Remaining time:", remainingLabel),
 			;
 
 			private final String text;

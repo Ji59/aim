@@ -6,10 +6,11 @@ import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.InvalidSimulation;
 import cz.cuni.mff.kotal.simulation.Simulation;
-import cz.cuni.mff.kotal.simulation.SimulationHandler;
+import cz.cuni.mff.kotal.simulation.timer.SimulationBackgroundTicker;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import cz.cuni.mff.kotal.simulation.timer.SimulationTimer;
+import cz.cuni.mff.kotal.simulation.timer.SimulationAnimationTimer;
+import cz.cuni.mff.kotal.simulation.timer.SimulationTicker;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -45,7 +46,7 @@ public class SimulationAgents extends Pane {
 	private final Label agentLabel = new Label();
 	private Set<Node> agentPath = null;
 
-	private SimulationTimer timer;
+	private SimulationAnimationTimer timer;
 
 	private final Set<Polygon> rectangles = new HashSet<>(); // only for debug
 
@@ -92,7 +93,7 @@ public class SimulationAgents extends Pane {
 		if (!vertexLabel.isVisible()) {
 			return;
 		}
-		double vertexUsage = SimulationTimer.getVertexUsage(vertexLabelID);
+		double vertexUsage = SimulationAnimationTimer.getVertexUsage(vertexLabelID);
 		vertexLabel.setText(String.format("ID: %d%nUsage: %.2f", vertexLabelID, vertexUsage));
 	}
 
@@ -165,7 +166,7 @@ public class SimulationAgents extends Pane {
 			agentPane = allAgents.get(agent);
 			double collisionStep = agentPane.getCollisionStep();
 			if (collisionStep <= step) {
-				if (collisionStep + SimulationTimer.COLLISION_AGENTS_SHOWN_STEPS > step) {
+				if (collisionStep + SimulationTicker.COLLISION_AGENTS_SHOWN_STEPS > step) {
 					agentPane.collide();
 					agentPane.handleTick(collisionStep);
 				} else {
@@ -252,7 +253,7 @@ public class SimulationAgents extends Pane {
 	 * Stop running agent panes simulation.
 	 */
 	public void pauseSimulation() {
-		SimulationHandler.stop();
+		SimulationBackgroundTicker.stop();
 		if (timer != null) {
 			timer.stop();
 		}
@@ -275,7 +276,7 @@ public class SimulationAgents extends Pane {
 		SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
 		simulationHandler.start();
 		 /*/
-		timer = new SimulationTimer(activeAgents, simulation);
+		timer = new SimulationAnimationTimer(activeAgents, simulation);
 		timer.start();
 		/**/
 	}

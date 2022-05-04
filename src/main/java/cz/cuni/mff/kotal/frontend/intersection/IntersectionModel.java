@@ -569,13 +569,13 @@ public class IntersectionModel extends Pane {
 	 * @param verticesUsage
 	 * @param frames
 	 */
-	public static void updateVertexNodesColors(long[] verticesUsage, double frames) {
-		for (int vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
+	public static void updateVertexNodesColors(List<Long> verticesUsage, double frames) {
+		for (int vertexID = 0; vertexID < verticesUsage.size(); vertexID++) {
 			Color color = graph.getVertex(vertexID).getType().getColor();
 
 			Shape vertexNode = vertexNodes[vertexID];
 			double oldColorShift = ((Color) vertexNode.getFill()).getGreen() / color.getGreen();
-			double colorShift = 1 - verticesUsage[vertexID] / frames;
+			double colorShift = 1 - verticesUsage.get(vertexID) / frames;
 			if (Math.abs(oldColorShift - colorShift) > MAX_COLOR_CHANGE) {
 				colorShift = oldColorShift + (colorShift > oldColorShift ? MAX_COLOR_CHANGE : -MAX_COLOR_CHANGE);
 			}

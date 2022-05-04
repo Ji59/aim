@@ -39,6 +39,7 @@ public class IntersectionMenu extends VBox {
 	private static final Button INTERSECTION_MODE = new Button("Real");
 	private static final Button PLAY_BUTTON = new Button("Play");
 	private static final Button RESTART_BUTTON = new Button("Restart");
+	private static final CheckBox PLAY_IN_BACKGROUND = new CheckBox("Background");
 	private static final Button SAVE_AGENTS_BUTTON = new Button("Save agents");
 
 	private static final Label AGENTS_LABEL = new Label("#n");
@@ -129,20 +130,15 @@ public class IntersectionMenu extends VBox {
 		SimulationMenuTab3.getPlayButton().setOnMouseClicked(PLAY_BUTTON.getOnMouseClicked());
 		SimulationMenuTab3.getRestartButton().setOnMouseClicked(RESTART_BUTTON.getOnMouseClicked());
 		SimulationMenuTab3.getSaveAgentsButton().setOnMouseClicked(SAVE_AGENTS_BUTTON.getOnMouseClicked());
-		SAVE_AGENTS_BUTTON.setPrefWidth(Double.MAX_VALUE);
+
+		PLAY_IN_BACKGROUND.setSelected(false);
 
 		GridPane statistics = new GridPane();
-		Map<Statistics, Label> labels = Map.of(Statistics.AGENTS, AGENTS_LABEL, Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL, Statistics.REMAINS, REMAINING_LABEL);
+		Map<Statistics, Label> labels = Map.of(Statistics.AGENTS, AGENTS_LABEL, Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL /*, Statistics.REMAINS, REMAINING_LABEL*/);
 		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
-		PLAY_BUTTON.setVisible(true);
-		// TODO on Windows button overlay each other
-//		HBox buttons = new HBox(PLAY_BUTTON /*, RESTART_BUTTON */);
-		HBox buttons = new HBox(padding, PLAY_BUTTON);
-//		buttons.getChildren().add(RESTART_BUTTON);
 
-		buttons.setPrefWidth(Double.MAX_VALUE);
-		getChildren().addAll(sliders, buttons, RESTART_BUTTON, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
+		getChildren().addAll(sliders, PLAY_BUTTON, RESTART_BUTTON, PLAY_IN_BACKGROUND, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
 	}
 
 	/**
@@ -378,8 +374,17 @@ public class IntersectionMenu extends VBox {
 			return false;
 		}
 
-//		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() - 1);
 		SPEED_SLIDER.decrement();
+		System.out.println(SPEED_SLIDER.getValue());
+		return true;
+	}
+
+	public static boolean decreaseSpeedToThreeFourths() {
+		if (SPEED_SLIDER.getValue() <= SPEED_SLIDER.getMin()) {
+			return false;
+		}
+
+		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() * 3 / 4);
 		System.out.println(SPEED_SLIDER.getValue());
 		return true;
 	}
@@ -392,7 +397,6 @@ public class IntersectionMenu extends VBox {
 			return false;
 		}
 
-//		SPEED_SLIDER.setValue(SPEED_SLIDER.getValue() + 1);
 		SPEED_SLIDER.increment();
 		System.out.println(SPEED_SLIDER.getValue());
 		return true;

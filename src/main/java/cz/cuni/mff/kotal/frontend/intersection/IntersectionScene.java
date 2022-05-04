@@ -5,8 +5,9 @@ import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.*;
-import cz.cuni.mff.kotal.simulation.timer.SimulationTimer;
+import cz.cuni.mff.kotal.simulation.timer.SimulationBackgroundTicker;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.timer.SimulationTicker;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
@@ -115,8 +116,7 @@ public class IntersectionScene extends Scene {
 				simulation = new GeneratingSimulation(graph, algorithm, AGENTS);
 			}
 
-			SimulationHandler.resetValues(graph);
-			SimulationTimer.resetValues(graph);
+			SimulationTicker.resetValues(graph);
 			AGENTS.setSimulation(simulation);
 			simulation.start(getPeriod());
 		}
