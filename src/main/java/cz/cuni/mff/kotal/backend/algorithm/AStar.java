@@ -16,18 +16,27 @@ public class AStar extends SafeLines {
 	protected static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
 	protected static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
 	protected static final boolean ALLOW_AGENT_STOP_DEF = false;
+	protected static final String MAXIMUM_PATH_LENGTH_NAME = "Maximum travel distance";
+	protected static final int MAXIMUM_PATH_LENGTH_DEF = Integer.MAX_VALUE;
 
-	public static final Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF, MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF, ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
+	public static final Map<String, Object> PARAMETERS = Map.of(
+		SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF,
+		MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF,
+		ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF,
+		MAXIMUM_PATH_LENGTH_NAME, MAXIMUM_PATH_LENGTH_DEF
+	);
 
 
 	private final int maximumVertexVisits;
 	private final boolean allowAgentStop;
+	private final int maximumPathLength;
 
 	public AStar(SimulationGraph graph) {
 		super(graph);
 
 		maximumVertexVisits = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);
 		allowAgentStop = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
+		maximumPathLength = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_PATH_LENGTH_NAME, MAXIMUM_PATH_LENGTH_DEF);
 	}
 
 	@Override
@@ -125,6 +134,7 @@ public class AStar extends SafeLines {
 
 	private boolean canVisitVertex(VertexWithDirection state, int vertexID) {
 		int visitCount = 0;
+		int length = 1;
 		while (state != null) {
 			if (state.getID() == vertexID) {
 				visitCount++;
@@ -132,10 +142,11 @@ public class AStar extends SafeLines {
 					return false;
 				}
 			}
+			length++;
 			state = state.getParent();
 		}
 
-		return true;
+		return length <= maximumPathLength;
 	}
 
 	private static class State extends VertexWithDirection {
