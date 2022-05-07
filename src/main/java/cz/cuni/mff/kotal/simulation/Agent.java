@@ -107,15 +107,16 @@ public class Agent extends BasicAgent {
 	 * @return Pair od IDs of the previous and next vertex at given time
 	 * @throws IndexOutOfBoundsException TODO
 	 */
-	public Pair<Integer, Integer> getPreviousNextVertexIDs(double time) throws IndexOutOfBoundsException {
+	public Pair<Integer, Integer> getPreviousNextVertexIDs(double time) {
 		// TODO add exception
 		if (time < 0) {
 			int first = path.get(0);
 			return new Pair<>(first, first);
-		}
-		if (doubleAlmostEqual(time, (path.size() - 1) / getSpeed(), PROXIMITY)) {
+		} else if (doubleAlmostEqual(time, (path.size() - 1) / getSpeed(), PROXIMITY)) {
 			int exitID = path.get(path.size() - 1);
 			return new Pair<>(exitID, exitID);
+		} else if (time > path.size() - 1) {
+			return null;
 		}
 		int previousIndex = getLastVisitedVertexIndex(time);
 		int nextIndex = previousIndex + 1;
@@ -129,20 +130,26 @@ public class Agent extends BasicAgent {
 	 * @param vertices Map of vertices and their IDs of the graph the agent is moving on
 	 * @throws IndexOutOfBoundsException TODO
 	 */
-	public void computeNextXY(double time, Vertex[] vertices) throws IndexOutOfBoundsException {
+	public boolean computeNextXY(double time, Vertex[] vertices) {
 		double currentEdgeTravelPart = (time * getSpeed()) % 1;
 		double currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
 		Pair<Integer, Integer> previousNextGoalID = getPreviousNextVertexIDs(time);
+		if (previousNextGoalID == null) {
+			return true;
+		}
+
 		GraphicalVertex previousGoal = (GraphicalVertex) vertices[previousNextGoalID.getKey()];
 		GraphicalVertex nextGoal = (GraphicalVertex) vertices[previousNextGoalID.getValue()];
 
 		// TODO optimize
-		double previousGoalX = previousGoal.getX() * IntersectionModel.getPreferredHeight();
-		double nextGoalX = nextGoal.getX() * IntersectionModel.getPreferredHeight();
+		double previousGoalX = previousGoal.getX();
+		double nextGoalX = nextGoal.getX();
 		this.x = previousGoalX * currentEdgeTravelRemain + nextGoalX * currentEdgeTravelPart;
-		double previousGoalY = previousGoal.getY() * IntersectionModel.getPreferredHeight();
-		double nextGoalY = nextGoal.getY() * IntersectionModel.getPreferredHeight();
+		double previousGoalY = previousGoal.getY();
+		double nextGoalY = nextGoal.getY();
 		this.y = previousGoalY * currentEdgeTravelRemain + nextGoalY * currentEdgeTravelPart;
+
+		return false;
 	}
 
 	/**

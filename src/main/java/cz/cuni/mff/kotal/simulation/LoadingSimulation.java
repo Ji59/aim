@@ -71,6 +71,7 @@ public class LoadingSimulation extends Simulation {
 	}
 
 	@Override
+	@Deprecated
 	protected void stopSimulation() {
 		if (timer != null) {
 			timer.cancel();

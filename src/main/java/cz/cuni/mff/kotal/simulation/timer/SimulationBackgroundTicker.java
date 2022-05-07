@@ -10,12 +10,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SimulationBackgroundTicker implements SimulationTicker {
 	private static boolean terminated;
 
 	private final Map<Long, AgentPane> agents;
 	private final Simulation simulation;
+	private static final Lock stepLock = new ReentrantLock(true);
 
 	public SimulationBackgroundTicker(Map<Long, AgentPane> agents, Simulation simulation) {
 		this.agents = agents;
@@ -24,7 +27,7 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 
 	public void start() {
 		terminated = false;
-		final double step = 0;
+		final double step = simulation.getNextStep();
 
 		if (Platform.isFxApplicationThread()) {
 			new Thread(() -> start(step)).start();
@@ -34,16 +37,23 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 	}
 
 	private void start(double step) {
-		while (!(terminated || (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().getArrivingAgents().isEmpty()))) {
-			handleStep(step);
+		step -= MAXIMUM_STEP_SIZE_PER_FRAME;
+		while (!(terminated || (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().emptyArrivingAgents()))) {
 			step += MAXIMUM_STEP_SIZE_PER_FRAME;
+			stepLock.lock();
+			handleStep(step);
+			synchronized (stepLock) {
+				stepLock.unlock();
+				stepLock.notify();
+			}
 		}
 		IntersectionMenu.pauseSimulation();
+		simulation.setStartingStep(step);
 	}
 
 	@Override
 	public void handleStep(double step) {
-		SimulationTicker.updateSimulation(step);
+		SimulationTicker.updateSimulation(step, false);
 
 		Set<AgentPane> activeAgents = new HashSet<>(agents.size());
 		updateAgents(step, activeAgents);
@@ -52,15 +62,14 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 
 		updateVerticesUsageAndTimeline(step);
 
-		System.out.println("Computed " + step);
+//		System.out.println("Computed " + step);
 	}
 
-	public static void stop() {
+	@Override
+	public void stop() {
+		stepLock.lock();
 		terminated = true;
-	}
-
-	public static void resetValues() {
-		terminated = true;
+		stepLock.unlock();
 	}
 
 	@Override

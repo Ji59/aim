@@ -177,8 +177,7 @@ public abstract class Simulation {
 		if (state == State.RUNNING) {
 			state = State.STOPPED;
 			simulationAgents.pauseSimulation();
-			startingStep = getStep(System.nanoTime());
-//			stopSimulation();
+//			startingStep = getStep(System.nanoTime());
 		}
 	}
 
@@ -192,6 +191,7 @@ public abstract class Simulation {
 		}
 	}
 
+	@Deprecated
 	protected abstract void stopSimulation();
 
 	public final void reset() {
@@ -260,9 +260,7 @@ public abstract class Simulation {
 		updateAgentsStats(step);
 
 		assert agentsTotal == allAgents.values().stream().filter(agent -> agent.getArrivalTime() <= step).count();
-		IntersectionMenu.setAgents(agentsTotal);
-		IntersectionMenu.setDelay(agentsDelay);
-		IntersectionMenu.setRejections(agentsRejected);
+		IntersectionMenu.setAgentsDelayRejections(agentsTotal, agentsDelay, agentsRejected);
 	}
 
 	protected void updateAgentsStats(double step) {
@@ -361,7 +359,7 @@ public abstract class Simulation {
 	public void saveAgents(File file) throws IOException {
 		FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8, false);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		gson.toJson(allAgents.values().stream().filter(createdAgentsQueue::contains).map(BasicAgent::new).toList(), writer);
+		gson.toJson(allAgents.values().stream().filter(agent -> !createdAgentsQueue.contains(agent)).map(BasicAgent::new).toList(), writer);
 		writer.close();
 	}
 
@@ -421,6 +419,20 @@ public abstract class Simulation {
 	 */
 	public double getStep(long time) {
 		return (time - startTime) / (double) period + startingStep;
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public double getNextStep() {
+		return startingStep;
+	}
+
+	public Simulation setStartingStep(double startingStep) {
+		this.startingStep = startingStep;
+		return this;
 	}
 
 	/**

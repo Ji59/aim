@@ -1,15 +1,16 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.InvalidSimulation;
 import cz.cuni.mff.kotal.simulation.Simulation;
-import cz.cuni.mff.kotal.simulation.timer.SimulationBackgroundTicker;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import cz.cuni.mff.kotal.simulation.timer.SimulationAnimationTimer;
+import cz.cuni.mff.kotal.simulation.timer.SimulationBackgroundTicker;
 import cz.cuni.mff.kotal.simulation.timer.SimulationTicker;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -42,12 +43,14 @@ public class SimulationAgents extends Pane {
 	private double cellSize; // FIXME move somewhere else
 
 	private final Label vertexLabel = new Label();
+	private boolean vertexLabelUpdateRunning = false;
 	private int vertexLabelID;
 	private final Label agentLabel = new Label();
 	private Set<Node> agentPath = null;
 
-	private SimulationAnimationTimer timer;
+	private SimulationTicker timer;
 
+	@TestOnly
 	private final Set<Polygon> rectangles = new HashSet<>(); // only for debug
 
 	/**
@@ -75,6 +78,10 @@ public class SimulationAgents extends Pane {
 		setLabelParameters(agentLabel);
 
 		setOnMouseMoved(this::onMouseMoveAction);
+		setOnMouseExited(event -> {
+			vertexLabel.setVisible(false);
+			agentLabel.setVisible(false);
+		});
 	}
 
 	private void setLabelParameters(Label vertexLabel) {
@@ -90,11 +97,15 @@ public class SimulationAgents extends Pane {
 	 * TODO
 	 */
 	public void setVertexLabelText() {
-		if (!vertexLabel.isVisible()) {
+		if (!vertexLabel.isVisible() || vertexLabelUpdateRunning) {
 			return;
 		}
-		double vertexUsage = SimulationAnimationTimer.getVertexUsage(vertexLabelID);
-		vertexLabel.setText(String.format("ID: %d%nUsage: %.2f", vertexLabelID, vertexUsage));
+		vertexLabelUpdateRunning = true;
+		Platform.runLater(() -> {
+			double vertexUsage = SimulationTicker.getVertexUsage(vertexLabelID);
+			vertexLabel.setText(String.format("ID: %d%nUsage: %.2f", vertexLabelID, vertexUsage));
+			vertexLabelUpdateRunning = false;
+		});
 	}
 
 	/**
@@ -198,8 +209,15 @@ public class SimulationAgents extends Pane {
 	 * @param agentPane
 	 */
 	private void addPaneToChildren(AgentPane agentPane) {
-		getChildren().add(agentPane);
-		agentPane.toBack();
+		Runnable action = () -> {
+			getChildren().add(agentPane);
+			agentPane.toBack();
+		};
+		if (Platform.isFxApplicationThread()) {
+			action.run();
+		} else {
+			Platform.runLater(action);
+		}
 	}
 
 	/**
@@ -251,9 +269,9 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * Stop running agent panes simulation.
+	 * TODO
 	 */
 	public void pauseSimulation() {
-		SimulationBackgroundTicker.stop();
 		if (timer != null) {
 			timer.stop();
 		}
@@ -272,13 +290,14 @@ public class SimulationAgents extends Pane {
 //		}
 		cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
 
-		/**
-		SimulationHandler simulationHandler = new SimulationHandler(activeAgents, simulation);
-		simulationHandler.start();
-		 /*/
-		timer = new SimulationAnimationTimer(activeAgents, simulation);
+		if (IntersectionMenu.playSimulationInBackground()) {
+			timer = new SimulationBackgroundTicker(activeAgents, simulation);
+			resetSimulation();
+			clearChildrenNodes();
+		} else {
+			timer = new SimulationAnimationTimer(activeAgents, simulation);
+		}
 		timer.start();
-		/**/
 	}
 
 	/**
@@ -319,9 +338,20 @@ public class SimulationAgents extends Pane {
 		if (timer != null) {
 			timer.stop();
 		}
-		getChildren().setAll(vertexLabel, agentLabel);
+		clearChildrenNodes();
 		activeAgents.clear();
-		arrivingAgents.clear();
+		synchronized (arrivingAgents) {
+			arrivingAgents.clear();
+		}
+	}
+
+	private void clearChildrenNodes() {
+		Runnable guiReset = () -> getChildren().setAll(vertexLabel, agentLabel);
+		if (Platform.isFxApplicationThread()) {
+			guiReset.run();
+		} else {
+			Platform.runLater(guiReset);
+		}
 	}
 
 	/**
@@ -357,8 +387,12 @@ public class SimulationAgents extends Pane {
 		}
 	}
 
-	public PriorityQueue<Agent> getArrivingAgents() {
-		return arrivingAgents;
+	public boolean emptyArrivingAgents() {
+		boolean emptyArrivingAgents;
+		synchronized (arrivingAgents) {
+			emptyArrivingAgents = arrivingAgents.isEmpty();
+		}
+		return emptyArrivingAgents;
 	}
 
 	/**
@@ -436,20 +470,18 @@ public class SimulationAgents extends Pane {
 	 * @param event
 	 */
 	private void onMouseMoveAction(MouseEvent event) {
-		double x = event.getX();
-		double y = event.getY();
+		double size = IntersectionModel.getPreferredHeight();
+
+		double x = event.getX() / size;
+		double y = event.getY() / size;
 
 		SimulationGraph graph = IntersectionModel.getGraph();
-		double size = IntersectionModel.getPreferredHeight();
 		double cellSize = graph.getCellSize();
 
-		if (!simulation.isRunning() && coordinatesOverAgent(x, y, graph, size, cellSize)) {
+		if (!simulation.isRunning() && coordinatesOverAgent(event, x, y, graph, cellSize)) {
 			return;
 		}
 		resetAgentPath();
-
-		x /= size;
-		y /= size;
 
 		double precision = cellSize * IntersectionModel.VERTEX_RATIO; // TODO extract constant
 
@@ -490,23 +522,22 @@ public class SimulationAgents extends Pane {
 	 * @param x
 	 * @param y
 	 * @param graph
-	 * @param size
 	 * @param cellSize
 	 * @return
 	 */
-	private boolean coordinatesOverAgent(double x, double y, SimulationGraph graph, double size, double cellSize) {
-		double agentSizeScale = cellSize * size / 2;
+	private boolean coordinatesOverAgent(MouseEvent event, double x, double y, SimulationGraph graph, double cellSize) {
+		double agentSizeScale = cellSize / 2;
 		for (AgentPane agentPane : activeAgents.values()) {
 			Agent agent = agentPane.getAgent();
 			if (MyNumberOperations.distance(x, y, agent.getX(), agent.getY()) <= Math.min(agent.getW(), agent.getL()) * agentSizeScale) {
-				agentLabel.setLayoutX(x + LABEL_MOUSE_OFFSET);
-				agentLabel.setLayoutY(y + LABEL_MOUSE_OFFSET);
+				agentLabel.setLayoutX(event.getX() + LABEL_MOUSE_OFFSET);
+				agentLabel.setLayoutY(event.getY() + LABEL_MOUSE_OFFSET);
 
 				if (agentPath == null) {
 					SimulationAgents.this.setAgentLabelText(agent);
 					agentLabel.setVisible(true);
 					vertexLabel.setVisible(false);
-					createAgentPath(graph, size, agentPane, agent);
+					createAgentPath(graph, agentPane, agent);
 				}
 				return true;
 			}
@@ -518,11 +549,11 @@ public class SimulationAgents extends Pane {
 	 * TODO
 	 *
 	 * @param graph
-	 * @param size
 	 * @param agentPane
 	 * @param agent
 	 */
-	private void createAgentPath(SimulationGraph graph, double size, AgentPane agentPane, Agent agent) {
+	private void createAgentPath(SimulationGraph graph, AgentPane agentPane, Agent agent) {
+		double size = IntersectionModel.getPreferredHeight();
 		List<Integer> path = agent.getPath();
 		agentPath = new HashSet<>(path.size());
 		for (int i = 1; i < path.size(); i++) {
@@ -542,7 +573,7 @@ public class SimulationAgents extends Pane {
 	 * @param line
 	 */
 	private void setPathLineProperties(AgentPane agentPane, Line line) {
-		line.toBack();
+		line.toFront();
 		line.setStroke(agentPane.getColor());
 		line.setStrokeLineCap(StrokeLineCap.ROUND);
 	}

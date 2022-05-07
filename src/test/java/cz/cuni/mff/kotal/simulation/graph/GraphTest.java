@@ -17,7 +17,7 @@ class GraphTest {
 
    @Test
    public void testGraph() {
-      Graph g = new Graph(false, Set.of(v0, v1, v2), new HashMap<>(), Set.of(e0, e1, e2));
+      Graph g = new Graph(false, Set.of(v0, v1, v2), new HashMap<>(), Set.of(e0, e1, e2), 4, 1, 1);
 
       // check vertices
       assert g.getVertices().length == 3;

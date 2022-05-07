@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
@@ -137,8 +138,8 @@ public class AgentPane extends StackPane {
 //			setLayoutX(agent.getX() - agent.getL() / 2);
 //			setLayoutY(agent.getY() - agent.getW() / 2);
 		// TODO if agents too small the box is spawned at wrong position
-		setLayoutX(agent.getX() - (getWidth() == 0 ? getW() / 2 : getWidth() / 2));
-		setLayoutY(agent.getY() - (getHeight() == 0 ? getL() / 2 : getHeight() / 2));
+		setLayoutX(agent.getX() * IntersectionModel.getPreferredHeight() - (getWidth() == 0 ? getW() / 2 : getWidth() / 2));
+		setLayoutY(agent.getY() * IntersectionModel.getPreferredHeight() - (getHeight() == 0 ? getL() / 2 : getHeight() / 2));
 	}
 
 	/**
@@ -200,11 +201,8 @@ public class AgentPane extends StackPane {
 	@Deprecated
 	public boolean handleTick(long now) {
 		double time = relativeDistanceTraveled + getRelativeTimeTraveled(now);
-		try {
-			getAgent().computeNextXY(time, simulationVertices);
-		} catch (IndexOutOfBoundsException e) {
-			// FIXME refactor
-//				removeAgent(agent.getId());
+		boolean finished = getAgent().computeNextXY(time, simulationVertices);
+		if (finished) {
 			return true;
 		}
 		updateAgent(time);
@@ -219,9 +217,8 @@ public class AgentPane extends StackPane {
 	 */
 	public boolean handleTick(double step) {
 		double time = step - agent.getPlannedTime();
-		try {
-			agent.computeNextXY(time, simulationVertices);
-		} catch (IndexOutOfBoundsException e) {
+		boolean finished = agent.computeNextXY(time, simulationVertices);
+		if (finished) {
 			return true;
 		}
 		updateAgent(time);
@@ -236,12 +233,11 @@ public class AgentPane extends StackPane {
 	 */
 	public boolean handleSimulatedTick(double step) {
 		double time = step - agent.getPlannedTime();
-		try {
-			agent.computeNextXY(time, simulationVertices);
-		} catch (IndexOutOfBoundsException e) {
+		boolean finished = agent.computeNextXY(time, simulationVertices);
+		if (finished) {
 			return true;
 		}
-		updateRotation(time);
+		computeNewAngle(time);
 		return false;
 	}
 
@@ -255,8 +251,8 @@ public class AgentPane extends StackPane {
 		double sinAngle = Math.sin(radianAngle);
 		double cosAngle = Math.cos(radianAngle);
 
-		double halfWidth = getW() / 2;
-		double halfHeight = getL() / 2;
+		double halfWidth = agent.getW() / 2 * IntersectionModel.getGraph().getCellSize();
+		double halfHeight = agent.getL() / 2 * IntersectionModel.getGraph().getCellSize();
 
 		double sx = agent.getX();
 		double sy = agent.getY();
@@ -278,7 +274,7 @@ public class AgentPane extends StackPane {
 	 * @return Array containing node bounding box in format [mix_x, min_y, max_x, max_y]
 	 */
 	public double[] getBoundingBox() {
-		double perimeter = agent.getAgentPerimeter() * IntersectionModel.getPreferredHeight();
+		double perimeter = agent.getAgentPerimeter();
 		double[] corners = new double[4];
 		corners[0] = agent.getX() - perimeter;
 		corners[1] = agent.getY() - perimeter;

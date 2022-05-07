@@ -130,7 +130,6 @@ public class IntersectionScene extends Scene {
 	 */
 	public static void startSimulationAt(double step, boolean play) {
 		simulation.stop();
-//		simulation.startAt(getPeriod(), step);
 		simulation.setStartAndAgents(step);
 		if (play) {
 			resumeSimulation();

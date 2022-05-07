@@ -10,7 +10,6 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -22,6 +21,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.DoubleConsumer;
 
 
@@ -34,8 +35,12 @@ public class IntersectionMenu extends VBox {
 
 	// TODO extract constants
 	private static final Slider SPEED_SLIDER = new Slider(0, 4096, 2048);
-	private static final Slider TIMELINE_SLIDER = new Slider(0, 0, 0);
 
+	private static double timelineMaximum = 0;
+	private static double timelineValue = 0;
+	private static final Slider TIMELINE_SLIDER = new Slider(0, timelineMaximum, timelineValue);
+	private static final Thread timelineValuesDaemon = new Thread(IntersectionMenu::timelineDaemonTask);
+	private static boolean timelineInUse = false;
 	private static final Button INTERSECTION_MODE = new Button("Real");
 	private static final Button PLAY_BUTTON = new Button("Play");
 	private static final Button RESTART_BUTTON = new Button("Restart");
@@ -43,14 +48,22 @@ public class IntersectionMenu extends VBox {
 	private static final Button SAVE_AGENTS_BUTTON = new Button("Save agents");
 
 	private static final Label AGENTS_LABEL = new Label("#n");
+	private static long agentsValue = 0;
 	private static final Label STEPS_LABEL = new Label("#n");
+	private static double stepValue = 0;
 	private static final Label DELAY_LABEL = new Label("#n");
+	private static long delayValue = 0;
 	private static final Label REJECTIONS_LABEL = new Label("#n");
+	private static long rejectionsValue = 0;
 	private static final Label COLLISIONS_LABEL = new Label("#n");
+	private static long collisionsValue = 0;
 	private static final Label REMAINING_LABEL = new Label();
 	private static final Label SPEED_LABEL = new Label("Speed");
 	private static final Label TIMELINE_LABEL = new Label("Timeline");
 
+	private static final Thread updateStatisticsDaemon = new Thread(IntersectionMenu::updateStatisticsDaemonTask);
+	private static boolean statisticsUpdateRunning = false;
+	private static final Lock statisticsLock = new ReentrantLock(false);
 
 	private static boolean abstractMode = false;
 	private static boolean playing = false;
@@ -73,6 +86,12 @@ public class IntersectionMenu extends VBox {
 		getChildren().add(INTERSECTION_MODE);
 
 		createControlNodes(padding);
+
+		updateStatisticsDaemon.setDaemon(true);
+		updateStatisticsDaemon.start();
+
+		timelineValuesDaemon.setDaemon(true);
+		timelineValuesDaemon.start();
 	}
 
 	private static void startSimulation() {
@@ -192,7 +211,7 @@ public class IntersectionMenu extends VBox {
 		menuTimelineSlider.focusedProperty().addListener(focusListener);
 
 		ChangeListener<Number> valueListener = (observable, oldValue, newValue) -> {
-			if (!playing) {
+			if (!playing && (TIMELINE_SLIDER.isFocused() || menuTimelineSlider.isFocused())) {
 				setStep(newValue.doubleValue());
 				IntersectionScene.startSimulationAt(newValue.doubleValue(), false);  // FIXME set play parameter to playing
 			}
@@ -409,14 +428,37 @@ public class IntersectionMenu extends VBox {
 		return SPEED_SLIDER.getValue();
 	}
 
+	private static void timelineDaemonTask() {
+		while (true) {
+			try {
+				Thread.sleep(Long.MAX_VALUE);
+			} catch (InterruptedException ignored) {
+			}
+			TIMELINE_SLIDER.setMax(timelineMaximum);
+			TIMELINE_SLIDER.setValue(timelineValue);
+		}
+	}
 	/**
 	 * TODO
 	 *
 	 * @param maximum
 	 */
 	public static void setTimelineMaximum(double value, double maximum) {
-		TIMELINE_SLIDER.setMax(maximum);
-		TIMELINE_SLIDER.setValue(value);
+		synchronized (TIMELINE_SLIDER) {
+			timelineValue = value;
+			timelineMaximum = maximum;
+		}
+		if (timelineInUse) {
+			return;
+		}
+		timelineInUse = true;
+		Platform.runLater(() -> {
+			synchronized (TIMELINE_SLIDER) {
+				TIMELINE_SLIDER.setMax(timelineMaximum);
+				TIMELINE_SLIDER.setValue(timelineValue);
+			}
+			timelineInUse = false;
+		});
 	}
 
 	/**
@@ -431,6 +473,10 @@ public class IntersectionMenu extends VBox {
 	 */
 	public static Button getRestartButton() {
 		return RESTART_BUTTON;
+	}
+
+	public static boolean playSimulationInBackground() {
+		return PLAY_IN_BACKGROUND.isSelected();
 	}
 
 	/**
@@ -454,30 +500,51 @@ public class IntersectionMenu extends VBox {
 		return STEPS_LABEL;
 	}
 
+	private static void updateStatisticsDaemonTask() {
+		while (true) {
+			try {
+				Thread.sleep(Long.MAX_VALUE);
+			} catch (InterruptedException ignored) {
+			}
+
+			if (statisticsUpdateRunning) {
+				continue;
+			}
+			statisticsUpdateRunning = true;
+			statisticsLock.lock();
+			String agentsFormatted = String.format("%,d", agentsValue);
+			String stepFormatted = String.format("%,.2f", stepValue);  // TODO extract constant
+			String delayFormatted = String.format("%,d", delayValue);
+			String rejectionsFormatted = String.format("%,d", rejectionsValue);
+			String collisionsFormatted = String.valueOf(collisionsValue);
+			statisticsLock.unlock();
+
+			Platform.runLater(() -> {
+				STEPS_LABEL.setText(stepFormatted);
+				SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
+				AGENTS_LABEL.setText(agentsFormatted);
+				SimulationMenuTab3.getAgentsLabel().setText(agentsFormatted);
+				DELAY_LABEL.setText(delayFormatted);
+				SimulationMenuTab3.getDelayLabel().setText(delayFormatted);
+				REJECTIONS_LABEL.setText(rejectionsFormatted);
+				SimulationMenuTab3.getRejectionsLabel().setText(rejectionsFormatted);
+				COLLISIONS_LABEL.setText(collisionsFormatted);
+				SimulationMenuTab3.getCollisionsLabel().setText(collisionsFormatted);
+				statisticsUpdateRunning = false;
+			});
+		}
+	}
+
 	/**
 	 * Set value of both agent labels. Should be total number of agents that arrived.
 	 *
 	 * @param agents Value to be shown on agent labels
 	 */
 	public static void setAgents(long agents) {
-		Platform.runLater(() -> {
-			String agentsFormatted = String.format("%,d", agents);
-			AGENTS_LABEL.setText(agentsFormatted);
-			SimulationMenuTab3.getAgentsLabel().setText(agentsFormatted);
-		});
-	}
-
-	/**
-	 * Set value of both step labels.
-	 *
-	 * @param step Value to be shown on labels
-	 */
-	public static void setStep(long step) {
-		Platform.runLater(() -> {
-			String stepFormatted = String.format("%,d", step);
-			STEPS_LABEL.setText(stepFormatted);
-			SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
-		});
+		statisticsLock.lock();
+		agentsValue = agents;
+		statisticsLock.unlock();
+		updateStatisticsDaemon.interrupt();
 	}
 
 	/**
@@ -486,11 +553,10 @@ public class IntersectionMenu extends VBox {
 	 * @param step Value to be shown on labels
 	 */
 	public static void setStep(double step) {
-		String stepFormatted = String.format("%,.2f", step);  // TODO extract constant
-		Platform.runLater(() -> {
-			STEPS_LABEL.setText(stepFormatted);
-			SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
-		});
+		statisticsLock.lock();
+		stepValue = step;
+		statisticsLock.unlock();
+		updateStatisticsDaemon.interrupt();
 	}
 
 	/**
@@ -499,11 +565,10 @@ public class IntersectionMenu extends VBox {
 	 * @param delay Value to be shown on labels
 	 */
 	public static void setDelay(long delay) {
-		Platform.runLater(() -> {
-			String delayFormatted = String.format("%,d", delay);
-			DELAY_LABEL.setText(delayFormatted);
-			SimulationMenuTab3.getDelayLabel().setText(delayFormatted);
-		});
+		statisticsLock.lock();
+		delayValue = delay;
+		statisticsLock.unlock();
+		updateStatisticsDaemon.interrupt();
 	}
 
 	/**
@@ -512,11 +577,10 @@ public class IntersectionMenu extends VBox {
 	 * @param rejections Value to be shown on labels
 	 */
 	public static void setRejections(long rejections) {
-		Platform.runLater(() -> {
-			String rejectionsFormatted = String.format("%,d", rejections);
-			REJECTIONS_LABEL.setText(rejectionsFormatted);
-			SimulationMenuTab3.getRejectionsLabel().setText(rejectionsFormatted);
-		});
+		statisticsLock.lock();
+		rejectionsValue = rejections;
+		statisticsLock.unlock();
+		updateStatisticsDaemon.interrupt();
 	}
 
 	/**
@@ -525,11 +589,19 @@ public class IntersectionMenu extends VBox {
 	 * @param collisions Value to be shown on labels
 	 */
 	public static void setCollisions(long collisions) {
-		Platform.runLater(() -> {
-			String collisionsFormatted = String.valueOf(collisions);
-			COLLISIONS_LABEL.setText(collisionsFormatted);
-			SimulationMenuTab3.getCollisionsLabel().setText(collisionsFormatted);
-		});
+		statisticsLock.lock();
+		collisionsValue = collisions;
+		statisticsLock.unlock();
+		updateStatisticsDaemon.interrupt();
+	}
+
+	public static void setAgentsDelayRejections(long agents, long delay, long rejections) {
+		statisticsLock.lock();
+		agentsValue = agents;
+		delayValue = delay;
+		rejectionsValue = rejections;
+		statisticsLock.unlock();
+		updateStatisticsDaemon.interrupt();
 	}
 
 	/**

@@ -17,7 +17,6 @@ import java.util.Set;
  * Timer to be tick every frame to redraw agents and check for collisions.
  */
 public class SimulationAnimationTimer extends AnimationTimer implements SimulationTicker {
-
 	private static double lastStep = Double.MAX_VALUE;
 	private static int overLimitCount = 0;
 	private static long[] lastCalls = new long[128];
@@ -36,6 +35,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	public SimulationAnimationTimer(Map<Long, AgentPane> agents, Simulation simulation) {
 		this.agents = agents;
 		this.simulation = simulation;
+		setLastStep(Double.MAX_VALUE);
 	}
 
 	/**
@@ -45,10 +45,10 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	 */
 	@Override
 	public void handle(long now) {
-		//		simulationAgents.resetRectangles(); TODO
+//		SimulationAgents.resetRectangles(); //TODO
 		double step = simulation.getStep(now);
 
-		if (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().getArrivingAgents().isEmpty()) {
+		if (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().emptyArrivingAgents()) {
 			stopSimulation(step);
 			return;
 		}
@@ -66,6 +66,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	public void handleStep(double step) {
 		handleStep(step, false);
 	}
+
 	private void handleStep(double step, boolean isMiddleStep) {
 		updateSpeed(step, isMiddleStep);
 
@@ -148,6 +149,14 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 		agentPane1.collide(step);
 	}
 
+	@Override
+	public void stop() {
+		long stopTime = System.nanoTime();
+		super.stop();
+		double lastHandledStep = lastStep < Double.MAX_VALUE ? lastStep : simulation.getStep(stopTime);
+		simulation.setStartingStep(lastHandledStep);
+	}
+
 	private void stopSimulation(double step) {
 		SimulationTicker.updateSimulation(step);
 		IntersectionMenu.pauseSimulation();
@@ -156,15 +165,6 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	private void removeAgent(Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
 		activeAgentsIterator.remove();
 		IntersectionScene.getSimulationAgents().removeAgentPane(agentPane);
-	}
-
-	public static double getVertexUsage(int id) {
-		Long frames = SimulationTicker.frames.getValue();
-		if (frames <= 0) {
-			return 0;
-		}
-
-		return (double) SimulationTicker.verticesUsage.get(id) / frames;
 	}
 
 	/**

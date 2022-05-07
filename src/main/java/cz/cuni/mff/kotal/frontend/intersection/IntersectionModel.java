@@ -6,6 +6,8 @@ import cz.cuni.mff.kotal.frontend.simulation.AbstractGraph;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.*;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
+import cz.cuni.mff.kotal.simulation.timer.SimulationTicker;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -19,6 +21,8 @@ import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -35,8 +39,10 @@ public class IntersectionModel extends Pane {
 	// TODO dont use static, use Component
 	private static double preferredHeight = Screen.getPrimary().getVisualBounds().getHeight();
 	private static SimulationGraph graph;
-	private List<Node> nodes = new ArrayList<>();
+	private final List<Node> nodes = new ArrayList<>();
 	private static Shape[] vertexNodes;
+	private static final Lock vertexNodesLock = new ReentrantLock(false);
+	private static boolean updateColorsNotRunning = true;
 	private final Map<SimulationGraph, SimulationGraph> createdGraphs = new HashMap<>();
 	private final Deque<SimulationGraph> historyPrevious = new ArrayDeque<>();
 	private final Deque<SimulationGraph> historyNext = new ArrayDeque<>();
@@ -509,6 +515,7 @@ public class IntersectionModel extends Pane {
 	 */
 	private void createGraphNodes() {
 		nodes.clear();
+		vertexNodesLock.lock();
 		vertexNodes = new Shape[graph.getVertices().length];
 
 		final long granularity = graph.getGranularity();
@@ -516,8 +523,12 @@ public class IntersectionModel extends Pane {
 			case SQUARE -> drawSquareModel(granularity);
 			case HEXAGONAL -> drawHexagonalModel(granularity);
 			case OCTAGONAL -> drawOctagonalModel(granularity);
-			default -> throw new IllegalStateException("Unexpected value: " + graph.getModel()); // TODO
+			default -> {
+				vertexNodesLock.unlock();
+				throw new IllegalStateException("Unexpected value: " + graph.getModel());
+			} // TODO
 		}
+		vertexNodesLock.unlock();
 	}
 
 	/**
@@ -563,35 +574,53 @@ public class IntersectionModel extends Pane {
 		backgroundSquare.toBack();
 	}
 
+	public static void updateVertexNodesColors() {
+		if (updateColorsNotRunning) {
+			updateColorsNotRunning = false;
+			Platform.runLater(() -> {
+				SimulationTicker.verticesUsageLock.lock();
+				updateVertexNodesColors(SimulationTicker.verticesUsage.stream().mapToLong(Long::longValue).toArray(), SimulationTicker.frames.getValue());
+				SimulationTicker.verticesUsageLock.unlock();
+				updateColorsNotRunning = true;
+			});
+		}
+	}
+
 	/**
 	 * TODO
 	 *
 	 * @param verticesUsage
 	 * @param frames
 	 */
-	public static void updateVertexNodesColors(List<Long> verticesUsage, double frames) {
-		for (int vertexID = 0; vertexID < verticesUsage.size(); vertexID++) {
-			Color color = graph.getVertex(vertexID).getType().getColor();
+	private static void updateVertexNodesColors(long[] verticesUsage, double frames) {
+		if (vertexNodesLock.tryLock()) {
+			for (int vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
+				Color color = graph.getVertex(vertexID).getType().getColor();
 
-			Shape vertexNode = vertexNodes[vertexID];
-			double oldColorShift = ((Color) vertexNode.getFill()).getGreen() / color.getGreen();
-			double colorShift = 1 - verticesUsage.get(vertexID) / frames;
-			if (Math.abs(oldColorShift - colorShift) > MAX_COLOR_CHANGE) {
-				colorShift = oldColorShift + (colorShift > oldColorShift ? MAX_COLOR_CHANGE : -MAX_COLOR_CHANGE);
+				Shape vertexNode = vertexNodes[vertexID];
+				double oldColorShift = ((Color) vertexNode.getFill()).getGreen() / color.getGreen();
+				double colorShift = 1 - verticesUsage[vertexID] / frames;
+				if (Math.abs(oldColorShift - colorShift) > MAX_COLOR_CHANGE) {
+					colorShift = oldColorShift + (colorShift > oldColorShift ? MAX_COLOR_CHANGE : -MAX_COLOR_CHANGE);
+				}
+
+				colorShift = Math.max(0, colorShift);
+
+				Color newColor = Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift);
+				vertexNode.setFill(newColor);
 			}
-
-			colorShift = Math.max(0, colorShift);
-
-			vertexNode.setFill(Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift));
+			vertexNodesLock.unlock();
 		}
 	}
 
 	public static void resetVertexNodesColors() {
+		vertexNodesLock.lock();
 		for (int i = 0; i < vertexNodes.length; i++) {
 			Shape vertexNode = vertexNodes[i];
 			Color color = graph.getVertex(i).getType().getColor();
 			vertexNode.setFill(color);
 		}
+		vertexNodesLock.unlock();
 	}
 
 	/**

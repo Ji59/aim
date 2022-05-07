@@ -119,52 +119,53 @@ class AgentTest {
 	@Test
 	void testComputeNextXY() {
 		double proximity = 0.0001;
-
+		boolean finished;
 		for (long i = 0; i <= end + 1; i++) {
-			try {
-				agent.computeNextXY(i, vertices);
-				assert doubleAlmostEqual(agent.getY(), (i % 2 == 0 ? 2 * i + 1 : 2 * i), proximity);
-				assert doubleAlmostEqual(agent.getX(), (i % 2 == 0 ? 2 * i : 2 * i + 1), proximity);
-			} catch (IndexOutOfBoundsException e) {
-				assert i > end;
-			}
+			finished = agent.computeNextXY(i, vertices);
+			assert doubleAlmostEqual(agent.getY(), (i % 2 == 0 ? 2 * i + 1 : 2 * i), proximity);
+			assert doubleAlmostEqual(agent.getX(), (i % 2 == 0 ? 2 * i : 2 * i + 1), proximity);
+
+			assert finished ^ i > end;
 		}
 
 		for (double i = 0; i < end; i++) {
-			agent.computeNextXY(i + 0.5, vertices);
+			finished = agent.computeNextXY(i + 0.5, vertices);
+			assert !finished;
 			assert doubleAlmostEqual(agent.getY(), 2 * i + 1.5, proximity); // 1.5 3.5 5.5 7.5 9.5 11.5 13.5
 			assert doubleAlmostEqual(agent.getX(), 2 * i + 1.5, proximity); // 1.5 3.5 5.5 7.5 9.5 11.5 13.5
 		}
 
-		nonTrivialAgent.computeNextXY(0.1 + nonTrivialArrivalTime, vertices);
+		finished = nonTrivialAgent.computeNextXY(0.1 + nonTrivialArrivalTime, vertices);
+		assert !finished;
 		assert doubleAlmostEqual(nonTrivialAgent.getX(), 0.375, proximity);
 		assert doubleAlmostEqual(nonTrivialAgent.getY(), 1.125, proximity);
 
-		nonTrivialAgent.computeNextXY(0.5 + nonTrivialArrivalTime, vertices);
+		finished = nonTrivialAgent.computeNextXY(0.5 + nonTrivialArrivalTime, vertices);
+		assert !finished;
 		assert doubleAlmostEqual(nonTrivialAgent.getX(), 1.875, proximity);
 		assert doubleAlmostEqual(nonTrivialAgent.getY(), 1.625, proximity);
 
-		nonTrivialAgent.computeNextXY(1 + nonTrivialArrivalTime, vertices);
+		finished = nonTrivialAgent.computeNextXY(1 + nonTrivialArrivalTime, vertices);
+		assert !finished;
 		assert doubleAlmostEqual(nonTrivialAgent.getX(), 3.25, proximity);
 		assert doubleAlmostEqual(nonTrivialAgent.getY(), 2.75, proximity);
 
-		nonTrivialAgent.computeNextXY(1.6 + nonTrivialArrivalTime, vertices);
+		finished = nonTrivialAgent.computeNextXY(1.6 + nonTrivialArrivalTime, vertices);
+		assert !finished;
 		assert doubleAlmostEqual(nonTrivialAgent.getX(), 4, proximity);
 		assert doubleAlmostEqual(nonTrivialAgent.getY(), 5, proximity);
 
-		nonTrivialAgent.computeNextXY(2.15 + nonTrivialArrivalTime, vertices);
+		finished = nonTrivialAgent.computeNextXY(2.15 + nonTrivialArrivalTime, vertices);
+		assert !finished;
 		assert doubleAlmostEqual(nonTrivialAgent.getX(), 4 + (2.15 / 0.8 - 2) * 3, proximity);
 		assert doubleAlmostEqual(nonTrivialAgent.getY(), 5 + 2.15 / 0.8 - 2, proximity);
 
-		nonTrivialAgent.computeNextXY(2.8 + nonTrivialArrivalTime, vertices);
+		finished = nonTrivialAgent.computeNextXY(2.8 + nonTrivialArrivalTime, vertices);
+		assert !finished;
 		assert doubleAlmostEqual(nonTrivialAgent.getX(), 7.5, proximity);
 		assert doubleAlmostEqual(nonTrivialAgent.getY(), 7.5, proximity);
 
-		try {
-			nonTrivialAgent.computeNextXY(3.3 + nonTrivialArrivalTime, vertices);
-			assert false;
-		} catch (IndexOutOfBoundsException e) {
-			assert true;
-		}
+		finished = nonTrivialAgent.computeNextXY(3.3 + nonTrivialArrivalTime, vertices);
+		assert finished;
 	}
 }

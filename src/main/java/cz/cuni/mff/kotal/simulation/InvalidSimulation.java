@@ -17,6 +17,7 @@ public class InvalidSimulation extends Simulation {
 	}
 
 	@Override
+	@Deprecated
 	protected void stopSimulation() {
 
 	}
