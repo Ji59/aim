@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -26,8 +27,8 @@ import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
  * Class containing all agent gui elements.
  */
 public class AgentPane extends StackPane {
-
-	public final Color color = Color.rgb(generateRandomInt(255), generateRandomInt(255), generateRandomInt(255));
+	private static final long BIG_PRIMAL_NUMBER = 807833501;
+	private static final long SMALL_PRIMAL_NUMBER = 452807;
 	private final Vertex[] simulationVertices;  // FIXME remove
 	private final Rectangle rectangle;
 	private final Rotate rotation = new Rotate();
@@ -99,7 +100,7 @@ public class AgentPane extends StackPane {
 
 
 		// TODO set color properly
-		rectangle.setFill(color);
+		rectangle.setFill(getColor());
 
 		// TODO set proper agent size
 		setPrefWidth(width);
@@ -345,7 +346,7 @@ public class AgentPane extends StackPane {
 	}
 
 	public void resetColors() {
-		rectangle.setFill(color);
+		rectangle.setFill(getColor());
 		rectangle.setOpacity(1);
 	}
 
@@ -402,7 +403,13 @@ public class AgentPane extends StackPane {
 	 * @return
 	 */
 	public Color getColor() {
-		return color;
+		int hashCode = Long.hashCode(agent.getId() * SMALL_PRIMAL_NUMBER + BIG_PRIMAL_NUMBER);
+		int redValue = hashCode & 0xFF;
+		hashCode >>= 8;
+		int greenValue = hashCode & 0xFF;
+		hashCode >>= 8;
+		int blueValue = hashCode & 0xFF;
+		return Color.rgb(redValue, greenValue, blueValue);
 	}
 
 	public double getCollisionStep() {

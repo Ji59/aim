@@ -27,7 +27,7 @@ public class GeneratingSimulation extends Simulation {
 
 	private static final boolean randomEntry = false;
 	private static final boolean generateEntry = true;
-	private static final boolean generateExit = false; // TODO
+	private static final boolean generateExit = true; // TODO
 
 	private final long maximumSteps;
 	protected final long newAgentsMinimum;

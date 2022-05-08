@@ -173,14 +173,15 @@ public class MySlider extends HBox {
 		long count = (long) (max - min + 1);
 		int tickUnit = getSliderMajorTicks(count);
 
+
 		if (tickUnit == 0) {
 			slider.setMinorTickCount((int) (count - 2));
-			slider.setBlockIncrement(1);
 		} else {
-			slider.setBlockIncrement(1);
 			slider.setMajorTickUnit(tickUnit);
 			slider.setMinorTickCount(getSliderMinorTicks(tickUnit));
 		}
+
+		slider.setBlockIncrement(1);
 		return slider;
 	}
 
@@ -205,7 +206,7 @@ public class MySlider extends HBox {
 	 * @return Computed count of minor ticks
 	 */
 	private static int getSliderMinorTicks(int majorTick) {
-		if (majorTick == 0) {
+		if (majorTick < 4) {
 			return 0;
 		}
 
@@ -217,7 +218,7 @@ public class MySlider extends HBox {
 	 * Don't remember how it works, but it works.
 	 *
 	 * @param number Number to be tested
-	 * @return Dividend of the number of any was found
+	 * @return Dividend of the number if any was found
 	 */
 	private static int getGoodNumber(long number) {
 		for (int i = (int) (number / 4); i >= number / 20; i--) {

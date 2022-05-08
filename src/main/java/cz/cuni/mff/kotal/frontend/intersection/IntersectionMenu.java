@@ -39,7 +39,6 @@ public class IntersectionMenu extends VBox {
 	private static double timelineMaximum = 0;
 	private static double timelineValue = 0;
 	private static final Slider TIMELINE_SLIDER = new Slider(0, timelineMaximum, timelineValue);
-	private static final Thread timelineValuesDaemon = new Thread(IntersectionMenu::timelineDaemonTask);
 	private static boolean timelineInUse = false;
 	private static final Button INTERSECTION_MODE = new Button("Real");
 	private static final Button PLAY_BUTTON = new Button("Play");
@@ -60,8 +59,6 @@ public class IntersectionMenu extends VBox {
 	private static final Label REMAINING_LABEL = new Label();
 	private static final Label SPEED_LABEL = new Label("Speed");
 	private static final Label TIMELINE_LABEL = new Label("Timeline");
-
-	private static final Thread updateStatisticsDaemon = new Thread(IntersectionMenu::updateStatisticsDaemonTask);
 	private static boolean statisticsUpdateRunning = false;
 	private static final Lock statisticsLock = new ReentrantLock(false);
 
@@ -86,12 +83,6 @@ public class IntersectionMenu extends VBox {
 		getChildren().add(INTERSECTION_MODE);
 
 		createControlNodes(padding);
-
-		updateStatisticsDaemon.setDaemon(true);
-		updateStatisticsDaemon.start();
-
-		timelineValuesDaemon.setDaemon(true);
-		timelineValuesDaemon.start();
 	}
 
 	private static void startSimulation() {
@@ -310,8 +301,8 @@ public class IntersectionMenu extends VBox {
 	private static AtomicInteger getWarningResult(File agentsFile) {
 		AtomicInteger result = new AtomicInteger();
 		String contentText = "Agents are saved in json format, so using \".json\" extension is recommended.\n" +
-			"Entered filename: " + agentsFile.getName() + "\n" +
-			"Are you sure you want to save agents into selected file?";
+						"Entered filename: " + agentsFile.getName() + "\n" +
+						"Are you sure you want to save agents into selected file?";
 		Alert extensionConfirmation = new Alert(Alert.AlertType.CONFIRMATION, contentText, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
 		extensionConfirmation.setTitle("Unexpected file extension");
 		extensionConfirmation.setHeaderText("File with unexpected extension entered.");
@@ -438,6 +429,7 @@ public class IntersectionMenu extends VBox {
 			TIMELINE_SLIDER.setValue(timelineValue);
 		}
 	}
+
 	/**
 	 * TODO
 	 *
@@ -500,39 +492,32 @@ public class IntersectionMenu extends VBox {
 		return STEPS_LABEL;
 	}
 
-	private static void updateStatisticsDaemonTask() {
-		while (true) {
-			try {
-				Thread.sleep(Long.MAX_VALUE);
-			} catch (InterruptedException ignored) {
-			}
-
-			if (statisticsUpdateRunning) {
-				continue;
-			}
-			statisticsUpdateRunning = true;
-			statisticsLock.lock();
-			String agentsFormatted = String.format("%,d", agentsValue);
-			String stepFormatted = String.format("%,.2f", stepValue);  // TODO extract constant
-			String delayFormatted = String.format("%,d", delayValue);
-			String rejectionsFormatted = String.format("%,d", rejectionsValue);
-			String collisionsFormatted = String.valueOf(collisionsValue);
-			statisticsLock.unlock();
-
-			Platform.runLater(() -> {
-				STEPS_LABEL.setText(stepFormatted);
-				SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
-				AGENTS_LABEL.setText(agentsFormatted);
-				SimulationMenuTab3.getAgentsLabel().setText(agentsFormatted);
-				DELAY_LABEL.setText(delayFormatted);
-				SimulationMenuTab3.getDelayLabel().setText(delayFormatted);
-				REJECTIONS_LABEL.setText(rejectionsFormatted);
-				SimulationMenuTab3.getRejectionsLabel().setText(rejectionsFormatted);
-				COLLISIONS_LABEL.setText(collisionsFormatted);
-				SimulationMenuTab3.getCollisionsLabel().setText(collisionsFormatted);
-				statisticsUpdateRunning = false;
-			});
+	private static void updateStatisticsTask() {
+		if (statisticsUpdateRunning) {
+			return;
 		}
+		statisticsUpdateRunning = true;
+		statisticsLock.lock();
+		String agentsFormatted = String.format("%,d", agentsValue);
+		String stepFormatted = String.format("%,.2f", stepValue);  // TODO extract constant
+		String delayFormatted = String.format("%,d", delayValue);
+		String rejectionsFormatted = String.format("%,d", rejectionsValue);
+		String collisionsFormatted = String.valueOf(collisionsValue);
+		statisticsLock.unlock();
+
+		Platform.runLater(() -> {
+			STEPS_LABEL.setText(stepFormatted);
+			SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
+			AGENTS_LABEL.setText(agentsFormatted);
+			SimulationMenuTab3.getAgentsLabel().setText(agentsFormatted);
+			DELAY_LABEL.setText(delayFormatted);
+			SimulationMenuTab3.getDelayLabel().setText(delayFormatted);
+			REJECTIONS_LABEL.setText(rejectionsFormatted);
+			SimulationMenuTab3.getRejectionsLabel().setText(rejectionsFormatted);
+			COLLISIONS_LABEL.setText(collisionsFormatted);
+			SimulationMenuTab3.getCollisionsLabel().setText(collisionsFormatted);
+			statisticsUpdateRunning = false;
+		});
 	}
 
 	/**
@@ -544,7 +529,7 @@ public class IntersectionMenu extends VBox {
 		statisticsLock.lock();
 		agentsValue = agents;
 		statisticsLock.unlock();
-		updateStatisticsDaemon.interrupt();
+		updateStatisticsTask();
 	}
 
 	/**
@@ -556,7 +541,7 @@ public class IntersectionMenu extends VBox {
 		statisticsLock.lock();
 		stepValue = step;
 		statisticsLock.unlock();
-		updateStatisticsDaemon.interrupt();
+		updateStatisticsTask();
 	}
 
 	/**
@@ -568,7 +553,7 @@ public class IntersectionMenu extends VBox {
 		statisticsLock.lock();
 		delayValue = delay;
 		statisticsLock.unlock();
-		updateStatisticsDaemon.interrupt();
+		updateStatisticsTask();
 	}
 
 	/**
@@ -580,7 +565,7 @@ public class IntersectionMenu extends VBox {
 		statisticsLock.lock();
 		rejectionsValue = rejections;
 		statisticsLock.unlock();
-		updateStatisticsDaemon.interrupt();
+		updateStatisticsTask();
 	}
 
 	/**
@@ -592,7 +577,7 @@ public class IntersectionMenu extends VBox {
 		statisticsLock.lock();
 		collisionsValue = collisions;
 		statisticsLock.unlock();
-		updateStatisticsDaemon.interrupt();
+		updateStatisticsTask();
 	}
 
 	public static void setAgentsDelayRejections(long agents, long delay, long rejections) {
@@ -601,7 +586,7 @@ public class IntersectionMenu extends VBox {
 		delayValue = delay;
 		rejectionsValue = rejections;
 		statisticsLock.unlock();
-		updateStatisticsDaemon.interrupt();
+		updateStatisticsTask();
 	}
 
 	/**

@@ -27,7 +27,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	// TODO don't use static, use Component
 	private static final MyComboBox model = new MyComboBox(Arrays.stream(Parameters.Models.values()).map(Parameters.Models::getText).collect(Collectors.toList()));
 	private static final MyComboBox restriction = new MyComboBox(Arrays.stream(Parameters.Restrictions.values()).map(Parameters.Restrictions::getText).collect(Collectors.toList()));
-	private static final MySlider granularity = new MySlider(2, 65, 4);
+	private static final MySlider granularity = new MySlider(2, 33, 4);
 	private static final MySlider entries = new MySlider(1, granularity.getValue() - 1, 1);
 	private static final MySlider exits = new MySlider(1, granularity.getValue() - entries.getValue(), 1);
 	private static final Button nextButton = new Button("Next");

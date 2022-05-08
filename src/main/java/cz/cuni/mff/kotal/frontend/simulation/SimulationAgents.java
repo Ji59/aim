@@ -38,7 +38,6 @@ public class SimulationAgents extends Pane {
 	public static final int LABEL_MOUSE_OFFSET = 12;
 	private Simulation simulation = new InvalidSimulation();
 	private static final Map<Long, AgentPane> activeAgents = new HashMap<>();
-	private final Map<Agent, AgentPane> allAgents = new HashMap<>();
 	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	private double cellSize; // FIXME move somewhere else
 
@@ -170,34 +169,22 @@ public class SimulationAgents extends Pane {
 	 */
 
 	private AgentPane initAgentPane(Agent agent, double step) {
-		long agentID = agent.getId();
-		AgentPane agentPane;
-
-		if (allAgents.containsKey(agent)) {
-			agentPane = allAgents.get(agent);
-			double collisionStep = agentPane.getCollisionStep();
-			if (collisionStep <= step) {
-				if (collisionStep + SimulationTicker.COLLISION_AGENTS_SHOWN_STEPS > step) {
-					agentPane.collide();
-					agentPane.handleTick(collisionStep);
-				} else {
-					return null;
-				}
+		AgentPane agentPane = new AgentPane(step, agent, simulation.getIntersectionGraph().getVertices(), cellSize);
+		double collisionStep = agentPane.getCollisionStep();
+		if (collisionStep <= step) {
+			if (collisionStep + SimulationTicker.COLLISION_AGENTS_SHOWN_STEPS > step) {
+				agentPane.collide();
+				agentPane.handleTick(collisionStep);
 			} else {
-				agentPane.resetColors();
-				agentPane.handleTick(step);
-			}
-
-			synchronized (activeAgents) {
-				activeAgents.put(agentID, agentPane);
+				return null;
 			}
 		} else {
-			agentPane = new AgentPane(step, agent, simulation.getIntersectionGraph().getVertices(), cellSize);
+			agentPane.resetColors();
+			agentPane.handleTick(step);
+		}
 
-			synchronized (activeAgents) {
-				activeAgents.put(agentID, agentPane);
-			}
-			allAgents.put(agent, agentPane);
+		synchronized (activeAgents) {
+			activeAgents.put(agent.getId(), agentPane);
 		}
 
 		return agentPane;
@@ -328,7 +315,6 @@ public class SimulationAgents extends Pane {
 	 */
 	public void resetSimulation() {
 		clearActiveAgents();
-		allAgents.clear();
 	}
 
 	/**

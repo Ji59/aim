@@ -135,11 +135,11 @@ public class Graph {
 		int entriesVertices = directions * entries;
 		int exitsVertices = directions * exits;
 
-		Integer[] verticesEdgesTo = new Integer[vertices.length - entriesVertices];
+		int[] verticesEdgesTo = new int[vertices.length - entriesVertices];
 		int to = 0;
-		Integer[] verticesEdgesFrom = new Integer[vertices.length - exitsVertices];
+		int[] verticesEdgesFrom = new int[vertices.length - exitsVertices];
 		int from = 0;
-		Integer[] verticesBoth = new Integer[vertices.length - entriesVertices - exitsVertices];
+		int[] verticesBoth = new int[vertices.length - entriesVertices - exitsVertices];
 		int both = 0;
 
 		for (Vertex vertex : vertices) {
@@ -157,29 +157,32 @@ public class Graph {
 
 		System.out.println("Computing distances.");
 		long time = System.nanoTime();
+
 		// Perform Floyd–Warshall update algorithm
 		for (int k : verticesBoth) {
 			for (int i : verticesEdgesFrom) {
-				Double distIK;
-				if (i == k || (distIK = distances[i][k]).isInfinite()) {
+				double distIK;
+				if (i == k || Double.isInfinite(distIK = distances[i][k])) {
 					continue;
 				}
 
-				/**
-				 Arrays.stream(verticesEdgesTo).parallel().forEach(j -> {
-				 Double distKJ;
-				 if (j == i || j == k || (distKJ = distances.get(k).get(j)).isInfinite()) {
-				 return;
-				 }
+				/**/
+				// 31 120 695 987 ns
+				Arrays.stream(verticesEdgesTo).parallel().forEach(j -> {
+					double distKJ;
+					if (j == i || j == k || Double.isInfinite(distKJ = distances[k][j])) {
+						return;
+					}
 
-				 double distIJ = distances.get(i).get(j);
-				 if (distIJ > distIK + distKJ) {
-				 distances.get(i).replace(j, distKJ);
-				 }
-				 });
+					double distIJ = distances[i][j];
+					if (distIJ > distIK + distKJ) {
+						distances[i][j] = distIK + distKJ;
+					}
+				});
 				 /*/
+				// 20 956 137 142 ns
 				double distKJ;
-				for (Integer j : verticesEdgesTo) {
+				for (int j : verticesEdgesTo) {
 					if (j == i || j == k || Double.isInfinite(distKJ = distances[k][j])) {
 						continue;
 					}
