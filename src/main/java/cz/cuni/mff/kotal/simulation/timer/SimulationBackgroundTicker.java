@@ -48,7 +48,9 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 			}
 		}
 		IntersectionMenu.pauseSimulation();
+		simulation.updateStatistics(step);
 		simulation.setStartingStep(step);
+		forceUpdateSimulationStats(step, simulation);
 	}
 
 	@Override
@@ -61,8 +63,6 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 		handleCollisions(step, activeAgents);
 
 		updateVerticesUsageAndTimeline(step);
-
-//		System.out.println("Computed " + step);
 	}
 
 	@Override

@@ -480,6 +480,22 @@ public abstract class Simulation {
 		return ended;
 	}
 
+	public long getAgents() {
+		return agentsTotal;
+	}
+
+	public long getDelay() {
+		return agentsDelay;
+	}
+
+	public long getRejections() {
+		return agentsRejected;
+	}
+
+	public long getCollisions() {
+		return collisions;
+	}
+
 	public enum State {
 		RUNNING(true),
 		STOPPED(true),

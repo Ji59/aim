@@ -445,12 +445,24 @@ public class IntersectionMenu extends VBox {
 		}
 		timelineInUse = true;
 		Platform.runLater(() -> {
-			synchronized (TIMELINE_SLIDER) {
-				TIMELINE_SLIDER.setMax(timelineMaximum);
-				TIMELINE_SLIDER.setValue(timelineValue);
-			}
+			updateTimelineMaximumTask();
 			timelineInUse = false;
 		});
+	}
+
+	public static void forceTimelineMaximum(double value, double maximum) {
+		synchronized (TIMELINE_SLIDER) {
+			timelineValue = value;
+			timelineMaximum = maximum;
+		}
+		Platform.runLater(IntersectionMenu::updateTimelineMaximumTask);
+	}
+
+	private static void updateTimelineMaximumTask() {
+		synchronized (TIMELINE_SLIDER) {
+			TIMELINE_SLIDER.setMax(timelineMaximum);
+			TIMELINE_SLIDER.setValue(timelineValue);
+		}
 	}
 
 	/**
@@ -506,18 +518,37 @@ public class IntersectionMenu extends VBox {
 		statisticsLock.unlock();
 
 		Platform.runLater(() -> {
-			STEPS_LABEL.setText(stepFormatted);
-			SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
-			AGENTS_LABEL.setText(agentsFormatted);
-			SimulationMenuTab3.getAgentsLabel().setText(agentsFormatted);
-			DELAY_LABEL.setText(delayFormatted);
-			SimulationMenuTab3.getDelayLabel().setText(delayFormatted);
-			REJECTIONS_LABEL.setText(rejectionsFormatted);
-			SimulationMenuTab3.getRejectionsLabel().setText(rejectionsFormatted);
-			COLLISIONS_LABEL.setText(collisionsFormatted);
-			SimulationMenuTab3.getCollisionsLabel().setText(collisionsFormatted);
+			updateStatisticsTask(agentsFormatted, stepFormatted, delayFormatted, rejectionsFormatted, collisionsFormatted);
 			statisticsUpdateRunning = false;
 		});
+	}
+
+	public static void forceUpdateStatistics(long agents, double step, long delays, long rejections, long collisions) {
+		statisticsLock.lock();
+		String agentsFormatted = String.format("%,d", agentsValue = agents);
+		String stepFormatted = String.format("%,.2f", stepValue = step);  // TODO extract constant
+		String delayFormatted = String.format("%,d", delayValue = delays);
+		String rejectionsFormatted = String.format("%,d", rejectionsValue = rejections);
+		String collisionsFormatted = String.valueOf(collisionsValue = collisions);
+		statisticsLock.unlock();
+
+		Platform.runLater(() -> {
+			updateStatisticsTask(agentsFormatted, stepFormatted, delayFormatted, rejectionsFormatted, collisionsFormatted);
+			statisticsUpdateRunning = false;
+		});
+	}
+
+	private static void updateStatisticsTask(String agentsFormatted, String stepFormatted, String delayFormatted, String rejectionsFormatted, String collisionsFormatted) {
+		STEPS_LABEL.setText(stepFormatted);
+		SimulationMenuTab3.getStepsLabel().setText(stepFormatted);
+		AGENTS_LABEL.setText(agentsFormatted);
+		SimulationMenuTab3.getAgentsLabel().setText(agentsFormatted);
+		DELAY_LABEL.setText(delayFormatted);
+		SimulationMenuTab3.getDelayLabel().setText(delayFormatted);
+		REJECTIONS_LABEL.setText(rejectionsFormatted);
+		SimulationMenuTab3.getRejectionsLabel().setText(rejectionsFormatted);
+		COLLISIONS_LABEL.setText(collisionsFormatted);
+		SimulationMenuTab3.getCollisionsLabel().setText(collisionsFormatted);
 	}
 
 	/**

@@ -578,12 +578,20 @@ public class IntersectionModel extends Pane {
 		if (updateColorsNotRunning) {
 			updateColorsNotRunning = false;
 			Platform.runLater(() -> {
-				SimulationTicker.verticesUsageLock.lock();
-				updateVertexNodesColors(SimulationTicker.verticesUsage.stream().mapToLong(Long::longValue).toArray(), SimulationTicker.frames.getValue());
-				SimulationTicker.verticesUsageLock.unlock();
+				updateVertexNodesColorsTask();
 				updateColorsNotRunning = true;
 			});
 		}
+	}
+
+	public static void forceUpdateVertexNodesColors() {
+		Platform.runLater(IntersectionModel::updateVertexNodesColorsTask);
+	}
+
+	private static void updateVertexNodesColorsTask() {
+		SimulationTicker.verticesUsageLock.lock();
+		updateVertexNodesColors(SimulationTicker.verticesUsage.stream().mapToLong(Long::longValue).toArray(), SimulationTicker.frames.getValue());
+		SimulationTicker.verticesUsageLock.unlock();
 	}
 
 	/**

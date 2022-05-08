@@ -6,6 +6,7 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.helpers.Collisions;
+import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
 import javafx.util.Pair;
 
@@ -50,22 +51,15 @@ public interface SimulationTicker {
 		verticesUsageLock.lock();
 		frames.setValue(frames.value + 1);
 		SimulationAgents.getActiveAgents().values().stream()
-			.filter(agentPane -> !agentPane.isDisable())
-			.map(AgentPane::getAgent)
-			.forEach(agent -> {
-				int vertex = agent.getNearestPathVertexId(step - agent.getPlannedTime());
-				verticesUsage.set(vertex, verticesUsage.get(vertex) + 1);
-			});
+						.filter(agentPane -> !agentPane.isDisable())
+						.map(AgentPane::getAgent)
+						.forEach(agent -> {
+							int vertex = agent.getNearestPathVertexId(step - agent.getPlannedTime());
+							verticesUsage.set(vertex, verticesUsage.get(vertex) + 1);
+						});
 		verticesUsageLock.unlock();
 		if (frames.value % updateVisualEach == 0) {
 			IntersectionModel.updateVertexNodesColors();
-//			Runnable updateColors = () -> ;
-//			/**
-//			 new Thread(updateColors).start();
-//			 /*/
-//			updateColors.run();
-//			/**/
-//			verticesUsageLock.unlock();
 		}
 	}
 
@@ -123,6 +117,19 @@ public interface SimulationTicker {
 
 		maxStep.setGreaterValue(step);
 		IntersectionMenu.setTimelineMaximum(step, maxStep.value);
+	}
+
+	default void forceUpdateSimulationStats(double step, Simulation simulation) {
+		// update vertices usage
+		IntersectionScene.getSimulationAgents().setVertexLabelText();
+		IntersectionModel.forceUpdateVertexNodesColors();
+
+		// update timeline
+		maxStep.setGreaterValue(step);
+		IntersectionMenu.forceTimelineMaximum(step, maxStep.value);
+
+		// Update statistics
+		IntersectionMenu.forceUpdateStatistics(simulation.getAgents(), step, simulation.getDelay(), simulation.getRejections(), simulation.getCollisions());
 	}
 
 	void start();

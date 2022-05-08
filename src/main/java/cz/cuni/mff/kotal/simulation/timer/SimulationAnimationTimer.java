@@ -158,8 +158,9 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	}
 
 	private void stopSimulation(double step) {
-		SimulationTicker.updateSimulation(step);
+		SimulationTicker.updateSimulation(step);  // TODO is this necessary?
 		IntersectionMenu.pauseSimulation();
+		forceUpdateSimulationStats(step, simulation);
 	}
 
 	private void removeAgent(Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
