@@ -33,15 +33,16 @@ public class AStarRoundabout extends AStar {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		if (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, agent.getEntry(), agent.getAgentPerimeter())) {
+		LinkGraph linkGraph = (LinkGraph) graph;
+		int entryID = linkGraph.getLinkID(agent.getEntry());
+
+		if (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter())) {
 			return null;
 		}
 
-		LinkGraph linkGraph = (LinkGraph) graph;
 		Set<Integer> exitIDs = getExitIDs(agent).stream().map(linkGraph::getLinkID).collect(Collectors.toSet());
 
 		Map<Integer, Double> heuristic = new HashMap<>();
-		int entryID = linkGraph.getLinkID(agent.getEntry());
 		double startEstimate = getHeuristic(exitIDs, entryID);
 		heuristic.put(entryID, startEstimate);
 
@@ -186,7 +187,17 @@ public class AStarRoundabout extends AStar {
 		Vertex firstOld = baseGraph.getVertex(loop.get(0));
 		int lastNewLoopIndex = firstOld.getNeighbourIDs().stream()
 			.filter(neighbour -> graph.vertexMapping.get(neighbour) == null)
-			.min(Comparator.comparingDouble(neighbour -> baseGraph.getDistance(neighbour, loop.get(loop.size() - 1))))
+			.min((id0, id1) -> {
+				double distance0 = baseGraph.getDistance(id0, loop.get(loop.size() - 1));
+				double distance1 = baseGraph.getDistance(id1, loop.get(loop.size() - 1));
+				int distancesComparison = Double.compare(distance0, distance1);
+				if (distancesComparison != 0) {
+					return distancesComparison;
+				}
+				int neighbours0 = baseGraph.getVertex(id0).getNeighbourIDs().size();
+				int neighbours1 = baseGraph.getVertex(id1).getNeighbourIDs().size();
+				return neighbours1 - neighbours0;
+			})
 			.orElse(-1);
 		if (lastNewLoopIndex < 0) {
 			return newLoop;

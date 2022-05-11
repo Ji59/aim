@@ -206,6 +206,114 @@ class AStarRoundaboutTest {
 	}
 
 	@Test
+	void testCreateRoundaboutGraphTripleLanesBigOctagonal() {
+		SimulationGraph octagonal = new OctagonalGraph(7, 1, 1);
+		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(octagonal, 3, true);
+
+		assertThat(
+			Arrays.stream(graph.getVertices())
+				.map(v -> octagonal.getVertex(((LinkVertex) v).getRealID()))
+				.toList()
+		).containsExactlyInAnyOrderElementsOf(
+			Arrays.stream(octagonal.getVertices())
+				.filter(vertex -> !Set.of(0, 4, 5, 11, 22, 33, 39, 40, 44, 53, 58, 67, 68, 73, 74, 83, 88).contains(vertex.getID()))
+				.map(GraphicalVertex.class::cast)
+				.toList()
+		);
+
+		// octagonal vertices
+		assertThat(graph.getLinkVertexByReal(1).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(2, 52, 55);
+		assertThat(graph.getLinkVertexByReal(2).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(3, 8, 56);
+		assertThat(graph.getLinkVertexByReal(3).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(9, 57);
+
+		assertThat(graph.getLinkVertexByReal(6).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(7, 54, 60);
+		assertThat(graph.getLinkVertexByReal(7).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(1, 8, 54, 55, 61);
+		assertThat(graph.getLinkVertexByReal(8).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(2, 9, 15, 56, 62);
+		assertThat(graph.getLinkVertexByReal(9).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(10, 16, 57, 63);
+		assertThat(graph.getLinkVertexByReal(10).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(17, 63, 64);
+
+		assertThat(graph.getLinkVertexByReal(12).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(13, 59);
+		assertThat(graph.getLinkVertexByReal(13).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(6, 14, 59, 60);
+		assertThat(graph.getLinkVertexByReal(14).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(7, 15, 60, 61);
+		assertThat(graph.getLinkVertexByReal(15).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(8, 16, 62);
+		assertThat(graph.getLinkVertexByReal(16).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(17, 23, 63, 69);
+		assertThat(graph.getLinkVertexByReal(17).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(18, 24, 64, 69, 70);
+		assertThat(graph.getLinkVertexByReal(18).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(25, 51, 70);
+
+		assertThat(graph.getLinkVertexByReal(19).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(12, 20, 65);
+		assertThat(graph.getLinkVertexByReal(20).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(13, 19, 21, 65, 66);
+		assertThat(graph.getLinkVertexByReal(21).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(14, 20, 66);
+		assertThat(graph.getLinkVertexByReal(23).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(24, 30, 75);
+		assertThat(graph.getLinkVertexByReal(24).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(23, 25, 31, 75, 76);
+		assertThat(graph.getLinkVertexByReal(25).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(24, 32, 76);
+
+		assertThat(graph.getLinkVertexByReal(26).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(19, 49, 71);
+		assertThat(graph.getLinkVertexByReal(27).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(20, 26, 71, 72, 77);
+		assertThat(graph.getLinkVertexByReal(28).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(21, 27, 72, 78);
+		assertThat(graph.getLinkVertexByReal(29).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(28, 36, 79);
+		assertThat(graph.getLinkVertexByReal(30).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(29, 37, 80, 81);
+		assertThat(graph.getLinkVertexByReal(31).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(30, 38, 81, 82);
+		assertThat(graph.getLinkVertexByReal(32).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(31, 82);
+
+		assertThat(graph.getLinkVertexByReal(34).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(27, 77, 78);
+		assertThat(graph.getLinkVertexByReal(35).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(28, 34, 78, 84);
+		assertThat(graph.getLinkVertexByReal(36).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(29, 35, 42, 79, 85);
+		assertThat(graph.getLinkVertexByReal(37).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(36, 43, 80, 86, 87);
+		assertThat(graph.getLinkVertexByReal(38).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(37, 81, 87);
+
+		assertThat(graph.getLinkVertexByReal(41).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(35, 84);
+		assertThat(graph.getLinkVertexByReal(42).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(36, 41, 85);
+		assertThat(graph.getLinkVertexByReal(43).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(42, 50, 86);
+
+		// entries
+		assertThat(graph.getLinkVertexByReal(45).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactly(12);
+		assertThat(graph.getLinkVertexByReal(46).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactly(41);
+		assertThat(graph.getLinkVertexByReal(47).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactly(32);
+		assertThat(graph.getLinkVertexByReal(48).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactly(3);
+
+		// exits
+		assertThat(graph.getLinkVertexByReal(49).getNeighbourIDs()).isEmpty();
+		assertThat(graph.getLinkVertexByReal(50).getNeighbourIDs()).isEmpty();
+		assertThat(graph.getLinkVertexByReal(51).getNeighbourIDs()).isEmpty();
+		assertThat(graph.getLinkVertexByReal(52).getNeighbourIDs()).isEmpty();
+
+		// square vertices
+		assertThat(graph.getLinkVertexByReal(54).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(1, 7);
+		assertThat(graph.getLinkVertexByReal(55).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(2, 8);
+		assertThat(graph.getLinkVertexByReal(56).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(3, 9);
+		assertThat(graph.getLinkVertexByReal(57).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(9, 10);
+
+		assertThat(graph.getLinkVertexByReal(59).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(6, 13);
+		assertThat(graph.getLinkVertexByReal(60).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(6, 7, 14);
+		assertThat(graph.getLinkVertexByReal(61).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(8, 15);
+		assertThat(graph.getLinkVertexByReal(62).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(9, 16);
+		assertThat(graph.getLinkVertexByReal(63).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(10, 16, 17);
+		assertThat(graph.getLinkVertexByReal(64).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(17, 18);
+
+		assertThat(graph.getLinkVertexByReal(65).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(12, 13);
+		assertThat(graph.getLinkVertexByReal(66).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(13, 14);
+		assertThat(graph.getLinkVertexByReal(69).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(23, 24);
+		assertThat(graph.getLinkVertexByReal(70).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(24, 25);
+
+		assertThat(graph.getLinkVertexByReal(71).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(19, 20);
+		assertThat(graph.getLinkVertexByReal(72).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(20, 21);
+		assertThat(graph.getLinkVertexByReal(75).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(30, 31);
+		assertThat(graph.getLinkVertexByReal(76).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(31, 32);
+
+		assertThat(graph.getLinkVertexByReal(77).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(26, 27);
+		assertThat(graph.getLinkVertexByReal(78).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(27, 28, 34);
+		assertThat(graph.getLinkVertexByReal(79).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(28, 35);
+		assertThat(graph.getLinkVertexByReal(80).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(29, 36);
+		assertThat(graph.getLinkVertexByReal(81).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(30, 37, 38);
+		assertThat(graph.getLinkVertexByReal(82).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(31, 38);
+
+		assertThat(graph.getLinkVertexByReal(84).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(34, 35);
+		assertThat(graph.getLinkVertexByReal(85).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(35, 41);
+		assertThat(graph.getLinkVertexByReal(86).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(36, 42);
+		assertThat(graph.getLinkVertexByReal(87).getNeighbourIDs().stream().mapToInt(id -> graph.getLinkVertex(id).getRealID())).containsExactlyInAnyOrder(37, 43);
+	}
+
+	@Test
 	void testCreateRoundaboutGraphTripleLanesHexagonal() {
 		SimulationGraph hexagonal = new HexagonalGraph(4, 1, 1);
 		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(hexagonal, 3, true);
