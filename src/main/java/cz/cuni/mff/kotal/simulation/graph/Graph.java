@@ -2,6 +2,8 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,6 +22,8 @@ public class Graph {
 	protected Map<Integer, List<Vertex>> entryExitVertices;
 	protected Set<Edge> edges;
 	protected double[][] distances;
+	private Thread distancesThread = null;
+	private final Lock distancesLock = new ReentrantLock(false);
 
 	/**
 	 * Create graph with provided vertices and edges. If not oriented, add edges with reversed orientation too.
@@ -47,6 +51,16 @@ public class Graph {
 		this.granularity = granularity;
 		this.entries = entries;
 		this.exits = exits;
+	}
+
+	public Graph(boolean oriented, Graph graph) {
+		this.oriented = oriented;
+		granularity = graph.granularity;
+		entries = graph.entries;
+		exits = graph.exits;
+
+		entryExitVertices = graph.getEntryExitVertices();
+		edges = new HashSet<>();
 	}
 
 	/**
@@ -107,6 +121,16 @@ public class Graph {
 		return vertices;
 	}
 
+	public Graph setVertices(Vertex[] vertices) {
+		this.vertices = vertices;
+		return this;
+	}
+
+	public Graph setVertices(Collection<? extends Vertex> vertices) {
+		this.vertices = vertices.toArray(new Vertex[0]);
+		return this;
+	}
+
 	@Deprecated
 	public Map<Integer, Vertex> getVerticesWithIDs() {
 		return Stream.of(vertices).collect(Collectors.toMap(Vertex::getID, Function.identity()));
@@ -119,14 +143,31 @@ public class Graph {
 	 */
 	public double[][] getDistances() {
 		if (distances == null) {
-			System.out.println("Initializing distances.");
-			initializeDistances();
-			System.out.println("Initializing distances finished.");
-
-			computeDistances();
+			createDistances();
 		}
 
 		return distances;
+	}
+
+	private void createDistances() {
+		distancesLock.lock();
+		if (distancesThread == null) {
+			distancesThread = new Thread(() -> {
+				System.out.println("Initializing distances.");
+				initializeDistances();
+				System.out.println("Initializing distances finished.");
+
+				computeDistances();
+			});
+			distancesThread.start();
+		}
+		distancesLock.unlock();
+
+		try {
+			distancesThread.join();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void computeDistances() {

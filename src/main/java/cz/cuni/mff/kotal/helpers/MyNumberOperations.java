@@ -67,10 +67,24 @@ public class MyNumberOperations {
 	 * @param modulo Number taken as base
 	 * @return Positive modulo of number
 	 */
+	public static int myModulo(int number, int modulo) {
+		int result = number % modulo;
+		return result >= 0 ? result : modulo + result;
+	}
+
+	/**
+	 * Computes modulo and convert result to non-negative numbers.
+	 *
+	 * @param number Input number to modify
+	 * @param modulo Number taken as base
+	 * @return Positive modulo of number
+	 */
 	public static long myModulo(long number, long modulo) {
 		long result = number % modulo;
 		return result >= 0 ? result : modulo + result;
 	}
+
+
 
 	// TODO
 	public static double distance(double x0, double y0, double x1, double y1) {

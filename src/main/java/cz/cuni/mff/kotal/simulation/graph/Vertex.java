@@ -51,10 +51,16 @@ public class Vertex {
 		this.type = Type.ROAD;
 	}
 
-	public Vertex(Vertex vertex) {
+	public Vertex(Vertex vertex){
+		this(vertex, true);
+	}
+
+	public Vertex(Vertex vertex, boolean copyNeighbours) {
 		this.id = vertex.getID();
 		this.type = vertex.getType();
-		this.neighbourIds.addAll(vertex.getNeighbourIDs());
+		if (copyNeighbours) {
+			this.neighbourIds.addAll(vertex.getNeighbourIDs());
+		}
 	}
 
 	/**

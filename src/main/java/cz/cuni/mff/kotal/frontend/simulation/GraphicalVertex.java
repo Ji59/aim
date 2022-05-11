@@ -53,6 +53,12 @@ public class GraphicalVertex extends Vertex {
 		this.y = y;
 	}
 
+	public GraphicalVertex(int id, GraphicalVertex vertex) {
+		super(id, vertex.getType());
+		x = vertex.x;
+		y = vertex.y;
+	}
+
 	/**
 	 * @return Coordinate X of the vertex
 	 */

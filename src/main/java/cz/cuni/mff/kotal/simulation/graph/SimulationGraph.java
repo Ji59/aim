@@ -53,6 +53,10 @@ public abstract class SimulationGraph extends Graph {
 		}
 	}
 
+	protected SimulationGraph(boolean oriented, Graph graph) {
+		super(oriented, graph);
+	}
+
 
 	/**
 	 * Add vertices and edges from other graph.
@@ -155,8 +159,8 @@ public abstract class SimulationGraph extends Graph {
 			}
 			visitedIDs.add(vertex.getID());
 			for (int neighbourID : vertex.getVertex().getNeighbourIDs()) {
-				double distance = distances[vertex.getID()][neighbourID];
-				double heuristic = distances[neighbourID][to.getID()];
+				double distance = getDistance(vertex.getID(), neighbourID);
+				double heuristic = getDistance(neighbourID, to.getID());
 				queue.add(new VertexWithDirection(vertex, getVertex(neighbourID), distance, heuristic));
 			}
 //			verticesDistances.get(vertex).forEach((neighbour, edge) -> {
@@ -218,6 +222,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param id ID of desired vertex
 	 * @return
 	 */
+	@Override
 	public GraphicalVertex getVertex(int id) {
 		return (GraphicalVertex) vertices[id];
 	}
@@ -342,7 +347,7 @@ public abstract class SimulationGraph extends Graph {
 			this.angle = computeAngle(xDiff, yDiff);
 
 			double angleDiff;
-			if (previous.getParent() == null || previous.getID() == getID()) {
+			if (previous.getID() == getID()) {
 				angleDiff = 0;
 			} else {
 				angleDiff = Math.abs(this.angle - previous.getAngle());

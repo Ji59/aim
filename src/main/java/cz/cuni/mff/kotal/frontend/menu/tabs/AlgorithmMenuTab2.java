@@ -11,7 +11,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Tab in menu window for algorithm.
@@ -60,7 +62,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	}
 
 	private void setParameters(Parameters.Algorithm algorithm) {
-		Map<String, Object> parameters = new HashMap<>();
+		Map<String, Object> parameters;
 		try {
 			parameters = (Map<String, Object>) algorithm.getAlgorithmClass().getField("PARAMETERS").get(null);
 		} catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
@@ -199,6 +201,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			ROUNDABOUT("Roundabout", "Standard one way one line roundabout.", Roundabout.class),
 			BI_ROUNDABOUT("Bidirectional Roundabout", "One line roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
 			A_STAR("A Star", "This algorithm computes A star algorithm for each agent in non-collision way.", AStar.class),
+			A_STAR_ROUNDABOUT("A* roundabout", "Roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarRoundabout.class),
 			;
 
 			private final String name;

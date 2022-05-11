@@ -139,7 +139,7 @@ public class SafeLines implements Algorithm {
 		return checkNeighbour(vertexID, neighbourVertexID, nextVertexID, agentPerimeter, neighbour);
 	}
 
-	private int getNeighbourVertexID(long step, Agent neighbour) {
+	protected int getNeighbourVertexID(long step, Agent neighbour) {
 		long plannedTime = neighbour.getPlannedTime() >= 0 ? neighbour.getPlannedTime() : step;
 		int neighbourStep = (int) (step - plannedTime);
 		if (neighbourStep >= neighbour.getPath().size()) {
