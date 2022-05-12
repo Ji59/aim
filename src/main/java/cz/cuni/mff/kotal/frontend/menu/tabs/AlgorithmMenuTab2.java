@@ -198,10 +198,11 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			BFS("Breadth First Search", "Finds the shortest path for every agent.", BreadthFirstSearch.class),
 			LINES("Follow lines", "Every agent follows line from start to end.", Lines.class),
 			SEMAPHORE("Semaphore", "Standard semaphore with direction limit.", Semaphore.class),
-			ROUNDABOUT("Roundabout", "Standard one way one line roundabout.", Roundabout.class),
-			BI_ROUNDABOUT("Bidirectional Roundabout", "One line roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
+			ROUNDABOUT("Roundabout", "Standard one way one lane roundabout.", Roundabout.class),
+			BI_ROUNDABOUT("Bidirectional Roundabout", "One lane roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
 			A_STAR("A Star", "This algorithm computes A star algorithm for each agent in non-collision way.", AStar.class),
 			A_STAR_ROUNDABOUT("A* roundabout", "Roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarRoundabout.class),
+			A_STAR_BI_ROUNDABOUT("A* bidirectional roundabout", "Bidirectional roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarBidirectionalRoundabout.class),
 			;
 
 			private final String name;

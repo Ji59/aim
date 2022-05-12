@@ -27,7 +27,11 @@ public class AStarRoundabout extends AStar {
 	private final int lanes;
 
 	public AStarRoundabout(SimulationGraph graph) {
-		super(createRoundaboutGraph(graph, AlgorithmMenuTab2.getIntegerParameter(LANES_NAME, LANES_DEF), true));
+		this(graph, true);
+	}
+
+	protected AStarRoundabout(SimulationGraph graph, boolean oriented) {
+		super(createRoundaboutGraph(graph, AlgorithmMenuTab2.getIntegerParameter(LANES_NAME, LANES_DEF), oriented));
 		lanes = AlgorithmMenuTab2.getIntegerParameter(LANES_NAME, LANES_DEF);
 	}
 
