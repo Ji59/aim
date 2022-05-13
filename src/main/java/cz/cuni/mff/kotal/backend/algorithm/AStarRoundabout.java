@@ -92,7 +92,7 @@ public class AStarRoundabout extends AStar {
 		for (int lane = 1; lane < lanes && !loop.isEmpty(); lane++) {
 			id += loop.size();
 
-			List<Vertex> newLoop = getNewLoopBaseVertices(baseGraph, graph, id, loop, vertices);
+			List<? extends Vertex> newLoop = getNewLoopBaseVertices(baseGraph, graph, id, loop, vertices);
 
 			if (newLoop.size() == 1) {
 				Vertex vertex = newLoop.get(0);
@@ -143,7 +143,7 @@ public class AStarRoundabout extends AStar {
 		graph.getEdges().add(new Edge(linkVertex, neighbour, baseGraph.getDistance(linkVertex.getRealID(), neighbour.getRealID())));
 	}
 
-	private static void addOldNewLoopsNeighbours(boolean oriented, Graph baseGraph, LinkGraph graph, List<LinkVertex> vertices, List<Integer> loop, List<Vertex> newLoop) {
+	private static void addOldNewLoopsNeighbours(boolean oriented, Graph baseGraph, LinkGraph graph, List<LinkVertex> vertices, List<Integer> loop, List<? extends Vertex> newLoop) {
 		for (Vertex vertex : newLoop) {
 			LinkVertex linkVertex = vertices.get(graph.getLinkID(vertex.getID()));
 			List<Integer> oldLoopNeighbours = new LinkedList<>();
@@ -185,58 +185,72 @@ public class AStarRoundabout extends AStar {
 		}
 	}
 
-	private static List<Vertex> getNewLoopBaseVertices(SimulationGraph baseGraph, LinkGraph graph, int id, List<Integer> loop, List<LinkVertex> vertices) {
-		List<Vertex> newLoop = new LinkedList<>();
+	private static List<? extends Vertex> getNewLoopBaseVertices(SimulationGraph baseGraph, LinkGraph graph, int id, List<Integer> loop, List<LinkVertex> vertices) {
+		List<GraphicalVertex> newLoop = new LinkedList<>();
 
-		Vertex firstOld = baseGraph.getVertex(loop.get(0));
-		int lastNewLoopIndex = firstOld.getNeighbourIDs().stream()
-			.filter(neighbour -> graph.vertexMapping.get(neighbour) == null)
-			.min((id0, id1) -> {
-				double distance0 = baseGraph.getDistance(id0, loop.get(loop.size() - 1));
-				double distance1 = baseGraph.getDistance(id1, loop.get(loop.size() - 1));
-				int distancesComparison = Double.compare(distance0, distance1);
-				if (distancesComparison != 0) {
-					return distancesComparison;
-				}
-				int neighbours0 = baseGraph.getVertex(id0).getNeighbourIDs().size();
-				int neighbours1 = baseGraph.getVertex(id1).getNeighbourIDs().size();
-				return neighbours1 - neighbours0;
-			})
-			.orElse(-1);
-		if (lastNewLoopIndex < 0) {
+		int lastNewLoopID;
+		int oldLoopFirstIndex = 0;
+
+		do {
+			Vertex firstOld = baseGraph.getVertex(loop.get(oldLoopFirstIndex));
+			lastNewLoopID = firstOld.getNeighbourIDs().stream()
+				.filter(neighbour -> graph.vertexMapping.get(neighbour) == null)
+				.min((id0, id1) -> {
+					double distance0 = baseGraph.getDistance(id0, loop.get(loop.size() - 1));
+					double distance1 = baseGraph.getDistance(id1, loop.get(loop.size() - 1));
+					int distancesComparison = Double.compare(distance0, distance1);
+					if (distancesComparison != 0) {
+						return distancesComparison;
+					}
+					int neighbours0 = baseGraph.getVertex(id0).getNeighbourIDs().size();
+					int neighbours1 = baseGraph.getVertex(id1).getNeighbourIDs().size();
+					return neighbours1 - neighbours0;
+				})
+				.orElse(-1);
+		} while (lastNewLoopID < 0 && ++oldLoopFirstIndex < loop.size());
+		if (lastNewLoopID < 0) {
 			return newLoop;
 		}
 
+		lastLoopCycle:
 		for (int i = 0; i < loop.size(); i++) {
-			Integer vertexID = loop.get(i);
+			int index = (i + oldLoopFirstIndex) % loop.size();
+			Integer vertexID = loop.get(index);
 			GraphicalVertex lastOldLoopVertex = baseGraph.getVertex(vertexID);
 
-			int newLoopIndex = lastNewLoopIndex;
-			while (newLoopIndex >= 0) {
-				GraphicalVertex lastNewLoopVertex = baseGraph.getVertex(newLoopIndex);
+			int newLoopID = lastNewLoopID;
+			while (newLoopID >= 0) {
+				GraphicalVertex lastNewLoopVertex = baseGraph.getVertex(newLoopID);
 
-				if (!graph.vertexMapping.containsKey(newLoopIndex)) {
-					lastNewLoopIndex = newLoopIndex;
+				if (!graph.vertexMapping.containsKey(newLoopID)) {
+					lastNewLoopID = newLoopID;
 					newLoop.add(lastNewLoopVertex);
 
 					LinkVertex linkVertex = new LinkVertex(id++, lastNewLoopVertex);
 					vertices.add(linkVertex);
 					graph.addVertexMapping(linkVertex);
 				}
+				for (int j = newLoop.size() - 1; lastNewLoopVertex.getNeighbourIDs().stream().allMatch(graph.vertexMapping::containsKey); j--) {
+					if (j <= 0) {
+						break lastLoopCycle;
+					} else {
+						lastNewLoopVertex = newLoop.get(j);
+					}
+				}
 
-				newLoopIndex = getNeighboursIntersection(graph, lastOldLoopVertex, lastNewLoopVertex, loop.get(myModulo(i - 1, loop.size())), false);
+				newLoopID = getNeighboursIntersection(graph, lastOldLoopVertex, lastNewLoopVertex, loop.get(myModulo(index - 1, loop.size())));
 			}
 		}
 
 		return newLoop;
 	}
 
-	private static int getNeighboursIntersection(LinkGraph graph, Vertex oldLoopVertex, Vertex newLoopVertex, int oldLoopPreviousID, boolean wantPrevious) {
+	private static int getNeighboursIntersection(LinkGraph graph, Vertex oldLoopVertex, Vertex newLoopVertex, int oldLoopPreviousID) {
 		int candidate = -1;
 		for (int neighbour : oldLoopVertex.getNeighbourIDs()) {
 			if (!graph.vertexMapping.containsKey(neighbour) && newLoopVertex.getNeighbourIDs().contains(neighbour)) {
 				boolean newContainsPreviousOld = newLoopVertex.getNeighbourIDs().contains(oldLoopPreviousID);
-				if (wantPrevious ^ newContainsPreviousOld) {
+				if (newContainsPreviousOld) {
 					candidate = neighbour;
 				} else {
 					return neighbour;
