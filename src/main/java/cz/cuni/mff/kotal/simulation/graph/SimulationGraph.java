@@ -5,6 +5,8 @@ import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +19,7 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Paramete
 public abstract class SimulationGraph extends Graph {
 	public static final double EPSILON = 0.0625;  // 2 ^ -4
 	protected final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
+	private final Lock verticesDistancesLock = new ReentrantLock(false);
 	protected Map<Integer, Map<Integer, List<Integer>>> shortestPaths;
 
 	protected double cellSize;
@@ -116,7 +119,7 @@ public abstract class SimulationGraph extends Graph {
 					vertexDistances.put(vertex.getID(), vertexPath);
 				}
 
-				verticesDistances.get(vertex).forEach((neighbour, edge) -> {
+				getVerticesDistances().get(vertex).forEach((neighbour, edge) -> {
 					if (!vertexDistances.containsKey(neighbour.getID())) {
 						queue.add(new VertexWithDirection(vertex, neighbour, edge, getCellSize())); // TODO refactor
 					}
@@ -140,10 +143,7 @@ public abstract class SimulationGraph extends Graph {
 	// TODO
 
 	public List<Integer> shortestPath(GraphicalVertex from, GraphicalVertex to, double startingAngle) {
-		if (verticesDistances.isEmpty()) {
-			initializeVerticesDistances();
-		}
-		PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
+				PriorityQueue<VertexWithDirection> queue = new PriorityQueue<>();
 		HashSet<Integer> visitedIDs = new HashSet<>();
 		queue.add(new VertexWithDirection(from, startingAngle));
 		while (!queue.isEmpty()) {
@@ -259,13 +259,23 @@ public abstract class SimulationGraph extends Graph {
 	 */
 	public abstract double getCellSize();
 
+	protected Map<GraphicalVertex, Map<GraphicalVertex, Edge>> getVerticesDistances() {
+		verticesDistancesLock.lock();
+		if (verticesDistances.isEmpty()) {
+			initializeVerticesDistances();
+		}
+		verticesDistancesLock.unlock();
+		return verticesDistances;
+	}
 	protected void initializeVerticesDistances() {
+		verticesDistancesLock.lock();
 		for (Vertex vertex : vertices) {
 			verticesDistances.put((GraphicalVertex) vertex, new HashMap<>());
 		}
 		for (Edge edge : this.edges) {
-			verticesDistances.get((GraphicalVertex) edge.getU()).put((GraphicalVertex) edge.getV(), edge);
+			verticesDistances.get(edge.getU()).put((GraphicalVertex) edge.getV(), edge);
 		}
+		verticesDistancesLock.unlock();
 	}
 
 	/**
@@ -276,10 +286,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @return
 	 */
 	public Edge getEdge(Vertex v0, Vertex v1) {
-		if (verticesDistances.isEmpty()) {
-			initializeVerticesDistances();
-		}
-		return verticesDistances.get((GraphicalVertex) v0).get((GraphicalVertex) v1);
+		return getVerticesDistances().get(v0).get(v1);
 	}
 
 	public static class VertexWithDirection implements Comparable<VertexWithDirection> {

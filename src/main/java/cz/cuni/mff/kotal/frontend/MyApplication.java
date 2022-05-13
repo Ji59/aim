@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.frontend;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.MenuStage;
+import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.application.Application;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
@@ -67,7 +68,10 @@ public class MyApplication extends Application {
 		primaryStage.setMaximized(false);
 		primaryStage.show();
 
-		IntersectionScene.getIntersectionGraph().redraw();
+		SimulationGraph graph = IntersectionScene.getIntersectionGraph().redraw();
+		Thread thread = new Thread(() -> graph.createDistances(true));
+		thread.setPriority(Thread.MIN_PRIORITY);
+		thread.start();
 	}
 
 	/**

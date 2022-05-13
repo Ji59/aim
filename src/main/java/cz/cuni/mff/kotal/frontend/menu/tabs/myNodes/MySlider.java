@@ -6,8 +6,12 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.events.Event;
+
+import java.util.function.IntConsumer;
 
 
 /**
@@ -17,6 +21,8 @@ public class MySlider extends HBox {
 	private final Slider slider;
 	private final TextField textField;
 
+	private Runnable mouseReleaseAction = null;
+
 	/**
 	 * Create new slider with specified values.
 	 *
@@ -24,7 +30,7 @@ public class MySlider extends HBox {
 	 * @param max   Slider maximal value
 	 * @param value Slider initial value
 	 */
-	public MySlider(double min, double max, long value) {
+	public MySlider(double min, double max, int value) {
 
 		// TODO remove constant
 		setSpacing(20);
@@ -78,6 +84,9 @@ public class MySlider extends HBox {
 						throw new Exception("Entered number is out of range.");
 					}
 					slider.setValue(newVal);
+					if (mouseReleaseAction != null) {
+						mouseReleaseAction.run();
+					}
 				} catch (NumberFormatException e) {
 					new Alert(Alert.AlertType.ERROR, "Cannot parse entered value to integer: " + e.getMessage(), ButtonType.OK).showAndWait();
 					textField.setText(sliderValue);
@@ -92,13 +101,19 @@ public class MySlider extends HBox {
 	}
 
 	/**
-	 * Asssign another action listener to the slider.
+	 * Assign another action listener to the slider.
 	 *
 	 * @param listener Listener to be added
 	 * @return Affected MySlider object
 	 */
 	public MySlider addAction(ChangeListener<? super Number> listener) {
 		slider.valueProperty().addListener(listener);
+		return this;
+	}
+
+	public MySlider addAction(Runnable action) {
+		mouseReleaseAction = action;
+		slider.setOnMouseReleased(event -> action.run());
 		return this;
 	}
 
@@ -152,7 +167,7 @@ public class MySlider extends HBox {
 	 * @param value New value to be set
 	 * @return Affected MySlider object
 	 */
-	public MySlider setMax(long value) {
+	public MySlider setMax(int value) {
 		slider.setMax(value);
 		return this;
 	}
@@ -166,16 +181,16 @@ public class MySlider extends HBox {
 	 * @return Created slider
 	 */
 	@NotNull
-	private static Slider createSlider(double min, double max, long value) {
+	private static Slider createSlider(double min, double max, int value) {
 		final Slider slider = new Slider(min, max, value);
 		slider.setShowTickLabels(true);
 		slider.setShowTickMarks(true);
-		long count = (long) (max - min + 1);
+		int count = (int) (max - min + 1);
 		int tickUnit = getSliderMajorTicks(count);
 
 
 		if (tickUnit == 0) {
-			slider.setMinorTickCount((int) (count - 2));
+			slider.setMinorTickCount((count - 2));
 		} else {
 			slider.setMajorTickUnit(tickUnit);
 			slider.setMinorTickCount(getSliderMinorTicks(tickUnit));

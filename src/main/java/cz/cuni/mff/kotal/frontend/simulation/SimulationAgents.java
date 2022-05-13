@@ -101,6 +101,7 @@ public class SimulationAgents extends Pane {
 		}
 		vertexLabelUpdateRunning = true;
 		Platform.runLater(() -> {
+			// FIXME when graph changes, throws exception
 			double vertexUsage = SimulationTicker.getVertexUsage(vertexLabelID);
 			vertexLabel.setText(String.format("ID: %d%nUsage: %.2f", vertexLabelID, vertexUsage));
 			vertexLabelUpdateRunning = false;

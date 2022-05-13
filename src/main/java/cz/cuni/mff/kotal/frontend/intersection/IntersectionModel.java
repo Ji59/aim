@@ -446,17 +446,20 @@ public class IntersectionModel extends Pane {
 	/**
 	 * Redraw graph based on selected properties in menu window.
 	 * If the graph was not changed, do nothing.
+	 *
+	 * @return
 	 */
-	public void redraw() {
-		redraw(false);
+	public SimulationGraph redraw() {
+		return redraw(false);
 	}
 
 	/**
 	 * Redraw graph based on selected properties in menu window.
 	 *
 	 * @param ignoreOld If redraw is forced, ignoring fact old graph is identical to the new one
+	 * @return
 	 */
-	public void redraw(boolean ignoreOld) {
+	public SimulationGraph redraw(boolean ignoreOld) {
 		// get graph properties
 		int granularity = IntersectionMenuTab0.getGranularity().getValue();
 		int entries = IntersectionMenuTab0.getEntries().getValue();
@@ -467,7 +470,7 @@ public class IntersectionModel extends Pane {
 		SimulationGraph graphAbstract = new AbstractGraph(model, granularity, entries, exits, false);
 
 		if (!ignoreOld && graphAbstract.equals(graph)) { // if last graph is the same, return
-			return;
+			return createdGraphs.get(graph);
 		}
 
 		if (graph != null && !graphAbstract.equals(graph)) { // else add graph to previous stack
@@ -496,6 +499,8 @@ public class IntersectionModel extends Pane {
 		}
 
 		drawBackground(preferredHeight);
+
+		return createdGraphs.get(graph);
 	}
 
 	/**

@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
@@ -16,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 /**
@@ -25,8 +23,8 @@ import java.util.stream.Collectors;
 public class IntersectionMenuTab0 extends MyTabTemplate {
 
 	// TODO don't use static, use Component
-	private static final MyComboBox model = new MyComboBox(Arrays.stream(Parameters.Models.values()).map(Parameters.Models::getText).collect(Collectors.toList()));
-	private static final MyComboBox restriction = new MyComboBox(Arrays.stream(Parameters.Restrictions.values()).map(Parameters.Restrictions::getText).collect(Collectors.toList()));
+	private static final MyComboBox model = new MyComboBox(Arrays.stream(Parameters.Models.values()).map(Parameters.Models::getText).toList());
+	private static final MyComboBox restriction = new MyComboBox(Arrays.stream(Parameters.Restrictions.values()).map(Parameters.Restrictions::getText).toList());
 	private static final MySlider granularity = new MySlider(2, 33, 4);
 	private static final MySlider entries = new MySlider(1, granularity.getValue() - 1, 1);
 	private static final MySlider exits = new MySlider(1, granularity.getValue() - entries.getValue(), 1);
@@ -34,7 +32,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	private static final Button previousButton = new Button("previous");
 	private static final HBox history = new HBox(20, previousButton, nextButton);
 
-	private static long roads = 4;
+	private static int roads = 4;
 	private static int granularityDifference = 0;
 
 	/**
@@ -91,7 +89,10 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 			granularity.setMin(2L + granularityDifference);
 			correctEntriesExitsValues(granularity.getValue());
 
-			IntersectionScene.getIntersectionGraph().redraw();
+			SimulationGraph graph = IntersectionScene.getIntersectionGraph().redraw();
+			Thread thread = new Thread(() -> graph.createDistances(true));
+			thread.setPriority(Thread.MIN_PRIORITY);
+			thread.start();
 
 			AgentsMenuTab1.createDirectionsMenuAndAddActions(selected);
 
@@ -102,8 +103,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		});
 	}
 
-	private void correctEntriesExitsValues(long granularityValue) {
-		long maxValue = granularityValue - granularityDifference - 1;
+	private void correctEntriesExitsValues(int granularityValue) {
+		setSlidersDisable(true);
+		int maxValue = granularityValue - granularityDifference - 1;
 		entries.setMax(maxValue);
 		exits.setMax(maxValue);
 
@@ -111,19 +113,20 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		if (entries.getValue() + exits.getValue() + granularityDifference > granularityValue) {
 			exits.setValue(granularityValue - entries.getValue() - granularityDifference);
 		}
+		setSlidersDisable(false);
 	}
 
 	/**
 	 * Add action to granularity slider.
 	 */
 	private void addGranularityActions() {
-		granularity.addAction((observable, oldValue, newValue) -> {
+		granularity.addAction(() -> {
 			setSlidersDisable(true);
 
-			long newVal = newValue.longValue();
+			int newVal = granularity.getValue();
 			correctEntriesExitsValues(newVal);
 
-			IntersectionScene.getIntersectionGraph().redraw();
+			startGraphDistanceComputing();
 
 			AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1);
 			AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1);
@@ -131,14 +134,24 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		});
 	}
 
+	private void startGraphDistanceComputing() {
+		SimulationGraph graph = IntersectionScene.getIntersectionGraph().redraw();
+
+		Thread thread = new Thread(() -> graph.createDistances(true));
+		thread.setPriority(Thread.MIN_PRIORITY);
+		thread.start();
+	}
+
 	/**
 	 * Add action to entries slider.
 	 */
 	private void addEntriesActions() {
-		entries.addAction((observable, oldValue, newValue) -> {
-			adjustAgentsSize(newValue, exits);
-			AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * newValue.longValue());
-			AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * newValue.longValue());
+		entries.addAction((observable, oldValue, newValue) -> adjustEntriesExitsValues(newValue, exits));
+		entries.addAction(() -> {
+			int newValue = entries.getValue();
+			adjustAgentsSize();
+			AgentsMenuTab1.getNewAgentsMaximum().setMax(roads * newValue);
+			AgentsMenuTab1.getNewAgentsMinimum().setMax(roads * newValue);
 		});
 	}
 
@@ -146,7 +159,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	 * Add action to exit slider.
 	 */
 	private void addExitsActions() {
-		exits.addAction((observable, oldValue, newValue) -> adjustAgentsSize(newValue, entries));
+		exits.addAction((observable, oldValue, newValue) -> adjustEntriesExitsValues(newValue, entries));
+		exits.addAction(this::adjustAgentsSize);
 	}
 
 	/**
@@ -188,22 +202,26 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
 	/**
 	 * Modify agent size slider values.
-	 *
-	 * @param newValue New maximal slider size
-	 * @param slider   Other slider affecting computing
 	 */
-	private void adjustAgentsSize(Number newValue, MySlider slider) {
+	private void adjustAgentsSize() {
 		setSlidersDisable(true);
 
-		if (newValue.longValue() + slider.getValue() + granularityDifference > granularity.getValue()) {
-			slider.setValue(granularity.getValue() - newValue.longValue() - granularityDifference);
+		startGraphDistanceComputing();
+
+		int entriesVal = entries.getValue();
+		int exitsVal = exits.getValue();
+		AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(entriesVal, exitsVal));
+		AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(entriesVal, exitsVal));
+
+		setSlidersDisable(false);
+	}
+
+	private void adjustEntriesExitsValues(Number newValue, MySlider slider) {
+		setSlidersDisable(true);
+		int newVal = newValue.intValue();
+		if (newVal + slider.getValue() + granularityDifference > granularity.getValue()) {
+			slider.setValue(granularity.getValue() - newVal - granularityDifference);
 		}
-
-		IntersectionScene.getIntersectionGraph().redraw();
-
-		AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
-		AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(newValue.longValue(), exits.getValue()));
-
 		setSlidersDisable(false);
 	}
 
@@ -250,7 +268,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	/**
 	 * @return Number of entry / exit directions
 	 */
-	public static long getRoads() {
+	public static int getRoads() {
 		return roads;
 	}
 

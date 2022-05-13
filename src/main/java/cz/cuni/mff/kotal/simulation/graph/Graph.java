@@ -1,7 +1,10 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
+
 import java.util.*;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -13,6 +16,7 @@ import java.util.stream.Stream;
  * Graph of vertices and edges.
  */
 public class Graph {
+	private static final Lock DISTANCES_CACHING_LOCK = new ReentrantLock(false);
 
 	protected final boolean oriented;
 	protected final int granularity;
@@ -22,7 +26,6 @@ public class Graph {
 	protected Map<Integer, List<Vertex>> entryExitVertices;
 	protected Set<Edge> edges;
 	protected double[][] distances;
-	private Thread distancesThread = null;
 	private final Lock distancesLock = new ReentrantLock(false);
 
 	/**
@@ -142,31 +145,27 @@ public class Graph {
 	 * @return
 	 */
 	public double[][] getDistances() {
-		if (distances == null) {
-			createDistances();
-		}
+		createDistances(false);
 
 		return distances;
 	}
 
-	private void createDistances() {
-		distancesLock.lock();
-		if (distancesThread == null) {
-			distancesThread = new Thread(() -> {
-				System.out.println("Initializing distances.");
-				initializeDistances();
-				System.out.println("Initializing distances finished.");
+	public void createDistances(boolean caching) {
+		if (caching) {
+			DISTANCES_CACHING_LOCK.lock();
+		}
 
-				computeDistances();
-			});
-			distancesThread.start();
+		distancesLock.lock();
+		if (distances == null && (!oriented || this.equals(IntersectionModel.getGraph()))) {
+			System.out.println("Initializing distances.");
+			initializeDistances();
+			System.out.println("Initializing distances finished.");
+
+			computeDistances();
 		}
 		distancesLock.unlock();
-
-		try {
-			distancesThread.join();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+		if (caching) {
+			DISTANCES_CACHING_LOCK.unlock();
 		}
 	}
 
