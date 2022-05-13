@@ -156,7 +156,7 @@ public class Graph {
 		}
 
 		distancesLock.lock();
-		if (distances == null && (!oriented || this.equals(IntersectionModel.getGraph()))) {
+		if (distances == null && (!caching || this.equals(IntersectionModel.getGraph()))) {
 			System.out.println("Initializing distances.");
 			initializeDistances();
 			System.out.println("Initializing distances finished.");
