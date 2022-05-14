@@ -13,9 +13,7 @@ public class AIM {
 	 *
 	 * @param args Input arguments, unused
 	 */
-	public static void main(String[] args) throws InterruptedException {
-		Thread gui = new Thread(() -> Application.launch(MyApplication.class, args));
-		gui.start();
-		gui.join();
+	public static void main(String[] args) {
+		Application.launch(MyApplication.class, args);
 	}
 }

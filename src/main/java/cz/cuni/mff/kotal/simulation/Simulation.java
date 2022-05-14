@@ -281,8 +281,9 @@ public abstract class Simulation {
 	 * @param agent
 	 * @return
 	 */
-	protected int getAgentsDelay(Agent agent) {
-		return agent.getPath().size() - getIntersectionGraph().getLines().get(agent.getEntry()).get(agent.getPath().get(agent.getPath().size() - 1)).size();
+	protected double getAgentsDelay(Agent agent) {
+		Integer exitID = agent.getPath().get(agent.getPath().size() - 1);
+		return agent.getPath().size() - getIntersectionGraph().getDistance(agent.getEntry(), exitID);
 	}
 
 	/**
