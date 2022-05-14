@@ -200,7 +200,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			SEMAPHORE("Semaphore", "Standard semaphore with direction limit.", Semaphore.class),
 			ROUNDABOUT("Roundabout", "Standard one way one lane roundabout.", Roundabout.class),
 			BI_ROUNDABOUT("Bidirectional Roundabout", "One lane roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
-			A_STAR("A Star", "This algorithm computes A star algorithm for each agent in non-collision way.", AStar.class),
+			A_STAR("A*", "This algorithm computes A star algorithm for each agent in non-collision way.", AStar.class),
 			A_STAR_ROUNDABOUT("A* roundabout", "Roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarRoundabout.class),
 			A_STAR_BI_ROUNDABOUT("A* bidirectional roundabout", "Bidirectional roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarBidirectionalRoundabout.class),
 			;

@@ -8,6 +8,7 @@ import cz.cuni.mff.kotal.simulation.graph.Edge;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -37,23 +38,10 @@ public class AStarRoundabout extends AStar {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		LinkGraph linkGraph = (LinkGraph) graph;
+	LinkGraph linkGraph = (LinkGraph) graph;
 		int entryID = linkGraph.getLinkID(agent.getEntry());
 
-		if (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter())) {
-			return null;
-		}
-
-		Set<Integer> exitIDs = getExitIDs(agent).stream().map(linkGraph::getLinkID).collect(Collectors.toSet());
-
-		Map<Integer, Double> heuristic = new HashMap<>();
-		double startEstimate = getHeuristic(exitIDs, entryID);
-		heuristic.put(entryID, startEstimate);
-
-		PriorityQueue<State> queue = new PriorityQueue<>();
-		queue.add(new State(graph.getVertex(entryID), startEstimate, step));
-
-		List<Integer> path = searchPath(agent, step, exitIDs, heuristic, entryID, queue);
+		List<Integer> path = getPath(agent, step, entryID);
 
 		if (path == null) {
 			return null;
@@ -72,6 +60,16 @@ public class AStarRoundabout extends AStar {
 			return -1;
 		}
 		return ((LinkGraph) graph).getLinkID(neighbour.getPath().get(neighbourStep));
+	}
+
+	@Override
+	@NotNull
+	protected Set<Integer> getExitIDs(Agent agent) {
+		if (agent.getExit() >= 0) {
+			return Set.of(((LinkGraph) graph).getLinkID(agent.getExit()));
+		} else {
+			return directionExits.get(agent.getExitDirection()).stream().map(Vertex::getID).collect(Collectors.toSet());
+		}
 	}
 
 	protected static LinkGraph createRoundaboutGraph(SimulationGraph baseGraph, int lanes, boolean oriented) {
