@@ -166,8 +166,8 @@ public abstract class Simulation {
 	 * @param step
 	 */
 	public final void setStartAndAgents(double step) {
-		startingStep = step;
 		simulationAgents.setAgents(allAgents.values(), step);
+		startingStep = step;
 	}
 
 	protected abstract void start();
