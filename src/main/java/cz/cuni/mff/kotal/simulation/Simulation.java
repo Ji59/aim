@@ -36,6 +36,7 @@ public abstract class Simulation {
 	protected long agentsDelay = 0;
 	protected long agentsRejected = 0;
 	protected long collisions;
+	@Deprecated
 	protected long startTime;
 	protected double startingStep = 0;
 	protected long period;
@@ -137,9 +138,7 @@ public abstract class Simulation {
 		}
 		state = State.RUNNING;
 
-//		start();
-		startTime = System.nanoTime();
-		simulationAgents.resumeSimulation(this, startTime);
+		simulationAgents.resumeSimulation(this);
 	}
 
 	/**
@@ -158,7 +157,7 @@ public abstract class Simulation {
 		setStartAndAgents(step);
 //		simulationAgents.resumeSimulationWithAgents(this, startTime, allAgents.values());
 		startTime = System.nanoTime();
-		simulationAgents.resumeSimulation(this, startTime);
+		simulationAgents.resumeSimulation(this);
 	}
 
 	/**
@@ -419,7 +418,7 @@ public abstract class Simulation {
 	 * @return
 	 */
 	public double getStep(long time) {
-		return (time - startTime) / (double) period + startingStep;
+		return time / (double) period + startingStep;
 	}
 
 	/**
@@ -442,6 +441,7 @@ public abstract class Simulation {
 	 * @param step
 	 * @return
 	 */
+	@Deprecated
 	public long getTime(long step) {
 		return step * period + startTime;
 	}
@@ -457,6 +457,7 @@ public abstract class Simulation {
 	/**
 	 * @return System time of start of this simulation
 	 */
+	@Deprecated
 	public long getStartTime() {
 		return startTime;
 	}

@@ -270,7 +270,7 @@ public class SimulationAgents extends Pane {
 	 *
 	 * @param simulation Simulation to be resumed
 	 */
-	public void resumeSimulation(Simulation simulation, long startTime) {
+	public void resumeSimulation(Simulation simulation) {
 		this.simulation = simulation;
 
 //		synchronized (activeAgents) {
@@ -296,7 +296,7 @@ public class SimulationAgents extends Pane {
 	@Deprecated
 	public void resumeSimulationWithAgents(Simulation simulation, long startTime, Collection<Agent> agents) {
 		setAgents(agents, simulation.getStep(startTime));
-		resumeSimulation(simulation, startTime);
+		resumeSimulation(simulation);
 	}
 
 	/**

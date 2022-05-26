@@ -24,6 +24,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 
 	private final Map<Long, AgentPane> agents;
 	private final Simulation simulation;
+	private final long startTime = System.nanoTime();
 
 
 	/**
@@ -46,7 +47,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	@Override
 	public void handle(long now) {
 //		SimulationAgents.resetRectangles(); //TODO
-		double step = simulation.getStep(now);
+		double step = simulation.getStep(now - startTime);
 
 		if (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().emptyArrivingAgents()) {
 			stopSimulation(step);
@@ -153,7 +154,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	public void stop() {
 		long stopTime = System.nanoTime();
 		super.stop();
-		double lastHandledStep = lastStep < Double.MAX_VALUE ? lastStep : simulation.getStep(stopTime);
+		double lastHandledStep = lastStep < Double.MAX_VALUE ? lastStep : simulation.getStep(stopTime - startTime);
 		simulation.setStartingStep(lastHandledStep);
 	}
 

@@ -461,7 +461,9 @@ public class IntersectionMenu extends VBox {
 	private static void updateTimelineMaximumTask() {
 		synchronized (TIMELINE_SLIDER) {
 			TIMELINE_SLIDER.setMax(timelineMaximum);
-			TIMELINE_SLIDER.setValue(timelineValue);
+			if (!TIMELINE_SLIDER.isFocused()) {
+				TIMELINE_SLIDER.setValue(timelineValue);
+			}
 		}
 	}
 
