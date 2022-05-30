@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
+import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -356,13 +358,6 @@ public abstract class Simulation {
 		return rejectedAgent.getArrivalTime() + maximumDelay <= step;
 	}
 
-	public void saveAgents(File file) throws IOException {
-		FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8, false);
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		gson.toJson(allAgents.values().stream().filter(agent -> !createdAgentsQueue.contains(agent)).map(BasicAgent::new).toList(), writer);
-		writer.close();
-	}
-
 	/**
 	 * @return If this simulation is running
 	 */
@@ -384,6 +379,10 @@ public abstract class Simulation {
 		return allAgents.values();
 	}
 
+	public Collection<Agent> getAllCreatedAgents() {
+		return allAgents.values().stream().filter(agent -> !createdAgentsQueue.contains(agent)).toList();
+	}
+
 	/**
 	 * TODO
 	 *
@@ -401,6 +400,10 @@ public abstract class Simulation {
 	 */
 	public Agent getAgent(long id) {
 		return allAgents.get(id);
+	}
+
+	public Algorithm getAlgorithm() {
+		return algorithm;
 	}
 
 	/**
@@ -427,6 +430,10 @@ public abstract class Simulation {
 	 * @return
 	 */
 	public double getNextStep() {
+		return startingStep;
+	}
+
+	public double getStartingStep() {
 		return startingStep;
 	}
 

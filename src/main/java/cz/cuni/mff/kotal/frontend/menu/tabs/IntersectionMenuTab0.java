@@ -23,7 +23,7 @@ import java.util.List;
 public class IntersectionMenuTab0 extends MyTabTemplate {
 
 	// TODO don't use static, use Component
-	private static final MyComboBox model = new MyComboBox(Arrays.stream(Parameters.Models.values()).map(Parameters.Models::getText).toList());
+	private static final MyComboBox model = new MyComboBox(Arrays.stream(Parameters.GraphType.values()).map(Parameters.GraphType::getText).toList());
 	private static final MyComboBox restriction = new MyComboBox(Arrays.stream(Parameters.Restrictions.values()).map(Parameters.Restrictions::getText).toList());
 	private static final MySlider granularity = new MySlider(2, 33, 4);
 	private static final MySlider entries = new MySlider(1, granularity.getValue() - 1, 1);
@@ -65,8 +65,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 				return;
 			}
 
-			Parameters.Models selected = null;
-			for (Parameters.Models modelType : Parameters.Models.values()) {
+			Parameters.GraphType selected = null;
+			for (Parameters.GraphType modelType : Parameters.GraphType.values()) {
 				if (modelType.getText().equals(newValue)) {
 					selected = modelType;
 				}
@@ -79,9 +79,9 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
 			// TODO fix issue when changed from square model to octagonal, there are added entries and exits
 
-			if (selected.equals(Parameters.Models.OCTAGONAL)) {
+			if (selected.equals(Parameters.GraphType.OCTAGONAL)) {
 				granularityDifference = 2;
-			} else if (selected.equals(Parameters.Models.HEXAGONAL)) {
+			} else if (selected.equals(Parameters.GraphType.HEXAGONAL)) {
 				granularityDifference = 1;
 			} else {
 				granularityDifference = 0;
@@ -228,13 +228,13 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	/**
 	 * @return Selected model
 	 */
-	public static Parameters.Models getModel() {
-		for (Parameters.Models model : Parameters.Models.values()) {
+	public static Parameters.GraphType getModel() {
+		for (Parameters.GraphType model : Parameters.GraphType.values()) {
 			if (model.getText().equals(IntersectionMenuTab0.model.getValue())) {
 				return model;
 			}
 		}
-		return Parameters.Models.SQUARE;
+		return Parameters.GraphType.SQUARE;
 	}
 
 	/**
@@ -303,7 +303,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		/**
 		 * Supported intersection model types.
 		 */
-		public enum Models {
+		public enum GraphType {
 			SQUARE("Square grid", Arrays.asList('N', 'E', 'S', 'W')),
 			HEXAGONAL("Hexagonal grid", Arrays.asList('A', 'B', 'C', 'D', 'E', 'F')),
 			OCTAGONAL("Octagonal grid", Arrays.asList('N', 'E', 'S', 'W')),
@@ -313,7 +313,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 			private final String text;
 			private final List<Character> directions;
 
-			Models(String text, List<Character> directions) {
+			GraphType(String text, List<Character> directions) {
 				this.text = text;
 				this.directions = directions;
 			}

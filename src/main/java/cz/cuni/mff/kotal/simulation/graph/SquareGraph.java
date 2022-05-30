@@ -1,10 +1,10 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 
-import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models;
+import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.SQUARE;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType.SQUARE;
 
 
 public class SquareGraph extends SimulationGraph {
@@ -34,7 +34,7 @@ public class SquareGraph extends SimulationGraph {
 	 * @param exits          Number of exits from each direction
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
-	protected SquareGraph(Models model, int granularity, int entries, int exits, int vertices, double shift, boolean withoutCorners) {
+	protected SquareGraph(GraphType model, int granularity, int entries, int exits, int vertices, double shift, boolean withoutCorners) {
 		super(model, granularity, entries, exits, vertices);
 
 		int id = createSquareGraphVertices(0, shift, withoutCorners);
@@ -232,7 +232,7 @@ public class SquareGraph extends SimulationGraph {
 	 * @return Model Type of square graph
 	 */
 	@Override
-	public Models getModel() {
+	public GraphType getModel() {
 		return SQUARE;
 	}
 

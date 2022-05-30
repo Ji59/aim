@@ -12,7 +12,7 @@ class GeneratingSimulationTest {
 	private final long GRAPH_GRANULARITY = 4,
 		GRAPH_ENTRIES = 2,
 		GRAPH_EXITS = 1;
-	private final IntersectionMenuTab0.Parameters.Models GRAPH_MODEL = IntersectionMenuTab0.Parameters.Models.SQUARE;
+	private final IntersectionMenuTab0.Parameters.GraphType GRAPH_MODEL = IntersectionMenuTab0.Parameters.GraphType.SQUARE;
 	private final double GRAPH_SIZE = 1000;
 	private final boolean GRAPH_ABSTRACT = true;
 	private SimulationGraph graph;

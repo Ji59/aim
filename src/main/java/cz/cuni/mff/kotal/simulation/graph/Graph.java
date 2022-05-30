@@ -15,18 +15,18 @@ import java.util.stream.Stream;
 /**
  * Graph of vertices and edges.
  */
-public class Graph {
+public class 	Graph {
 	private static final Lock DISTANCES_CACHING_LOCK = new ReentrantLock(false);
 
-	protected final boolean oriented;
+	protected transient final boolean oriented;
 	protected final int granularity;
 	protected final int entries;
 	protected final int exits;
-	protected Vertex[] vertices;
-	protected Map<Integer, List<Vertex>> entryExitVertices;
-	protected Set<Edge> edges;
-	protected double[][] distances;
-	private final Lock distancesLock = new ReentrantLock(false);
+	protected transient Vertex[] vertices;
+	protected transient Map<Integer, List<Vertex>> entryExitVertices;
+	protected transient Set<Edge> edges;
+	protected transient double[][] distances;
+	private transient final Lock distancesLock = new ReentrantLock(false);
 
 	/**
 	 * Create graph with provided vertices and edges. If not oriented, add edges with reversed orientation too.

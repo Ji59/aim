@@ -12,19 +12,19 @@ import java.util.Set;
 
 
 public class AbstractGraph extends SimulationGraph {
-	private final IntersectionMenuTab0.Parameters.Models model;
+	private final IntersectionMenuTab0.Parameters.GraphType model;
 
-	public AbstractGraph(IntersectionMenuTab0.Parameters.Models model, int granularity, int entries, int exits, boolean oriented, Set<GraphicalVertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges) {
+	public AbstractGraph(IntersectionMenuTab0.Parameters.GraphType model, int granularity, int entries, int exits, boolean oriented, Set<GraphicalVertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges) {
 		super(granularity, entries, exits, oriented, vertices, entryExitVertices, edges);
 		this.model = model;
 	}
 
-	public AbstractGraph(IntersectionMenuTab0.Parameters.Models model, int granularity, int entries, int exits, boolean oriented) {
+	public AbstractGraph(IntersectionMenuTab0.Parameters.GraphType model, int granularity, int entries, int exits, boolean oriented) {
 		this(model, granularity, entries, exits, oriented, null, null, null);
 	}
 
 	@Override
-	public IntersectionMenuTab0.Parameters.Models getModel() {
+	public IntersectionMenuTab0.Parameters.GraphType getModel() {
 		return model;
 	}
 
