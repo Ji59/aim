@@ -42,15 +42,15 @@
 \usepackage{amsfonts}       % matematické fonty
 \usepackage{amsthm}         % sazba vět, definic apod.
 \usepackage{bbding}         % balíček s nejrůznějšími symboly
-			    % (čtverečky, hvězdičky, tužtičky, nůžtičky, ...)
+% (čtverečky, hvězdičky, tužtičky, nůžtičky, ...)
 \usepackage{bm}             % tučné symboly (příkaz \bm)
 \usepackage{graphicx}       % vkládání obrázků
 \usepackage{fancyvrb}       % vylepšené prostředí pro strojové písmo
 \usepackage{indentfirst}    % zavede odsazení 1. odstavce kapitoly
 \usepackage{natbib}         % zajištuje možnost odkazovat na literaturu
-			    % stylem AUTOR (ROK), resp. AUTOR [ČÍSLO]
+% stylem AUTOR (ROK), resp. AUTOR [ČÍSLO]
 \usepackage[nottoc]{tocbibind} % zajistí přidání seznamu literatury,
-                            % obrázků a tabulek do obsahu
+% obrázků a tabulek do obsahu
 \usepackage{icomma}         % inteligetní čárka v matematickém módu
 \usepackage{dcolumn}        % lepší zarovnání sloupců v tabulkách
 \usepackage{booktabs}       % lepší vodorovné linky v tabulkách
@@ -60,65 +60,60 @@
 %%% Údaje o práci
 
 % Název práce v jazyce práce (přesně podle zadání)
-\def\NazevPrace{Autonomní křižovatka}
+\newcommand{\NazevPrace}{Autonomní křižovatka}
 
 % Název práce v angličtině
-\def\NazevPraceEN{Autonomous traffic junction}
+\newcommand{\NazevPraceEN}{Autonomous traffic junction}
 
 % Jméno autora
-\def\AutorPrace{Jiří Kotal}
+\newcommand{\AutorPrace}{Jiří Kotal}
 
 % Rok odevzdání
-\def\RokOdevzdani{2022}
+\newcommand{\RokOdevzdani}{2022}
 
 % Název katedry nebo ústavu, kde byla práce oficiálně zadána
 % (dle Organizační struktury MFF UK, případně plný název pracoviště mimo MFF)
-\def\Katedra{Katedra teoretické informatiky a matematické logiky}
-\def\KatedraEN{Department of Theoretical Computer Science and Mathematical Logic}
+\newcommand{\Katedra}{Katedra teoretické informatiky a matematické logiky}
+\newcommand{\KatedraEN}{Department of Theoretical Computer Science and Mathematical Logic}
 
 % Jedná se o katedru (department) nebo o ústav (institute)?
-\def\TypPracoviste{Katedra}
-\def\TypPracovisteEN{Department}
+\newcommand{\TypPracoviste}{Katedra}
+\newcommand{\TypPracovisteEN}{Department}
 
 % Vedoucí práce: Jméno a příjmení s~tituly
-\def\Vedouci{prof. RNDr. Roman Barták, Ph.D.}
+\newcommand{\Vedouci}{prof. RNDr. Roman Barták, Ph.D.}
 
 % Pracoviště vedoucího (opět dle Organizační struktury MFF)
-\def\KatedraVedouciho{Katedra teoretické informatiky a matematické logiky}
-\def\KatedraVedoucihoEN{Department of Theoretical Computer Science and Mathematical Logic}
+\newcommand{\KatedraVedouciho}{Katedra teoretické informatiky a matematické logiky}
+\newcommand{\KatedraVedoucihoEN}{Department of Theoretical Computer Science and Mathematical Logic}
 
 % Studijní program a obor
-\def\StudijniProgram{Informatika}
-\def\StudijniObor{Obecná informatika}
+\newcommand{\StudijniProgram}{Informatika}
+\newcommand{\StudijniObor}{Obecná informatika}
 
 % Nepovinné poděkování (vedoucímu práce, konzultantovi, tomu, kdo
 % zapůjčil software, literaturu apod.)
-\def\Podekovani{%
-Poděkování.
+\newcommand{\Podekovani}{%
+	Poděkování.
 }
 
 % Abstrakt (doporučený rozsah cca 80-200 slov; nejedná se o zadání práce)
-\def\Abstrakt{%
-Abstrakt.
-}
-\def\AbstraktEN{%
-Abstract.
-}
+\include{abstract_text}
 
 % 3 až 5 klíčových slov (doporučeno), každé uzavřeno ve složených závorkách
-\def\KlicovaSlova{%
-{plánování cest}
-{koordinace}
-{multi-agentní systémy}
-{křižovatka}
-{doprava}
+\newcommand{\KlicovaSlova}{%
+		{plánování cest}
+		{koordinace}
+		{multi-agentní systémy}
+		{křižovatka}
+		{doprava}
 }
-\def\KlicovaSlovaEN{%
-{path planning}
-{coordination}
-{multi-agent systems}
-{traffic junction}
-{transport}
+\newcommand{\KlicovaSlovaEN}{%
+		{path planning}
+		{coordination}
+		{multi-agent systems}
+		{traffic junction}
+		{transport}
 }
 
 %% Balíček hyperref, kterým jdou vyrábět klikací odkazy v PDF,
@@ -132,35 +127,35 @@ Abstract.
 
 %% Titulní strana a různé povinné informační strany
 \begin{document}
-\include{titulka}
+	\include{titulka}
 
 %%% Strana s automaticky generovaným obsahem bakalářské práce
 
-\tableofcontents
+	\tableofcontents
 
 %%% Jednotlivé kapitoly práce jsou pro přehlednost uloženy v samostatných souborech
-\include{uvod}
-\include{kap01}
-\include{kap02}
-\include{kap03}
-\include{kap04}
+	\include{uvod}
+	\include{kap01}
+	\include{kap02}
+	\include{kap03}
+	\include{kap04}
 
-\include{zaver}
+	\include{zaver}
 
 %%% Seznam použité literatury
-\include{literatura}
+	\include{literatura}
 
 %%% Obrázky v bakalářské práci
 %%% (pokud jich je malé množství, obvykle není třeba seznam uvádět)
-\listoffigures
+	\listoffigures
 
 %%% Tabulky v bakalářské práci (opět nemusí být nutné uvádět)
 %%% U matematických prací může být lepší přemístit seznam tabulek na začátek práce.
-\listoftables
+	\listoftables
 
 %%% Použité zkratky v bakalářské práci (opět nemusí být nutné uvádět)
 %%% U matematických prací může být lepší přemístit seznam zkratek na začátek práce.
-\chapwithtoc{Seznam použitých zkratek}
+	\chapwithtoc{Seznam použitých zkratek}
 
 %%% Přílohy k bakalářské práci, existují-li. Každá příloha musí být alespoň jednou
 %%% odkazována z vlastního textu práce. Přílohy se číslují.
@@ -172,10 +167,13 @@ Abstract.
 %%% interaktivní grafy apod.). Elektronické přílohy se nahrávají do SISu a lze
 %%% je také do práce vložit na CD/DVD. Povolené formáty souborů specifikuje
 %%% opatření rektora č. 72/2017.
-\appendix
-\chapter{Přílohy}
+	\appendix
 
-\section{První příloha}
 
-\openright
+	\chapter{Přílohy}
+
+
+	\section{První příloha}
+
+	\openright
 \end{document}
