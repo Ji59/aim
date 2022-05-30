@@ -8,16 +8,15 @@ import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.BasicAgent;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
+import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class SimulationSaver {
 
@@ -53,10 +52,12 @@ public class SimulationSaver {
 
 	private static class TypedGraph extends Graph {
 		private final String type;
+		private final Vertex[] vertices;
 
 		private TypedGraph(Graph graph) {
 			super(true, graph);
 			type = IntersectionMenuTab0.getModel().getText();
+			vertices = graph.getVertices();
 		}
 	}
 
