@@ -51,7 +51,7 @@ public class Vertex {
 		this.type = Type.ROAD;
 	}
 
-	public Vertex(Vertex vertex){
+	public Vertex(Vertex vertex) {
 		this(vertex, true);
 	}
 
@@ -69,7 +69,7 @@ public class Vertex {
 	 * @param ids IDs of neighbour vertices
 	 * @return True if neighbour IDs set changed
 	 */
-	public boolean addNeighbourID(Integer ... ids) {
+	public boolean addNeighbourID(Integer... ids) {
 		if (ids.length == 1) {
 			return neighbourIds.add(ids[0]);
 		}

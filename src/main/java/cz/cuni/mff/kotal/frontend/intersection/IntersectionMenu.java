@@ -5,12 +5,15 @@ import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3.Parameters.Statistics;
+import cz.cuni.mff.kotal.helpers.SimulationSaver;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +22,7 @@ import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
@@ -45,7 +49,7 @@ public class IntersectionMenu extends VBox {
 	private static final Button RESTART_BUTTON = new Button("Restart");
 	private static final CheckBox PLAY_IN_BACKGROUND = new CheckBox("Background");
 	private static final Button SAVE_AGENTS_BUTTON = new Button("Save agents");
-
+	private static final Button SAVE_STATISTICS_BUTTON = new Button("Save statistics");
 	private static final Label AGENTS_LABEL = new Label("#n");
 	private static long agentsValue = 0;
 	private static final Label STEPS_LABEL = new Label("#n");
@@ -136,6 +140,7 @@ public class IntersectionMenu extends VBox {
 		addPlayButtonAction();
 		addResetButtonAction();
 		addSaveAgentsButtonAction();
+		addSaveStatisticsButtonAction();
 
 		SimulationMenuTab3.getPlayButton().setOnMouseClicked(PLAY_BUTTON.getOnMouseClicked());
 		SimulationMenuTab3.getRestartButton().setOnMouseClicked(RESTART_BUTTON.getOnMouseClicked());
@@ -147,8 +152,12 @@ public class IntersectionMenu extends VBox {
 		Map<Statistics, Label> labels = Map.of(Statistics.AGENTS, AGENTS_LABEL, Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL /*, Statistics.REMAINS, REMAINING_LABEL*/);
 		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
+		HBox buttons = new HBox(padding, SAVE_AGENTS_BUTTON, SAVE_STATISTICS_BUTTON);
+		buttons.setPrefWidth(Double.MAX_VALUE);
+		SAVE_AGENTS_BUTTON.setPrefWidth(4096);
+		SAVE_STATISTICS_BUTTON.setPrefWidth(SAVE_AGENTS_BUTTON.getPrefWidth());
 
-		getChildren().addAll(sliders, PLAY_BUTTON, RESTART_BUTTON, PLAY_IN_BACKGROUND, SAVE_AGENTS_BUTTON, new Label("Statistics"), statistics);
+		getChildren().addAll(sliders, PLAY_BUTTON, RESTART_BUTTON, PLAY_IN_BACKGROUND, buttons, new Label("Statistics"), statistics);
 	}
 
 	/**
@@ -267,7 +276,7 @@ public class IntersectionMenu extends VBox {
 					}
 				}
 
-				IntersectionScene.getSimulation().saveAgents(agentsFile);
+				SimulationSaver.saveAgents(IntersectionScene.getSimulation(), agentsFile);
 				// FIXME exceptions
 			} catch (IOException ex) {
 				Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -292,6 +301,55 @@ public class IntersectionMenu extends VBox {
 	}
 
 	/**
+	 * TODO
+	 */
+	private static void addSaveStatisticsButtonAction() {
+		SAVE_STATISTICS_BUTTON.setOnMouseClicked(e -> {
+			boolean deleteInitialDirectory = false;
+			File initialDirectory = Paths.get(FileSystemView.getFileSystemView().getDefaultDirectory().getAbsolutePath(), "statistics").toFile();  // TODO smarter name genereating
+
+			try {
+				// TODO check simulation
+				IntersectionMenu.pauseSimulation();
+
+				deleteInitialDirectory = initialDirectory.mkdir();
+
+				File statisticsDirectory = getStatisticsSaveDirectory(initialDirectory);
+				if (statisticsDirectory == null) {
+					return;
+				}
+
+				SimulationSaver.saveStatistics(IntersectionScene.getSimulation(), statisticsDirectory);
+				deleteInitialDirectory = false;
+
+				// FIXME exceptions
+			} catch (IOException ex) {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setTitle("Saving agents failed.");
+				alert.setHeaderText("Input/output exception occurred while saving agents. \n Exception info below.");
+				alert.setContentText(ex.getMessage());
+				alert.show();
+			} catch (NullPointerException ex) {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setTitle("Saving agents failed.");
+				alert.setHeaderText("Found null value. \n Exception info below.");
+				alert.setContentText(ex.getMessage());
+				alert.show();
+			} catch (Exception ex) {
+				Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setTitle("Saving agents failed.");
+				alert.setHeaderText("Unexpected exception occurred. \n Exception info below.");
+				alert.setContentText(ex.getMessage());
+				alert.show();
+			} finally {
+				if (deleteInitialDirectory) {
+					initialDirectory.delete();
+				}
+			}
+		});
+	}
+
+	/**
 	 * TODO javadoc
 	 *
 	 * @param agentsFile
@@ -301,8 +359,8 @@ public class IntersectionMenu extends VBox {
 	private static AtomicInteger getWarningResult(File agentsFile) {
 		AtomicInteger result = new AtomicInteger();
 		String contentText = "Agents are saved in json format, so using \".json\" extension is recommended.\n" +
-						"Entered filename: " + agentsFile.getName() + "\n" +
-						"Are you sure you want to save agents into selected file?";
+			"Entered filename: " + agentsFile.getName() + "\n" +
+			"Are you sure you want to save agents into selected file?";
 		Alert extensionConfirmation = new Alert(Alert.AlertType.CONFIRMATION, contentText, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
 		extensionConfirmation.setTitle("Unexpected file extension");
 		extensionConfirmation.setHeaderText("File with unexpected extension entered.");
@@ -330,6 +388,18 @@ public class IntersectionMenu extends VBox {
 		fileChooser.getExtensionFilters().add(new ExtensionFilter("Json documents", "*.json"));
 		fileChooser.setInitialDirectory(FileSystemView.getFileSystemView().getDefaultDirectory());
 		return fileChooser.showSaveDialog(null);
+	}
+
+	/**
+	 * TODO javadoc
+	 *
+	 * @return
+	 */
+	private static File getStatisticsSaveDirectory(File initialDirectory) {
+		DirectoryChooser directoryChooser = new DirectoryChooser();
+		directoryChooser.setTitle("Statistics data save directory"); // FIXME get rid of this stoopid name
+		directoryChooser.setInitialDirectory(initialDirectory);
+		return directoryChooser.showDialog(null); // FIXME replace null
 	}
 
 	/**

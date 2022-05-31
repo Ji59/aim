@@ -5,7 +5,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
 
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.HEXAGONAL;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType.HEXAGONAL;
 
 
 public class HexagonalGraph extends SimulationGraph {
@@ -294,7 +294,7 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @return Model Type of hexagonal graph
 	 */
 	@Override
-	public IntersectionMenuTab0.Parameters.Models getModel() {
+	public IntersectionMenuTab0.Parameters.GraphType getModel() {
 		return HEXAGONAL;
 	}
 

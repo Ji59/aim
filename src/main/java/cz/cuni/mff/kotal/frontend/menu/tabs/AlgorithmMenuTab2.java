@@ -9,6 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -228,10 +229,19 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 				return algorithmClass;
 			}
 
-			public static Algorithm nameOf(String name) {
+			public static @Nullable Algorithm nameOf(String name) {
 				for (Algorithm algorithm : values()) {
 					if (algorithm.name.equals(name)) {
 						return algorithm;
+					}
+				}
+				return null;
+			}
+
+			public static @Nullable Algorithm nameOf(cz.cuni.mff.kotal.backend.algorithm.Algorithm algorithm) {
+				for (Algorithm alg : values()) {
+					if (alg.getAlgorithmClass().equals(algorithm.getClass())) {
+						return alg;
 					}
 				}
 				return null;

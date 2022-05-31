@@ -4,7 +4,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 
-import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.Models.OCTAGONAL;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType.OCTAGONAL;
 
 
 public class OctagonalGraph extends SquareGraph {
@@ -105,7 +105,7 @@ public class OctagonalGraph extends SquareGraph {
 	 * @return Model Type of octagonal graph
 	 */
 	@Override
-	public IntersectionMenuTab0.Parameters.Models getModel() {
+	public IntersectionMenuTab0.Parameters.GraphType getModel() {
 		return OCTAGONAL;
 	}
 }

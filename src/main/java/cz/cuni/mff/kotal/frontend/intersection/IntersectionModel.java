@@ -464,7 +464,7 @@ public class IntersectionModel extends Pane {
 		int granularity = IntersectionMenuTab0.getGranularity().getValue();
 		int entries = IntersectionMenuTab0.getEntries().getValue();
 		int exits = IntersectionMenuTab0.getExits().getValue();
-		IntersectionMenuTab0.Parameters.Models model = IntersectionMenuTab0.getModel();
+		IntersectionMenuTab0.Parameters.GraphType model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
 		SimulationGraph graphAbstract = new AbstractGraph(model, granularity, entries, exits, false);

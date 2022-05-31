@@ -17,7 +17,6 @@ import javafx.stage.FileChooser;
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -48,7 +47,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 
 		createAmountMenuAndAddActions();
 
-		createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.Models.SQUARE);
+		createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.GraphType.SQUARE);
 
 		Iterator<Parameters> iterator = Arrays.stream(Parameters.values()).iterator();
 		for (int index = 0; iterator.hasNext(); index++) {
@@ -181,7 +180,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	 *
 	 * @param model Actual intersection model type
 	 */
-	static void createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.Models model) {
+	static void createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.GraphType model) {
 		if (model == null || model.getDirections() == null) {
 			return;
 		}
