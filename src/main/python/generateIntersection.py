@@ -6,8 +6,8 @@ import networkx as nx
 from typing import Any
 
 ROAD_COLOR = (0.5, 0.5, 0.5)
-EXIT_COLOR = (0.5625, 0.4375, 0.4375)
-ENTRY_COLOR = (0.4375, 0.4375, 0.5625)
+ENTRY_COLOR = (0.5625, 0.4375, 0.4375)
+EXIT_COLOR = (0.4375, 0.4375, 0.5625)
 
 
 def generate_intersection(graph: dict[str, Any]) -> (nx.DiGraph, dict[int, (float, float)], [int], [int]):
@@ -16,7 +16,7 @@ def generate_intersection(graph: dict[str, Any]) -> (nx.DiGraph, dict[int, (floa
 	entries = []
 	exits = []
 	for vertex in graph.get("vertices"):
-		location = (vertex.get('x'), vertex.get('y'))
+		location = (vertex.get('x'), 1 - vertex.get('y'))
 		id_ = vertex.get('id')
 		locations[id_] = location
 		intersection.add_node(id_)
@@ -61,7 +61,7 @@ def create_graph_plot(graph: dict[str, Any], intersection: nx.DiGraph, locations
 		nx.draw_networkx_nodes(intersection, locations, nodelist=octagonal_vertices, node_size=17000 * cell_size, node_color=ROAD_COLOR, node_shape='8', label="Real", ax=ax[1])
 		entries_exits_end = octagonal_end + len(entries) + len(exits)
 		entries_exits_vertices = np.arange(octagonal_end, entries_exits_end)
-		entries_exits_colors = [ENTRY_COLOR if id_ in entries else EXIT_COLOR for id_ in intersection.nodes if id_ in entries + exits]
+		entries_exits_colors = [ENTRY_COLOR if id_ in entries else EXIT_COLOR for id_ in entries_exits_vertices]
 		nx.draw_networkx_nodes(intersection, locations, nodelist=entries_exits_vertices, node_size=10000 * cell_size, node_color=entries_exits_colors, node_shape='s', label="Real", ax=ax[1])
 		diamond_vertices = np.arange(entries_exits_end, len(locations))
 		nx.draw_networkx_nodes(intersection, locations, nodelist=diamond_vertices, node_size=4096 * cell_size, node_color=ROAD_COLOR, node_shape='D', label="Real", ax=ax[1])
@@ -72,12 +72,12 @@ def create_graph_plot(graph: dict[str, Any], intersection: nx.DiGraph, locations
 		hexagonal_vertices = np.arange(hexagonal_end)
 		nx.draw_networkx_nodes(intersection, locations, nodelist=hexagonal_vertices, node_size=16384 * cell_size, node_color=ROAD_COLOR, node_shape='H', label="Real", ax=ax[1])
 		entries_exits_vertices = np.arange(hexagonal_end, len(locations))
-		entries_exits_colors = [ENTRY_COLOR if id_ in entries else EXIT_COLOR for id_ in intersection.nodes if id_ in entries + exits]
+		entries_exits_colors = [ENTRY_COLOR if id_ in entries else EXIT_COLOR for id_ in entries_exits_vertices]
 		nx.draw_networkx_nodes(intersection, locations, nodelist=entries_exits_vertices, node_size=8192 * cell_size, node_color=entries_exits_colors, node_shape='o', label="Real", ax=ax[1])
 
 	fig.suptitle(name)
 	plt.savefig(type_.replace(' ', '_') + ".pdf", format="pdf")
-	# plt.show()
+
 
 if __name__ == "__main__":
 	import sys
