@@ -18,11 +18,11 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Paramete
  */
 public abstract class SimulationGraph extends Graph {
 	public static final double EPSILON = 0.0625;  // 2 ^ -4
-	protected final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
-	private final Lock verticesDistancesLock = new ReentrantLock(false);
-	protected Map<Integer, Map<Integer, List<Integer>>> shortestPaths;
+	protected transient final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
+	private transient final Lock verticesDistancesLock = new ReentrantLock(false);
+	protected transient Map<Integer, Map<Integer, List<Integer>>> shortestPaths;
 
-	protected double cellSize;
+	protected transient double cellSize;
 
 	/**
 	 * Create new simulation graph.
@@ -47,7 +47,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param entries     Number of entries from each direction
 	 * @param exits       Number of exits from each direction
 	 */
-	protected SimulationGraph(Parameters.Models model, int granularity, int entries, int exits, int vertices) {
+	protected SimulationGraph(Parameters.GraphType model, int granularity, int entries, int exits, int vertices) {
 		super(false, vertices, model.getDirections().size(), granularity, entries, exits);
 
 
@@ -252,7 +252,7 @@ public abstract class SimulationGraph extends Graph {
 	/**
 	 * @return Model Type of the graph
 	 */
-	public abstract Parameters.Models getModel();
+	public abstract Parameters.GraphType getModel();
 
 	/**
 	 * @return @return Column / row shift based on granularity

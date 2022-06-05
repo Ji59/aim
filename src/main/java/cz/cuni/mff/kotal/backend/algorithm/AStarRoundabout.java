@@ -357,7 +357,7 @@ public class AStarRoundabout extends AStar {
 		}
 
 		@Override
-		public IntersectionMenuTab0.Parameters.Models getModel() {
+		public IntersectionMenuTab0.Parameters.GraphType getModel() {
 			return baseGraph.getModel();
 		}
 
