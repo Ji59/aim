@@ -48,7 +48,7 @@ public class SafeLines implements Algorithm {
 
 	@Override
 	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
-		stepOccupiedVertices.entrySet().removeIf(occupiedVerticesEntry -> occupiedVerticesEntry.getKey() < step);
+		stepOccupiedVertices.keySet().removeIf(stepKey -> stepKey < step);
 		return agents.stream().filter(agent -> planAgent(agent, step) != null).toList();
 	}
 
@@ -83,6 +83,22 @@ public class SafeLines implements Algorithm {
 		return agent;
 	}
 
+	@Override
+	public Agent planAgent(Agent agent, int vertexID, long step) {
+		// FIXME
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void addPlannedAgent(Agent agent) {
+		List<Integer> path = agent.getPath();
+		for (int i = 0; i < path.size(); i++) {
+			long step = agent.getPlannedTime() + i;
+			stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
+			stepOccupiedVertices.get(step).put(path.get(i), agent);
+		}
+	}
+
 	boolean validPath(long step, List<Integer> path, double agentPerimeter) {
 		for (int i = 0; i < path.size(); i++) {
 			long actualStep = step + i;
@@ -106,6 +122,10 @@ public class SafeLines implements Algorithm {
 		return verticesDistances.get(vertexID).stream()
 			.takeWhile(v -> v.distance() <= agentPerimeter + safeDistance)
 			.noneMatch(v -> stepOccupiedVertices.get(step).containsKey(v.vertexID()));
+	}
+
+	protected int[] conflictVertices(int vertexID, double agentsPerimeter) {
+		return verticesDistances.get(vertexID).stream().takeWhile(v -> v.distance <= agentsPerimeter + safeDistance).mapToInt(VertexDistance::vertexID).toArray();
 	}
 
 	protected boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
@@ -148,7 +168,7 @@ public class SafeLines implements Algorithm {
 		return neighbour.getPath().get(neighbourStep);
 	}
 
-	private boolean checkNeighbour(int vertexID, int adjacentVertexID, int neighbourVertexID, double agentPerimeter, Agent neighbour) {
+	protected boolean checkNeighbour(int vertexID, int adjacentVertexID, int neighbourVertexID, double agentPerimeter, Agent neighbour) {
 
 		double neighbourPerimeter = neighbour.getAgentPerimeter();
 

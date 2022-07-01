@@ -43,11 +43,12 @@ public class BreadthFirstSearch implements Algorithm {
 	 * Plan agent using BFS on saved graph.
 	 *
 	 * @param agent Agent to be planned
+	 * @param vertexID TODO
 	 * @param step  Actual step of simulation, ignored
 	 * @return Agent if successfully planned otherwise null
 	 */
-	@Override
-	public Agent planAgent(Agent agent, long step) {
+		@Override
+	public Agent planAgent(Agent agent, int vertexID, long step) {
 		final int exit;
 		if (agent.getExit() < 0) {
 			List<VertexWithVisit> directionExits = vertices.values().stream().filter(vertex -> vertex.getType().isExit() && vertex.getType().getDirection() == agent.getExitDirection()).toList();
@@ -56,7 +57,7 @@ public class BreadthFirstSearch implements Algorithm {
 			exit = agent.getExit();
 		}
 		try {
-			agent.setPath(bfs(agent.getEntry(), exit), step);
+			agent.setPath(bfs(vertexID, exit), step);
 		} catch (Exception e) {
 			return null;
 		}

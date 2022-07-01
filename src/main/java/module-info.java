@@ -7,11 +7,8 @@ open module aim.main {
 	requires org.jetbrains.annotations;
 	requires com.google.gson;
 	requires java.desktop;
+	requires org.ow2.sat4j.core;
 
 	// Export the "cz.cuni.mff.kotal" package (needed by JavaFX to start the Application)
 	exports cz.cuni.mff.kotal;
-
-	//  allow to access your classes via reflections
-//	opens cz.cuni.mff.kotal.frontend to javafx.graphics;
-//	opens cz.cuni.mff.kotal.simulation to com.google.gson;
 }

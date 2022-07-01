@@ -16,6 +16,7 @@ public class BasicAgent {
 	protected final int exitDirection;
 	protected final double speed;
 	protected final double arrivalTime;
+	transient private double perimeter = -1;
 
 	/**
 	 * TODO
@@ -153,7 +154,10 @@ public class BasicAgent {
 	}
 
 	public double getAgentPerimeter() {
-		return getAgentPerimeter(IntersectionModel.getGraph());
+		if (perimeter < 0) {
+			perimeter = getAgentPerimeter(IntersectionModel.getGraph());
+		}
+		return perimeter;
 	}
 
 	public double getAgentPerimeter(SimulationGraph graph) {

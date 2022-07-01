@@ -38,6 +38,12 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 		return agent;
 	}
 
+	@Override
+	public Agent planAgent(Agent agent, int vertexID, long step) {
+		// FIXME
+		throw new UnsupportedOperationException();
+	}
+
 	// TODO
 	private boolean agentGoingStraight(Agent agent) {
 		return Math.abs(agent.getEntryDirection() - agent.getExitDirection()) % (graph.getModel().getDirections().size() / 2) == 0;

@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AStar extends SafeLines {
-
 	protected static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
 	protected static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
 	protected static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
@@ -49,8 +48,12 @@ public class AStar extends SafeLines {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		int entryID = agent.getEntry();
-		LinkedList<Integer> path = getPath(agent, step, entryID);
+		return planAgent(agent, agent.getEntry(), step);
+	}
+
+	@Override
+	public Agent planAgent(Agent agent, int vertexID, long step) {
+		LinkedList<Integer> path = getPath(agent, step, vertexID);
 		return path == null ? null : agent.setPath(path, step);
 	}
 

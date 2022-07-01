@@ -31,5 +31,20 @@ public interface Algorithm {
 	 * @param step  Number of step in which agents should be planned
 	 * @return Agent if planning was successful, otherwise null
 	 */
-	Agent planAgent(Agent agent, long step);
+	default Agent planAgent(Agent agent, long step) {
+		return planAgent(agent, agent.getEntry(), step);
+	}
+
+	/**
+	 * Try to plan agent with an algorithm from specified vertex.
+	 *
+	 * @param agent    Agent to be planned
+	 * @param vertexID Starting vertex for algorithm
+	 * @param step     Number of step in which agents should be planned
+	 * @return Agent if planning was successful, otherwise null
+	 */
+	Agent planAgent(Agent agent, int vertexID, long step);
+
+	default void addPlannedAgent(Agent agent) {
+	}
 }
