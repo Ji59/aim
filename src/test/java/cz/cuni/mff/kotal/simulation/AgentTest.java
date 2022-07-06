@@ -2,13 +2,12 @@ package cz.cuni.mff.kotal.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import javafx.util.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
@@ -50,8 +49,8 @@ class AgentTest {
 				long nextID = i < 0 ? 0 : i >= end ? end : i + 1,
 					previousID = i == end ? nextID : nextID > 0 ? nextID - 1 : 0;
 				Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
-				assert IDsPrediction.getKey() == previousID;
-				assert IDsPrediction.getValue() == nextID;
+				assert IDsPrediction.getVal0() == previousID;
+				assert IDsPrediction.getVal1() == nextID;
 			} catch (IndexOutOfBoundsException e) {
 				assert i >= end;
 			}
@@ -62,8 +61,8 @@ class AgentTest {
 				long nextID = i < 0 ? 0 : i > end ? end : Math.round(i),
 					previousID = nextID > 0 ? nextID - 1 : 0;
 				Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
-				assert IDsPrediction.getKey() == previousID;
-				assert IDsPrediction.getValue() == nextID;
+				assert IDsPrediction.getVal0() == previousID;
+				assert IDsPrediction.getVal1() == nextID;
 			} catch (IndexOutOfBoundsException e) {
 				assert i >= end;
 			}
@@ -74,39 +73,39 @@ class AgentTest {
 				long nextID = i < 0 ? 0 : i > end ? end : Math.round(i) + 1,
 					previousID = nextID > 0 ? nextID - 1 : 0;
 				Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
-				assert IDsPrediction.getKey() == previousID;
-				assert IDsPrediction.getValue() == nextID;
+				assert IDsPrediction.getVal0() == previousID;
+				assert IDsPrediction.getVal1() == nextID;
 			} catch (IndexOutOfBoundsException e) {
 				assert i >= end;
 			}
 		}
 
 		Pair<Integer, Integer> IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.7);
-		assert IDsPrediction.getKey() == 0 && IDsPrediction.getValue() == 1;
+		assert IDsPrediction.getVal0() == 0 && IDsPrediction.getVal1() == 1;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.8);
-		assert IDsPrediction.getKey() == 1 && IDsPrediction.getValue() == 2;
+		assert IDsPrediction.getVal0() == 1 && IDsPrediction.getVal1() == 2;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.9);
-		assert IDsPrediction.getKey() == 1 && IDsPrediction.getValue() == 2;
+		assert IDsPrediction.getVal0() == 1 && IDsPrediction.getVal1() == 2;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(1.55);
-		assert IDsPrediction.getKey() == 1 && IDsPrediction.getValue() == 2;
+		assert IDsPrediction.getVal0() == 1 && IDsPrediction.getVal1() == 2;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2);
-		assert IDsPrediction.getKey() == 2 && IDsPrediction.getValue() == 3;
+		assert IDsPrediction.getVal0() == 2 && IDsPrediction.getVal1() == 3;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2.39);
-		assert IDsPrediction.getKey() == 2 && IDsPrediction.getValue() == 3;
+		assert IDsPrediction.getVal0() == 2 && IDsPrediction.getVal1() == 3;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(2.4);
-		assert IDsPrediction.getKey() == 3 && IDsPrediction.getValue() == 4;
+		assert IDsPrediction.getVal0() == 3 && IDsPrediction.getVal1() == 4;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(3);
-		assert IDsPrediction.getKey() == 3 && IDsPrediction.getValue() == 4;
+		assert IDsPrediction.getVal0() == 3 && IDsPrediction.getVal1() == 4;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(3.2);
-		assert IDsPrediction.getKey() == 4 && IDsPrediction.getValue() == 4;
+		assert IDsPrediction.getVal0() == 4 && IDsPrediction.getVal1() == 4;
 
 		try {
 			nonTrivialAgent.getPreviousNextVertexIDs(3.3);

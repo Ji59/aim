@@ -38,10 +38,10 @@ public class AStarRoundabout extends AStar {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-	LinkGraph linkGraph = (LinkGraph) graph;
+		LinkGraph linkGraph = (LinkGraph) graph;
 		int entryID = linkGraph.getLinkID(agent.getEntry());
 
-		List<Integer> path = getPath(agent, step, entryID);
+		List<Integer> path = getPath(agent, step, entryID, getExitIDs(agent));
 
 		if (path == null) {
 			return null;

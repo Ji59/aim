@@ -6,9 +6,9 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.helpers.Collisions;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
-import javafx.util.Pair;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -85,12 +85,12 @@ public interface SimulationTicker {
 
 	default void handleCollisions(double step, Set<AgentPane> activeAgents) {
 		Set<Pair<AgentPane, AgentPane>> overlappingAgents = Collisions.getBoundingBoxesOverlaps(activeAgents);
-		overlappingAgents = overlappingAgents.stream().filter(pair -> Collisions.inCollision(pair.getKey(), pair.getValue())).collect(Collectors.toSet());
+		overlappingAgents = overlappingAgents.stream().filter(pair -> Collisions.inCollision(pair.getVal0(), pair.getVal1())).collect(Collectors.toSet());
 
 		// Handle collisions
 		overlappingAgents.forEach(agentPanePair -> {
-			AgentPane agentPane0 = agentPanePair.getKey();
-			AgentPane agentPane1 = agentPanePair.getValue();
+			AgentPane agentPane0 = agentPanePair.getVal0();
+			AgentPane agentPane1 = agentPanePair.getVal1();
 
 			if (step < agentPane0.getCollisionStep()) {
 				IntersectionScene.getSimulation().addCollision();

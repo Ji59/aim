@@ -1,10 +1,10 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import javafx.util.Pair;
 import org.sat4j.core.ConstrGroup;
 import org.sat4j.core.Vec;
 import org.sat4j.core.VecInt;
@@ -13,6 +13,7 @@ import org.sat4j.specs.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SATPlanner extends SafeLines {
@@ -42,17 +43,7 @@ public class SATPlanner extends SafeLines {
 	private final boolean allowAgentStop;
 	private final boolean allowMultipleVisits;
 	protected final List<Integer>[] inverseNeighbours = new List[graph.getVertices().length];
-
-	{
-		for (int i = 0; i < graph.getVertices().length; i++) {
-			inverseNeighbours[i] = new LinkedList<>();
-		}
-		for (Vertex vertex : graph.getVertices()) {
-			for (int neighbourID : vertex.getNeighbourIDs()) {
-				inverseNeighbours[neighbourID].add(vertex.getID());
-			}
-		}
-	}
+	protected final Map<Integer, Set<Integer>> directionExits = new HashMap<>();
 
 	public SATPlanner(SimulationGraph graph) {
 		super(graph);
@@ -62,30 +53,37 @@ public class SATPlanner extends SafeLines {
 		Algorithm algorithm;
 		try {
 			if (algorithmEnum == null) {
-				algorithm = (agent, vertexID, step) -> null;
+				algorithm = (agent, entryID, exitsID, step) -> null;
 			} else {
 				algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class).newInstance(graph);
 			}
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
-			algorithm = (agent, vertexID, step) -> null;
+			algorithm = (agent, entryID, exitsID, step) -> null;
 		}
 		alternativeAlgorithm = algorithm;
 
 		allowIncompletePlans = AlgorithmMenuTab2.getBooleanParameter(ALLOW_INCOMPLETE_PLANS_NAME, ALLOW_INCOMPLETE_PLANS_DEF);
 		allowAgentStop = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
 		allowMultipleVisits = AlgorithmMenuTab2.getBooleanParameter(ALLOW_MULTIPLE_VISITS_NAME, ALLOW_AGENT_STOP_DEF);
-	}
 
-	/**
-	 * TODO
-	 *
-	 * @param solver
-	 * @param offsets
-	 * @param step
-	 * @return
-	 */
-	protected Pair<IVecInt, ConstrGroup> createAgentClauses(ISolver solver, Deque<Pair<Integer, Agent>> offsets, long step) throws ContradictionException {
-		return createAgentClauses(solver, offsets.getLast().getValue().getEntry(), offsets, step);
+		for (int i = 0; i < graph.getVertices().length; i++) {
+			inverseNeighbours[i] = new LinkedList<>();
+		}
+		for (Vertex vertex : graph.getVertices()) {
+			for (int neighbourID : vertex.getNeighbourIDs()) {
+				inverseNeighbours[neighbourID].add(vertex.getID());
+			}
+		}
+
+		graph.getEntryExitVertices().forEach((key, value) ->
+			directionExits.put(
+				key,
+				value.stream()
+					.filter(vertex -> vertex.getType().isExit())
+					.map(Vertex::getID)
+					.collect(Collectors.toSet())
+			)
+		);
 	}
 
 	/**
@@ -94,21 +92,22 @@ public class SATPlanner extends SafeLines {
 	 *
 	 * @param solver
 	 * @param startingVertex
+	 * @param exits
 	 * @param offsets
 	 * @param step
 	 * @return
 	 */
-	protected Pair<IVecInt, ConstrGroup> createAgentClauses(ISolver solver, int startingVertex, Deque<Pair<Integer, Agent>> offsets, long step) throws ContradictionException {
+	protected Pair<IVecInt, ConstrGroup> createAgentClauses(ISolver solver, int startingVertex, Set<Integer> exits, Deque<Pair<Integer, Agent>> offsets, long step) throws ContradictionException {
 		Pair<Integer, Agent> offsetAgent = offsets.getLast();
-		Agent agent = offsetAgent.getValue();
+		Agent agent = offsetAgent.getVal1();
 		double agentPerimeter = agent.getAgentPerimeter();
 
 		Pair<IVecInt, ConstrGroup> unitAndConstrains = addAgentsClauses(solver, offsets, step);
-		IVecInt unitClauses = unitAndConstrains.getKey();
-		ConstrGroup agentConstrains = unitAndConstrains.getValue();
+		IVecInt unitClauses = unitAndConstrains.getVal0();
+		ConstrGroup agentConstrains = unitAndConstrains.getVal1();
 
 		final int vertices = graph.getVertices().length;
-		final int offset = offsetAgent.getKey();
+		final int offset = offsetAgent.getVal0();
 
 		// In time 0: agent is at entry v_en => (en + 1)
 		unitClauses.push(startingVertex + offset);
@@ -135,11 +134,11 @@ public class SATPlanner extends SafeLines {
 				final long tStep = step + t;
 				final int nextTimeOffset = timeOffset + vertices;
 				for (int i = 0; i < vertices; i++) {
-					if (i == agent.getExit()) {
+					if (exits.contains(i)) {
 						/*
-							for exit ve if agent is at ve in time t, then in all next times he is nowhere
-							=> (|V| * t + ve + offset) -> ∀_{time s > t} (∧_{vertices j:} ¬(|V| * s + j + offset))
-							<=> ∀_{time s > t} ∀_{j in vertices}: -(|V| * t + ve + offset) ∨ -(|V| * s + j + offset)
+							for exit v_e if agent is at v_e in time t, then in all next times he is nowhere
+							=> (|V| * t + e + offset) -> ∀_{time s > t} (∧_{vertices j:} ¬(|V| * s + j + offset))
+							<=> ∀_{time s > t} ∀_{j in vertices}: -(|V| * t + e + offset) ∨ -(|V| * s + j + offset)
 						*/
 						for (int s = t + 1, sTimeOffset = nextTimeOffset; s <= maximumSteps; s++, sTimeOffset += vertices) {
 							for (int j = 0; j < vertices; j++) {
@@ -190,13 +189,16 @@ public class SATPlanner extends SafeLines {
 
 		if (!allowIncompletePlans) {
 			/*
-				agent has to end in exit vertex in any step
-				=> ∨_{time t} (|V| * t + exit + offset)
+				agent has to end in any exit vertex in any step
+				=> ∨_{time t, exit e} (|V| * t + e + offset)
 			*/
-			int exit = agent.getExit();
-			int[] exitClause = new int[maximumSteps + 1];
-			for (int t = 0; t <= maximumSteps; t++) {
-				exitClause[t] = vertices * t + exit + offset;
+			int[] exitClause = new int[maximumSteps * exits.size()];
+			int i = 0;
+			for (Integer exit : exits) {
+				for (int t = 0; t < maximumSteps; t++) {
+					exitClause[t + i * maximumSteps] = vertices * (t + 1) + exit + offset;
+				}
+				i++;
 			}
 			agentConstrains.add(solver.addClause(new VecInt(exitClause)));
 		}
@@ -206,8 +208,8 @@ public class SATPlanner extends SafeLines {
 
 	protected Pair<IVecInt, ConstrGroup> addAgentsClauses(ISolver solver, Deque<Pair<Integer, Agent>> offsets, long step) throws ContradictionException {
 		final int vertices = graph.getVertices().length;
-		final int agentOffset = offsets.getLast().getKey();
-		final double agentPerimeter = offsets.getLast().getValue().getAgentPerimeter();
+		final int agentOffset = offsets.getLast().getVal0();
+		final double agentPerimeter = offsets.getLast().getVal1().getAgentPerimeter();
 
 		IVecInt unitClauses = new VecInt();
 		ConstrGroup agentConstrains = new ConstrGroup();
@@ -236,8 +238,8 @@ public class SATPlanner extends SafeLines {
 						<=> ∀_{vertex x, time t} ∀_{agent j != i} ∀_{vertex y near x} (¬(|V| * t + x + offset_i) ∨ ¬(|V| * t + y + offset_j))
 					*/
 			for (Pair<Integer, Agent> offsetPair : offsets) {
-				final Integer neighbourOffset = offsetPair.getKey();
-				final Agent neighbour = offsetPair.getValue();
+				final Integer neighbourOffset = offsetPair.getVal0();
+				final Agent neighbour = offsetPair.getVal1();
 				if (neighbourOffset == agentOffset) {
 					continue;
 				}
@@ -290,13 +292,13 @@ public class SATPlanner extends SafeLines {
 		return path;
 	}
 
-	protected Agent createFinalPath(Agent agent, long step, List<Integer> path) {
+	protected Agent createFinalPath(Agent agent, Set<Integer> exits, long step, List<Integer> path) {
 		if (path.size() == 0 || !Objects.equals(path.get(0), agent.getEntry())) throw new AssertionError();
 		int lastVertex = path.get(path.size() - 1);
-		if (!Objects.equals(lastVertex, agent.getExit())) {
+		if (exits.contains(lastVertex)) {
 			Agent agent1 = null;
 			try {
-				agent1 = alternativeAlgorithm.planAgent(agent, lastVertex, step + path.size() - 1);
+				agent1 = alternativeAlgorithm.planAgent(agent, lastVertex, exits, step + path.size() - 1);
 				if (agent1 != null) {
 					path.remove(path.size() - 1);
 					path.addAll(agent1.getPath());
@@ -316,92 +318,105 @@ public class SATPlanner extends SafeLines {
 
 	@Override
 	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
-		if (agents.isEmpty()) {
-			return agents;
+		return planAgents(
+			agents.stream()
+				.collect(Collectors.toMap(
+					Function.identity(),
+					a -> new Pair<>(
+						a.getEntry(),
+						a.getExit() < 0 ? directionExits.get(a.getExitDirection()) : Collections.singleton(a.getExit())
+					)
+				)),
+			step
+		);
+	}
+
+	@Override
+	public Collection<Agent> planAgents(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+		if (agentsEntriesExits.isEmpty()) {
+			return agentsEntriesExits.keySet();
 		}
 		ISolver solver = SolverFactory.newDefault();
 		solver.setTimeoutMs(500);  // TODO
 
-		// TODO solve if exit is not specified
-
 		stepOccupiedVertices.keySet().removeIf(stepKey -> stepKey < step);
 		stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
-		Set<Agent> invalidAgents = new HashSet<>();
+		Map<Agent, Pair<Integer, Set<Integer>>> invalidAgents = new HashMap<>();
 
-		Deque<Pair<Integer, Agent>> offsets = new ArrayDeque<>(agents.size());
+		Deque<Pair<Integer, Agent>> offsets = new ArrayDeque<>(agentsEntriesExits.size());
 		int offset = 1;
 		IVecInt validUnitClauses = new VecInt();
-		for (Agent agent : agents) {
-			if (stepOccupiedVertices.get(step).containsKey(agent.getEntry())) {
+		for (Map.Entry<Agent, Pair<Integer, Set<Integer>>> agentEntryExit : agentsEntriesExits.entrySet()) {
+			Agent agent = agentEntryExit.getKey();
+			int entry = agentEntryExit.getValue().getVal0();
+			if (stepOccupiedVertices.get(step).containsKey(entry)) {
 				continue;
 			}
+			Set<Integer> exits = agentEntryExit.getValue().getVal1();
+
 			offsets.add(new Pair<>(offset, agent));
 			Pair<IVecInt, ConstrGroup> unitAndConstrains = null;
 			try {
-				unitAndConstrains = createAgentClauses(solver, offsets, step);
-				IVecInt unitClauses = unitAndConstrains.getKey();
+				unitAndConstrains = createAgentClauses(solver, entry, exits, offsets, step);
+				IVecInt unitClauses = unitAndConstrains.getVal0();
 				if (solver.isSatisfiable(unitClauses)) {
 					unitClauses.copyTo(validUnitClauses);
 					offset += graph.getVertices().length * (maximumSteps + 1);
 				} else {
-					unitAndConstrains.getValue().removeFrom(solver);
-					invalidAgents.add(agent);
+					unitAndConstrains.getVal1().removeFrom(solver);
+					invalidAgents.put(agent, agentsEntriesExits.get(agent));
 					offsets.removeLast();
 				}
 			} catch (ContradictionException | TimeoutException e) {
 				System.out.println(e.getMessage());
 				if (unitAndConstrains != null) {
-					unitAndConstrains.getValue().removeFrom(solver);
+					unitAndConstrains.getVal1().removeFrom(solver);
 				}
-				invalidAgents.add(agent);
+				invalidAgents.put(agent, agentEntryExit.getValue());
 				offsets.removeLast();
 			}
 		}
 
-		Set<Agent> plannedAgents = new HashSet<>(agents.size());
-		Set<Pair<Agent, List<Integer>>> partiallyPlannedAgents = new HashSet<>();
+		Set<Agent> plannedAgents = new HashSet<>(agentsEntriesExits.size());
+		Map<Agent, List<Integer>> partiallyPlannedAgents = new HashMap<>();
 		try {
 			if (solver.isSatisfiable(validUnitClauses)) {
 				int[] model = solver.model();
 				for (Pair<Integer, Agent> entry : offsets) {
-					offset = entry.getKey();
-					Agent agent = entry.getValue();
+					offset = entry.getVal0();
+					Agent agent = entry.getVal1();
 					List<Integer> path = createPath(model, offset);
-					if (path.size() == 0 || !Objects.equals(path.get(0), agent.getEntry())) throw new AssertionError();
+					if (path.size() == 0 || !Objects.equals(path.get(0), agentsEntriesExits.get(agent).getVal0())) throw new AssertionError();  // TODO remove
+					Set<Integer> exits = agentsEntriesExits.get(agent).getVal1();
 					int lastVertex = path.get(path.size() - 1);
-					if (Objects.equals(lastVertex, agent.getExit())) {
+					if (exits.contains(lastVertex)) {
 						agent.setPath(path, step);
 						plannedAgents.add(agent);
 					} else {
-						partiallyPlannedAgents.add(new Pair<>(agent, path));
+						partiallyPlannedAgents.put(agent, path);
+						invalidAgents.put(agent, new Pair<>(lastVertex, exits));
 					}
 				}
 			} else {
-				plannedAgents.addAll(alternativeAlgorithm.planAgents(agents, step));
+				plannedAgents.addAll(alternativeAlgorithm.planAgents(agentsEntriesExits, step));
 			}
 		} catch (TimeoutException e) {
 			System.out.println(e.getMessage());
-			plannedAgents.addAll(alternativeAlgorithm.planAgents(agents, step));
+			plannedAgents.addAll(alternativeAlgorithm.planAgents(agentsEntriesExits, step));
 		}
 
 		for (Agent agent : plannedAgents) {
 			addPlannedAgent(agent);
 		}
 
-		for (Pair<Agent, List<Integer>> partiallyPlanned : partiallyPlannedAgents) {
-			List<Integer> path = partiallyPlanned.getValue();
-			Agent agent = alternativeAlgorithm.planAgent(partiallyPlanned.getKey(), path.get(path.size() - 1), step + path.size() - 1);
-			if (agent != null) {
+		Collection<Agent> invalidPlannedAgents = alternativeAlgorithm.planAgents(invalidAgents, step);
+		for (Agent agent : invalidPlannedAgents) {
+			if (partiallyPlannedAgents.containsKey(agent)) {
+				List<Integer> path = partiallyPlannedAgents.get(agent);
 				path.remove(path.size() - 1);
 				path.addAll(agent.getPath());
 				agent.setPath(path, step);
-				addPlannedAgent(agent);
-				plannedAgents.add(agent);
 			}
-		}
-
-		Collection<Agent> invalidPlannedAgents = alternativeAlgorithm.planAgents(invalidAgents, step);
-		for (Agent agent : invalidPlannedAgents) {
 			addPlannedAgent(agent);
 		}
 
@@ -421,17 +436,17 @@ public class SATPlanner extends SafeLines {
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, int entryID, long step) {
+	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsID, long step) {
 		ISolver solver = SolverFactory.newDefault();
 		solver.setTimeout(1);  // TODO
 
 		try {
-			Pair<IVecInt, ConstrGroup> unitAndConstrains = createAgentClauses(solver, entryID, new ArrayDeque<>(Collections.singleton(new Pair<>(1, agent))), step);
-			IVecInt unitClauses = unitAndConstrains.getKey();
+			Pair<IVecInt, ConstrGroup> unitAndConstrains = createAgentClauses(solver, entryID, exitsID, new ArrayDeque<>(Collections.singleton(new Pair<>(1, agent))), step);
+			IVecInt unitClauses = unitAndConstrains.getVal0();
 			if (solver.isSatisfiable(unitClauses)) {
 				int[] model = solver.model();
 				List<Integer> path = createPath(model, 1);
-				agent = createFinalPath(agent, step, path);
+				agent = createFinalPath(agent, exitsID, step, path);
 			}
 		} catch (ContradictionException | TimeoutException e) {
 			agent = alternativeAlgorithm.planAgent(agent, step);

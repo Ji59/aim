@@ -9,6 +9,7 @@ import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
@@ -21,7 +22,7 @@ public class SafeLines implements Algorithm {
 	private final double safeDistance;
 	protected final SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
-	protected final Map<Integer, List<Vertex>> directionExits = new HashMap<>();
+	protected final Map<Integer, Set<Vertex>> directionExits = new HashMap<>();
 	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
 
 	public SafeLines(SimulationGraph graph) {
@@ -41,7 +42,7 @@ public class SafeLines implements Algorithm {
 			verticesDistances.get(v0.getID()).addAll(v0Distances);
 		});
 
-		graph.getEntryExitVertices().forEach((key, value) -> directionExits.put(key, value.stream().filter(vertex -> vertex.getType().isExit()).toList()));
+		graph.getEntryExitVertices().forEach((key, value) -> directionExits.put(key, value.stream().filter(vertex -> vertex.getType().isExit()).collect(Collectors.toSet())));
 
 		safeDistance = AlgorithmMenuTab2.getDoubleParameter(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF) * graph.getCellSize();
 	}
@@ -84,7 +85,7 @@ public class SafeLines implements Algorithm {
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, int vertexID, long step) {
+	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsID, long step) {
 		// FIXME
 		throw new UnsupportedOperationException();
 	}

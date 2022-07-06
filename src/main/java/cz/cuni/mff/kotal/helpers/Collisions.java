@@ -6,7 +6,6 @@ import cz.cuni.mff.kotal.frontend.simulation.AgentPolygon;
 import cz.cuni.mff.kotal.frontend.simulation.LineSegment;
 import cz.cuni.mff.kotal.frontend.simulation.Point;
 import cz.cuni.mff.kotal.simulation.timer.AgentBoundingBox;
-import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -208,8 +207,8 @@ public class Collisions {
 //		}
 		return collidedSegments.stream()
 			.map(lineSegmentPair -> {
-				LineSegmentWithID line0 = lineSegmentPair.getKey();
-				LineSegmentWithID line1 = lineSegmentPair.getValue();
+				LineSegmentWithID line0 = lineSegmentPair.getVal0();
+				LineSegmentWithID line1 = lineSegmentPair.getVal1();
 				double intersectionRatio = line0.getIntersectionRatio(line1);
 				return new Collision(line0.getId(), line1.getId(), intersectionRatio);
 			})

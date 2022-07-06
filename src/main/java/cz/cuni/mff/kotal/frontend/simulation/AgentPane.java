@@ -2,25 +2,20 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
-import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
-
-import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
 
 
 /**
@@ -162,8 +157,8 @@ public class AgentPane extends StackPane {
 	 */
 	private boolean computeNewAngle(double time) {
 		Pair<Integer, Integer> previousNext = agent.getPreviousNextVertexIDs(time);
-		GraphicalVertex start = (GraphicalVertex) simulationVertices[previousNext.getKey()];
-		GraphicalVertex end = (GraphicalVertex) simulationVertices[previousNext.getValue()];
+		GraphicalVertex start = (GraphicalVertex) simulationVertices[previousNext.getVal0()];
+		GraphicalVertex end = (GraphicalVertex) simulationVertices[previousNext.getVal1()];
 
 		double newAngle = MyNumberOperations.computeRotation(start.getX(), start.getY(), end.getX(), end.getY());
 		if (newAngle >= 0 && newAngle != angle) {

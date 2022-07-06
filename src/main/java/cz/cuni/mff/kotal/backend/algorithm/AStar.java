@@ -48,33 +48,31 @@ public class AStar extends SafeLines {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		return planAgent(agent, agent.getEntry(), step);
+		return planAgent(agent, agent.getEntry(), Collections.singleton(agent.getExit()), step);
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, int vertexID, long step) {
-		LinkedList<Integer> path = getPath(agent, step, vertexID);
+	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsIDs, long step) {
+		LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs);
 		return path == null ? null : agent.setPath(path, step);
 	}
 
 	@Nullable
-	protected LinkedList<Integer> getPath(Agent agent, long step, int entryID) {
+	protected LinkedList<Integer> getPath(Agent agent, long step, int entryID, Set<Integer> exitsIDs) {
 		if (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter())) {
 			return null;
 		}
 
-		Set<Integer> exitIDs = getExitIDs(agent);
-
-		int maximumDelay = exitIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + maximumPathDelay)).min().getAsInt();
+		int maximumDelay = exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + maximumPathDelay)).min().getAsInt();
 
 		Map<Integer, Double> heuristic = new HashMap<>();
-		double startEstimate = getHeuristic(exitIDs, entryID);
+		double startEstimate = getHeuristic(exitsIDs, entryID);
 		heuristic.put(entryID, startEstimate);
 
 		PriorityQueue<State> queue = new PriorityQueue<>();
 		queue.add(new State(graph.getVertex(entryID), startEstimate, step));
 
-		return searchPath(agent, step, exitIDs, heuristic, entryID, queue, maximumDelay);
+		return searchPath(agent, step, exitsIDs, heuristic, entryID, queue, maximumDelay);
 	}
 
 	protected LinkedList<Integer> searchPath(Agent agent, long step, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, int maximumDelay) {

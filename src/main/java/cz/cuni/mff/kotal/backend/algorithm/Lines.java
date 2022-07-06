@@ -6,6 +6,7 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.List;
+import java.util.Set;
 
 
 public record Lines(SimulationGraph graph) implements Algorithm {
@@ -39,7 +40,7 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, int vertexID, long step) {
+	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitID, long step) {
 		// FIXME
 		throw new UnsupportedOperationException();
 	}

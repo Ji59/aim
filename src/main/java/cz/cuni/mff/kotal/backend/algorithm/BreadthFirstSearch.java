@@ -39,25 +39,34 @@ public class BreadthFirstSearch implements Algorithm {
 			.collect(Collectors.toMap(Vertex::getID, Function.identity()));
 	}
 
+	@Override
+	public Agent planAgent(Agent agent, long step) {
+		Set<Integer> exits;
+		if (agent.getExit() > 0) {
+			exits = vertices.values().stream()
+				.filter(vertex -> vertex.getType().isExit() && vertex.getType().getDirection() == agent.getExitDirection())
+				.map(Vertex::getID)
+				.collect(Collectors.toSet());
+		} else {
+			exits = Collections.singleton(agent.getExit());
+		}
+		return planAgent(agent, agent.getEntry(), exits, step);
+	}
+
 	/**
 	 * Plan agent using BFS on saved graph.
 	 *
-	 * @param agent Agent to be planned
-	 * @param vertexID TODO
-	 * @param step  Actual step of simulation, ignored
+	 * @param agent    Agent to be planned
+	 * @param entryID  TODO
+	 * @param exitsIDs
+	 * @param step     Actual step of simulation, ignored
 	 * @return Agent if successfully planned otherwise null
 	 */
-		@Override
-	public Agent planAgent(Agent agent, int vertexID, long step) {
-		final int exit;
-		if (agent.getExit() < 0) {
-			List<VertexWithVisit> directionExits = vertices.values().stream().filter(vertex -> vertex.getType().isExit() && vertex.getType().getDirection() == agent.getExitDirection()).toList();
-			exit = directionExits.get(generateRandomInt(directionExits.size() - 1)).getID();
-		} else {
-			exit = agent.getExit();
-		}
+	@Override
+	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsIDs, long step) {
+		final int exit = exitsIDs.stream().findFirst().orElse(agent.getExit());
 		try {
-			agent.setPath(bfs(vertexID, exit), step);
+			agent.setPath(bfs(entryID, exit), step);
 		} catch (Exception e) {
 			return null;
 		}

@@ -1,15 +1,13 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph.VertexWithDirection;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import javafx.util.Pair;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class Roundabout extends SafeLines {
 	protected final List<Integer> roundTrip;
@@ -198,8 +196,8 @@ public class Roundabout extends SafeLines {
 			throw new RuntimeException("Closest entry and exit not found.");
 			// TODO
 		}
-		GraphicalVertex exit = closest.getKey();
-		GraphicalVertex entry = closest.getValue();
+		GraphicalVertex exit = closest.getVal0();
+		GraphicalVertex entry = closest.getVal1();
 
 		LinkedList<GraphicalVertex> pathPoints = new LinkedList<>();
 		pathPoints.add(exit);

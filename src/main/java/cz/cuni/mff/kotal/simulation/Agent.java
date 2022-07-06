@@ -1,10 +1,9 @@
 package cz.cuni.mff.kotal.simulation;
 
 
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
-import javafx.util.Pair;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
@@ -138,8 +137,8 @@ public class Agent extends BasicAgent {
 			return true;
 		}
 
-		GraphicalVertex previousGoal = (GraphicalVertex) vertices[previousNextGoalID.getKey()];
-		GraphicalVertex nextGoal = (GraphicalVertex) vertices[previousNextGoalID.getValue()];
+		GraphicalVertex previousGoal = (GraphicalVertex) vertices[previousNextGoalID.getVal0()];
+		GraphicalVertex nextGoal = (GraphicalVertex) vertices[previousNextGoalID.getVal1()];
 
 		// TODO optimize
 		double previousGoalX = previousGoal.getX();
