@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
+import cz.cuni.mff.kotal.backend.algorithm.AStarRoundabout.LinkGraph;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
@@ -78,9 +79,8 @@ public class SafeLines implements Algorithm {
 			return null;
 		}
 		agent.setPath(selectedPath, step);
-		for (int i = 0; i < selectedPath.size(); i++) {
-			stepOccupiedVertices.get(step + i).put(selectedPath.get(i), agent);
-		}
+		addPlannedAgent(agent);
+
 		return agent;
 	}
 
@@ -97,6 +97,19 @@ public class SafeLines implements Algorithm {
 			long step = agent.getPlannedTime() + i;
 			stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
 			stepOccupiedVertices.get(step).put(path.get(i), agent);
+		}
+
+		if (graph instanceof LinkGraph linkGraph) {
+			path = linkGraph.getRealPath(path);
+			agent.setPath(path, agent.getPlannedTime());
+		}
+	}
+
+	@Override
+	public void addPlannedPath(Agent agent, List<Integer> path, long step) {
+		for (int i = 0; i < path.size(); i++) {
+			stepOccupiedVertices.putIfAbsent(step + i, new HashMap<>());
+			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
 		}
 	}
 
@@ -166,7 +179,12 @@ public class SafeLines implements Algorithm {
 		if (neighbourStep >= neighbour.getPath().size()) {
 			return -1;
 		}
-		return neighbour.getPath().get(neighbourStep);
+
+		Integer neighbourVertexID = neighbour.getPath().get(neighbourStep);
+		if (graph instanceof LinkGraph linkGraph) {
+			return linkGraph.getLinkID(neighbourVertexID);
+		}
+		return neighbourVertexID;
 	}
 
 	protected boolean checkNeighbour(int vertexID, int adjacentVertexID, int neighbourVertexID, double agentPerimeter, Agent neighbour) {

@@ -14,6 +14,10 @@ public class Roundabout extends SafeLines {
 	private final Map<Integer, Integer> exitsNeighboursMapping = new HashMap<>();
 
 	public Roundabout(SimulationGraph graph) {
+		this(graph, true);
+	}
+
+	public Roundabout(SimulationGraph graph, boolean addPlannedAgent) {
 		super(graph);
 
 		roundTrip = createLoop(graph);
@@ -71,9 +75,8 @@ public class Roundabout extends SafeLines {
 			return null;
 		}
 		agent.setPath(path, step);
-		for (int i = 0; i < path.size(); i++) {
-			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
-		}
+		addPlannedAgent(agent);
+
 		return agent;
 	}
 

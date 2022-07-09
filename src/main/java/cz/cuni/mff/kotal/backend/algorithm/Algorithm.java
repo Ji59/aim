@@ -65,4 +65,7 @@ public interface Algorithm {
 
 	default void addPlannedAgent(Agent agent) {
 	}
+
+	default void addPlannedPath(Agent agent, List<Integer> path, long step) {
+	}
 }

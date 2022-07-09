@@ -54,7 +54,12 @@ public class AStar extends SafeLines {
 	@Override
 	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsIDs, long step) {
 		LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs);
-		return path == null ? null : agent.setPath(path, step);
+		if (path == null) {
+			return null;
+		}
+
+		addPlannedAgent(agent.setPath(path, step));
+		return agent;
 	}
 
 	@Nullable
@@ -105,10 +110,10 @@ public class AStar extends SafeLines {
 		while (state != null) {
 			int id = state.getID();
 			path.addFirst(id);
-			stepOccupiedVertices.get(state.getStep()).put(id, agent);
 
 			state = (State) state.getParent();
 		}
+
 		return path;
 	}
 

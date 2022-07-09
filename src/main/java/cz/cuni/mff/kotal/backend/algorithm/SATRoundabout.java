@@ -6,7 +6,6 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -56,19 +55,12 @@ public class SATRoundabout extends SATPlanner {
 					)
 				)
 			);
-		return transferPaths(agentsLinkEntriesExits, step);
+		return super.planAgents(agentsLinkEntriesExits, step);
 	}
 
-	@NotNull
-	private Collection<Agent> transferPaths(Map<Agent, Pair<Integer, Set<Integer>>> agentsLinkEntriesExits, long step) {
-		Collection<Agent> plannedAgents = super.planAgents(agentsLinkEntriesExits, step);
-		plannedAgents.forEach(agent -> transferPath(agent, step));
-		return plannedAgents;
-	}
-
-	private void transferPath(Agent agent, long step) {
+	private void transferPath(Agent agent) {
 		List<Integer> path = agent.getPath().stream().map(id -> ((LinkVertex) graph.getVertex(id)).getRealID()).toList();
-		agent.setPath(path, step);
+		agent.setPath(path, agent.getPlannedTime());
 	}
 
 	@Override
@@ -84,16 +76,22 @@ public class SATRoundabout extends SATPlanner {
 						.collect(Collectors.toSet())
 				)
 			));
-		return transferPaths(agentsLinkEntriesExits, step);
+		return super.planAgents(agentsLinkEntriesExits, step);
 	}
 
 	@Override
 	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsIDs, long step) {
 		LinkGraph linkGraph = (LinkGraph) graph;
-		Agent plannedAgent = super.planAgent(agent, linkGraph.getLinkID(entryID), exitsIDs.stream().map(linkGraph::getLinkID).collect(Collectors.toSet()), step);
-		if (plannedAgent != null) {
-			transferPath(plannedAgent, step);
+		return super.planAgent(agent, linkGraph.getLinkID(entryID), exitsIDs.stream().map(linkGraph::getLinkID).collect(Collectors.toSet()), step);
+	}
+
+	@Override
+	protected void combinePaths(Agent agent, List<Integer> path, long step) {
+		path.remove(path.size() - 1);
+		LinkGraph linkGraph = (LinkGraph) graph;
+		for (int id : agent.getPath()) {
+			path.add(linkGraph.getLinkID(id));
 		}
-		return plannedAgent;
+		agent.setPath(path, step);
 	}
 }

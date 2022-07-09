@@ -47,19 +47,8 @@ public class AStarRoundabout extends AStar {
 			return null;
 		}
 
-		path = path.stream().map(id -> ((LinkVertex) graph.getVertex(id)).getRealID()).toList();
-		agent.setPath(path, step);
+		addPlannedAgent(agent.setPath(path, step));
 		return agent;
-	}
-
-	@Override
-	protected int getNeighbourVertexID(long step, Agent neighbour) {
-		long plannedTime = neighbour.getPlannedTime() >= 0 ? neighbour.getPlannedTime() : step;
-		int neighbourStep = (int) (step - plannedTime);
-		if (neighbourStep >= neighbour.getPath().size()) {
-			return -1;
-		}
-		return ((LinkGraph) graph).getLinkID(neighbour.getPath().get(neighbourStep));
 	}
 
 	@Override
@@ -343,6 +332,7 @@ public class AStarRoundabout extends AStar {
 		}
 	}
 
+	// TODO move class
 	protected static class LinkGraph extends SimulationGraph {
 		private static SimulationGraph baseGraph;
 		private final Map<Integer, Integer> vertexMapping = new HashMap<>();
@@ -372,6 +362,10 @@ public class AStarRoundabout extends AStar {
 
 		public Integer getLinkID(int realID) {
 			return vertexMapping.get(realID);
+		}
+
+		public List<Integer> getRealPath(List<Integer> linkPath) {
+			return linkPath.stream().map(id -> getLinkVertex(id).getRealID()).toList();
 		}
 
 		public LinkVertex getLinkVertexByReal(int realID) {

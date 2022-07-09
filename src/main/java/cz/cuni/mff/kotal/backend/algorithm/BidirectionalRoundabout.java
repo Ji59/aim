@@ -11,7 +11,11 @@ import static cz.cuni.mff.kotal.helpers.MyNumberOperations.myModulo;
 public class BidirectionalRoundabout extends Roundabout {
 
 	public BidirectionalRoundabout(SimulationGraph graph) {
-		super(graph);
+		this(graph, true);
+	}
+
+	public BidirectionalRoundabout(SimulationGraph graph, boolean addPlannedAgent) {
+		super(graph, addPlannedAgent);
 	}
 
 	@Override
@@ -63,10 +67,8 @@ public class BidirectionalRoundabout extends Roundabout {
 		}
 
 		agent.setPath(path, step);
-		for (
-			int i = 0; i < path.size(); i++) {
-			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
-		}
+		addPlannedAgent(agent);
+
 		return agent;
 	}
 

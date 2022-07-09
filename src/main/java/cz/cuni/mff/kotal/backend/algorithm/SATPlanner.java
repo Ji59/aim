@@ -55,7 +55,7 @@ public class SATPlanner extends SafeLines {
 			if (algorithmEnum == null) {
 				algorithm = (agent, entryID, exitsID, step) -> null;
 			} else {
-				algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class).newInstance(graph);
+				algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class, boolean.class).newInstance(graph, false);
 			}
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
 			algorithm = (agent, entryID, exitsID, step) -> null;
@@ -300,9 +300,7 @@ public class SATPlanner extends SafeLines {
 			try {
 				agent1 = alternativeAlgorithm.planAgent(agent, lastVertex, exits, step + path.size() - 1);
 				if (agent1 != null) {
-					path.remove(path.size() - 1);
-					path.addAll(agent1.getPath());
-					agent.setPath(path, step);
+					combinePaths(agent1, path, step);
 				}
 			} finally {
 				// FIXME replace exception in algorithms with null
@@ -392,6 +390,8 @@ public class SATPlanner extends SafeLines {
 					if (exits.contains(lastVertex)) {
 						agent.setPath(path, step);
 						plannedAgents.add(agent);
+						addPlannedAgent(agent);
+						alternativeAlgorithm.addPlannedAgent(agent);
 					} else {
 						partiallyPlannedAgents.put(agent, path);
 						invalidAgents.put(agent, new Pair<>(lastVertex, exits));
@@ -399,23 +399,24 @@ public class SATPlanner extends SafeLines {
 				}
 			} else {
 				plannedAgents.addAll(alternativeAlgorithm.planAgents(agentsEntriesExits, step));
+				for (Agent agent : plannedAgents) {
+					addPlannedAgent(agent);
+				}
 			}
 		} catch (TimeoutException e) {
 			System.out.println(e.getMessage());
 			plannedAgents.addAll(alternativeAlgorithm.planAgents(agentsEntriesExits, step));
-		}
-
-		for (Agent agent : plannedAgents) {
-			addPlannedAgent(agent);
+			for (Agent agent : plannedAgents) {
+				addPlannedAgent(agent);
+			}
 		}
 
 		Collection<Agent> invalidPlannedAgents = alternativeAlgorithm.planAgents(invalidAgents, step);
 		for (Agent agent : invalidPlannedAgents) {
 			if (partiallyPlannedAgents.containsKey(agent)) {
 				List<Integer> path = partiallyPlannedAgents.get(agent);
-				path.remove(path.size() - 1);
-				path.addAll(agent.getPath());
-				agent.setPath(path, step);
+				combinePaths(agent, path, step);
+				alternativeAlgorithm.addPlannedPath(agent, path, step);
 			}
 			addPlannedAgent(agent);
 		}
@@ -424,15 +425,10 @@ public class SATPlanner extends SafeLines {
 		return plannedAgents;
 	}
 
-	@Override
-	public void addPlannedAgent(Agent agent) {
-		List<Integer> path = agent.getPath();
-		long step = agent.getPlannedTime();
-		for (int i = 0; i < path.size(); i++) {
-			stepOccupiedVertices.putIfAbsent(step + i, new HashMap<>());
-			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
-			alternativeAlgorithm.addPlannedAgent(agent);
-		}
+	protected void combinePaths(Agent agent, List<Integer> path, long step) {
+		path.remove(path.size() - 1);
+		path.addAll(agent.getPath());
+		agent.setPath(path, step);
 	}
 
 	@Override
