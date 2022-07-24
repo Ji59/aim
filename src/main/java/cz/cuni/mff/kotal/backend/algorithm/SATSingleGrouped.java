@@ -16,11 +16,14 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class SATPlanner extends SafeLines {
+public class SATSingleGrouped extends SafeLines {
 	protected static final String MAXIMUM_STEPS_NAME = "Maximum simulation steps";
 	protected static final int MAXIMUM_STEPS_DEF = 64;
+
+	@Deprecated
 	protected static final String ALTERNATIVE_ALGORITHM_NAME = "Alternative algorithm";
-	protected static final String ALTERNATIVE_ALGORITHM_DEF = AlgorithmMenuTab2.Parameters.Algorithm.A_STAR.getName();
+	@Deprecated
+	protected static final String ALTERNATIVE_ALGORITHM_DEF = ""; // AlgorithmMenuTab2.Parameters.Algorithm.A_STAR.getName(); TODO
 	protected static final String ALLOW_INCOMPLETE_PLANS_NAME = "Allow incomplete plans";
 	protected static final boolean ALLOW_INCOMPLETE_PLANS_DEF = false;
 	protected static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
@@ -31,13 +34,14 @@ public class SATPlanner extends SafeLines {
 
 	static {
 		PARAMETERS.put(MAXIMUM_STEPS_NAME, MAXIMUM_STEPS_DEF);
-		PARAMETERS.put(ALTERNATIVE_ALGORITHM_NAME, ALTERNATIVE_ALGORITHM_DEF);
+		PARAMETERS.put(ALTERNATIVE_ALGORITHM_NAME, ALTERNATIVE_ALGORITHM_DEF); // TODO remove
 		PARAMETERS.put(ALLOW_INCOMPLETE_PLANS_NAME, ALLOW_INCOMPLETE_PLANS_DEF);
 		PARAMETERS.put(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
 		PARAMETERS.put(ALLOW_MULTIPLE_VISITS_NAME, ALLOW_MULTIPLE_VISITS_DEF);
 	}
 
 	private final int maximumSteps;
+	@Deprecated
 	private final Algorithm alternativeAlgorithm;
 	private final boolean allowIncompletePlans;
 	private final boolean allowAgentStop;
@@ -45,7 +49,7 @@ public class SATPlanner extends SafeLines {
 	protected final List<Integer>[] inverseNeighbours = new List[graph.getVertices().length];
 	protected final Map<Integer, Set<Integer>> directionExits = new HashMap<>();
 
-	public SATPlanner(SimulationGraph graph) {
+	public SATSingleGrouped(SimulationGraph graph) {
 		super(graph);
 		maximumSteps = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_STEPS_NAME, MAXIMUM_STEPS_DEF);
 		final String alternativeAlgorithmName = AlgorithmMenuTab2.getStringParameter(ALTERNATIVE_ALGORITHM_NAME, ALTERNATIVE_ALGORITHM_DEF);
@@ -55,7 +59,7 @@ public class SATPlanner extends SafeLines {
 			if (algorithmEnum == null) {
 				algorithm = (agent, entryID, exitsID, step) -> null;
 			} else {
-				algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class, boolean.class).newInstance(graph, false);
+				algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class).newInstance(graph);
 			}
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
 			algorithm = (agent, entryID, exitsID, step) -> null;
@@ -295,7 +299,7 @@ public class SATPlanner extends SafeLines {
 	protected Agent createFinalPath(Agent agent, Set<Integer> exits, long step, List<Integer> path) {
 		if (path.size() == 0 || !Objects.equals(path.get(0), agent.getEntry())) throw new AssertionError();
 		int lastVertex = path.get(path.size() - 1);
-		if (exits.contains(lastVertex)) {
+		if (!exits.contains(lastVertex)) {
 			Agent agent1 = null;
 			try {
 				agent1 = alternativeAlgorithm.planAgent(agent, lastVertex, exits, step + path.size() - 1);
@@ -322,11 +326,15 @@ public class SATPlanner extends SafeLines {
 					Function.identity(),
 					a -> new Pair<>(
 						a.getEntry(),
-						a.getExit() < 0 ? directionExits.get(a.getExitDirection()) : Collections.singleton(a.getExit())
+						getExits(a)
 					)
 				)),
 			step
 		);
+	}
+
+	protected Set<Integer> getExits(Agent agent) {
+		return agent.getExit() < 0 ? directionExits.get(agent.getExitDirection()) : Collections.singleton(agent.getExit());
 	}
 
 	@Override
@@ -357,10 +365,15 @@ public class SATPlanner extends SafeLines {
 			try {
 				unitAndConstrains = createAgentClauses(solver, entry, exits, offsets, step);
 				IVecInt unitClauses = unitAndConstrains.getVal0();
-				if (solver.isSatisfiable(unitClauses)) {
-					unitClauses.copyTo(validUnitClauses);
+				unitClauses.copyTo(validUnitClauses);
+				if (solver.isSatisfiable(validUnitClauses)) {
 					offset += graph.getVertices().length * (maximumSteps + 1);
 				} else {
+					IteratorInt it = unitClauses.iterator();
+					while (it.hasNext()) {
+						int next = it.next();
+						validUnitClauses.remove(next);
+					}
 					unitAndConstrains.getVal1().removeFrom(solver);
 					invalidAgents.put(agent, agentsEntriesExits.get(agent));
 					offsets.removeLast();
@@ -443,6 +456,8 @@ public class SATPlanner extends SafeLines {
 				int[] model = solver.model();
 				List<Integer> path = createPath(model, 1);
 				agent = createFinalPath(agent, exitsID, step, path);
+			} else {
+				agent = alternativeAlgorithm.planAgent(agent, step);
 			}
 		} catch (ContradictionException | TimeoutException e) {
 			agent = alternativeAlgorithm.planAgent(agent, step);
@@ -450,6 +465,7 @@ public class SATPlanner extends SafeLines {
 
 		if (agent != null) {
 			addPlannedAgent(agent);
+			alternativeAlgorithm.addPlannedAgent(agent);
 		}
 
 		return agent;

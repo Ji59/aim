@@ -26,4 +26,9 @@ public class Pair<E, F> {
 		this.val1 = val1;
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return val0.toString() + " + " + val1.toString();
+	}
 }

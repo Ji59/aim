@@ -219,7 +219,7 @@ public abstract class Simulation {
 		assert algorithm != null;
 		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
 		plannedAgents.forEach(agent -> {
-			agent.setPlannedTime(step);
+//			agent.setPlannedTime(step); // TODO
 			assert simulationAgents != null;
 			simulationAgents.addAgent(agent);
 
