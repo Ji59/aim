@@ -96,7 +96,7 @@ public class AStar extends SafeLines {
 			stepVisitedVertices.get(vertexID).add(state.getStep());
 
 			if (exitIDs.contains(vertexID)) {
-				return composePath(agent, state);
+				return composePath(state);
 			}
 
 			addNeighbours(step, exitIDs, heuristic, entryID, queue, agentsPerimeter, state, vertexID, maximumDelay);
@@ -105,7 +105,7 @@ public class AStar extends SafeLines {
 	}
 
 	@NotNull
-	private LinkedList<Integer> composePath(Agent agent, State state) {
+	private LinkedList<Integer> composePath(State state) {
 		LinkedList<Integer> path = new LinkedList<>();
 		while (state != null) {
 			int id = state.getID();
