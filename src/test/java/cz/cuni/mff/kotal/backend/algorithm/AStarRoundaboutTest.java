@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
-import cz.cuni.mff.kotal.backend.algorithm.AStarRoundabout.LinkGraph;
-import cz.cuni.mff.kotal.backend.algorithm.AStarRoundabout.LinkVertex;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarRoundabout;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.*;
 import org.junit.jupiter.api.Test;

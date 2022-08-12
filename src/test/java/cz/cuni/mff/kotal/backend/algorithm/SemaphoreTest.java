@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
+import cz.cuni.mff.kotal.backend.algorithm.simple.Semaphore;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.OctagonalGraph;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;

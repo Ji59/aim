@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
 
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
 import org.junit.jupiter.api.BeforeEach;

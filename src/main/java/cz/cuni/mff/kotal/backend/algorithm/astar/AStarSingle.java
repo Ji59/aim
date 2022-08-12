@@ -1,5 +1,6 @@
-package cz.cuni.mff.kotal.backend.algorithm;
+package cz.cuni.mff.kotal.backend.algorithm.astar;
 
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;

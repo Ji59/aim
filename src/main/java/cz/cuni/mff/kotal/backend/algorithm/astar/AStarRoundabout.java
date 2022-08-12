@@ -1,7 +1,9 @@
-package cz.cuni.mff.kotal.backend.algorithm;
+package cz.cuni.mff.kotal.backend.algorithm.astar;
 
+import cz.cuni.mff.kotal.backend.algorithm.LinkGraph;
+import cz.cuni.mff.kotal.backend.algorithm.LinkVertex;
+import cz.cuni.mff.kotal.backend.algorithm.simple.Roundabout;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
-import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.Edge;
@@ -61,7 +63,7 @@ public class AStarRoundabout extends AStarSingle {
 		}
 	}
 
-	protected static LinkGraph createRoundaboutGraph(SimulationGraph baseGraph, int lanes, boolean oriented) {
+	public static LinkGraph createRoundaboutGraph(SimulationGraph baseGraph, int lanes, boolean oriented) {
 		LinkGraph graph = new LinkGraph(oriented, baseGraph);
 		int id = 0;
 
@@ -181,7 +183,7 @@ public class AStarRoundabout extends AStarSingle {
 		do {
 			Vertex firstOld = baseGraph.getVertex(loop.get(oldLoopFirstIndex));
 			lastNewLoopID = firstOld.getNeighbourIDs().stream()
-				.filter(neighbour -> graph.vertexMapping.get(neighbour) == null)
+				.filter(neighbour -> graph.getLinkID(neighbour) == null)
 				.min((id0, id1) -> {
 					double distance0 = baseGraph.getDistance(id0, loop.get(loop.size() - 1));
 					double distance1 = baseGraph.getDistance(id1, loop.get(loop.size() - 1));
@@ -209,7 +211,7 @@ public class AStarRoundabout extends AStarSingle {
 			while (newLoopID >= 0) {
 				GraphicalVertex lastNewLoopVertex = baseGraph.getVertex(newLoopID);
 
-				if (!graph.vertexMapping.containsKey(newLoopID)) {
+				if (!graph.existsMapping(newLoopID)) {
 					lastNewLoopID = newLoopID;
 					newLoop.add(lastNewLoopVertex);
 
@@ -217,7 +219,7 @@ public class AStarRoundabout extends AStarSingle {
 					vertices.add(linkVertex);
 					graph.addVertexMapping(linkVertex);
 				}
-				for (int j = newLoop.size() - 1; lastNewLoopVertex.getNeighbourIDs().stream().allMatch(graph.vertexMapping::containsKey); j--) {
+				for (int j = newLoop.size() - 1; lastNewLoopVertex.getNeighbourIDs().stream().allMatch(graph::existsMapping); j--) {
 					if (j <= 0) {
 						break lastLoopCycle;
 					} else {
@@ -235,7 +237,7 @@ public class AStarRoundabout extends AStarSingle {
 	private static int getNeighboursIntersection(LinkGraph graph, Vertex oldLoopVertex, Vertex newLoopVertex, int oldLoopPreviousID) {
 		int candidate = -1;
 		for (int neighbour : oldLoopVertex.getNeighbourIDs()) {
-			if (!graph.vertexMapping.containsKey(neighbour) && newLoopVertex.getNeighbourIDs().contains(neighbour)) {
+			if (!graph.existsMapping(neighbour) && newLoopVertex.getNeighbourIDs().contains(neighbour)) {
 				boolean newContainsPreviousOld = newLoopVertex.getNeighbourIDs().contains(oldLoopPreviousID);
 				if (newContainsPreviousOld) {
 					candidate = neighbour;
@@ -249,7 +251,7 @@ public class AStarRoundabout extends AStarSingle {
 
 	private static List<Integer> createInitialLoop(SimulationGraph baseGraph, boolean oriented, LinkGraph graph, int id, List<LinkVertex> vertices) {
 		List<Integer> loop = Roundabout.createLoop(baseGraph);
-		List<LinkVertex> createdLoop = new ArrayList<>();
+		List<LinkVertex> createdLoop = new ArrayList<>();  // FIXME
 		for (int loopID : loop) {
 			LinkVertex linkVertex = new LinkVertex(id++, baseGraph.getVertex(loopID));
 			createdLoop.add(linkVertex);
@@ -319,57 +321,4 @@ public class AStarRoundabout extends AStarSingle {
 		return distance;
 	}
 
-	public static class LinkVertex extends GraphicalVertex {
-		private final int realID;
-
-		public LinkVertex(int id, GraphicalVertex vertex) {
-			super(id, vertex);
-			realID = vertex.getID();
-		}
-
-		public int getRealID() {
-			return realID;
-		}
-	}
-
-	// TODO move class
-	protected static class LinkGraph extends SimulationGraph {
-		private static SimulationGraph baseGraph;
-		private final Map<Integer, Integer> vertexMapping = new HashMap<>();
-
-		public LinkGraph(boolean oriented, SimulationGraph graph) {
-			super(oriented, graph);
-			baseGraph = graph;
-		}
-
-		public LinkVertex getLinkVertex(int id) {
-			return (LinkVertex) vertices[id];
-		}
-
-		@Override
-		public IntersectionMenuTab0.Parameters.GraphType getModel() {
-			return baseGraph.getModel();
-		}
-
-		@Override
-		public double getCellSize() {
-			return baseGraph.getCellSize();
-		}
-
-		public Integer addVertexMapping(LinkVertex vertex) {
-			return vertexMapping.put(vertex.getRealID(), vertex.getID());
-		}
-
-		public Integer getLinkID(int realID) {
-			return vertexMapping.get(realID);
-		}
-
-		public List<Integer> getRealPath(List<Integer> linkPath) {
-			return linkPath.stream().map(id -> getLinkVertex(id).getRealID()).toList();
-		}
-
-		public LinkVertex getLinkVertexByReal(int realID) {
-			return (LinkVertex) vertices[vertexMapping.get(realID)];
-		}
-	}
 }

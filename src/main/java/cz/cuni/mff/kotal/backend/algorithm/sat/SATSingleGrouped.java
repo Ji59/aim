@@ -1,5 +1,7 @@
-package cz.cuni.mff.kotal.backend.algorithm;
+package cz.cuni.mff.kotal.backend.algorithm.sat;
 
+import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Triple;

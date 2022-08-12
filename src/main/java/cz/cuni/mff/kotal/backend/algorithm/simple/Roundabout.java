@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.backend.algorithm;
+package cz.cuni.mff.kotal.backend.algorithm.simple;
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.Pair;
@@ -80,7 +80,7 @@ public class Roundabout extends SafeLines {
 		return agent;
 	}
 
-	protected static List<Integer> createLoop(SimulationGraph graph) {
+	public static List<Integer> createLoop(SimulationGraph graph) {
 		Collection<List<Vertex>> entriesExits = graph.getEntryExitVertices().values();
 		List<Integer> loop = new LinkedList<>();
 		if (entriesExits.isEmpty()) {

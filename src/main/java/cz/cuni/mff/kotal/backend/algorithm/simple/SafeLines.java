@@ -1,6 +1,7 @@
-package cz.cuni.mff.kotal.backend.algorithm;
+package cz.cuni.mff.kotal.backend.algorithm.simple;
 
-import cz.cuni.mff.kotal.backend.algorithm.AStarRoundabout.LinkGraph;
+import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
+import cz.cuni.mff.kotal.backend.algorithm.LinkGraph;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
@@ -117,7 +118,7 @@ public class SafeLines implements Algorithm {
 		}
 	}
 
-	boolean validPath(long step, List<Integer> path, double agentPerimeter) {
+	public boolean validPath(long step, List<Integer> path, double agentPerimeter) {
 		for (int i = 0; i < path.size(); i++) {
 			long actualStep = step + i;
 			if (stepOccupiedVertices.containsKey(actualStep)) {
@@ -150,7 +151,7 @@ public class SafeLines implements Algorithm {
 		return verticesDistances.get(vertexID).stream().takeWhile(v -> v.distance <= agentsPerimeter + safeDistance).map(VertexDistance::vertexID).collect(Collectors.toSet());
 	}
 
-	protected boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
+	public boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
 		if (!stepOccupiedVertices.containsKey(step - 1)) {
 			return true;
 		}
@@ -166,7 +167,7 @@ public class SafeLines implements Algorithm {
 		return checkNeighbour(vertexID, previousVertexID, neighbourVertexID, agentPerimeter, neighbour.getAgentPerimeter());
 	}
 
-	protected boolean safeStepFrom(long step, int vertexID, int nextVertexID, double agentPerimeter) {
+	public boolean safeStepFrom(long step, int vertexID, int nextVertexID, double agentPerimeter) {
 		if (!stepOccupiedVertices.containsKey(step + 1)) {
 			return true;
 		}
@@ -230,7 +231,7 @@ public class SafeLines implements Algorithm {
 		return xDiffAtT + yDiffAtT > perimetersSquared;
 	}
 
-	Map<Long, Map<Integer, Agent>> getStepOccupiedVertices() {
+	public Map<Long, Map<Integer, Agent>> getStepOccupiedVertices() {
 		return stepOccupiedVertices;
 	}
 

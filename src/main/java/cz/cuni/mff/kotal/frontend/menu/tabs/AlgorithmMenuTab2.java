@@ -2,6 +2,18 @@ package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
 import cz.cuni.mff.kotal.backend.algorithm.*;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarBidirectionalRoundabout;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarRoundabout;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingle;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingleGrouped;
+import cz.cuni.mff.kotal.backend.algorithm.sat.SATAll;
+import cz.cuni.mff.kotal.backend.algorithm.sat.SATRoundabout;
+import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingle;
+import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingleGrouped;
+import cz.cuni.mff.kotal.backend.algorithm.simple.BidirectionalRoundabout;
+import cz.cuni.mff.kotal.backend.algorithm.simple.Roundabout;
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
+import cz.cuni.mff.kotal.backend.algorithm.simple.Semaphore;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
 import javafx.geometry.Pos;

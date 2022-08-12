@@ -1,7 +1,8 @@
-package cz.cuni.mff.kotal.backend.algorithm;
+package cz.cuni.mff.kotal.backend.algorithm.sat;
 
-import cz.cuni.mff.kotal.backend.algorithm.AStarRoundabout.LinkGraph;
-import cz.cuni.mff.kotal.backend.algorithm.AStarRoundabout.LinkVertex;
+import cz.cuni.mff.kotal.backend.algorithm.LinkGraph;
+import cz.cuni.mff.kotal.backend.algorithm.LinkVertex;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarRoundabout;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;

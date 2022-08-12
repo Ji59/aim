@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.backend.algorithm;
+package cz.cuni.mff.kotal.backend.algorithm.astar;
 
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 
