@@ -4,7 +4,7 @@ import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
-import cz.cuni.mff.kotal.simulation.graph.SimulationGraph.VertexWithDirection;
+import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 
 import java.util.*;
@@ -128,7 +128,7 @@ public class Roundabout extends SafeLines {
 			double angle = 0;
 			if (directionVerticesSize >= 2) {
 				GraphicalVertex directionOneButLast = graph.getVertex(directionVertices.get(directionVerticesSize - 2));
-				angle = VertexWithDirection.computeAngle(directionOneButLast, directionLast);
+				angle = VertexWithDirectionParent.computeAngle(directionOneButLast, directionLast);
 			}
 			GraphicalVertex toDirectionFirst = graph.getVertex(directionParts.get(to).get(0));
 			List<Integer> pathIDs = graph.shortestPath(directionLast, toDirectionFirst, angle);

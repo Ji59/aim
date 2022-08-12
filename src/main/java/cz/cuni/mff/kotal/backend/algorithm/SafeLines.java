@@ -32,15 +32,19 @@ public class SafeLines implements Algorithm {
 		List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
 		sortedGraphicalVertices.forEach(v -> verticesDistances.put(v.getID(), new PriorityQueue<>(sortedGraphicalVertices.size())));
 		sortedGraphicalVertices.parallelStream().forEach(v0 -> {
+			final int v0ID = v0.getID();
 			List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()
-				.takeWhile(v1 -> v1.getID() <= v0.getID())
+				.takeWhile(v1 -> v1.getID() <= v0ID)
 				.map(v1 -> {
-					double distance = distance(v0.getX(), v0.getY(), v1.getX(), v1.getY());
-					verticesDistances.get(v1.getID()).add(new VertexDistance(v0.getID(), distance));
-					return new VertexDistance(v1.getID(), distance);
+					final double distance = distance(v0.getX(), v0.getY(), v1.getX(), v1.getY());
+					final int v1ID = v1.getID();
+					if (v0ID != v1ID) {
+						verticesDistances.get(v1ID).add(new VertexDistance(v0ID, distance));
+					}
+					return new VertexDistance(v1ID, distance);
 				})
 				.toList();
-			verticesDistances.get(v0.getID()).addAll(v0Distances);
+			verticesDistances.get(v0ID).addAll(v0Distances);
 		});
 
 		graph.getEntryExitVertices().forEach((key, value) -> directionExits.put(key, value.stream().filter(vertex -> vertex.getType().isExit()).collect(Collectors.toSet())));
@@ -142,6 +146,10 @@ public class SafeLines implements Algorithm {
 		return verticesDistances.get(vertexID).stream().takeWhile(v -> v.distance <= agentsPerimeter + safeDistance).mapToInt(VertexDistance::vertexID).toArray();
 	}
 
+	protected Set<Integer> conflictVerticesSet(int vertexID, double agentsPerimeter) {
+		return verticesDistances.get(vertexID).stream().takeWhile(v -> v.distance <= agentsPerimeter + safeDistance).map(VertexDistance::vertexID).collect(Collectors.toSet());
+	}
+
 	protected boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
 		if (!stepOccupiedVertices.containsKey(step - 1)) {
 			return true;
@@ -155,7 +163,7 @@ public class SafeLines implements Algorithm {
 		if (neighbourVertexID < 0) {
 			return true;
 		}
-		return checkNeighbour(vertexID, previousVertexID, neighbourVertexID, agentPerimeter, neighbour);
+		return checkNeighbour(vertexID, previousVertexID, neighbourVertexID, agentPerimeter, neighbour.getAgentPerimeter());
 	}
 
 	protected boolean safeStepFrom(long step, int vertexID, int nextVertexID, double agentPerimeter) {
@@ -170,7 +178,7 @@ public class SafeLines implements Algorithm {
 		if (neighbourVertexID < 0) {
 			return true;
 		}
-		return checkNeighbour(vertexID, neighbourVertexID, nextVertexID, agentPerimeter, neighbour);
+		return checkNeighbour(vertexID, neighbourVertexID, nextVertexID, agentPerimeter, neighbour.getAgentPerimeter());
 	}
 
 	protected int getNeighbourVertexID(long step, Agent neighbour) {
@@ -187,10 +195,7 @@ public class SafeLines implements Algorithm {
 		return neighbourVertexID;
 	}
 
-	protected boolean checkNeighbour(int vertexID, int adjacentVertexID, int neighbourVertexID, double agentPerimeter, Agent neighbour) {
-
-		double neighbourPerimeter = neighbour.getAgentPerimeter();
-
+	protected boolean checkNeighbour(int vertexID, int adjacentVertexID, int neighbourVertexID, double agentPerimeter, double neighbourPerimeter) {
 		GraphicalVertex v = graph.getVertex(vertexID);
 		GraphicalVertex agentAdjacentVertex = graph.getVertex(adjacentVertexID);
 		GraphicalVertex neighbourAdjacentVertex = graph.getVertex(neighbourVertexID);

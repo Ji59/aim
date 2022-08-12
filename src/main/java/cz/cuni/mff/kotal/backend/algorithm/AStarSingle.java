@@ -4,7 +4,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
-import cz.cuni.mff.kotal.simulation.graph.SimulationGraph.VertexWithDirection;
+import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class AStar extends SafeLines {
+public class AStarSingle extends SafeLines {
 	protected static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
 	protected static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
 	protected static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
@@ -32,12 +32,12 @@ public class AStar extends SafeLines {
 	}
 
 
-	private final int maximumVertexVisits;
-	private final boolean allowAgentStop;
-	private final int maximumPathDelay;
-	private final boolean allowAgentReturn;
+	protected final int maximumVertexVisits;
+	protected final boolean allowAgentStop;
+	protected final int maximumPathDelay;
+	protected final boolean allowAgentReturn;
 
-	public AStar(SimulationGraph graph) {
+	public AStarSingle(SimulationGraph graph) {
 		super(graph);
 
 		maximumVertexVisits = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);
@@ -117,11 +117,11 @@ public class AStar extends SafeLines {
 		return path;
 	}
 
-	private void addNeighbours(long step, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, double agentsPerimeter, State state, int vertexID, int maximumDelay) {
+	private void addNeighbours(long step, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, double agentPerimeter, State state, int vertexID, int maximumDelay) {
 		long stateStep = state.getStep();
 		for (int neighbourID : state.getVertex().getNeighbourIDs()) {
 			long neighbourStep = stateStep + 1;
-			heuristic.putIfAbsent(neighbourID, getHeuristic(exitIDs, neighbourID));
+			heuristic.computeIfAbsent(neighbourID, k -> getHeuristic(exitIDs, k));
 			double estimate;
 
 			if (Double.isFinite(estimate = heuristic.get(neighbourID)) &&
@@ -129,14 +129,14 @@ public class AStar extends SafeLines {
 				(
 					stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
 						|| (
-						safeVertex(neighbourStep, neighbourID, agentsPerimeter) &&
-							safeStepTo(neighbourStep, neighbourID, state.getID(), agentsPerimeter)
+						safeVertex(neighbourStep, neighbourID, agentPerimeter) &&
+							safeStepTo(neighbourStep, neighbourID, state.getID(), agentPerimeter)
 					)
 				) &&
-				safeStepFrom(stateStep, state.getID(), neighbourID, agentsPerimeter)
+				safeStepFrom(stateStep, state.getID(), neighbourID, agentPerimeter)
 			) {
 				double distance = graph.getDistance(vertexID, neighbourID);
-				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);
+				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);  // FIXME
 				queue.add(new State(state, graph.getVertex(neighbourID), distance, estimate));
 			}
 		}
@@ -145,7 +145,7 @@ public class AStar extends SafeLines {
 			allowAgentStop &&
 				canVisitVertex(state, entryID, vertexID, maximumDelay) &&
 				(
-					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentsPerimeter)
+					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentPerimeter)
 				)
 		) {
 			queue.add(new State(state));
@@ -161,11 +161,11 @@ public class AStar extends SafeLines {
 		}
 	}
 
-	protected double getHeuristic(Set<Integer> exitIDs, int entryID) {
-		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(entryID, exitID)).min().orElse(0);
+	protected double getHeuristic(Set<Integer> exitIDs, int vertexID) {
+		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
 	}
 
-	private boolean canVisitVertex(VertexWithDirection state, int entryID, int vertexID, int maximumDelay) {
+	private boolean canVisitVertex(VertexWithDirectionParent state, int entryID, int vertexID, int maximumDelay) {
 		if (vertexID == entryID ||
 			(
 				!allowAgentReturn &&
@@ -191,7 +191,7 @@ public class AStar extends SafeLines {
 		return length <= maximumDelay;
 	}
 
-	protected static class State extends VertexWithDirection {
+	protected static class State extends VertexWithDirectionParent {
 		private final long step;
 
 		public State(GraphicalVertex vertex, double estimate, long step) {

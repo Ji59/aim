@@ -15,11 +15,11 @@ import java.util.stream.Collectors;
 
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
-public class AStarRoundabout extends AStar {
+public class AStarRoundabout extends AStarSingle {
 	protected static final String LANES_NAME = "Lanes";
 	protected static final Integer LANES_DEF = 2;
 
-	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStar.PARAMETERS);
+	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingle.PARAMETERS);
 
 	static {
 		PARAMETERS.put(LANES_NAME, LANES_DEF);

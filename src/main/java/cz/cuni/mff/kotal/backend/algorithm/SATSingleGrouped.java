@@ -252,28 +252,28 @@ public class SATSingleGrouped extends SafeLines {
 		*/
 		for (Triple<Integer, Agent, boolean[][]> offsetTriple : offsets) {
 			final Integer neighbourOffset = offsetTriple.getVal0();
-			final Agent neighbour = offsetTriple.getVal1();
+			final double neighbourPerimeter = offsetTriple.getVal1().getAgentPerimeter();
 			final boolean[][] neighbourValidTimeVertices = offsetTriple.getVal2();
 			if (neighbourOffset == agentOffset) {
 				continue;
 			}
-			addAgentsNearVerticesClauses(solver, vertices, agentOffset, agentPerimeter, validTimeVertices, agentConstrains, i, neighbourOffset, neighbour, neighbourValidTimeVertices);
+			addAgentsNearVerticesClauses(solver, vertices, agentOffset, agentPerimeter + neighbourPerimeter, validTimeVertices, agentConstrains, i, neighbourOffset, neighbourValidTimeVertices);
 
 			for (int neighbourID : graph.getVertex(i).getNeighbourIDs()) {
 				for (int predecessorID : inverseNeighbours[i]) {
-					addLeavingArrivingClauses(solver, vertices, agentOffset, agentPerimeter, validTimeVertices, agentConstrains, i, neighbourOffset, neighbour, neighbourValidTimeVertices, neighbourID, predecessorID);
+					addLeavingArrivingClauses(solver, vertices, agentOffset, agentPerimeter, validTimeVertices, agentConstrains, i, neighbourOffset, neighbourPerimeter, neighbourValidTimeVertices, neighbourID, predecessorID);
 				}
 			}
 		}
 	}
 
-	private void addLeavingArrivingClauses(ISolver solver, int vertices, int agentOffset, double agentPerimeter, boolean[][] validTimeVertices, ConstrGroup agentConstrains, int i, Integer neighbourOffset, Agent neighbour, boolean[][] neighbourValidTimeVertices, int neighbourID, int predecessorID) throws ContradictionException {
+	private void addLeavingArrivingClauses(ISolver solver, int vertices, int agentOffset, double agentPerimeter, boolean[][] validTimeVertices, ConstrGroup agentConstrains, int i, int neighbourOffset, double neighbourPerimeter, boolean[][] neighbourValidTimeVertices, int neighbourID, int predecessorID) throws ContradictionException {
     /*
 			if agent `a` is going into `v_i` from `v_p` at time `t` and planned agent `n` is going from `v_i` to `v_n` at time `t`, and they would collide,
 			agent `a` can not be at `v_p` at `t` or agent `a` can not be at `v_i` at `(t + 1)` or agent `n` can not be at `v_i` at `t` or agent `n` can not be at `v_n` at `(t + 1)`
 			=> ¬(|V| * t + p + offset_a) ∨ ¬(|V| * (t + 1) + i + offset_a) ∨ ¬(|V| * t + i + offset_n) ∨ ¬(|V| * (t + 1) + n + offset_n)
 		*/
-		if (!checkNeighbour(i, predecessorID, neighbourID, agentPerimeter, neighbour)) {
+		if (!checkNeighbour(i, predecessorID, neighbourID, agentPerimeter, neighbourPerimeter)) {
 			for (int t = 0, timeOffset = 0, nextTimeOffset = vertices; t < maximumSteps; t++, timeOffset += vertices, nextTimeOffset += vertices) {
 				if (validTimeVertices[t][predecessorID] && validTimeVertices[t + 1][i] && neighbourValidTimeVertices[t][i] && neighbourValidTimeVertices[t + 1][neighbourID]) {
 					agentConstrains.add(
@@ -293,7 +293,7 @@ public class SATSingleGrouped extends SafeLines {
 						agent `a` can not be at `v_i` at `t` or agent `a` can not be at `v_n` at `(t + 1)` or agent `n` can not be at `v_p` at `t` or agent `n` can not be at `v_i` at `(t + 1)`
 						=> ¬(|V| * t + i + offset_a) ∨ ¬(|V| * (t + 1) + n + offset_a) ∨ ¬(|V| * t + p + offset_n) ∨ ¬(|V| * (t + 1) + i + offset_n)
 					*/
-		if (!checkNeighbour(i, neighbourID, predecessorID, agentPerimeter, neighbour)) {
+		if (!checkNeighbour(i, neighbourID, predecessorID, neighbourPerimeter, agentPerimeter)) {
 			for (int t = 0, timeOffset = 0, nextTimeOffset = vertices; t < maximumSteps; t++, timeOffset += vertices, nextTimeOffset += vertices) {
 				if (validTimeVertices[t][i] && validTimeVertices[t + 1][neighbourID] && neighbourValidTimeVertices[t][predecessorID] && neighbourValidTimeVertices[t + 1][i]) {
 					agentConstrains.add(
@@ -309,8 +309,8 @@ public class SATSingleGrouped extends SafeLines {
 		}
 	}
 
-	private void addAgentsNearVerticesClauses(ISolver solver, int vertices, int agentOffset, double agentPerimeter, boolean[][] validTimeVertices, ConstrGroup agentConstrains, int i, Integer neighbourOffset, Agent neighbour, boolean[][] neighbourValidTimeVertices) throws ContradictionException {
-		for (int conflictVertexID : conflictVertices(i, agentPerimeter + neighbour.getAgentPerimeter())) {
+	private void addAgentsNearVerticesClauses(ISolver solver, int vertices, int agentOffset, double agentsPerimeter, boolean[][] validTimeVertices, ConstrGroup agentConstrains, int i, int neighbourOffset, boolean[][] neighbourValidTimeVertices) throws ContradictionException {
+		for (int conflictVertexID : conflictVertices(i, agentsPerimeter)) {
 			for (int t = 0, timeOffset = 0; t <= maximumSteps; t++, timeOffset += vertices) {
 				if (validTimeVertices[t][i] && neighbourValidTimeVertices[t][conflictVertexID]) {
 					agentConstrains.add(solver.addClause(new VecInt(new int[]{-(timeOffset + i + agentOffset), -(timeOffset + conflictVertexID + neighbourOffset)})));
