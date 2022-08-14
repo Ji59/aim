@@ -55,7 +55,7 @@ public class SafeLines implements Algorithm {
 
 	@Override
 	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
-		stepOccupiedVertices.keySet().removeIf(stepKey -> stepKey < step);
+		filterStepOccupiedVertices(step);
 		return agents.stream().filter(agent -> planAgent(agent, step) != null).toList();
 	}
 
@@ -233,6 +233,19 @@ public class SafeLines implements Algorithm {
 
 	public Map<Long, Map<Integer, Agent>> getStepOccupiedVertices() {
 		return stepOccupiedVertices;
+	}
+
+	protected void filterStepOccupiedVertices(long step) {
+		Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<Long, Map<Integer, Agent>> stepVertices = it.next();
+			long occupiedStep = stepVertices.getKey();
+			if (occupiedStep < step) {
+				it.remove();
+			} else {
+				stepVertices.getValue().clear();
+			}
+		}
 	}
 
 	protected record VertexDistance(int vertexID, double distance) implements Comparable<VertexDistance> {

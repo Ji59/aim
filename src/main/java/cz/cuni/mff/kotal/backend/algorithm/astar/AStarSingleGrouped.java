@@ -21,7 +21,7 @@ public class AStarSingleGrouped extends AStarSingle {
 
 	@Override
 	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
-		stepOccupiedVertices.keySet().removeIf(stepKey -> stepKey < step);
+		filterStepOccupiedVertices(step);
 		return planAgents(agents.stream().collect(Collectors.toMap(Function.identity(), a -> new Pair<>(a.getEntry(), getExitIDs(a)))), step);
 	}
 

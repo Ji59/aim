@@ -35,7 +35,7 @@ public class Semaphore extends SafeLines {
 			return new ArrayList<>();
 		}
 
-		stepOccupiedVertices.entrySet().removeIf(occupiedVerticesEntry -> occupiedVerticesEntry.getKey() < step);
+		filterStepOccupiedVertices(step);
 
 		List<Agent> straightAgents = new ArrayList<>();
 		List<Agent> turningAgents = new ArrayList<>();
