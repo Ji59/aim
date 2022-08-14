@@ -59,7 +59,7 @@ public class AStarRoundabout extends AStarSingle {
 		if (agent.getExit() >= 0) {
 			return Set.of(((LinkGraph) graph).getLinkID(agent.getExit()));
 		} else {
-			return directionExits.get(agent.getExitDirection()).stream().map(Vertex::getID).collect(Collectors.toSet());
+			return directionExits.get(agent.getExitDirection());
 		}
 	}
 

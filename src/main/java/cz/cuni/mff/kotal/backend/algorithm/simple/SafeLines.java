@@ -19,12 +19,12 @@ public class SafeLines implements Algorithm {
 	protected static final String SAFE_DISTANCE_NAME = "Safe distance";
 	protected static final double SAFE_DISTANCE_DEF = 0.;
 	public static final Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF);
+	protected final Map<Integer, Set<Integer>> directionExits = new HashMap<>();
 
 
 	private final double safeDistance;
 	protected final SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
-	protected final Map<Integer, Set<Vertex>> directionExits = new HashMap<>();
 	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
 
 	public SafeLines(SimulationGraph graph) {
@@ -48,7 +48,13 @@ public class SafeLines implements Algorithm {
 			verticesDistances.get(v0ID).addAll(v0Distances);
 		});
 
-		graph.getEntryExitVertices().forEach((key, value) -> directionExits.put(key, value.stream().filter(vertex -> vertex.getType().isExit()).collect(Collectors.toSet())));
+		graph.getEntryExitVertices().forEach((key, value) -> {
+			Set<Integer> exits = value.stream()
+				.filter(vertex -> vertex.getType().isExit())
+				.map(Vertex::getID)
+				.collect(Collectors.toSet());
+			directionExits.put(key, exits);
+		});
 
 		safeDistance = AlgorithmMenuTab2.getDoubleParameter(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF) * graph.getCellSize();
 	}
@@ -65,7 +71,7 @@ public class SafeLines implements Algorithm {
 		double agentPerimeter = agent.getAgentPerimeter();
 		if (agent.getExit() < 0) {
 			List<List<Integer>> directionPaths = directionExits.get(agent.getExitDirection()).stream()
-				.map(exit -> graph.getLines().get(agent.getEntry()).get(exit.getID()))
+				.map(exit -> graph.getLines().get(agent.getEntry()).get(exit))
 				.sorted(Comparator.comparingInt(List::size)).toList();
 			for (List<Integer> path : directionPaths) {
 				if (validPath(step, path, agentPerimeter)) {
@@ -87,6 +93,10 @@ public class SafeLines implements Algorithm {
 		addPlannedAgent(agent);
 
 		return agent;
+	}
+
+	protected Set<Integer> getExits(Agent agent) {
+		return agent.getExit() < 0 ? directionExits.get(agent.getExitDirection()) : Collections.singleton(agent.getExit());
 	}
 
 	@Override
@@ -242,8 +252,6 @@ public class SafeLines implements Algorithm {
 			long occupiedStep = stepVertices.getKey();
 			if (occupiedStep < step) {
 				it.remove();
-			} else {
-				stepVertices.getValue().clear();
 			}
 		}
 	}

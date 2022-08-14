@@ -50,7 +50,6 @@ public class SATSingleGrouped extends SafeLines {
 	private final boolean allowAgentStop;
 	private final boolean allowMultipleVisits;
 	protected final List<Integer>[] inverseNeighbours = new List[graph.getVertices().length];
-	protected final Map<Integer, Set<Integer>> directionExits = new HashMap<>();
 
 	public SATSingleGrouped(SimulationGraph graph) {
 		super(graph);
@@ -81,16 +80,6 @@ public class SATSingleGrouped extends SafeLines {
 				inverseNeighbours[neighbourID].add(vertex.getID());
 			}
 		}
-
-		graph.getEntryExitVertices().forEach((key, value) ->
-			directionExits.put(
-				key,
-				value.stream()
-					.filter(vertex -> vertex.getType().isExit())
-					.map(Vertex::getID)
-					.collect(Collectors.toSet())
-			)
-		);
 	}
 
 	/**
@@ -389,10 +378,6 @@ public class SATSingleGrouped extends SafeLines {
 				)),
 			step
 		);
-	}
-
-	protected Set<Integer> getExits(Agent agent) {
-		return agent.getExit() < 0 ? directionExits.get(agent.getExitDirection()) : Collections.singleton(agent.getExit());
 	}
 
 	@Override

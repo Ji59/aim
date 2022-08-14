@@ -70,4 +70,17 @@ public class SATAll extends SATSingleGrouped {
 		return plannedAgents;
 	}
 
+	@Override
+	protected void filterStepOccupiedVertices(long step) {
+		Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<Long, Map<Integer, Agent>> stepVertices = it.next();
+			long occupiedStep = stepVertices.getKey();
+			if (occupiedStep < step) {
+				it.remove();
+			} else {
+				stepVertices.getValue().clear();
+			}
+		}
+	}
 }

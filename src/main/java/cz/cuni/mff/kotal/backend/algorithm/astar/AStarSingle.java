@@ -158,7 +158,7 @@ public class AStarSingle extends SafeLines {
 		if (agent.getExit() >= 0) {
 			return Set.of(agent.getExit());
 		} else {
-			return directionExits.get(agent.getExitDirection()).stream().map(Vertex::getID).collect(Collectors.toSet());
+			return directionExits.get(agent.getExitDirection());
 		}
 	}
 

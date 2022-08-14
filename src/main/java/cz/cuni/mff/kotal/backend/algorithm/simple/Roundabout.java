@@ -44,7 +44,7 @@ public class Roundabout extends SafeLines {
 		final Integer agentExit;
 		if (agent.getExit() < 0) {
 			int exitNeighbourIndex = directionExits.get(agent.getExitDirection()).stream()
-				.mapToInt(exit -> roundTrip.indexOf(exitsNeighboursMapping.get(exit.getID())))
+				.mapToInt(exit -> roundTrip.indexOf(exitsNeighboursMapping.get(exit)))
 				.min().orElse(0);
 			exitNeighbour = roundTrip.get(exitNeighbourIndex);
 			agentExit = exitsNeighboursMapping.entrySet().stream().filter(exitPair -> exitPair.getValue() == exitNeighbour).mapToInt(Map.Entry::getKey).findFirst().orElse(0);
