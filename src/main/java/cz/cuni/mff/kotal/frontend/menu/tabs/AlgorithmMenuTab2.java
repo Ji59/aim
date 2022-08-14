@@ -2,10 +2,7 @@ package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
 import cz.cuni.mff.kotal.backend.algorithm.*;
-import cz.cuni.mff.kotal.backend.algorithm.astar.AStarBidirectionalRoundabout;
-import cz.cuni.mff.kotal.backend.algorithm.astar.AStarRoundabout;
-import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingle;
-import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingleGrouped;
+import cz.cuni.mff.kotal.backend.algorithm.astar.*;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATAll;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATRoundabout;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingle;
@@ -225,7 +222,8 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			ROUNDABOUT("Roundabout", "Standard one way one lane roundabout.", Roundabout.class),
 			BI_ROUNDABOUT("Bidirectional Roundabout", "One lane roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
 			A_STAR("A* single", "This algorithm computes A star algorithm for each agent in non-collision way.", AStarSingle.class),
-			A_STAR_ALL("A*", "TODO", AStarSingleGrouped.class),
+			A_STAR_SINGLE_GROUPED("A*", "TODO", AStarSingleGrouped.class),
+			A_STAR_ALL("A* all", "TODO", AStarAll.class),
 			A_STAR_ROUNDABOUT("A* single roundabout", "Roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarRoundabout.class),
 			A_STAR_BI_ROUNDABOUT("A* single bidirectional roundabout", "Bidirectional roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarBidirectionalRoundabout.class),
 			SAT_REPLAN_SINGLE_GROUPED("SAT planner", "Planning with SAT solver.", SATSingleGrouped.class),

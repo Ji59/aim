@@ -89,14 +89,18 @@ public class AStarSingleGrouped extends AStarSingle {
 		queue:
 		while (!queue.isEmpty()) {
 			final CompositeState state = queue.poll();
+			List<Agent> agentsList = new ArrayList<>(agents.length);
+
 			if (state.isFinal(exitsIDs)) {
 				final List<Integer>[] paths = constructPaths(state);
 				for (int i = 0; i < agentsCount; i++) {
 					Agent agent = agents[i];
 					agent.setPath(paths[i], step);
 					addPlannedAgent(agent);
+
+					agentsList.add(agent);
 				}
-				return List.of(agents);
+				return agentsList;
 			}
 
 			if (visitedStates.contains(state)) {
@@ -202,7 +206,6 @@ public class AStarSingleGrouped extends AStarSingle {
 
 			// add cartesian product of agents position vertex neighbours to queue
 			Set<VertexWithDirection[]> cartesianNeighbours = cartesianProductWithCheck(agents, exitsIDs, collisionPairs, collisionTransfers, state, neighboursVertices);
-			neighbours:
 			for (VertexWithDirection[] neighboursCombination : cartesianNeighbours) {
 				CompositeState nextState = new CompositeState(neighboursCombination, state);
 				if (visitedStates.contains(nextState)) {
