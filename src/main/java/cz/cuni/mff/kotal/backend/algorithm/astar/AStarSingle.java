@@ -6,12 +6,10 @@ import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
-import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class AStarSingle extends SafeLines {
 	protected static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
@@ -126,28 +124,28 @@ public class AStarSingle extends SafeLines {
 			double estimate;
 
 			if (Double.isFinite(estimate = heuristic.get(neighbourID)) &&
-				canVisitVertex(state, entryID, neighbourID, maximumDelay) &&
-				(
-					stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
-						|| (
-						safeVertex(neighbourStep, neighbourID, agentPerimeter) &&
-							safeStepTo(neighbourStep, neighbourID, state.getID(), agentPerimeter)
-					)
-				) &&
-				safeStepFrom(stateStep, state.getID(), neighbourID, agentPerimeter)
+							canVisitVertex(state, entryID, neighbourID, maximumDelay) &&
+							(
+											stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
+															|| (
+															safeVertex(neighbourStep, neighbourID, agentPerimeter) &&
+																			safeStepTo(neighbourStep, neighbourID, state.getID(), agentPerimeter)
+											)
+							) &&
+							safeStepFrom(stateStep, state.getID(), neighbourID, agentPerimeter)
 			) {
 				double distance = graph.getDistance(vertexID, neighbourID);
-				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);  // FIXME
+//				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);  // FIXME
 				queue.add(new State(state, graph.getVertex(neighbourID), distance, estimate));
 			}
 		}
 
 		if (
-			allowAgentStop &&
-				canVisitVertex(state, entryID, vertexID, maximumDelay) &&
-				(
-					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentPerimeter)
-				)
+						allowAgentStop &&
+										canVisitVertex(state, entryID, vertexID, maximumDelay) &&
+										(
+														stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentPerimeter)
+										)
 		) {
 			queue.add(new State(state));
 		}
@@ -168,11 +166,11 @@ public class AStarSingle extends SafeLines {
 
 	private boolean canVisitVertex(VertexWithDirectionParent state, int entryID, int vertexID, int maximumDelay) {
 		if (vertexID == entryID ||
-			(
-				!allowAgentReturn &&
-					state.getParent() != null &&
-					state.getParent().getID() == vertexID
-			)
+						(
+										!allowAgentReturn &&
+														state.getParent() != null &&
+														state.getParent().getID() == vertexID
+						)
 		) {
 			return false;
 		}

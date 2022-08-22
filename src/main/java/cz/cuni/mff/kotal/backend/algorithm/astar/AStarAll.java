@@ -55,16 +55,16 @@ public class AStarAll extends AStarSingleGrouped {
 		Collection<Agent> agents = agentsEntriesExits.keySet();
 
 		for (int i = agentsEntriesExits.size(); i > 0; i--) {
-			for (Collection<Agent> agentsCombination: MyNumberOperations.combinations(agents, i)) {
+			for (Collection<Agent> agentsCombination : MyNumberOperations.combinations(agents, i)) {
 				final Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExitsSubset = new HashMap<>(nonFinishedAgentsMap);
 				for (Agent agent : agentsCombination) {
 					agentsEntriesExitsSubset.put(agent, agentsEntriesExits.get(agent));
 				}
-				Collection<Agent> plannedAgents = findPaths(agentsEntriesExitsSubset, step);
-				if (!plannedAgents.isEmpty()) {
-					processPlannedAgents(step, plannedAgents);
-					return plannedAgents;
-				}
+//				Collection<Agent> plannedAgents = findPaths(agentsEntriesExitsSubset, step);
+//				if (!plannedAgents.isEmpty()) {
+//					processPlannedAgents(step, plannedAgents);
+//					return plannedAgents;
+//				}
 			}
 
 		}
@@ -115,6 +115,7 @@ public class AStarAll extends AStarSingleGrouped {
 
 	@Override
 	public void addPlannedAgent(Agent agent) {
+		setLargestAgentPerimeter(agent);
 	}
 
 	@Override

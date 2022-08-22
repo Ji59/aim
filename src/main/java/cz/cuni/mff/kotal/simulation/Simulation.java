@@ -1,20 +1,12 @@
 package cz.cuni.mff.kotal.simulation;
 
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
-import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,9 +66,9 @@ public abstract class Simulation {
 		maximumDelay = (long) intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
 
 		intersectionGraph.getEntryExitVertices().values().forEach(
-			directionList -> directionList.stream()
-				.filter(vertex -> vertex.getType().isEntry())
-				.forEach(entry -> delayedAgents.put(entry.getID(), new ArrayList<>()))
+						directionList -> directionList.stream()
+										.filter(vertex -> vertex.getType().isEntry())
+										.forEach(entry -> delayedAgents.put(entry.getID(), new ArrayList<>()))
 		);
 	}
 
@@ -260,7 +252,6 @@ public abstract class Simulation {
 	public void updateStatistics(double step) {
 		updateAgentsStats(step);
 
-		assert agentsTotal == allAgents.values().stream().filter(agent -> agent.getArrivalTime() <= step).count();
 		IntersectionMenu.setAgentsDelayRejections(agentsTotal, agentsDelay, agentsRejected);
 	}
 

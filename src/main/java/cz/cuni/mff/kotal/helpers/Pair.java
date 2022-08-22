@@ -31,7 +31,16 @@ public class Pair<E, F> {
 
 	@Override
 	public String toString() {
-		return val0.toString() + " + " + val1.toString();
+		return String.join(" : ", getTexts(val0, val1));
+	}
+
+	public static String[] getTexts(Object ... values) {
+		String[] texts = new String[values.length];
+		for (int i = 0; i < values.length; i++) {
+			Object value = values[i];
+			texts[i] = value == null ? "null" : value.toString();
+		}
+		return texts;
 	}
 
 	@Override

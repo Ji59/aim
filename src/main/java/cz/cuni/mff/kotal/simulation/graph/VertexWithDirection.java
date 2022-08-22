@@ -9,6 +9,8 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 	protected final GraphicalVertex vertex;
 	protected final double angle;
 	protected final double distance;
+	protected final double turnPenalty;
+	protected final int turns;
 	protected final double estimate;
 
 	public VertexWithDirection(GraphicalVertex vertex) {
@@ -23,6 +25,8 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 		this.vertex = vertex;
 		this.angle = angle;
 		this.distance = 0;
+		this.turnPenalty = 0;
+		this.turns = 0;
 		this.estimate = estimate;
 	}
 
@@ -55,13 +59,15 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 //			double middleDistanceY = getY() - 0.5;
 //			double middleDistance = Math.sqrt(middleDistanceX * middleDistanceX + middleDistanceY * middleDistanceY);  // TODO
 
-		this.distance = previous.getDistance() + verticesDistance + angleDiff * SimulationGraph.EPSILON; // + middleDistance * EPSILON * EPSILON;
+		this.distance = previous.distance + verticesDistance;
+		this.turnPenalty = previous.turnPenalty + angleDiff;
+		this.turns = previous.turns + (angleDiff == 0 ? 0 : 1);
 		this.estimate = estimate;
 	}
 
 	public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, double distance, double estimate) {
 		vertex = actual;
-		GraphicalVertex previousVertex = previous.getVertex();
+		GraphicalVertex previousVertex = previous.vertex;
 		double xDiff = previousVertex.getX() - vertex.getX();
 		double yDiff = previousVertex.getY() - vertex.getY();
 		this.angle = computeAngle(xDiff, yDiff);
@@ -76,7 +82,9 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 			}
 		}
 
-		this.distance = previous.getDistance() + distance + angleDiff * SimulationGraph.EPSILON; // + middleDistance * EPSILON * EPSILON;
+		this.distance = previous.distance + distance;
+		this.turnPenalty = previous.turnPenalty + angleDiff;
+		this.turns = previous.turns + (angleDiff == 0 ? 0 : 1);
 		this.estimate = estimate;
 	}
 
@@ -94,6 +102,7 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 		return Math.atan2(yDiff, xDiff);
 	}
 
+	@Deprecated
 	public static double getDistance(VertexWithDirection start, GraphicalVertex end) {
 		GraphicalVertex startVertex = start.getVertex();
 		double x0 = startVertex.getX();
@@ -121,6 +130,14 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 		return distance;
 	}
 
+	public double getTurnPenalty() {
+		return turnPenalty;
+	}
+
+	public int getTurns() {
+		return turns;
+	}
+
 	public double getEstimate() {
 		return estimate;
 	}
@@ -133,8 +150,8 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 	public boolean equals(Object o) {
 		if (o instanceof Vertex vertexObject) {
 			return vertex.getID() == vertexObject.getID();
-		} else if (o instanceof VertexWithDirectionParent vertexWithDirection) {
-			return vertex.getID() == vertexWithDirection.getVertex().getID();
+		} else if (o instanceof VertexWithDirection vertexWithDirection) {
+			return vertex.getID() == vertexWithDirection.vertex.getID();
 		}
 		return false;
 	}
@@ -149,7 +166,23 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 	}
 
 	@Override
-	public int compareTo(@NotNull VertexWithDirection o) {
-		return Double.compare(distance + estimate, o.getDistance() + o.estimate);
+	public int compareTo(@NotNull final VertexWithDirection o) {
+		final int heuristicsComparison = Double.compare(distance + estimate, o.distance + o.estimate);
+		if (heuristicsComparison == 0) {
+			final int turnPenaltyComparison = Double.compare(turnPenalty, o.turnPenalty);
+			if (turnPenaltyComparison == 0) {
+				final int turnsComparison = Integer.compare(o.turns, turns);  // prefer vertex with higher number of turns on path
+				if (turnsComparison == 0) {
+					final int distanceComparison = Double.compare(o.distance, distance);  // prefer vertex with greater traveled distance
+					if (distanceComparison == 0) {
+						return Integer.compare(vertex.getID(), o.vertex.getID());
+					}
+					return distanceComparison;
+				}
+				return turnsComparison;
+			}
+			return turnPenaltyComparison;
+		}
+		return heuristicsComparison;
 	}
 }

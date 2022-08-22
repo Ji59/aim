@@ -30,6 +30,10 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.23.1'
 }
 
+run {
+    enableAssertions = true
+}
+
 test {
     useJUnitPlatform()
     maxHeapSize = "10g"

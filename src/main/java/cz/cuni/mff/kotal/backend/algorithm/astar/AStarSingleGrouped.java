@@ -1,13 +1,15 @@
 package cz.cuni.mff.kotal.backend.algorithm.astar;
 
-import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.helpers.Pair;
+import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,43 +29,170 @@ public class AStarSingleGrouped extends AStarSingle {
 
 	@Override
 	public Collection<Agent> planAgents(final Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
-		stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
-
-		Iterator<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator();
-
 		// filter agents that cannot enter intersection
-		while (it.hasNext()) {
-			Map.Entry<Agent, Pair<Integer, Set<Integer>>> entry = it.next();
-			Agent agent = entry.getKey();
-			int agentEntry = entry.getValue().getVal0();
-			if (!safeVertex(step, agentEntry, agent.getAgentPerimeter())) {
-				it.remove();
-			}
-		}
+		filterAgentsWithNoEntry(agentsEntriesExits, step);
 
 		if (agentsEntriesExits.isEmpty()) {
 			return Collections.emptySet();
 		}
 
-		Collection<Agent> agents = agentsEntriesExits.keySet();
+		final Map<Long, Map<Integer, Agent>> illegalMoveTable = new HashMap<>(stepOccupiedVertices);
+		final Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = new HashMap<>();
 
-		for (int i = agentsEntriesExits.size(); i > 0; i--) {
-			for (Collection<Agent> agentsCombination: MyNumberOperations.combinations(agents, i)) {
-				final Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExitsSubset = new HashMap<>(i);
-				for (Agent agent : agentsCombination) {
-					agentsEntriesExitsSubset.put(agent, agentsEntriesExits.get(agent));
+		final Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups = new HashSet<>(agentsEntriesExits.size());
+
+		createInitialPaths(agentsEntriesExits, step, illegalMoveTable, conflictAvoidanceTable, agentsGroups);
+
+		if (agentsEntriesExits.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		Set<Agent> emptySet = solveAgentsCollisions(step, conflictAvoidanceTable, agentsGroups);
+		if (emptySet != null) return emptySet;
+
+		return agentsEntriesExits.keySet();
+	}
+
+	@Nullable
+	private Set<Agent> solveAgentsCollisions(long step, Map<Long, Map<Integer, Agent>> illegalMoveTable, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups) {
+		Optional<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> collisionTripletOptional;
+		while ((collisionTripletOptional = inCollision(agentsGroups)).isPresent()) {
+			Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet = collisionTripletOptional.get();
+			Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet = null;
+
+			Map<Agent, Pair<Integer, Set<Integer>>> group0 = group0CollisionTriplet.getVal0();
+			Map<Agent, Pair<Integer, Set<Integer>>> group1 = null;
+
+			Map<Long, Map<Integer, Agent>> group0IllegalMoveTable = new HashMap<>(illegalMoveTable);
+			Map<Long, Map<Integer, Agent>> group1IllegalMoveTable = new HashMap<>(illegalMoveTable);
+			mergeOccupiedVerticesMaps(group0IllegalMoveTable, group0CollisionTriplet.getVal1());
+
+			final Set<Agent> conflictAgents = group0CollisionTriplet.getVal2();
+
+			Map<Long, Map<Integer, Agent>> restGroupsConflictAvoidanceTable = new HashMap<>();
+
+			for (Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group : agentsGroups) {
+				Set<Agent> groupAgents = group.getVal0().keySet();
+				if (groupAgents.equals(group0)) {
+					continue;
 				}
-				Collection<Agent> plannedAgents = findPaths(agentsEntriesExitsSubset, step);
-				if (!plannedAgents.isEmpty()) {
-					return plannedAgents;
+
+				Map<Long, Map<Integer, Agent>> groupConflictAvoidanceTable = group.getVal1();
+				if (group1 == null && !Collections.disjoint(groupAgents, conflictAgents)) {
+					group1CollisionTriplet = group;
+					if (groupAgents.size() >= group0.size()) {
+						group1 = group.getVal0();
+						mergeOccupiedVerticesMaps(group1IllegalMoveTable, groupConflictAvoidanceTable);
+					} else {
+						Map<Long, Map<Integer, Agent>> temp = group1IllegalMoveTable;
+						mergeOccupiedVerticesMaps(temp, groupConflictAvoidanceTable);
+
+						group1 = group0;
+						group1IllegalMoveTable = group0IllegalMoveTable;
+
+						group0 = group.getVal0();
+						group0IllegalMoveTable = temp;
+					}
+				} else {
+					mergeOccupiedVerticesMaps(restGroupsConflictAvoidanceTable, groupConflictAvoidanceTable);
 				}
 			}
 
+			if (group1 == null) throw new AssertionError();
+
+			@Nullable Set<Agent> group0collisions = findPaths(group0, step, group1IllegalMoveTable, restGroupsConflictAvoidanceTable);
+			if (group0collisions != null) {
+				updateAgentsGroup(step, group0CollisionTriplet, group0collisions);
+				filterReplannedCollisionAgents(agentsGroups, group0.keySet());
+				continue;
+			}
+
+			@Nullable Set<Agent> group1Collisions = findPaths(group1, step, group0IllegalMoveTable, restGroupsConflictAvoidanceTable);
+			if (group1Collisions != null) {
+				updateAgentsGroup(step, group1CollisionTriplet, group1Collisions);
+				filterReplannedCollisionAgents(agentsGroups, group1.keySet());
+				continue;
+			}
+
+			agentsGroups.remove(group1CollisionTriplet);
+			group0.putAll(group1);
+			@Nullable Set<Agent> collisionAgents = findPaths(group1, step, illegalMoveTable, restGroupsConflictAvoidanceTable);
+			if (collisionAgents == null) {
+				return Collections.emptySet();  // FIXME
+			}
+
+			updateAgentsGroup(step, group0CollisionTriplet, collisionAgents);
+			filterReplannedCollisionAgents(agentsGroups, group0.keySet());
 		}
-		return Collections.emptySet();
+		return null;
 	}
 
-	protected Collection<Agent> findPaths(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+	private void createInitialPaths(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, Map<Long, Map<Integer, Agent>> illegalMoveTable, Map<Long, Map<Integer, Agent>> conflictAvoidanceTable, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups) {
+		for (Iterator<Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator(); it.hasNext(); ) {
+			final Entry<Agent, Pair<Integer, Set<Integer>>> agentEntryExitsEntry = it.next();
+			final Map<Agent, Pair<Integer, Set<Integer>>> agentEntryExitsMap = new HashMap<>(1);
+			agentEntryExitsMap.put(agentEntryExitsEntry.getKey(), agentEntryExitsEntry.getValue());
+			final @Nullable Set<Agent> collisionAgents = findPaths(agentEntryExitsMap, step, illegalMoveTable, conflictAvoidanceTable);
+			if (collisionAgents == null) {
+				it.remove();
+			} else {
+				final Map<Long, Map<Integer, Agent>> agentConflictAvoidanceTable = getConflictAvoidanceTable(agentEntryExitsMap, step);
+				agentsGroups.add(new Triplet<>(agentEntryExitsMap, agentConflictAvoidanceTable, collisionAgents));
+				mergeOccupiedVerticesMaps(illegalMoveTable, agentConflictAvoidanceTable);  // FIXME
+			}
+		}
+	}
+
+	private void filterAgentsWithNoEntry(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+		for (Iterator<Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator(); it.hasNext(); ) {
+			final Entry<Agent, Pair<Integer, Set<Integer>>> entry = it.next();
+			final Agent agent = entry.getKey();
+			final int agentEntry = entry.getValue().getVal0();
+			if (!safeVertex(step, agentEntry, agent.getAgentPerimeter())) {
+				it.remove();
+			}
+		}
+	}
+
+	protected void filterReplannedCollisionAgents(Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups, Set<Agent> replannedAgents) {
+		for (Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> agentGroup : agentsGroups) {
+			Set<Agent> collisionAgents = agentGroup.getVal2();
+			collisionAgents.removeAll(replannedAgents);
+		}
+	}
+
+	protected void mergeOccupiedVerticesMaps(Map<Long, Map<Integer, Agent>> destinationMap, final Map<Long, Map<Integer, Agent>> sourceMap) {
+		for (Entry<Long, Map<Integer, Agent>> stepOccupiedVerticesEntry : sourceMap.entrySet()) {
+			long step = stepOccupiedVerticesEntry.getKey();
+			destinationMap.computeIfAbsent(step, k -> new HashMap<>());
+			destinationMap.get(step).putAll(stepOccupiedVerticesEntry.getValue());
+		}
+	}
+
+	protected void updateAgentsGroup(long step, Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> collisionTriplet, @Nullable Set<Agent> collisionsAgents) {
+		collisionTriplet.setVal1(getConflictAvoidanceTable(collisionTriplet.getVal0(), step));
+		collisionTriplet.setVal2(collisionsAgents);
+	}
+
+	protected Optional<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> inCollision(Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups) {
+		return agentsGroups.stream().filter(triplet -> !triplet.getVal2().isEmpty()).findAny();
+	}
+
+	protected Map<Long, Map<Integer, Agent>> getConflictAvoidanceTable(Map<Agent, Pair<Integer, Set<Integer>>> agents, long step) {
+		Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = new HashMap<>();
+		for (Agent agent : agents.keySet()) {
+			ListIterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedTime()));
+			for (long i = step; it.hasNext(); i++) {
+				int vertexID = it.next();
+				conflictAvoidanceTable.computeIfAbsent(i, k -> new HashMap<>());
+				conflictAvoidanceTable.get(i).put(vertexID, agent);
+			}
+		}
+
+		return conflictAvoidanceTable;
+	}
+
+	protected @Nullable Set<Agent> findPaths(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, final Map<Long, Map<Integer, Agent>> illegalMoveTable, final Map<Long, Map<Integer, Agent>> conflictAvoidanceTable) {
 		final int agentsCount = agentsEntriesExits.size();
 		final Set<Integer>[] exitsIDs = new Set[agentsCount];
 		final Agent[] agents = new Agent[agentsCount];
@@ -86,21 +215,12 @@ public class AStarSingleGrouped extends AStarSingle {
 		final PriorityQueue<CompositeState> queue = new PriorityQueue<>();
 		queue.add(initialState);
 
-		queue:
 		while (!queue.isEmpty()) {
 			final CompositeState state = queue.poll();
-			List<Agent> agentsList = new ArrayList<>(agents.length);
 
 			if (state.isFinal(exitsIDs)) {
-				final List<Integer>[] paths = constructPaths(state);
-				for (int i = 0; i < agentsCount; i++) {
-					Agent agent = agents[i];
-					agent.setPath(paths[i], step);
-					addPlannedAgent(agent);
-
-					agentsList.add(agent);
-				}
-				return agentsList;
+				constructPaths(step, agentsCount, agents, state);
+				return state.collisionAgents;
 			}
 
 			if (visitedStates.contains(state)) {
@@ -111,103 +231,35 @@ public class AStarSingleGrouped extends AStarSingle {
 
 			long stateStep = state.getStep();
 			final long nextStep = stateStep + 1;
-			stepOccupiedVertices.putIfAbsent(nextStep, new HashMap<>());
 
 			// check if all non-finished agents can continue their journey
-			for (int i = 0; i < agentsCount; i++) {
-				if (nextStep - step > maximumDelays[i] && !exitsIDs[i].contains(state.getStates()[i].getID())) {
-					continue queue;
-				}
+			if (validState(step, agentsCount, exitsIDs, maximumDelays, state, nextStep)) {
+				continue;
 			}
 
 			final Set<Integer>[] neighbours = new Set[agentsCount];
 			final Map<Integer, Integer>[] neighboursVisited = new Map[agentsCount];
-			for (int i = 0; i < agentsCount; i++) {
-				Set<Integer> vertexNeighbours = new HashSet<>(state.getStates()[i].getVertex().getNeighbourIDs());
-				neighbours[i] = vertexNeighbours;
-				if (allowAgentStop) {
-					vertexNeighbours.add(state.getStates()[i].getID());
-				}
-
-				if (!allowAgentReturn && state.getParent() != null) {
-					vertexNeighbours.remove(state.getParent().getStates()[i].getID());
-				}
-
-				neighboursVisited[i] = new HashMap<>(neighbours[i].size());
-				for (Iterator<Integer> iterator = vertexNeighbours.iterator(); iterator.hasNext(); ) {
-					final int id = iterator.next();
-					if (heuristics[i][id] == 0) {
-						heuristics[i][id] = getHeuristic(exitsIDs[i], id);
-					}
-					if (Double.isFinite(heuristics[i][id])) {
-						neighboursVisited[i].put(id, 1);
-					} else {
-						iterator.remove();
-					}
-				}
-			}
+			generateIndividualNeighbours(step, agentsCount, exitsIDs, heuristics, maximumDelays, state, nextStep, neighbours, neighboursVisited);
 
 			// Remove neighbours visited too many times
-			CompositeState predecessorState = state;
-			while (predecessorState != null) {
-				for (int i = 0; i < agentsCount; i++) {
-					int predecessorVertexID = predecessorState.getStates()[i].getID();
-					if (neighbours[i].contains(predecessorVertexID)) {
-						int vertexVisits = neighboursVisited[i].get(predecessorVertexID);
-						if (vertexVisits >= maximumVertexVisits) {
-							neighbours[i].remove(predecessorVertexID);
-						} else {
-							neighboursVisited[i].put(predecessorVertexID, vertexVisits + 1);
-						}
-					}
-				}
-				predecessorState = predecessorState.getParent();
-			}
+			filterVisitedNeighbours(agentsCount, state, neighbours, neighboursVisited);
+
 
 			// remove colliding neighbours
-			for (int i = 0; i < agentsCount; i++) {
-				final int stateID = state.getStates()[i].getID();
-				for (Iterator<Integer> iterator = neighbours[i].iterator(); iterator.hasNext(); ) {
-					final int neighbourID = iterator.next();
-					final double agentPerimeter = agents[i].getAgentPerimeter();
-					if (!safeVertex(nextStep, neighbourID, agentPerimeter) ||
-						!safeStepTo(nextStep, neighbourID, stateID, agentPerimeter) ||
-						!safeStepFrom(stateStep, stateID, neighbourID, agentPerimeter)
-					) {
-						iterator.remove();
-					}
-				}
-			}
+			final Map<Integer, Agent>[] neighboursCollisions = filterCollidingNeighbours(illegalMoveTable, conflictAvoidanceTable, agentsCount, agents, state, stateStep, nextStep, neighbours);
 
 			// if any traveling agent does not have any valid neighbours, skip generating neighbours states
-			for (int i = 0; i < agentsCount; i++) {
-				if (neighbours[i].isEmpty() && !exitsIDs[i].contains(state.getStates()[i].getID())) {
-					continue queue;
-				}
+			if (existsNoneValidNeighbour(agentsCount, exitsIDs, state, neighbours)) {
+				continue;
 			}
 
 			// for each valid neighbour create vertex object
-			final VertexWithDirection[][] neighboursVertices = new VertexWithDirection[agentsCount][];
-			for (int i = 0; i < agentsCount; i++) {
-				final VertexWithDirection stateVertex = state.getStates()[i];
-				final Set<Integer> vertexNeighbours = neighbours[i];
-				if (vertexNeighbours.isEmpty()) {
-					neighboursVertices[i] = new VertexWithDirection[]{stateVertex};
-				} else {
-					VertexWithDirection[] neighboursWithVisit = new VertexWithDirection[vertexNeighbours.size()];
-					neighboursVertices[i] = neighboursWithVisit;
-					int j = 0;
-					for (int id : vertexNeighbours) {
-						final double distance = graph.getDistance(stateVertex.getID(), id);
-						neighboursWithVisit[j++] = new VertexWithDirection(stateVertex, graph.getVertex(id), distance, heuristics[i][id]);
-					}
-				}
-			}
+			final VertexWithDirection[][] neighboursVertices = generateVertexObjects(agentsCount, heuristics, state, neighbours);
 
 			// add cartesian product of agents position vertex neighbours to queue
 			Set<VertexWithDirection[]> cartesianNeighbours = cartesianProductWithCheck(agents, exitsIDs, collisionPairs, collisionTransfers, state, neighboursVertices);
 			for (VertexWithDirection[] neighboursCombination : cartesianNeighbours) {
-				CompositeState nextState = new CompositeState(neighboursCombination, state);
+				CompositeState nextState = new CompositeState(neighboursCombination, state, collisionCount(neighboursCombination, neighboursCollisions));
 				if (visitedStates.contains(nextState)) {
 					continue;
 				}
@@ -215,7 +267,148 @@ public class AStarSingleGrouped extends AStarSingle {
 			}
 		}
 
-		return Collections.emptySet();
+		return null;
+	}
+
+	@NotNull
+	private VertexWithDirection[][] generateVertexObjects(int agentsCount, double[][] heuristics, CompositeState state, Set<Integer>[] neighbours) {
+		final VertexWithDirection[][] neighboursVertices = new VertexWithDirection[agentsCount][];
+		for (int i = 0; i < agentsCount; i++) {
+			final VertexWithDirection stateVertex = state.getStates()[i];
+			final Set<Integer> vertexNeighbours = neighbours[i];
+			if (vertexNeighbours.isEmpty()) {
+				neighboursVertices[i] = new VertexWithDirection[]{stateVertex};
+			} else {
+				VertexWithDirection[] neighboursWithVisit = new VertexWithDirection[vertexNeighbours.size()];
+				neighboursVertices[i] = neighboursWithVisit;
+				int j = 0;
+				for (int id : vertexNeighbours) {
+					final double distance = graph.getDistance(stateVertex.getID(), id);
+					neighboursWithVisit[j++] = new VertexWithDirection(stateVertex, graph.getVertex(id), distance, heuristics[i][id]);
+				}
+			}
+		}
+		return neighboursVertices;
+	}
+
+	private static boolean existsNoneValidNeighbour(int agentsCount, Set<Integer>[] exitsIDs, CompositeState state, Set<Integer>[] neighbours) {
+		for (int i = 0; i < agentsCount; i++) {
+			if (neighbours[i].isEmpty() && !exitsIDs[i].contains(state.getStates()[i].getID())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Map<Integer, Agent>[] filterCollidingNeighbours(Map<Long, Map<Integer, Agent>> illegalMoveTable, Map<Long, Map<Integer, Agent>> conflictAvoidanceTable, int agentsCount, Agent[] agents, CompositeState state, long stateStep, long nextStep, Set<Integer>[] neighbours) {
+		final Map<Integer, Agent>[] neighboursCollisions = new Map[neighbours.length];
+
+		for (int i = 0; i < agentsCount; i++) {
+			final int stateID = state.getStates()[i].getID();
+			final Map<Integer, Agent> agentNeighboursCollisions = new HashMap<>();
+			neighboursCollisions[i] = agentNeighboursCollisions;
+			for (Iterator<Integer> iterator = neighbours[i].iterator(); iterator.hasNext(); ) {
+				final int neighbourID = iterator.next();
+				final double agentPerimeter = agents[i].getAgentPerimeter();
+				if (safeVertex(illegalMoveTable, nextStep, neighbourID, agentPerimeter) &&
+								safeStepTo(illegalMoveTable, nextStep, neighbourID, stateID, agentPerimeter) &&
+								safeStepFrom(illegalMoveTable, stateStep, stateID, neighbourID, agentPerimeter)
+				) {
+					if (!safeVertex(conflictAvoidanceTable, nextStep, neighbourID, agentPerimeter)) {
+						agentNeighboursCollisions.put(neighbourID, collisionAgentAtVertex(conflictAvoidanceTable, nextStep, neighbourID, agentPerimeter));
+					} else if (!safeStepTo(conflictAvoidanceTable, nextStep, neighbourID, stateID, agentPerimeter)) {
+						agentNeighboursCollisions.put(neighbourID, conflictAvoidanceTable.get(stateStep).get(neighbourID));
+					} else if (!safeStepFrom(conflictAvoidanceTable, stateStep, stateID, neighbourID, agentPerimeter)) {
+						agentNeighboursCollisions.put(neighbourID, conflictAvoidanceTable.get(nextStep).get(stateID));
+					}
+					if (agentNeighboursCollisions.containsKey(neighbourID) && agentNeighboursCollisions.get(neighbourID) == null) {
+						throw new AssertionError();
+					}
+				} else {
+					iterator.remove();
+				}
+			}
+		}
+
+		return neighboursCollisions;
+	}
+
+	private void filterVisitedNeighbours(int agentsCount, CompositeState state, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited) {
+		CompositeState predecessorState = state;
+		while (predecessorState != null) {
+			for (int i = 0; i < agentsCount; i++) {
+				int predecessorVertexID = predecessorState.getStates()[i].getID();
+				if (neighbours[i].contains(predecessorVertexID)) {
+					int vertexVisits = neighboursVisited[i].get(predecessorVertexID);
+					if (vertexVisits >= maximumVertexVisits) {
+						neighbours[i].remove(predecessorVertexID);
+					} else {
+						neighboursVisited[i].put(predecessorVertexID, vertexVisits + 1);
+					}
+				}
+			}
+			predecessorState = predecessorState.getParent();
+		}
+	}
+
+	private void generateIndividualNeighbours(long step, int agentsCount, Set<Integer>[] exitsIDs, double[][] heuristics, int[] maximumDelays, CompositeState state, long nextStep, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited) {
+		for (int i = 0; i < agentsCount; i++) {
+			Set<Integer> vertexNeighbours = new HashSet<>(state.getStates()[i].getVertex().getNeighbourIDs());
+			neighbours[i] = vertexNeighbours;
+			if (allowAgentStop) {
+				vertexNeighbours.add(state.getStates()[i].getID());
+			}
+
+			if (!allowAgentReturn && state.getParent() != null) {
+				vertexNeighbours.remove(state.getParent().getStates()[i].getID());
+			}
+
+			neighboursVisited[i] = new HashMap<>(neighbours[i].size());
+			for (Iterator<Integer> iterator = vertexNeighbours.iterator(); iterator.hasNext(); ) {
+				final int id = iterator.next();
+				if (heuristics[i][id] == 0) {
+					heuristics[i][id] = getHeuristic(exitsIDs[i], id);
+				}
+				double vertexHeuristic = heuristics[i][id];
+				if (Double.isFinite(vertexHeuristic) && vertexHeuristic <= step + maximumDelays[i] - nextStep) {
+					neighboursVisited[i].put(id, 1);
+				} else {
+					iterator.remove();
+				}
+			}
+		}
+	}
+
+	private static boolean validState(long step, int agentsCount, Set<Integer>[] exitsIDs, int[] maximumDelays, CompositeState state, long nextStep) {
+		for (int i = 0; i < agentsCount; i++) {
+			if (nextStep - step > maximumDelays[i] && !exitsIDs[i].contains(state.getStates()[i].getID())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void constructPaths(long step, int agentsCount, Agent[] agents, CompositeState state) {
+		final List<Integer>[] paths = constructPaths(state);
+		for (int i = 0; i < agentsCount; i++) {
+			Agent agent = agents[i];
+			agent.setPath(paths[i], step);
+			addPlannedAgent(agent);
+		}
+	}
+
+	private Pair<Integer, Set<Agent>> collisionCount(VertexWithDirection[] vertices, Map<Integer, Agent>[] collidingVertices) {
+		int collisions = 0;
+		Set<Agent> collisionAgents = new HashSet<>();
+		for (int i = 0; i < vertices.length; i++) {
+			int vertexID = vertices[i].getID();
+			if (collidingVertices[i].containsKey(vertexID)) {
+				collisions++;
+				collisionAgents.add(collidingVertices[i].get(vertexID));
+			}
+		}
+
+		return new Pair<>(collisions, collisionAgents);
 	}
 
 	private Set<VertexWithDirection[]> cartesianProductWithCheck(final Agent[] agents, Set<Integer>[] exitsIDs, final Map<Integer, Set<Integer>>[][] collisionPairs, final Map<Integer, Map<Pair<Integer, Integer>, Pair<Boolean, Boolean>>>[][] collisionTransfers, final CompositeState previousState, final VertexWithDirection[][] neighbours) {
@@ -320,9 +513,9 @@ public class AStarSingleGrouped extends AStarSingle {
 
 	private CompositeState generateInitialState(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, Set<Integer>[] exitsIDs, Agent[] agents, double[][] heuristics, int[] maximumDelays, long step) {
 		final VertexWithDirection[] initialStates = new VertexWithDirection[agents.length];
-		final Iterator<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator();
+		final Iterator<Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator();
 		for (int i = 0; it.hasNext(); i++) {
-			final Map.Entry<Agent, Pair<Integer, Set<Integer>>> agentPairEntry = it.next();
+			final Entry<Agent, Pair<Integer, Set<Integer>>> agentPairEntry = it.next();
 			final Agent agent = agentPairEntry.getKey();
 			agents[i] = agent;
 
@@ -346,22 +539,62 @@ public class AStarSingleGrouped extends AStarSingle {
 	protected static class CompositeState implements Comparable<CompositeState> {
 		private final VertexWithDirection[] states;
 		private final long step;
-
 		private final CompositeState parent;
+		private final int collisions;
+		private final Set<Agent> collisionAgents;
 
 		protected CompositeState(VertexWithDirection[] states, long step) {
 			this.states = states;
 			this.step = step;
+			this.collisions = 0;
 			this.parent = null;
+			this.collisionAgents = new HashSet<>();
 		}
 
-		protected CompositeState(VertexWithDirection[] states, CompositeState parent) {
+		protected CompositeState(VertexWithDirection[] states, CompositeState parent, Pair<Integer, Set<Agent>> collisionsAgentPair) {
 			this.states = states;
 			this.step = parent.step + 1;
 			this.parent = parent;
+			this.collisions = collisionsAgentPair.getVal0() + parent.collisions;
+			Set<Agent> collisionAgentsSet = collisionsAgentPair.getVal1();
+			collisionAgentsSet.addAll(parent.collisionAgents);
+			this.collisionAgents = collisionAgentsSet;
 		}
 
-		protected double getEstimate() {
+		protected double getDistance() {
+			double distance = 0;
+			for (VertexWithDirection vertex : states) {
+				if (vertex != null) {
+					distance += vertex.getDistance();
+				}
+			}
+
+			return distance;
+		}
+
+		protected double getTurnPenalty() {
+			double turnPenalty = 0;
+			for (VertexWithDirection vertex : states) {
+				if (vertex != null) {
+					turnPenalty += vertex.getTurnPenalty();
+				}
+			}
+
+			return turnPenalty;
+		}
+
+		protected int getTurns() {
+			int turns = 0;
+			for (VertexWithDirection vertex : states) {
+				if (vertex != null) {
+					turns += vertex.getTurns();
+				}
+			}
+
+			return turns;
+		}
+
+		protected double getHeuristics() {
 			double estimate = 0;
 			for (VertexWithDirection vertex : states) {
 				if (vertex != null) {
@@ -395,8 +628,33 @@ public class AStarSingleGrouped extends AStarSingle {
 		}
 
 		@Override
-		public int compareTo(@NotNull CompositeState collectiveState) {
-			return Double.compare(this.getEstimate(), collectiveState.getEstimate());
+		public int compareTo(@NotNull final CompositeState collectiveState) {
+			final int heuristicsComparison = Double.compare(getHeuristics(), collectiveState.getHeuristics());
+			if (heuristicsComparison == 0) {
+				final int turnPenaltyComparison = Double.compare(getTurnPenalty(), collectiveState.getTurnPenalty());
+				if (turnPenaltyComparison == 0) {
+					final int turnsComparison = Integer.compare(collectiveState.getTurns(), getTurns());  // prefer higher number of turns
+					if (turnsComparison == 0) {
+						final int collisionsComparison = Integer.compare(collisions, collectiveState.collisions);
+						if (collisionsComparison == 0) {
+							final int distanceComparison = Double.compare(collectiveState.getDistance(), getDistance());   // prefer vertex with greater traveled distance
+							if (distanceComparison == 0) {
+								for (int i = 0; i < states.length; i++) {
+									int idComparison = Integer.compare(states[i].getID(), collectiveState.states[i].getID());
+									if (idComparison != 0) {
+										return idComparison;
+									}
+								}
+							}
+							return distanceComparison;
+						}
+						return collisionsComparison;
+					}
+					return turnsComparison;
+				}
+				return turnPenaltyComparison;
+			}
+			return heuristicsComparison;
 		}
 
 		@Override

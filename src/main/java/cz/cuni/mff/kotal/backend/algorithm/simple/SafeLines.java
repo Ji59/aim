@@ -9,6 +9,7 @@ import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ public class SafeLines implements Algorithm {
 	protected final SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
+	protected double largestAgentPerimeter = 0;
 
 	public SafeLines(SimulationGraph graph) {
 		this.graph = graph;
@@ -118,6 +120,15 @@ public class SafeLines implements Algorithm {
 			path = linkGraph.getRealPath(path);
 			agent.setPath(path, agent.getPlannedTime());
 		}
+
+		setLargestAgentPerimeter(agent);
+	}
+
+	protected void setLargestAgentPerimeter(Agent agent) {
+		double agentPerimeter = agent.getAgentPerimeter();
+		if (agentPerimeter > largestAgentPerimeter) {
+			largestAgentPerimeter = agentPerimeter;
+		}
 	}
 
 	@Override
@@ -126,6 +137,8 @@ public class SafeLines implements Algorithm {
 			stepOccupiedVertices.putIfAbsent(step + i, new HashMap<>());
 			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
 		}
+
+		setLargestAgentPerimeter(agent);
 	}
 
 	public boolean validPath(long step, List<Integer> path, double agentPerimeter) {
@@ -147,10 +160,41 @@ public class SafeLines implements Algorithm {
 	}
 
 	protected boolean safeVertex(long step, int vertexID, double agentPerimeter) {
-		assert stepOccupiedVertices.containsKey(step);
+		return safeVertex(stepOccupiedVertices, step, vertexID, agentPerimeter);
+	}
+
+	protected boolean safeVertex(final Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, double agentPerimeter) {
+		if (!illegalMoveTable.containsKey(step)) {
+			return true;
+		}
+
+		final double safePerimeter = agentPerimeter + safeDistance;
 		return verticesDistances.get(vertexID).stream()
-			.takeWhile(v -> v.distance() <= agentPerimeter + safeDistance)
-			.noneMatch(v -> stepOccupiedVertices.get(step).containsKey(v.vertexID()));
+			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
+			.allMatch(v -> {
+				Agent neighbour = illegalMoveTable.get(step).get(v.vertexID());
+				return neighbour == null || neighbour.getAgentPerimeter() + safePerimeter < v.distance;
+			});
+	}
+
+	@Nullable
+	protected Agent collisionAgentAtVertex(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, double agentPerimeter) {
+		if (!illegalMoveTable.containsKey(step)) {
+			return null;
+		}
+
+		final double safePerimeter = agentPerimeter + safeDistance;
+		return verticesDistances.get(vertexID).stream()  // FIXME add other agent size to computation
+			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
+			.map(v -> {
+				Agent neighbour = illegalMoveTable.get(step).get(v.vertexID());
+				if (neighbour == null || neighbour.getAgentPerimeter() + safePerimeter < v.distance) {
+					return null;
+				}
+				return neighbour;
+			})
+			.filter(Objects::nonNull)
+			.findFirst().orElse(null);
 	}
 
 	protected int[] conflictVertices(int vertexID, double agentsPerimeter) {
@@ -162,11 +206,14 @@ public class SafeLines implements Algorithm {
 	}
 
 	public boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
-		if (!stepOccupiedVertices.containsKey(step - 1)) {
+		return safeStepTo(stepOccupiedVertices, step, vertexID, previousVertexID, agentPerimeter);
+	}
+	public boolean safeStepTo(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, int previousVertexID, double agentPerimeter) {
+		if (!illegalMoveTable.containsKey(step - 1)) {
 			return true;
 		}
 
-		Agent neighbour = stepOccupiedVertices.get(step - 1).get(vertexID);
+		Agent neighbour = illegalMoveTable.get(step - 1).get(vertexID);
 		if (neighbour == null) {
 			return true;
 		}
@@ -178,10 +225,13 @@ public class SafeLines implements Algorithm {
 	}
 
 	public boolean safeStepFrom(long step, int vertexID, int nextVertexID, double agentPerimeter) {
-		if (!stepOccupiedVertices.containsKey(step + 1)) {
+		return safeStepFrom(stepOccupiedVertices, step, vertexID, nextVertexID, agentPerimeter);
+	}
+	public boolean safeStepFrom(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, int nextVertexID, double agentPerimeter) {
+		if (!illegalMoveTable.containsKey(step + 1)) {
 			return true;
 		}
-		Agent neighbour = stepOccupiedVertices.get(step + 1).get(vertexID);
+		Agent neighbour = illegalMoveTable.get(step + 1).get(vertexID);
 		if (neighbour == null) {
 			return true;
 		}
@@ -193,13 +243,13 @@ public class SafeLines implements Algorithm {
 	}
 
 	protected int getNeighbourVertexID(long step, Agent neighbour) {
-		long plannedTime = neighbour.getPlannedTime() >= 0 ? neighbour.getPlannedTime() : step;
-		int neighbourStep = (int) (step - plannedTime);
+		final long plannedTime = neighbour.getPlannedTime() >= 0 ? neighbour.getPlannedTime() : step;
+		final int neighbourStep = (int) (step - plannedTime);
 		if (neighbourStep >= neighbour.getPath().size()) {
 			return -1;
 		}
 
-		Integer neighbourVertexID = neighbour.getPath().get(neighbourStep);
+		int neighbourVertexID = neighbour.getPath().get(neighbourStep);
 		if (graph instanceof LinkGraph linkGraph) {
 			return linkGraph.getLinkID(neighbourVertexID);
 		}
@@ -254,6 +304,73 @@ public class SafeLines implements Algorithm {
 				it.remove();
 			}
 		}
+	}
+
+	public boolean inCollision(Collection<Agent> agents0, Collection<Agent> agents1) {
+		for (Agent agent0 : agents0) {
+			for (Agent agent1 : agents1) {
+				if (inCollision(agent0, agent1)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public boolean inCollision(Agent agent0, Agent agent1) {
+		final long agent0PlannedTime = agent0.getPlannedTime();
+		final long agent1PlannedTime = agent1.getPlannedTime();
+		final List<Integer> agent0Path = agent0.getPath();
+		final List<Integer> agent1Path = agent1.getPath();
+		final double agent0Perimeter = agent0.getAgentPerimeter();
+		final double agent1Perimeter = agent1.getAgentPerimeter();
+		final double agentsPerimeter = agent0Perimeter + agent1Perimeter;
+
+		final long startStep = Math.min(agent0PlannedTime, agent1PlannedTime);
+		final long endStep = Math.min(agent0PlannedTime + agent0Path.size(), agent1PlannedTime + agent1Path.size());
+
+		if (endStep < startStep) {
+			return false;
+		}
+
+		ListIterator<Integer> itP0 = agent0Path.listIterator((int) (startStep - agent0PlannedTime));
+		ListIterator<Integer> itP1 = agent1Path.listIterator((int) (startStep - agent1PlannedTime));
+
+		int vertexP0 = itP0.next();
+		int vertexP1 = itP1.next();
+		int vertexP0Last;
+		int vertexP1Last;
+
+		if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
+			return true;
+		}
+
+		while (itP0.hasNext() && itP1.hasNext()) {
+			vertexP0Last = vertexP0;
+			vertexP1Last = vertexP1;
+
+			vertexP0 = itP0.next();
+			vertexP1 = itP1.next();
+
+			if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
+				return true;
+			}
+
+			if (vertexP0 == vertexP1Last) {
+				if (checkNeighbour(vertexP0, vertexP0Last, vertexP1, agent0Perimeter, agent1Perimeter)) {
+					return true;
+				}
+			}
+
+			if (vertexP1 == vertexP0Last) {
+				if (checkNeighbour(vertexP1, vertexP1Last, vertexP0, agent1Perimeter, agent0Perimeter)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	protected record VertexDistance(int vertexID, double distance) implements Comparable<VertexDistance> {

@@ -4,7 +4,7 @@ import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
-import cz.cuni.mff.kotal.helpers.Triple;
+import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
@@ -93,8 +93,8 @@ public class SATSingleGrouped extends SafeLines {
 	 * @param step
 	 * @return
 	 */
-	protected Pair<IVecInt, ConstrGroup> createAgentClauses(ISolver solver, int startingVertex, Set<Integer> exits, Deque<Triple<Integer, Agent, boolean[][]>> offsets, long step) throws ContradictionException {
-		Triple<Integer, Agent, boolean[][]> offsetAgent = offsets.getLast();
+	protected Pair<IVecInt, ConstrGroup> createAgentClauses(ISolver solver, int startingVertex, Set<Integer> exits, Deque<Triplet<Integer, Agent, boolean[][]>> offsets, long step) throws ContradictionException {
+		Triplet<Integer, Agent, boolean[][]> offsetAgent = offsets.getLast();
 		final Agent agent = offsetAgent.getVal1();
 		final double agentPerimeter = agent.getAgentPerimeter();
 
@@ -216,9 +216,9 @@ public class SATSingleGrouped extends SafeLines {
 		return unitAndConstrains;
 	}
 
-	protected Pair<IVecInt, ConstrGroup> addAgentsClauses(ISolver solver, Deque<Triple<Integer, Agent, boolean[][]>> offsets, long step) throws ContradictionException {
+	protected Pair<IVecInt, ConstrGroup> addAgentsClauses(ISolver solver, Deque<Triplet<Integer, Agent, boolean[][]>> offsets, long step) throws ContradictionException {
 		final int vertices = graph.getVertices().length;
-		Triple<Integer, Agent, boolean[][]> last = offsets.getLast();
+		Triplet<Integer, Agent, boolean[][]> last = offsets.getLast();
 		final int agentOffset = last.getVal0();
 		final double agentPerimeter = last.getVal1().getAgentPerimeter();
 		final boolean[][] validTimeVertices = last.getVal2();
@@ -235,16 +235,16 @@ public class SATSingleGrouped extends SafeLines {
 		return new Pair<>(unitClauses, agentConstrains);
 	}
 
-	private void addAgentsVertexClauses(ISolver solver, Deque<Triple<Integer, Agent, boolean[][]>> offsets, int vertices, int agentOffset, double agentPerimeter, boolean[][] validTimeVertices, ConstrGroup agentConstrains, int i) throws ContradictionException {
+	private void addAgentsVertexClauses(ISolver solver, Deque<Triplet<Integer, Agent, boolean[][]>> offsets, int vertices, int agentOffset, double agentPerimeter, boolean[][] validTimeVertices, ConstrGroup agentConstrains, int i) throws ContradictionException {
     /*
 			if agent `a_i` is at vertex `v_x` at time `t`, no other agent `n` can be at near vertex `v_y` at time `t`.
 			=> ∀_{vertex x, time t} ((|V| * t + x + offset_i) -> ∧_{agent j != i, vertex y near x} ¬(|V| * t + y + offset_j))
 			<=> ∀_{vertex x, time t} ∀_{agent j != i} ∀_{vertex y near x} (¬(|V| * t + x + offset_i) ∨ ¬(|V| * t + y + offset_j))
 		*/
-		for (Triple<Integer, Agent, boolean[][]> offsetTriple : offsets) {
-			final Integer neighbourOffset = offsetTriple.getVal0();
-			final double neighbourPerimeter = offsetTriple.getVal1().getAgentPerimeter();
-			final boolean[][] neighbourValidTimeVertices = offsetTriple.getVal2();
+		for (Triplet<Integer, Agent, boolean[][]> offsetTriplet : offsets) {
+			final Integer neighbourOffset = offsetTriplet.getVal0();
+			final double neighbourPerimeter = offsetTriplet.getVal1().getAgentPerimeter();
+			final boolean[][] neighbourValidTimeVertices = offsetTriplet.getVal2();
 			if (neighbourOffset == agentOffset) {
 				continue;
 			}
@@ -392,7 +392,7 @@ public class SATSingleGrouped extends SafeLines {
 		stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
 		Map<Agent, Pair<Integer, Set<Integer>>> invalidAgents = new HashMap<>();
 
-		Deque<Triple<Integer, Agent, boolean[][]>> offsets = new ArrayDeque<>(agentsEntriesExits.size());
+		Deque<Triplet<Integer, Agent, boolean[][]>> offsets = new ArrayDeque<>(agentsEntriesExits.size());
 		int offset = 1;
 		IVecInt validUnitClauses = new VecInt();
 		final int vertices = graph.getVertices().length;
@@ -406,7 +406,7 @@ public class SATSingleGrouped extends SafeLines {
 
 			boolean[][] validTimeVertices = getValidTimeVertices(entry, exits, vertices);
 
-			offsets.add(new Triple<>(offset, agent, validTimeVertices));
+			offsets.add(new Triplet<>(offset, agent, validTimeVertices));
 			Pair<IVecInt, ConstrGroup> unitAndConstrains = null;
 			try {
 				unitAndConstrains = createAgentClauses(solver, entry, exits, offsets, step);
@@ -439,7 +439,7 @@ public class SATSingleGrouped extends SafeLines {
 		try {
 			if (solver.isSatisfiable(validUnitClauses)) {
 				int[] model = solver.model();
-				for (Triple<Integer, Agent, boolean[][]> entry : offsets) {
+				for (Triplet<Integer, Agent, boolean[][]> entry : offsets) {
 					offset = entry.getVal0();
 					Agent agent = entry.getVal1();
 					List<Integer> path = createPath(model, offset);
@@ -500,7 +500,7 @@ public class SATSingleGrouped extends SafeLines {
 			final int vertices = graph.getVertices().length;
 			boolean[][] validTimeVertices = getValidTimeVertices(entryID, exitsID, vertices);
 
-			Pair<IVecInt, ConstrGroup> unitAndConstrains = createAgentClauses(solver, entryID, exitsID, new ArrayDeque<>(Collections.singleton(new Triple<>(1, agent, validTimeVertices))), step);
+			Pair<IVecInt, ConstrGroup> unitAndConstrains = createAgentClauses(solver, entryID, exitsID, new ArrayDeque<>(Collections.singleton(new Triplet<>(1, agent, validTimeVertices))), step);
 			IVecInt unitClauses = unitAndConstrains.getVal0();
 			if (solver.isSatisfiable(unitClauses)) {
 				int[] model = solver.model();

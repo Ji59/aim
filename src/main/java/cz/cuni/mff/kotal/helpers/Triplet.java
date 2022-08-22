@@ -1,11 +1,13 @@
 package cz.cuni.mff.kotal.helpers;
 
-public class Triple<E, F, G> {
+import static cz.cuni.mff.kotal.helpers.Pair.getTexts;
+
+public class Triplet<E, F, G> {
 	E val0;
 	F val1;
 	G val2;
 
-	public Triple(E val0, F val1, G val2) {
+	public Triplet(E val0, F val1, G val2) {
 		this.val0 = val0;
 		this.val1 = val1;
 		this.val2 = val2;
@@ -15,7 +17,7 @@ public class Triple<E, F, G> {
 		return val0;
 	}
 
-	public Triple<E, F, G> setVal0(E val0) {
+	public Triplet<E, F, G> setVal0(E val0) {
 		this.val0 = val0;
 		return this;
 	}
@@ -24,7 +26,7 @@ public class Triple<E, F, G> {
 		return val1;
 	}
 
-	public Triple<E, F, G> setVal1(F val1) {
+	public Triplet<E, F, G> setVal1(F val1) {
 		this.val1 = val1;
 		return this;
 	}
@@ -33,13 +35,13 @@ public class Triple<E, F, G> {
 		return val2;
 	}
 
-	public Triple<E, F, G> setVal2(G val2) {
+	public Triplet<E, F, G> setVal2(G val2) {
 		this.val2 = val2;
 		return this;
 	}
 
 	@Override
 	public String toString() {
-		return val0.toString() + " + " + val1.toString() + " + " + val2.toString();
+		return String.join(" : ", getTexts(val0, val1, val2));
 	}
 }
