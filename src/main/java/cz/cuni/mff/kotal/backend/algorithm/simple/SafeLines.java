@@ -177,6 +177,20 @@ public class SafeLines implements Algorithm {
 			});
 	}
 
+	protected boolean safeVertex(final Map<Long, Map<Integer, Set<Agent>>> illegalMoveTable, long step, int vertexID, double agentPerimeter) {
+		if (!illegalMoveTable.containsKey(step)) {
+			return true;
+		}
+
+		final double safePerimeter = agentPerimeter + safeDistance;
+		return verticesDistances.get(vertexID).stream()
+			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
+			.allMatch(v -> {
+				Agent neighbour = illegalMoveTable.get(step).get(v.vertexID()).stream().max(Comparator.comparing(Agent::getAgentPerimeter)).orElse(null);
+				return neighbour == null || neighbour.getAgentPerimeter() + safePerimeter < v.distance;
+			});
+	}
+
 	@Nullable
 	protected Agent collisionAgentAtVertex(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, double agentPerimeter) {
 		if (!illegalMoveTable.containsKey(step)) {
@@ -208,6 +222,7 @@ public class SafeLines implements Algorithm {
 	public boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
 		return safeStepTo(stepOccupiedVertices, step, vertexID, previousVertexID, agentPerimeter);
 	}
+
 	public boolean safeStepTo(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, int previousVertexID, double agentPerimeter) {
 		if (!illegalMoveTable.containsKey(step - 1)) {
 			return true;
@@ -227,6 +242,7 @@ public class SafeLines implements Algorithm {
 	public boolean safeStepFrom(long step, int vertexID, int nextVertexID, double agentPerimeter) {
 		return safeStepFrom(stepOccupiedVertices, step, vertexID, nextVertexID, agentPerimeter);
 	}
+
 	public boolean safeStepFrom(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, int nextVertexID, double agentPerimeter) {
 		if (!illegalMoveTable.containsKey(step + 1)) {
 			return true;
@@ -310,6 +326,7 @@ public class SafeLines implements Algorithm {
 		for (Agent agent0 : agents0) {
 			for (Agent agent1 : agents1) {
 				if (inCollision(agent0, agent1)) {
+					System.out.println(agent0.getId() + " collides with " + agent1.getId());
 					return true;
 				}
 			}
@@ -358,13 +375,13 @@ public class SafeLines implements Algorithm {
 			}
 
 			if (vertexP0 == vertexP1Last) {
-				if (checkNeighbour(vertexP0, vertexP0Last, vertexP1, agent0Perimeter, agent1Perimeter)) {
+				if (!checkNeighbour(vertexP0, vertexP0Last, vertexP1, agent0Perimeter, agent1Perimeter)) {
 					return true;
 				}
 			}
 
 			if (vertexP1 == vertexP0Last) {
-				if (checkNeighbour(vertexP1, vertexP1Last, vertexP0, agent1Perimeter, agent0Perimeter)) {
+				if (!checkNeighbour(vertexP1, vertexP1Last, vertexP0, agent1Perimeter, agent0Perimeter)) {
 					return true;
 				}
 			}
