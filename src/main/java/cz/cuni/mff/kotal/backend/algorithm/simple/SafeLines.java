@@ -177,20 +177,6 @@ public class SafeLines implements Algorithm {
 			});
 	}
 
-	protected boolean safeVertex(final Map<Long, Map<Integer, Set<Agent>>> illegalMoveTable, long step, int vertexID, double agentPerimeter) {
-		if (!illegalMoveTable.containsKey(step)) {
-			return true;
-		}
-
-		final double safePerimeter = agentPerimeter + safeDistance;
-		return verticesDistances.get(vertexID).stream()
-			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
-			.allMatch(v -> {
-				Agent neighbour = illegalMoveTable.get(step).get(v.vertexID()).stream().max(Comparator.comparing(Agent::getAgentPerimeter)).orElse(null);
-				return neighbour == null || neighbour.getAgentPerimeter() + safePerimeter < v.distance;
-			});
-	}
-
 	@Nullable
 	protected Agent collisionAgentAtVertex(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, double agentPerimeter) {
 		if (!illegalMoveTable.containsKey(step)) {
@@ -211,6 +197,23 @@ public class SafeLines implements Algorithm {
 			.findFirst().orElse(null);
 	}
 
+	@NotNull
+	protected Set<Agent> collisionAgentsAtVertex(Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, long step, int vertexID, double agentPerimeter) {
+		if (!conflictAvoidanceTable.containsKey(step)) {
+			return Collections.emptySet();
+		}
+
+		final double safePerimeter = agentPerimeter + safeDistance;
+		return verticesDistances.get(vertexID).stream()  // FIXME add other agent size to computation
+			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
+			.filter(v -> conflictAvoidanceTable.get(step).containsKey(v.vertexID()))
+			.flatMap(v -> {
+				Set<Agent> neighbours = conflictAvoidanceTable.get(step).get(v.vertexID());
+				return neighbours.stream().filter(n -> n.getAgentPerimeter() + safePerimeter >= v.distance);
+			})
+			.collect(Collectors.toSet());
+	}
+
 	protected int[] conflictVertices(int vertexID, double agentsPerimeter) {
 		return verticesDistances.get(vertexID).stream().takeWhile(v -> v.distance <= agentsPerimeter + safeDistance).mapToInt(VertexDistance::vertexID).toArray();
 	}
@@ -220,10 +223,10 @@ public class SafeLines implements Algorithm {
 	}
 
 	public boolean safeStepTo(long step, int vertexID, int previousVertexID, double agentPerimeter) {
-		return safeStepTo(stepOccupiedVertices, step, vertexID, previousVertexID, agentPerimeter);
+		return safeVertexTo(stepOccupiedVertices, step, vertexID, previousVertexID, agentPerimeter);
 	}
 
-	public boolean safeStepTo(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, int previousVertexID, double agentPerimeter) {
+	public boolean safeVertexTo(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, int previousVertexID, double agentPerimeter) {
 		if (!illegalMoveTable.containsKey(step - 1)) {
 			return true;
 		}
@@ -237,6 +240,25 @@ public class SafeLines implements Algorithm {
 			return true;
 		}
 		return checkNeighbour(vertexID, previousVertexID, neighbourVertexID, agentPerimeter, neighbour.getAgentPerimeter());
+	}
+
+	@NotNull
+	public Set<Agent> collisionsOnWayTo(Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, long step, int vertexID, int previousVertexID, double agentPerimeter) {
+		if (!conflictAvoidanceTable.containsKey(step - 1) || !conflictAvoidanceTable.get(step - 1).containsKey(vertexID)) {
+			return Collections.emptySet();
+		}
+
+		final Set<Agent> neighbours = conflictAvoidanceTable.get(step - 1).get(vertexID);
+
+		return neighbours.stream()
+			.filter(neighbour -> {
+				final int neighbourVertexID = getNeighbourVertexID(step, neighbour);
+				if (neighbourVertexID < 0) {
+					return false;
+				}
+				return !checkNeighbour(vertexID, previousVertexID, neighbourVertexID, agentPerimeter, neighbour.getAgentPerimeter());
+			})
+			.collect(Collectors.toSet());
 	}
 
 	public boolean safeStepFrom(long step, int vertexID, int nextVertexID, double agentPerimeter) {
@@ -256,6 +278,25 @@ public class SafeLines implements Algorithm {
 			return true;
 		}
 		return checkNeighbour(vertexID, neighbourVertexID, nextVertexID, agentPerimeter, neighbour.getAgentPerimeter());
+	}
+
+	@NotNull
+	public Set<Agent> collisionsOnWayFrom(Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, long step, int vertexID, int nextVertexID, double agentPerimeter) {
+		if (!conflictAvoidanceTable.containsKey(step + 1) || !conflictAvoidanceTable.get(step + 1).containsKey(vertexID)) {
+			return Collections.emptySet();
+		}
+
+		final Set<Agent> neighbours = conflictAvoidanceTable.get(step + 1).get(vertexID);
+
+		return neighbours.stream()
+			.filter(neighbour -> {
+				final int neighbourVertexID = getNeighbourVertexID(step, neighbour);
+				if (neighbourVertexID < 0) {
+					return false;
+				}
+				return !checkNeighbour(vertexID, neighbourVertexID, nextVertexID, agentPerimeter, neighbour.getAgentPerimeter());
+			})
+			.collect(Collectors.toSet());
 	}
 
 	protected int getNeighbourVertexID(long step, Agent neighbour) {
