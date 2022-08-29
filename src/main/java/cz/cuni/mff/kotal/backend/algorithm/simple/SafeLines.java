@@ -265,11 +265,11 @@ public class SafeLines implements Algorithm {
 		return safeStepFrom(stepOccupiedVertices, step, vertexID, nextVertexID, agentPerimeter);
 	}
 
-	public boolean safeStepFrom(Map<Long, Map<Integer, Agent>> illegalMoveTable, long step, int vertexID, int nextVertexID, double agentPerimeter) {
-		if (!illegalMoveTable.containsKey(step + 1)) {
+	public boolean safeStepFrom(Map<Long, Map<Integer, Agent>> illegalMovesTable, long step, int vertexID, int nextVertexID, double agentPerimeter) {
+		if (!illegalMovesTable.containsKey(step + 1)) {
 			return true;
 		}
-		Agent neighbour = illegalMoveTable.get(step + 1).get(vertexID);
+		final Agent neighbour = illegalMovesTable.get(step + 1).get(vertexID);
 		if (neighbour == null) {
 			return true;
 		}
@@ -385,7 +385,7 @@ public class SafeLines implements Algorithm {
 		final double agent1Perimeter = agent1.getAgentPerimeter();
 		final double agentsPerimeter = agent0Perimeter + agent1Perimeter;
 
-		final long startStep = Math.min(agent0PlannedTime, agent1PlannedTime);
+		final long startStep = Math.max(agent0PlannedTime, agent1PlannedTime);
 		final long endStep = Math.min(agent0PlannedTime + agent0Path.size(), agent1PlannedTime + agent1Path.size());
 
 		if (endStep < startStep) {
