@@ -161,6 +161,9 @@ public class BasicAgent {
 	}
 
 	public double getAgentPerimeter(SimulationGraph graph) {
-		return perimeter(getL(), getW()) * graph.getCellSize();
+		if (perimeter < 0) {
+			perimeter = perimeter(getL(), getW()) * graph.getCellSize();
+		}
+		return perimeter;
 	}
 }

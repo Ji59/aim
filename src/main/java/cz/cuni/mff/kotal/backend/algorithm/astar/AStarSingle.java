@@ -8,6 +8,7 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 
@@ -43,6 +44,15 @@ public class AStarSingle extends SafeLines {
 		allowAgentStop = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
 		maximumPathDelay = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_PATH_DELAY_NAME, MAXIMUM_PATH_DELAY_DEF);
 		allowAgentReturn = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_RETURN_NAME, ALLOW_AGENT_RETURN_DEF);
+	}
+
+	@TestOnly
+	protected AStarSingle(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
+		super(graph, safeDistance);
+		this.maximumVertexVisits = maximumVertexVisits;
+		this.allowAgentStop = allowAgentStop;
+		this.maximumPathDelay = maximumPathDelay;
+		this.allowAgentReturn = allowAgentReturn;
 	}
 
 	@Override
@@ -124,15 +134,15 @@ public class AStarSingle extends SafeLines {
 			double estimate;
 
 			if (Double.isFinite(estimate = heuristic.get(neighbourID)) &&
-							canVisitVertex(state, entryID, neighbourID, maximumDelay) &&
-							(
-											stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
-															|| (
-															safeVertex(neighbourStep, neighbourID, agentPerimeter) &&
-																			safeStepTo(neighbourStep, neighbourID, state.getID(), agentPerimeter)
-											)
-							) &&
-							safeStepFrom(stateStep, state.getID(), neighbourID, agentPerimeter)
+				canVisitVertex(state, entryID, neighbourID, maximumDelay) &&
+				(
+					stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
+						|| (
+						safeVertex(neighbourStep, neighbourID, agentPerimeter) &&
+							safeStepTo(neighbourStep, neighbourID, state.getID(), agentPerimeter)
+					)
+				) &&
+				safeStepFrom(stateStep, state.getID(), neighbourID, agentPerimeter)
 			) {
 				double distance = graph.getDistance(vertexID, neighbourID);
 //				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);  // FIXME
@@ -141,11 +151,11 @@ public class AStarSingle extends SafeLines {
 		}
 
 		if (
-						allowAgentStop &&
-										canVisitVertex(state, entryID, vertexID, maximumDelay) &&
-										(
-														stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentPerimeter)
-										)
+			allowAgentStop &&
+				canVisitVertex(state, entryID, vertexID, maximumDelay) &&
+				(
+					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentPerimeter)
+				)
 		) {
 			queue.add(new State(state));
 		}
@@ -166,11 +176,11 @@ public class AStarSingle extends SafeLines {
 
 	private boolean canVisitVertex(VertexWithDirectionParent state, int entryID, int vertexID, int maximumDelay) {
 		if (vertexID == entryID ||
-						(
-										!allowAgentReturn &&
-														state.getParent() != null &&
-														state.getParent().getID() == vertexID
-						)
+			(
+				!allowAgentReturn &&
+					state.getParent() != null &&
+					state.getParent().getID() == vertexID
+			)
 		) {
 			return false;
 		}
