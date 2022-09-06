@@ -2,10 +2,13 @@ package cz.cuni.mff.kotal.backend.algorithm.astar;
 
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.helpers.Pair;
+import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AStarAll extends AStarSingleGrouped {
 	public static final Map<String, Object> PARAMETERS = AStarSingleGrouped.PARAMETERS;
@@ -20,58 +23,163 @@ public class AStarAll extends AStarSingleGrouped {
 	public Collection<Agent> planAgents(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
 
-		Iterator<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator();
+		final Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups = new HashSet<>(notFinishedAgents.size());
+		final Map<Long, Map<Integer, Set<Agent>>> plannedConflictAvoidanceTable = new HashMap<>();
 
-		// filter agents that cannot enter intersection
-		while (it.hasNext()) {
-			Map.Entry<Agent, Pair<Integer, Set<Integer>>> entry = it.next();
-			Agent agent = entry.getKey();
-			int agentEntry = entry.getValue().getVal0();
-			if (!safeVertex(step, agentEntry, agent.getAgentPerimeter())) {
-				it.remove();
-			}
-		}
-
-		if (agentsEntriesExits.isEmpty()) {
-			return Collections.emptySet();
-		}
-
-		Map<Agent, Pair<Integer, Set<Integer>>> nonFinishedAgentsMap = new LinkedHashMap<>(agentsEntriesExits.size() + notFinishedAgents.size());
-
-		Iterator<Agent> itNonFinished = notFinishedAgents.keySet().iterator();
+		final Iterator<Agent> itNonFinished = notFinishedAgents.keySet().iterator();
 		while (itNonFinished.hasNext()) {
-			Agent agent = itNonFinished.next();
+			final Agent agent = itNonFinished.next();
 
-			long plannedTime = agent.getPlannedTime();
-			int travelTime = (int) (step - plannedTime);
+			final long plannedTime = agent.getPlannedTime();
+			final int travelTime = (int) (step - plannedTime);
 			if (travelTime >= agent.getPath().size() - 1) {
 				itNonFinished.remove();
 			} else {
-				Integer startingVertexID = agent.getPath().get(travelTime);
-				nonFinishedAgentsMap.put(agent, new Pair<>(startingVertexID, getExits(agent)));
+				final int startingVertexID = agent.getPath().get(travelTime);
+				Map<Agent, Pair<Integer, Set<Integer>>> agentMap = new HashMap<>(1);
+				agentMap.put(agent, new Pair<>(startingVertexID, getExits(agent)));
+				Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = getConflictAvoidanceTable(agentMap, step);
+				mergeConflictAvoidanceTables(plannedConflictAvoidanceTable, conflictAvoidanceTable);
+				agentsGroups.add(new Triplet<>(agentMap, conflictAvoidanceTable, Collections.emptySet()));
 			}
 		}
 
-		Collection<Agent> agents = agentsEntriesExits.keySet();
-
-		for (int i = agentsEntriesExits.size(); i > 0; i--) {
-			for (Collection<Agent> agentsCombination : MyNumberOperations.combinations(agents, i)) {
-				final Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExitsSubset = new HashMap<>(nonFinishedAgentsMap);
-				for (Agent agent : agentsCombination) {
-					agentsEntriesExitsSubset.put(agent, agentsEntriesExits.get(agent));
-				}
-//				Collection<Agent> plannedAgents = findPaths(agentsEntriesExitsSubset, step);
-//				if (!plannedAgents.isEmpty()) {
-//					processPlannedAgents(step, plannedAgents);
-//					return plannedAgents;
-//				}
-			}
-
+		Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> initialPaths = createInitialPaths(agentsEntriesExits, step, plannedConflictAvoidanceTable);
+		if (initialPaths.isEmpty()) {
+			return Collections.emptySet();
 		}
-		return Collections.emptySet();
+
+		agentsGroups.addAll(initialPaths);
+
+		solveAgentsCollisions(step, agentsGroups);
+
+		return agentsGroups.stream().flatMap(group -> group.getVal0().keySet().stream().filter(agentsEntriesExits.keySet()::contains)).toList();
 	}
 
-	private void processPlannedAgents(long step, Collection<Agent> plannedAgents) {
+	@Override
+	protected void solveAgentsCollisions(long step, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups) {
+		Map<Collection<Agent>, Collection<Collection<Agent>>> resolvedPairs = new HashMap<>();
+		Collection<Agent> plannedAgents = notFinishedAgents.keySet();
+
+		Optional<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> collisionTripletOptional;
+		while ((collisionTripletOptional = inCollision(agentsGroups)).isPresent()) {
+			Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet = collisionTripletOptional.get();
+
+			Map<Agent, Pair<Integer, Set<Integer>>> group0 = group0CollisionTriplet.getVal0();
+			Set<Agent> group0Agents = new HashSet<>(group0.keySet());
+			resolvedPairs.computeIfAbsent(group0Agents, k -> new HashSet<>());
+
+			final Set<Agent> conflictAgents = group0CollisionTriplet.getVal2();
+
+			Map<Long, Map<Integer, Set<Agent>>> group0IllegalMovesTable = new HashMap<>();
+			Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable = new HashMap<>();
+
+			Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet = findCollisionGroup(agentsGroups, resolvedPairs, group0Agents, conflictAgents, group0IllegalMovesTable, restGroupsConflictAvoidanceTable);
+
+			final Set<Agent> group0PlannedAgents = group0Agents.stream().filter(plannedAgents::contains).collect(Collectors.toSet());
+			final Set<Agent> group1PlannedAgents = group1CollisionTriplet.getVal0().keySet().stream().filter(plannedAgents::contains).collect(Collectors.toSet());
+
+			Map<Agent, Pair<Integer, Set<Integer>>> group1;
+			Set<Agent> group1Agents;
+			Map<Long, Map<Integer, Set<Agent>>> group1IllegalMovesTable = null;
+			if (group0PlannedAgents.size() > group1PlannedAgents.size() || (group0PlannedAgents.size() == group1PlannedAgents.size() && group0.size() <= group1CollisionTriplet.getVal0().size())) {
+				group1 = group1CollisionTriplet.getVal0();
+				group1Agents = new HashSet<>(group1.keySet());
+			} else {
+				group1 = group0;
+				group0 = group1CollisionTriplet.getVal0();
+				final Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> temp = group0CollisionTriplet;
+				group0CollisionTriplet = group1CollisionTriplet;
+				group1CollisionTriplet = temp;
+
+				group1Agents = group0Agents;
+				group0Agents = new HashSet<>(group0.keySet());
+				resolvedPairs.computeIfAbsent(group0Agents, k -> new HashSet<>());
+
+				mergeIllegalMovesTables(restGroupsConflictAvoidanceTable, group0IllegalMovesTable);
+				group1IllegalMovesTable = group0IllegalMovesTable;
+				group0IllegalMovesTable = getIllegalMovesTable(agentsGroups, resolvedPairs, group1CollisionTriplet, group0Agents);
+			}
+
+			Map<Long, Map<Integer, Set<Agent>>> group0IllegalMovesTableComplete = copyMap(group0IllegalMovesTable);
+			mergeConflictAvoidanceTables(group0IllegalMovesTableComplete, stepOccupiedVertices);
+
+			if (replanGroup(step, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, group0, group0IllegalMovesTableComplete, restGroupsConflictAvoidanceTable)) {
+				resolvedPairs.get(group0Agents).add(group1Agents);
+				continue;
+			}
+
+			if (group1IllegalMovesTable == null) {
+				mergeIllegalMovesTables(restGroupsConflictAvoidanceTable, group0IllegalMovesTable);
+				group1IllegalMovesTable = getIllegalMovesTable(agentsGroups, resolvedPairs, group0CollisionTriplet, group1Agents);
+			}
+
+			mergeConflictAvoidanceTables(group1IllegalMovesTable, stepOccupiedVertices);
+
+			if (replanGroup(step, agentsGroups, group1CollisionTriplet, group0CollisionTriplet, group1, group1IllegalMovesTable, restGroupsConflictAvoidanceTable)) {
+				resolvedPairs.get(group1Agents).add(group0Agents);
+				continue;
+			}
+
+
+			boolean groupsMerged = mergeGroups(step, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, restGroupsConflictAvoidanceTable, group0PlannedAgents, group1PlannedAgents);
+			if (groupsMerged) {
+				continue;
+			}
+			assert false;
+		}
+	}
+
+	private boolean mergeGroups(
+		long step, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
+		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
+		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
+		Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable, Set<Agent> group0PlannedAgents, Set<Agent> group1PlannedAgents) {
+
+		final Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents = new HashMap<>(group0PlannedAgents.size() + group1PlannedAgents.size());
+		Map<Agent, Pair<Integer, Set<Integer>>> group0 = group0CollisionTriplet.getVal0();
+		Map<Agent, Pair<Integer, Set<Integer>>> group1 = group1CollisionTriplet.getVal0();
+		final Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents = new HashMap<>(group0.size() - group0PlannedAgents.size() + group1.size() - group1PlannedAgents.size());
+		divideGroupToPlannedAndNew(group0, group0PlannedAgents, combinedPlannedAgents, combinedNewAgents);
+		divideGroupToPlannedAndNew(group1, group1PlannedAgents, combinedPlannedAgents, combinedNewAgents);
+
+		agentsGroups.remove(group0CollisionTriplet);
+		agentsGroups.remove(group1CollisionTriplet);
+		filterReplannedCollisionAgents(agentsGroups, group0.keySet());
+		filterReplannedCollisionAgents(agentsGroups, group1.keySet());
+
+		for (int i = combinedNewAgents.size(); i >= 0; i--) {
+			for (Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedNewAgents.entrySet(), i)) {
+
+				Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(combinedPlannedAgents);
+				combination.forEach(agentEntryExits -> combinedAgents.put(agentEntryExits.getKey(), agentEntryExits.getValue()));
+
+				@Nullable Set<Agent> collisionAgents = findPaths(combinedAgents, step, mapStepOccupiedVertices(), restGroupsConflictAvoidanceTable);
+				if (collisionAgents != null) {
+					agentsGroups.add(new Triplet<>(combinedAgents, getConflictAvoidanceTable(combinedAgents, step), collisionAgents));
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static void divideGroupToPlannedAndNew(Map<Agent, Pair<Integer, Set<Integer>>> group0, Set<Agent> group0PlannedAgents, Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents, Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents) {
+		group0.forEach((agent, entryExits) -> {
+			if (group0PlannedAgents.contains(agent)) {
+				combinedPlannedAgents.put(agent, entryExits);
+			} else {
+				combinedNewAgents.put(agent, entryExits);
+			}
+		});
+	}
+
+	@Override
+	protected Map<Long, Map<Integer, Set<Agent>>> mapStepOccupiedVertices() {
+		return Collections.emptyMap();
+	}
+
+	protected void processPlannedAgents(long step, Collection<Agent> plannedAgents) {
 		if (!plannedAgents.containsAll(notFinishedAgents.keySet())) throw new AssertionError();
 
 		Iterator<Agent> iterator = plannedAgents.iterator();
@@ -101,10 +209,10 @@ public class AStarAll extends AStarSingleGrouped {
 
 	@Override
 	protected void filterStepOccupiedVertices(long step) {
-		Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
+		final Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
 		while (it.hasNext()) {
-			Map.Entry<Long, Map<Integer, Agent>> stepVertices = it.next();
-			long occupiedStep = stepVertices.getKey();
+			final Map.Entry<Long, Map<Integer, Agent>> stepVertices = it.next();
+			final long occupiedStep = stepVertices.getKey();
 			if (occupiedStep < step) {
 				it.remove();
 			} else {
@@ -120,5 +228,6 @@ public class AStarAll extends AStarSingleGrouped {
 
 	@Override
 	public void addPlannedPath(Agent agent, List<Integer> path, long step) {
+		// stepOccupiedVertices should be empty
 	}
 }

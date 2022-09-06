@@ -155,6 +155,28 @@ public class MyNumberOperations {
 		}, false);
 	}
 
+	public static <T> Stream<Collection<T>> combinations(final Collection<T> arr) {
+		final long N = (long) Math.pow(2, arr.size());
+		return StreamSupport.stream(new Spliterators.AbstractSpliterator<>(N, Spliterator.SIZED) {
+			int i = arr.size();
+			long j = 0;
+			long nCi = combinationNumber(arr.size(), i);
+
+			@Override
+			public boolean tryAdvance(Consumer<? super Collection<T>> action) {
+				if (i >= 0) {
+					Set<T> out = new HashSet<>(i);
+					action.accept(out);
+					i--;
+					// TODO
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}, false);
+	}
+
 	/**
 	 * nCk = (n-1)Ck + (n-1)C(k-1)
 	 *
@@ -187,12 +209,13 @@ public class MyNumberOperations {
 		return combinations;
 	}
 
-	public static long combinationNumber(int n, int r) {
+	public static long combinationNumber(long n, long r) {
 		if (n < r || n == 0)
 			return 1;
 
-		int num = 1, den = 1;
-		for (int i = r; i >= 1; i--) {
+		long num = 1;
+		long den = 1;
+		for (long i = r; i >= 1; i--) {
 			num = num * n--;
 			den = den * i;
 		}
@@ -205,7 +228,7 @@ public class MyNumberOperations {
 	public static void main(String... args) {
 		String[] arr = new String[]{"0", "1", "2", "3", "4"};
 		String result = combinations(arr).map(l -> String.join(" ", l)).collect(Collectors.joining("\n"));
-//		System.out.println(result);
+		System.out.println(result);
 
 		List<String> arr1 = new LinkedList<>(Arrays.asList(arr));
 		for (int i = 0; i <= arr1.size(); i++) {
