@@ -299,7 +299,7 @@ public class AStarSingleGrouped extends AStarSingle {
 	}
 
 	protected Optional<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> inCollision(Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups) {
-		return agentsGroups.stream().filter(triplet -> !triplet.getVal2().isEmpty()).findAny();
+		return agentsGroups.stream().filter(triplet -> !triplet.getVal2().isEmpty()).min(Comparator.comparingInt(g -> g.getVal0().size()));
 	}
 
 	protected static Map<Long, Map<Integer, Agent>> getConflictAvoidanceTable(Map<Agent, Pair<Integer, Set<Integer>>> agents, long step) {

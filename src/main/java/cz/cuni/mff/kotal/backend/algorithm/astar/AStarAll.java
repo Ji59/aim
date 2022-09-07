@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 
 public class AStarAll extends AStarSingleGrouped {
 	public static final Map<String, Object> PARAMETERS = AStarSingleGrouped.PARAMETERS;
+	protected final Map<Agent, Pair<Agent, Long>> notFinishedAgents = new HashMap<>();
 
-	protected final Map<Agent, Pair<Long, List<Integer>>> notFinishedAgents = new HashMap<>();
 
 	public AStarAll(SimulationGraph graph) {
 		super(graph);
@@ -36,9 +36,10 @@ public class AStarAll extends AStarSingleGrouped {
 				itNonFinished.remove();
 			} else {
 				final int startingVertexID = agent.getPath().get(travelTime);
-				Map<Agent, Pair<Integer, Set<Integer>>> agentMap = new HashMap<>(1);
-				agentMap.put(agent, new Pair<>(startingVertexID, getExits(agent)));
-				Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = getConflictAvoidanceTable(agentMap, step);
+				final Map<Agent, Pair<Integer, Set<Integer>>> agentMap = new HashMap<>(1);
+				final Agent agentsCopy = new Agent(agent).setPath(agent.getPath(), plannedTime);
+				agentMap.put(agentsCopy, new Pair<>(startingVertexID, getExits(agent)));
+				final Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = getConflictAvoidanceTable(agentMap, step);
 				mergeConflictAvoidanceTables(plannedConflictAvoidanceTable, conflictAvoidanceTable);
 				agentsGroups.add(new Triplet<>(agentMap, conflictAvoidanceTable, Collections.emptySet()));
 			}
@@ -53,7 +54,9 @@ public class AStarAll extends AStarSingleGrouped {
 
 		solveAgentsCollisions(step, agentsGroups);
 
-		return agentsGroups.stream().flatMap(group -> group.getVal0().keySet().stream().filter(agentsEntriesExits.keySet()::contains)).toList();
+		List<Agent> plannedAgents = agentsGroups.stream().flatMap(group -> group.getVal0().keySet().stream()).collect(Collectors.toList());
+		processPlannedAgents(step, plannedAgents);
+		return plannedAgents;
 	}
 
 	@Override
@@ -76,13 +79,13 @@ public class AStarAll extends AStarSingleGrouped {
 
 			Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet = findCollisionGroup(agentsGroups, resolvedPairs, group0Agents, conflictAgents, group0IllegalMovesTable, restGroupsConflictAvoidanceTable);
 
-			final Set<Agent> group0PlannedAgents = group0Agents.stream().filter(plannedAgents::contains).collect(Collectors.toSet());
-			final Set<Agent> group1PlannedAgents = group1CollisionTriplet.getVal0().keySet().stream().filter(plannedAgents::contains).collect(Collectors.toSet());
+			Set<Agent> group0PlannedAgents = group0Agents.stream().filter(plannedAgents::contains).collect(Collectors.toSet());
+			Set<Agent> group1PlannedAgents = group1CollisionTriplet.getVal0().keySet().stream().filter(plannedAgents::contains).collect(Collectors.toSet());
 
 			Map<Agent, Pair<Integer, Set<Integer>>> group1;
 			Set<Agent> group1Agents;
 			Map<Long, Map<Integer, Set<Agent>>> group1IllegalMovesTable = null;
-			if (group0PlannedAgents.size() > group1PlannedAgents.size() || (group0PlannedAgents.size() == group1PlannedAgents.size() && group0.size() <= group1CollisionTriplet.getVal0().size())) {
+			if (group0Agents.size() < group1CollisionTriplet.getVal0().size() || (group0Agents.size() == group1CollisionTriplet.getVal0().size() && group0PlannedAgents.size() < group1PlannedAgents.size())) {
 				group1 = group1CollisionTriplet.getVal0();
 				group1Agents = new HashSet<>(group1.keySet());
 			} else {
@@ -91,6 +94,10 @@ public class AStarAll extends AStarSingleGrouped {
 				final Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> temp = group0CollisionTriplet;
 				group0CollisionTriplet = group1CollisionTriplet;
 				group1CollisionTriplet = temp;
+
+				Set<Agent> temp1 = group0PlannedAgents;
+				group0PlannedAgents = group1PlannedAgents;
+				group1PlannedAgents = temp1;
 
 				group1Agents = group0Agents;
 				group0Agents = new HashSet<>(group0.keySet());
@@ -106,6 +113,9 @@ public class AStarAll extends AStarSingleGrouped {
 
 			if (replanGroup(step, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, group0, group0IllegalMovesTableComplete, restGroupsConflictAvoidanceTable)) {
 				resolvedPairs.get(group0Agents).add(group1Agents);
+				resolvedPairs.computeIfAbsent(group1Agents, k -> new HashSet<>());
+				resolvedPairs.get(group1Agents).add(group0Agents);
+				System.out.println("Replan 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")) + "; in collision with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 				continue;
 			}
 
@@ -118,12 +128,21 @@ public class AStarAll extends AStarSingleGrouped {
 
 			if (replanGroup(step, agentsGroups, group1CollisionTriplet, group0CollisionTriplet, group1, group1IllegalMovesTable, restGroupsConflictAvoidanceTable)) {
 				resolvedPairs.get(group1Agents).add(group0Agents);
+				resolvedPairs.get(group0Agents).add(group1Agents);
+				System.out.println("Replan 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")) + "; in collision with 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 				continue;
 			}
 
 
 			boolean groupsMerged = mergeGroups(step, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, restGroupsConflictAvoidanceTable, group0PlannedAgents, group1PlannedAgents);
+			if (!notFinishedAgents.keySet().stream().allMatch(a -> agentsGroups.stream().anyMatch(g -> g.getVal0().containsKey(a)))) {
+				throw new AssertionError();
+			}
 			if (groupsMerged) {
+				final Set<Agent> finalGroup0Agents = group0Agents;
+				System.out.println("Merged 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
+								+ " with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
+								+ " creating " + agentsGroups.stream().filter(g -> !Collections.disjoint(g.getVal0().keySet(), finalGroup0Agents) || !Collections.disjoint(g.getVal0().keySet(), group1Agents)).findAny().orElse(new Triplet<>(Collections.emptyMap(), null, null)).getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 				continue;
 			}
 			assert false;
@@ -131,14 +150,14 @@ public class AStarAll extends AStarSingleGrouped {
 	}
 
 	private boolean mergeGroups(
-		long step, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
-		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
-		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
-		Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable, Set<Agent> group0PlannedAgents, Set<Agent> group1PlannedAgents) {
+					long step, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
+					Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
+					Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
+					Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable, Set<Agent> group0PlannedAgents, Set<Agent> group1PlannedAgents) {
 
+		final Map<Agent, Pair<Integer, Set<Integer>>> group0 = group0CollisionTriplet.getVal0();
+		final Map<Agent, Pair<Integer, Set<Integer>>> group1 = group1CollisionTriplet.getVal0();
 		final Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents = new HashMap<>(group0PlannedAgents.size() + group1PlannedAgents.size());
-		Map<Agent, Pair<Integer, Set<Integer>>> group0 = group0CollisionTriplet.getVal0();
-		Map<Agent, Pair<Integer, Set<Integer>>> group1 = group1CollisionTriplet.getVal0();
 		final Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents = new HashMap<>(group0.size() - group0PlannedAgents.size() + group1.size() - group1PlannedAgents.size());
 		divideGroupToPlannedAndNew(group0, group0PlannedAgents, combinedPlannedAgents, combinedNewAgents);
 		divideGroupToPlannedAndNew(group1, group1PlannedAgents, combinedPlannedAgents, combinedNewAgents);
@@ -154,9 +173,16 @@ public class AStarAll extends AStarSingleGrouped {
 				Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(combinedPlannedAgents);
 				combination.forEach(agentEntryExits -> combinedAgents.put(agentEntryExits.getKey(), agentEntryExits.getValue()));
 
-				@Nullable Set<Agent> collisionAgents = findPaths(combinedAgents, step, mapStepOccupiedVertices(), restGroupsConflictAvoidanceTable);
+				if (combinedAgents.size() == 0) {
+					return true;
+				}
+
+				@Nullable Set<Agent> collisionAgents = findPaths(combinedAgents, step, Collections.emptyMap(), restGroupsConflictAvoidanceTable);
 				if (collisionAgents != null) {
 					agentsGroups.add(new Triplet<>(combinedAgents, getConflictAvoidanceTable(combinedAgents, step), collisionAgents));
+					if (!notFinishedAgents.keySet().stream().allMatch(a -> agentsGroups.stream().anyMatch(g -> g.getVal0().containsKey(a)))) {
+						throw new AssertionError();
+					}
 					return true;
 				}
 			}
@@ -180,29 +206,33 @@ public class AStarAll extends AStarSingleGrouped {
 	}
 
 	protected void processPlannedAgents(long step, Collection<Agent> plannedAgents) {
-		if (!plannedAgents.containsAll(notFinishedAgents.keySet())) throw new AssertionError();
+		if (!plannedAgents.containsAll(notFinishedAgents.keySet())) {
+			throw new AssertionError();
+		}
 
 		Iterator<Agent> iterator = plannedAgents.iterator();
 		while (iterator.hasNext()) {
-			Agent agent = iterator.next();
+			final Agent agent = iterator.next();
 			if (notFinishedAgents.containsKey(agent)) {
-				Pair<Long, List<Integer>> plannedPathPair = notFinishedAgents.get(agent);
-				long plannedTime = plannedPathPair.getVal0();
-				List<Integer> lastPath = plannedPathPair.getVal1();
+				iterator.remove();
+
 				List<Integer> pathEnd = agent.getPath();
+
+				final Pair<Agent, Long> plannedPathTriplet = notFinishedAgents.get(agent);
+				final Agent originalAgent = plannedPathTriplet.getVal0();
+				final long plannedTime = plannedPathTriplet.getVal1();
+
+				if (agent.getPlannedTime() == plannedTime) {
+					continue;
+				}
+
+				final List<Integer> lastPath = originalAgent.getPath();
 				for (int i = 0; i < step - plannedTime; i++) {
 					pathEnd.add(i, lastPath.get(i));
 				}
-				notFinishedAgents.get(agent).setVal1(pathEnd);
-				agent.setPlannedTime(plannedTime);
-
-				iterator.remove();
+				originalAgent.setPath(pathEnd);
 			} else {
-				notFinishedAgents.put(agent, new Pair<>(agent.getPlannedTime(), agent.getPath()));
-			}
-
-			if (!notFinishedAgents.get(agent).getVal1().equals(agent.getPath())) {
-				throw new AssertionError();
+				notFinishedAgents.put(agent, new Pair<>(agent, agent.getPlannedTime()));
 			}
 		}
 	}

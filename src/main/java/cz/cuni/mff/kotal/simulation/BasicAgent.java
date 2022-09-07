@@ -4,6 +4,8 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import org.jetbrains.annotations.TestOnly;
 
+import java.util.Objects;
+
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.perimeter;
 
 public class BasicAgent {
@@ -165,5 +167,17 @@ public class BasicAgent {
 			perimeter = perimeter(getL(), getW()) * graph.getCellSize();
 		}
 		return perimeter;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof BasicAgent that)) return false;
+		return id == that.id;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 }

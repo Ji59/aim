@@ -91,8 +91,9 @@ public class Agent extends BasicAgent {
 	 * @param time
 	 * @return
 	 */
-	public Integer getNearestPathVertexId(double time) {
-		return path.get(getNearestVertexIndex(time));
+	public int getNearestPathVertexId(double time) {
+		int nearestVertexIndex = getNearestVertexIndex(time);
+		return path.get(nearestVertexIndex);
 	}
 
 
@@ -211,7 +212,7 @@ public class Agent extends BasicAgent {
 	 *
 	 * @param path New path of this agent
 	 */
-	protected Agent setPath(List<Integer> path) {
+	public Agent setPath(List<Integer> path) {
 		this.path = path;
 		return this;
 	}
