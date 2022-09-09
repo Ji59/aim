@@ -43,7 +43,7 @@ public class SimulationSaver {
 		Parameters parameters = new Parameters(
 			simulation.getAgents(), simulation.getStartingStep(), simulation.getDelay(), simulation.getRejections(), simulation.getCollisions(),
 			Objects.requireNonNull(AlgorithmMenuTab2.Parameters.Algorithm.nameOf(simulation.getAlgorithm())).getName(),
-			new TypedGraph(simulation.getIntersectionGraph())
+			new TypedGraph(simulation.getIntersectionGraph()), simulation.getPlanningTime()
 		);
 		FileWriter statisticsWriter = new FileWriter(Paths.get(directory.getAbsolutePath(), "Parameters.json").toFile(), StandardCharsets.UTF_8, false);
 		gson.toJson(parameters, statisticsWriter);
@@ -61,7 +61,7 @@ public class SimulationSaver {
 		}
 	}
 
-	private record Parameters(long agents, double steps, double delay, double rejections, double collisions, String algorithm, TypedGraph graph) {
+	private record Parameters(long agents, double steps, double delay, double rejections, double collisions, String algorithm, TypedGraph graph, List<Long> simulatingTime) {
 	}
 
 	private static class PathAgent extends BasicAgent {

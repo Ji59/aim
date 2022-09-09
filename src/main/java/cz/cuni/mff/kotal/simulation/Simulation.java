@@ -49,6 +49,8 @@ public abstract class Simulation {
 	protected boolean ended = false;
 	protected long finalStep = 0;
 
+	protected final List<Long> planningTime = new LinkedList<>();
+
 	protected Simulation() {
 		state = State.INVALID;
 		intersectionGraph = new SquareGraph(4, 1, 1);
@@ -209,7 +211,11 @@ public abstract class Simulation {
 		}
 
 		assert algorithm != null;
+		final long startTime = System.nanoTime();
 		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
+		final long endTime = System.nanoTime();
+		planningTime.add(endTime - startTime);
+
 		plannedAgents.forEach(agent -> {
 //			agent.setPlannedTime(step); // TODO
 			assert simulationAgents != null;
@@ -494,6 +500,10 @@ public abstract class Simulation {
 
 	public long getCollisions() {
 		return collisions;
+	}
+
+	public List<Long> getPlanningTime() {
+		return planningTime;
 	}
 
 	public enum State {
