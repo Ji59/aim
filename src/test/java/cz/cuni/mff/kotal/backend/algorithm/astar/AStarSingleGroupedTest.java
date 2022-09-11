@@ -15,12 +15,6 @@ import java.util.*;
 import static cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingleGrouped.*;
 
 class AStarSingleGroupedTest {
-
-	@Test
-	void solveAgentsCollisions() {
-		Graph graph = new OctagonalGraph(4, 1, 1);
-	}
-
 	@Test
 	void replanGroupTest() {
 		final SimulationGraph graph = new HexagonalGraph(3, 1, 1);
@@ -77,8 +71,8 @@ class AStarSingleGroupedTest {
 
 		algorithm.replanGroup(0, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, group0CollisionTriplet.getVal0(), invalidMovesMap, restGroupsConflictAvoidanceTable);
 
-		assert !algorithm.inCollision(agents.get(0), agents.get(1));
-		assert !algorithm.inCollision(agents.get(0), agents.get(2));
-		assert !algorithm.inCollision(agents.get(0), agents.get(3));
+		assert algorithm.inCollision(agents.get(0), agents.get(1)).isEmpty();
+		assert algorithm.inCollision(agents.get(0), agents.get(2)).isEmpty();
+		assert algorithm.inCollision(agents.get(0), agents.get(3)).isEmpty();
 	}
 }

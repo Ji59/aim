@@ -429,7 +429,7 @@ public class SafeLines implements Algorithm {
 	public boolean inCollision(Collection<Agent> agents0, Collection<Agent> agents1) {
 		for (Agent agent0 : agents0) {
 			for (Agent agent1 : agents1) {
-				if (agent0 != agent1 && inCollision(agent0, agent1)) {
+				if (agent0 != agent1 && inCollision(agent0, agent1).isPresent()) {
 					System.out.println(agent0.getId() + " collides with " + agent1.getId());
 					return true;
 				}
@@ -439,7 +439,7 @@ public class SafeLines implements Algorithm {
 		return false;
 	}
 
-	public boolean inCollision(Agent agent0, Agent agent1) {
+	public Optional<Long> inCollision(Agent agent0, Agent agent1) {
 		final long agent0PlannedTime = agent0.getPlannedTime();
 		final long agent1PlannedTime = agent1.getPlannedTime();
 		final List<Integer> agent0Path = agent0.getPath();
@@ -452,7 +452,7 @@ public class SafeLines implements Algorithm {
 		final long endStep = Math.min(agent0PlannedTime + agent0Path.size(), agent1PlannedTime + agent1Path.size());
 
 		if (endStep < startStep) {
-			return false;
+			return Optional.empty();
 		}
 
 		ListIterator<Integer> itP0 = agent0Path.listIterator((int) (startStep - agent0PlannedTime));
@@ -464,8 +464,10 @@ public class SafeLines implements Algorithm {
 		int vertexP1Last;
 
 		if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
-			return true;
+			return Optional.of(startStep);
 		}
+
+		long step = startStep;
 
 		while (itP0.hasNext() && itP1.hasNext()) {
 			vertexP0Last = vertexP0;
@@ -475,25 +477,27 @@ public class SafeLines implements Algorithm {
 			vertexP1 = itP1.next();
 
 			if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
-				return true;
+				return Optional.of(step);
 			}
 
 			if (vertexP0 == vertexP1Last) {
 				if (!checkNeighbour(vertexP0, vertexP0Last, vertexP1, agent0Perimeter, agent1Perimeter)) {
 					assert !checkNeighbour(vertexP1Last, vertexP0Last, vertexP1, agent1Perimeter, agent0Perimeter);
-					return true;
+					return Optional.of(step);
 				}
 			}
 
 			if (vertexP1 == vertexP0Last) {
 				if (!checkNeighbour(vertexP0Last, vertexP1Last, vertexP0, agent0Perimeter, agent1Perimeter)) {
 					assert !checkNeighbour(vertexP1, vertexP1Last, vertexP0, agent1Perimeter, agent0Perimeter);
-					return true;
+					return Optional.of(step);
 				}
 			}
+
+			step++;
 		}
 
-		return false;
+		return Optional.empty();
 	}
 
 	protected record VertexDistance(int vertexID, double distance) implements Comparable<VertexDistance> {
