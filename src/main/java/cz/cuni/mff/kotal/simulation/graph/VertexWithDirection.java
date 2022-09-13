@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -167,6 +168,7 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 			if (distanceComparison == 0) {
 				return Integer.compare(vertex.getID(), o.vertex.getID());
 			}
+			return distanceComparison;
 		}
 		return heuristicsComparison;
 	}
@@ -200,32 +202,54 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 			int turns = 0;
 
 			if (path.size() >= 2) {
-				double angle;
-				Vertex lastVertex;
-				Vertex vertex;
+				double angle = 0;
+				GraphicalVertex lastVertex;
+				GraphicalVertex vertex;
 				for (int i = 1, lastID = path.get(0), vertexID; i < path.size(); i++, lastID = vertexID) {
 					vertexID = path.get(i);
 					lastVertex = graph.getVertex(lastID);
 					vertex = graph.getVertex(vertexID);
 
 					distance += graph.getDistance(lastID, vertexID);
-					if (i > 1) {
-						double angleDiff;
-						if (lastID == vertexID) {
-							angleDiff = 0;
-						} else {
-							angleDiff = Math.abs();
-							if (angleDiff > Math.PI) {
-								angleDiff = 2 * Math.PI - angleDiff;
-							}
+
+					double newAngle = computeAngle(lastVertex, vertex);
+					if (i > 1 && lastID != vertexID) {
+						double angleDiff = Math.abs(angle - newAngle);
+						if (angleDiff > Math.PI) {
+							angleDiff = 2 * Math.PI - angleDiff;
+						}
+						turnPenalty += angleDiff;
+						if (angleDiff != 0) {
+							turns++;
 						}
 					}
+					angle = newAngle;
 				}
 			}
 
 			this.distance = distance;
 			this.turnPenalty = turnPenalty;
 			this.turns = turns;
+		}
+
+		public Distance(@Nullable Distance distance0, @Nullable Distance distance1) {
+			if (distance0 == null && distance1 == null) {
+				this.distance = 0;
+				this.turnPenalty = 0;
+				this.turns = 0;
+			} else if (distance1 == null) {
+				this.distance = distance0.distance;
+				this.turnPenalty = distance0.turnPenalty;
+				this.turns = distance0.turns;
+			} else if (distance0 == null) {
+				this.distance = distance1.distance;
+				this.turnPenalty = distance1.turnPenalty;
+				this.turns = distance1.turns;
+			} else {
+				this.distance = distance0.distance + distance1.distance;
+				this.turnPenalty = distance0.turnPenalty + distance1.turnPenalty;
+				this.turns = distance0.turns + distance1.turns;
+			}
 		}
 
 		/**
