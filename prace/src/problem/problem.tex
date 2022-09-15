@@ -1,0 +1,174 @@
+\chapter{Problém křižovatky}\label{ch:problem}
+
+Chytré křižovatky se již objevily v mnohých městech.
+Jsou to světelné křižovatky, které dokážou poznat, že všechna auta v daném směru už projela.
+Při detekci takovéto situace křižovatka nastaví červenou z příslušného směru a zároveň pustí auta z dalšího směru dříve.
+Plánování pořadí a délek jednotlivých zelených všech směrů je komplexní záležitost, pokročilejší plánování popsali například \citet*{Goldstein}.
+\citet*{Liang} ve svém článku popsali trénování světelných křižovatek pomocí zpětnovazebního učení a rozšířili algoritmus i na tisíce propojených křižovatek.
+Na tento způsob řešení jsem ve své práci nezaměřil, protože nabízí minimální zlepšení na jedné křižovatce v hustých provozech a minimálně využívá autonomity vozidel.
+
+Další způsob je decentralizované plánování, které spočívá v komunikaci mezi auty.
+Touto technikou se zabývali například \citet*{Wu}.
+V jejich článku porovnávají kruhový objezd se světelnou křižovatkou.
+Jelikož není přítomna centrální řídící jednotka, pro implementaci do reálného světa stačí přidat určitý protokol do vozidel v provozu.
+Avšak aplikovat komplexnější plánování je při větším počtu aut obtížné.
+
+Výše popsané algoritmy často používají FCFS\label{str:fcfs} (First Come First Served) strategii pro určení pořadí plánování.
+Při použití FCFS má nejvyšší prioritu v plánování auto, které dorazilo ke křižovatce nejdříve.
+Tímto způsobem jsou minimalizovány čekací doby jednotlivých aut.
+
+Já se zaměřím pouze na postupy s centrální jednotkou.
+Problém plánování lze převézt na jiné známé problémy.
+Hlavní cíl této práce jsou následující dva přístupy: \emph{\nameref{sec:individualni_planovani}} a \emph{\nameref{sec:hromadne_planovani}}.
+
+\section{Individuální plánování}\label{sec:individualni_planovani}
+
+Jak název napovídá, agenti jsou naplánováni jeden po druhém.
+Každý nový plán je rozvržen tak, aby nekolidoval s žádným už naplánovaným agentem.
+
+Jako první se problematikou zabývali \citet*{Dresner}.
+Jejich přístup více odpovídal reálnému provozu.
+Agenti měli plynulé zatáčení a uměli zrychlovat a zpomalovat.
+Dále \citet{Dresner} řešili problémy komunikace mezi agenty a křižovatkou, řešení situace při kolizi a podporu pro vozidla s lidským řidičem.
+Agenti v jejich práci jsou schopni jezdit pouze v předem daných pruzích.
+V těchto pruzích následně mohou agenti zrychlovat či zpomalovat.
+Algoritmus nejprve přiřadí agentovi maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
+Pokud ano, zkusí nižší rychlost před místem kolize.
+Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
+Agenti jsou plánováni pomocí \nameref{str:fcfs} strategie.
+Tímto algoritmem jsem se inspiroval u algoritmu \nameref{sec:safe-lines}.
+V mé implementaci jezdí agenti stejnou rychlostí v předem daných pruzích.
+Pokud by u agenta došlo ke kolizi, je jeho příjezd odložen.
+
+Řešení je možné rozšířit pomocí libovolného prohledávacího algoritmu.
+Tento přístup jsem vyzkoušel použitím známého algoritmu \nameref{sec:a-star},
+kdy prvního agenta naplánuji nejkratší cestou, poté naplánuji druhého tak, aby nekolidoval s prvním.
+Takto pokračuji pro všechny přijíždějící agenty.
+
+\section{Hromadné plánování}\label{sec:hromadne_planovani}
+
+Řešení tohoto typu jsou složitější, avšak teoreticky by měla být schopny tvořit celkově lepší plány.
+
+Chytrá křižovatka se dá převézt na online \emph{MAPF} (Multi-Agent Path Finding) problém.
+
+\subsection{Offline~MAPF}\label{subsec:offline-mapf}
+
+\emph{Offline~MAPF} má na vstupu dvojici $G, A$, kde $G=(V, E)$ je graf a $A = \{a_1, \dots, a_k\}$ je množina agentů.
+Každý agent $a_i$ má svojí výchozí pozici $s_i \in V$ a cílovou pozici $g_i \in V$.
+Čas je rozdělen na diskrétní úseky (kroky).
+Během jednoho kroku může agent přejet do sousedního vrcholu, nebo počkat v aktuálním.
+Plán pro agenta $a_i$ je sled $\pi_i = s_i, v_2, \dots, v_{n-1}, g_i$ na grafu $G$, čili $v_2, \dots, v_{n-1} \in V$ a
+$(s_i, v_2) \in E, (v_{n-1}, g_i) \in E, \forall_{i \in 2, \dots, n-2} (v_i, v_{i+1}) \in E$.
+Délka plánu je $|\pi_i| = n$, pozice agenta $a_i$ v kroku $c$ je $\pi_i[c]$.
+
+Agenti $a_i$ a $a_j$, $i \neq j$ jsou v \emph{kolizi} v kroku $c$ právě tehdy když $\pi_i[c] = \pi_j[c]$ nebo
+$\pi_i[c] = \pi_j[c + 1] \land \pi_i[c + 1] = \pi_j[c]$.
+Slovy řečeno, agenti jsou v \emph{kolizi}, pokud jsou na stejném místě, nebo projíždí stejnou hranou.
+
+Cílem \emph{offline MAPF} je nalezení plánu $\pi = \cup_{i=1}^{k} \pi_i$, který nemá žádné kolize.
+Takovýto plán nazýváme validní.
+Pro problém mohou existovat různé plány, tyto plány bývají často porovnány pomocí \emph{SOC} (Sum Of Costs).
+Plán $\pi$ má cenu $|\pi| = \sum_{i=1}^{k} |\pi_i|$.
+Alternativní způsob porovnání je objektivní funkcí pro plán $\pi$ funkce $\textrm{makespan}\label{str:makespan}(\pi)$,
+která značí počet kroků, než všichni agenti dorazí do svého cíle.
+
+\subsubsection{Řešení~offline~MAPF}\label{subsubsec:reseni-offline-mapf}
+
+Nejjednodušší způsob řešení je využít A* algoritmus, kde následníci stavu jsou kartézským součinem přes všechny možné tahy všech agentů.
+Toto řešení má často vysoký větvící faktor.
+Proto se vyvinuly vylepšení, například \emph{Independence Detection}, \emph{Conflict Avoidance Table} nebo \emph{Operator Decomposition} \citep{Standley_2010} a mnoho dalších.
+
+\citet*{Sharon} navrhli algoritmus \emph{CBS} (Conflict-Based Search), který nalezne nejkratší cesty pro všechny agenty.
+Poté hledá konflikty mezi jednotlivými plány.
+Pokud nalezne konflikt, vznikne omezující podmínka pro jednoho agenta v kolizi.
+Tato podmínka znemožní agentovi být na konfliktním vrcholu.
+Poté se s novou podmínkou spustí nové prohledávání pro tohoto agenta.
+Zároveň vznikne druhá větev výpočtu, ve které má tuto podmínku druhý agent z kolize.
+Takto postupně vzniká binární strom, kde synové vrcholu mají vždy podmínky z rodiče plus pro prvního / druhého agenta novou podmínku.
+Pokud se nalezena nekolizní cesta pro všechny vrcholy, algoritmus skončí.
+Pořadí prohledávání listů ve stromu je určeno podle SOC listů.
+Toto pořadí zaručuje optimální řešení \citep{Sharon}.
+Algoritmus byl nadále rozšířen a vylepšen \citep{Boyarski}.
+
+\emph{MAPF} problém je možné převést na SAT problém.
+Nejprve se vytvoří výrokové proměnné pro každého agenta, každý vrchol a každý čas.
+Následně přidáme podmínky, aby agenti nebyli v kolizi.
+Tento způsob řešení je spíše vhodný pro optimalizování \nameref{str:makespan} funkce,
+avšak je možné vytvořit varianty cílené na SOC \citep{bartak}.
+Blíže je toto řešení popsáno v kapitole \nameref{sec:sat-planner}.
+
+Další způsob řešení je za použití zpětnovazebního učení \citep*{Zhiyao}.
+
+\subsection{Online~MAPF}\label{subsec:online-mapf}
+
+Rozšíření \emph{offline~MAPF} problému na online variantu zkoumali ve své práci \citet*{Svancara}.
+\emph{Online~MAPF} má u každého agenta $a_i = (t_i, s_i, g_i)$ kromě místa příjezdu a cíle také čas příjezdu $t_i$.
+Tento čas není dopředu znám.
+\emph{Online~MAPF} začíná s počátečním \emph{offline~MAPF} plánem pro agenty, kteří přijeli v čase $0$.
+Tento plán budu značit $\pi^0$.
+Pokaždé, když se objeví noví agenti, vytvoří se nový plán $\pi^j$.
+Celkový plán je tedy $\Pi = (\pi^0, \pi^1, \dots, \pi^m)$, kde $m$ je počet unikátních kroků ($t_1, t_2, \dots, t_m$), kdy se objevili agenti.
+Označím si $\pi^j[x:y]$ část plánu $\pi^j$ v krocích $x, x + 1, \dots, y - 1, y$.
+Celkový plán, který budou agenti vykonávat je tedy $Ex[\Pi] = \pi^0[0:t_1] \circ \pi^1[t_1 + 1:t_2] \circ \dots \circ \pi^m[t_m + 1:\infty]$.
+
+\citet{Svancara} zmínili problémy s \emph{online~MAPF}.
+První problém nastane, pokud agenti zůstanou na svém místě po doražení do cíle.
+Zároveň pokud by se agenti okamžitě objevili v grafu, mohli by ihned způsobit kolizi, kterou algoritmy nemohli predikovat.
+Žádný z těchto problémů u mě nastat nemůže, jelikož agenti mohou být zamítnuti, pokud by došlo ke kolizi hned na vjezdu.
+Agenti taky mizí z křižovatky po doražení do výjezdu.
+
+Opět zavedu cenu plánu jako součet délek plánů pro jednotlivé agenty $|Ex[\Pi]| = \sum_{i=1}^{k} |Ex[\Pi]_i| = \sum_{i=1}^{k} t_{Ex[\Pi]}[g_i] - t_i$,
+kde $t_{Ex[\Pi]}[g_i]$ je krok, kdy agent $a_i = (t_i, s_i, g_i)$ naposledy dorazil do cílového vrcholu $g_i$.
+Z analýzy \citet{Svancara} víme, že cena $|Ex[\Pi]|$ je ekvivalentní objektivní funkci $\sum_{t=1}^{\infty} \textrm{NotAtGoal}(t)$,
+kde $\textrm{NotAtGoal}(t)$ udává počet agentů, kteří ještě nedorazili do svého cíle v čase $t$.
+Také objektivní funkce $\sum_{i=1}^{k} |Ex[\Pi]_i| - o_i$, kde $o_i$ je délka nejkratší cesty mezi $s_i$ a $g_i$,
+je ekvivalentní $|Ex[\Pi]|$.
+
+Každý \emph{online~MAPF} problém je možné převést na \emph{offline~MAPF} pokud dáme dopředu algoritmu vědět, kdy se agenti objeví.
+Díky tomu můžeme porovnat optimalitu online řešičů.
+\citet{Svancara} dokázali, že žádný online algoritmus nemůže zajistit offline optimální řešení.
+\emph{Snapshot-optimální} plány jsou plány, které našli optimální plán za předpokladu, že se  žádní žádní agenti neobjeví.
+\citet*{Morag} provedli rozsáhlé experimenty a zjistili, že \emph{snapshot-optimální} plány nejsou o moc horší než optimální.
+Ve všech typech experimentů byly \emph{snapshot-optimální} ceny plánů alespoň v $80\%$ běhů totožné s optimálním plánem
+a ve zbylých případech se plány lišily minimálně.
+
+\subsubsection{Řešení~online~MAPF}\label{subsubsec:reseni-online-mapf}
+
+V práci \citet{Svancara} jsou návrhy různých postupů řešení \emph{online~MAPF} problémů:
+\begin{itemize}
+	\item \textbf{Replan~Single} (RS) - tento přístup je totožný s~přístupem \nameref{sec:individualni_planovani}.
+	\item \textbf{Replan~Single~Grouped}\label{par:replan-single-grouped} (RSG) - v tomto přístupu se plánují pouze pro noví agenty.
+	Plánování probíhá pro všechny agenty najednou.
+	Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s již naplánovanými trasami.
+	\item \textbf{Replan~All} (RA) - za použití této strategie se použije \emph{offline~MAPF} řešič na všechny agenty pokaždé, když dorazí noví agenti.
+	Pokud je řešič optimální, \emph{Replan~all} vrací \emph{snapshot~optimální} řešení \citep{Svancara}.
+	\item \textbf{Online~Independence~Detection} (OID)- Tento přístup se snaží minimalizovat množství přeplánovaných agentů.
+	Nejprve najde cestu pro všechny nové agenty ignorujíce už naplánované.
+	Poté zjistí kolize mezi starými a novými agenty.
+	Pokud byly nalezeny kolize, přeplánují se trasy kolizních agentů.
+	Pro zaručení \emph{snapshot~optimálního} plánu je nutné udělat dodatečné úpravy \citep{Svancara}.
+	\item \textbf{Suboptimal~Independence~Detection} (SubID) - pozměňuje OID dovolováním neoptimálních cest.
+	Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
+	Avšak díky této úpravě by měl být počet přeplánování, a tedy i  čas výpočtu, nižší.
+\end{itemize}
+
+\section{Inteligentní křižovatka}\label{sec:inteligentni-krizovatka}
+Problém popsaný v této práci, přidává do \emph{online~MAPF} další podmínky.
+U křižovatky všichni agenti mají specifikovány vrcholy, kde může být jejich start a cíl.
+Agenti také nejsou pouhé body, ale mají svojí velikost.
+Díky tomu je zjišťování kolizí komplexnější.
+
+Dále je možné přiblížit se reálné křižovatce dalšími úpravami.
+\begin{itemize}
+	\item Pokud agentovi nezáleží na pruhu, kterým vyjede, může sdělit algoritmu pouze směr výjezdu.
+	Algoritmus má za cíl najít cestu na libovolný výjezd v daném směru.
+	V důsledku může agent místo jednoho koncového vrcholu mít množinu vrcholů.
+	\item Agent představuje jedoucí vozidlo.
+	Proto mohu po algoritmu vyžadovat, aby se agent nikdy nezastavil na místě.
+	Zároveň mohu vyžadovat, aby se agentovo cesta neměnila po vjezdu do křižovatky.
+	Podmínku, že křižovatka nemůže měnit individuální plány za běhu, již zmínil \citet{Dresner}.
+	Kdybychom změnu plánů dovolili, mohlo by dojít k chybě v komunikaci, díky níž by agent prováděl původní plán,
+	avšak křižovatka by počítala s novým plánem.
+\end{itemize}
+
+Všechny tyto varianty zkoumám a porovnávám v experimentech.
