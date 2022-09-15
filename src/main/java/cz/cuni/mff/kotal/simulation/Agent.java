@@ -58,9 +58,14 @@ public class Agent extends BasicAgent {
 	}
 
 	@TestOnly
-	public Agent(long id, double arrivalTime, long plannedTime, Integer entry) {
+	public Agent(long id, double arrivalTime, long plannedTime, int entry) {
 		super(id, arrivalTime, entry);
 		this.plannedTime = plannedTime;
+	}
+
+	@TestOnly
+	public Agent(long id) {
+		this(id, 0, 0, 0);
 	}
 
 

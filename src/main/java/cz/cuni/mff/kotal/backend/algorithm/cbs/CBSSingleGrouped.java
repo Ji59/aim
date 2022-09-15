@@ -2,7 +2,7 @@ package cz.cuni.mff.kotal.backend.algorithm.cbs;
 
 import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingle;
 import cz.cuni.mff.kotal.helpers.Pair;
-import cz.cuni.mff.kotal.helpers.Triplet;
+import cz.cuni.mff.kotal.helpers.Quaternion;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirection.Distance;
@@ -44,6 +44,15 @@ public class CBSSingleGrouped extends AStarSingle {
 	 */
 	@Override
 	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+		findInitialPaths(agentsEntriesExits, step);
+
+		final Node node = bestValidNode(agentsEntriesExits, step);
+		node.getAgents().forEach(this::addPlannedAgent);
+
+		return node.getAgents();
+	}
+
+	protected void findInitialPaths(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		for (Iterator<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator(); it.hasNext(); ) {
 			final Map.Entry<Agent, Pair<Integer, Set<Integer>>> agentEntryExits = it.next();
 			final Agent agent = agentEntryExits.getKey();
@@ -57,11 +66,6 @@ public class CBSSingleGrouped extends AStarSingle {
 				agent.setPath(path, step);
 			}
 		}
-
-		final Node node = bestValidNode(agentsEntriesExits, step);
-		node.getAgents().forEach(this::addPlannedAgent);
-
-		return node.getAgents();
 	}
 
 	protected @NotNull Node bestValidNode(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
@@ -74,7 +78,7 @@ public class CBSSingleGrouped extends AStarSingle {
 			nodes++;
 
 			final Node node = queue.poll();
-			final Optional<Triplet<Agent, Agent, Long>> collidingAgentsOptional = collidingAgents(node.getAgents());
+			final Optional<Quaternion<Agent, Agent, Long, Boolean>> collidingAgentsOptional = collidingAgents(node.getAgents());
 			if (collidingAgentsOptional.isEmpty()) {
 				System.out.println("Step " + step + " nodes count: " + nodes);
 				return node;
@@ -84,15 +88,14 @@ public class CBSSingleGrouped extends AStarSingle {
 				System.out.println(nodes);
 			}
 
-			final Triplet<Agent, Agent, Long> collidingAgents = collidingAgentsOptional.get();
-			final long collisionStep = collidingAgents.getVal2();
+			final Quaternion<Agent, Agent, Long, Boolean> collidingAgents = collidingAgentsOptional.get();
 
 			final Agent agent0 = collidingAgents.getVal0();
-			Thread thread = new Thread(() -> replanAgent(agentsEntriesExits, step, queue, node, collisionStep, agent0, collidingAgents));
+			Thread thread = new Thread(() -> replanAgent(agentsEntriesExits, step, queue, node, agent0, collidingAgents));
 			thread.start();
 
 			final Agent agent1 = collidingAgents.getVal1();
-			replanAgent(agentsEntriesExits, step, queue, node, collisionStep, agent1, collidingAgents);
+			replanAgent(agentsEntriesExits, step, queue, node, agent1, collidingAgents);
 			try {
 				thread.join();
 			} catch (InterruptedException e) {
@@ -103,52 +106,80 @@ public class CBSSingleGrouped extends AStarSingle {
 		throw new IllegalStateException("No valid node found in CBS");
 	}
 
-	private void replanAgent(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, long collisionStep, @NotNull Agent agent, Triplet<Agent, Agent, Long> collision) {
+	private void replanAgent(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision) {
+		final long collisionStep = collision.getVal2();
 		final int entryID = agentsEntriesExits.get(agent).getVal0();
 		final Set<Integer> exitsIDs = agentsEntriesExits.get(agent).getVal1();
-		final Map<Agent, Map<Long, Collection<Integer>>> constraints = copyConstraints(node.getConstraints(), agent);
-		Map<Long, Collection<Integer>> agentConstraints = constraints.computeIfAbsent(agent, k -> new HashMap<>());
-		Collection<Integer> stepConstraints = agentConstraints.getOrDefault(collisionStep, Collections.emptySet());
-		Collection<Integer> stepConstraintsCopy = new HashSet<>(stepConstraints);
-		agentConstraints.put(collisionStep, stepConstraintsCopy);
-		stepConstraintsCopy.add(agent.getPath().get((int) (collisionStep - step)));
+		final Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints = copyConstraints(node.getConstraints(), agent);
+		Map<Long, Collection<Pair<Integer, Integer>>> agentConstraints = constraints.computeIfAbsent(agent, k -> new HashMap<>());
+		Collection<Pair<Integer, Integer>> stepConstraints = agentConstraints.getOrDefault(collisionStep, Collections.emptySet());
+		Collection<Pair<Integer, Integer>> stepConstraintsCopy = new HashSet<>(stepConstraints);
+		Collection<Pair<Integer, Integer>> oldMap = agentConstraints.put(collisionStep, stepConstraintsCopy);
 
-		final Collection<Agent> agents = new HashSet<>(node.getAgents());
-		agents.remove(agent);
+		Pair<Integer, Integer> collisionEntry = createCollision(agent, collision);
+		boolean added = stepConstraintsCopy.add(collisionEntry);
+
+		List<Node> nodes = new LinkedList<>();
+		for (Node parent = node; parent.collision != null; parent = parent.getParent()) {
+			nodes.add(parent);
+		}
+		assert nodes.stream().filter(n -> node.agents.contains(n.collision.getVal0()) && node.agents.contains(n.collision.getVal1())).count() == node.constraints.values().stream().flatMap(c -> c.values().stream()).mapToInt(Collection::size).sum();
 
 		final LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs, agentConstraints);
+		assignNewPath(agentsEntriesExits, step, queue, node, agent, collision, constraints, path);
+	}
+
+	@TestOnly
+	protected Pair<Integer, Integer> createCollision_(@NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision) {
+		return createCollision(agent, collision);
+	}
+
+	@NotNull
+	public static Pair<Integer, Integer> createCollision(@NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision) {
+		final long collisionStep = collision.getVal2();
+		final boolean collisionOnTravel = collision.getVal3();
+
+		final int collisionRelativeTime = (int) (collisionStep - agent.getPlannedTime());
+		final List<Integer> agentPath = agent.getPath();
+		final int collisionStepVertex = agentPath.get(collisionRelativeTime);
+
+		return new Pair<>(collisionOnTravel ? collisionStepVertex : agentPath.get(collisionRelativeTime - 1), collisionStepVertex);
+	}
+
+	protected void assignNewPath(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, LinkedList<Integer> path) {
+		Collection<Agent> agents;
 		if (path != null) {
-			final Agent agentCopy = new Agent(agent).setPath(path, step);
-			agents.add(agentCopy);
+			agents = copyAgents(step, node, agent, path);
 		} else {
-			Collection<Agent> nonOptimalAgents = removeAgentFromConstraints(node, constraints, agent, step);
-			replanAgents(agentsEntriesExits, step, constraints, agents, nonOptimalAgents);
+			removeAgentFromConstraints(node, constraints, agent);
+			agents = replanAgents(agentsEntriesExits, step, constraints, node.getAgents(), agent);
 		}
 
 		queue.add(new Node(agents, constraints, node, collision));
 	}
 
-	private void replanAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull Map<Agent, Map<Long, Collection<Integer>>> constraints, @NotNull Collection<Agent> agents, @NotNull Collection<Agent> nonOptimalAgents) {
-		nonOptimalAgents.stream().parallel().forEach(agent -> {
-			agents.remove(agent);
-			final Agent agentCopy = new Agent(agent);
-			final Pair<Integer, Set<Integer>> entryExits = agentsEntriesExits.get(agent);
-			final int entry = entryExits.getVal0();
-			final Set<Integer> exits = entryExits.getVal1();
-			final LinkedList<Integer> newPath = getPath(agentCopy, step, entry, exits, constraints.get(agent));
-			assert newPath != null;
-			agent.setPath(newPath);
-			agents.add(agent);
-		});
+	@NotNull
+	protected static Collection<Agent> copyAgents(long step, @NotNull Node node, @NotNull Agent agent, LinkedList<Integer> path) {
+		Collection<Agent> agents;
+		final Agent agentCopy = new Agent(agent).setPath(path, step);
+		agents = new HashSet<>(node.getAgents().size());
+		for (Agent nodeAgent : node.getAgents()) {
+			if (agentCopy.equals(nodeAgent)) {
+				agents.add(agentCopy);
+			} else {
+				agents.add(nodeAgent);
+			}
+		}
+		return agents;
 	}
 
-	private static @NotNull Collection<Agent> removeAgentFromConstraints(final Node parentNode, final @NotNull Map<Agent, Map<Long, Collection<Integer>>> constraints, final Agent agent, final long step) {
+	protected static void removeAgentFromConstraints(final Node parentNode, final @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, final Agent agent) {
 		constraints.remove(agent);
 
-		Collection<Agent> affectedAgents = new HashSet<>();
+		final Set<Agent> changedAgents = new HashSet<>(parentNode.getAgents().size());
 
 		for (Node parent = parentNode; parent.getCollision() != null; parent = parent.getParent()) {
-			final Triplet<Agent, Agent, Long> parentCollision = parent.getCollision();
+			final Quaternion<Agent, Agent, Long, Boolean> parentCollision = parent.getCollision();
 			Agent otherAgent = null;
 			if (parentCollision.getVal0().equals(agent)) {
 				otherAgent = parentCollision.getVal1();
@@ -157,35 +188,71 @@ public class CBSSingleGrouped extends AStarSingle {
 			}
 
 			if (otherAgent != null && constraints.containsKey(otherAgent)) {
-				final Map<Long, Collection<Integer>> otherAgentConstraints = constraints.get(otherAgent);
+				Map<Long, Collection<Pair<Integer, Integer>>> otherAgentConstraints = constraints.get(otherAgent);
 				final long collisionStep = parentCollision.getVal2();
 				if (!otherAgentConstraints.containsKey(collisionStep)) {
 					continue;
 				}
-				final int collisionVertex = otherAgent.getPath().get((int) (collisionStep - step));
-				final boolean removedConstraint = otherAgentConstraints.get(collisionStep).remove(collisionVertex);
-				if (removedConstraint) {
-					affectedAgents.add(otherAgent);
+
+				final Collection<Pair<Integer, Integer>> stepConstraints = otherAgentConstraints.get(collisionStep);
+				final @NotNull Pair<Integer, Integer> collisionConstraint = createCollision(otherAgent, parentCollision);
+				if (stepConstraints.contains(collisionConstraint)) {
+					final Set<Pair<Integer, Integer>> stepConstraintsCopy = new HashSet<>(stepConstraints.size());
+					for (final Pair<Integer, Integer> constraint : stepConstraints) {
+						if (!constraint.equals(collisionConstraint)) {
+							stepConstraintsCopy.add(constraint);
+						}
+					}
+
+					if (!changedAgents.contains(otherAgent)) {
+						changedAgents.add(otherAgent);
+						final Map<Long, Collection<Pair<Integer, Integer>>> otherAgentConstraintsCopy = new HashMap<>(otherAgentConstraints.size());
+						for (Map.Entry<Long, Collection<Pair<Integer, Integer>>> stepConstraintsEntry : otherAgentConstraints.entrySet()) {
+							final long step = stepConstraintsEntry.getKey();
+							if (step != collisionStep) {
+								otherAgentConstraintsCopy.put(step, stepConstraintsEntry.getValue());
+							}
+						}
+						constraints.put(otherAgent, otherAgentConstraintsCopy);
+						otherAgentConstraints = otherAgentConstraintsCopy;
+					}
+
+					otherAgentConstraints.put(collisionStep, stepConstraintsCopy);
+					assert constraints.get(otherAgent).get(collisionStep).size() == stepConstraints.size() - 1;
 				}
 			}
 		}
-
-		return affectedAgents;
 	}
 
-	protected static @NotNull Map<Agent, Map<Long, Collection<Integer>>> copyConstraints(final @NotNull Map<Agent, Map<Long, Collection<Integer>>> constraints, final Agent agent) {
-		final Map<Agent, Map<Long, Collection<Integer>>> newConstraints = new HashMap<>(constraints.size());
-		for (Map.Entry<Agent, Map<Long, Collection<Integer>>> agentConstraints : constraints.entrySet()) {
+	protected Collection<Agent> replanAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @NotNull Collection<Agent> agents, final Agent agent) {
+		return agents.stream().parallel()
+			.filter(a -> !a.equals(agent))
+			.map(a -> {
+				final Agent agentCopy = new Agent(a);
+				final Pair<Integer, Set<Integer>> entryExits = agentsEntriesExits.get(a);
+				final int entry = entryExits.getVal0();
+				final Set<Integer> exits = entryExits.getVal1();
+				final LinkedList<Integer> newPath = getPath(agentCopy, step, entry, exits, constraints.getOrDefault(a, Collections.emptyMap()));
+				assert newPath != null;
+				agentCopy.setPath(newPath, step);
+				return agentCopy;
+			})
+			.collect(Collectors.toSet());
+	}
+
+	protected static @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> copyConstraints(final @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, final Agent agent) {
+		final Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> newConstraints = new HashMap<>(constraints.size());
+		for (Map.Entry<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> agentConstraints : constraints.entrySet()) {
 			final Agent mapAgent = agentConstraints.getKey();
-			Map<Long, Collection<Integer>> oldConstraints = agentConstraints.getValue();
-			final Map<Long, Collection<Integer>> agentConstraintsMap = mapAgent.equals(agent) ? new HashMap<>(oldConstraints) : oldConstraints;
+			Map<Long, Collection<Pair<Integer, Integer>>> oldConstraints = agentConstraints.getValue();
+			final Map<Long, Collection<Pair<Integer, Integer>>> agentConstraintsMap = mapAgent.equals(agent) ? new HashMap<>(oldConstraints) : oldConstraints;
 			newConstraints.put(mapAgent, agentConstraintsMap);
 		}
 
 		return newConstraints;
 	}
 
-	protected @NotNull Optional<Triplet<Agent, Agent, Long>> collidingAgents(final @NotNull Collection<Agent> agents) {
+	protected Optional<Quaternion<Agent, Agent, Long, Boolean>> collidingAgents(final @NotNull Collection<Agent> agents) {
 		int i = 0;
 		for (final Iterator<Agent> it0 = agents.iterator(); it0.hasNext(); i++) {
 			final Agent agent0 = it0.next();
@@ -196,9 +263,9 @@ public class CBSSingleGrouped extends AStarSingle {
 					continue;
 				}
 
-				Optional<Long> stepCollision = inCollision(agent0, agent1);
+				Optional<Pair<Long, Boolean>> stepCollision = inCollision(agent0, agent1);
 				if (stepCollision.isPresent()) {
-					return Optional.of(new Triplet<>(agent0, agent1, stepCollision.get()));
+					return Optional.of(new Quaternion<>(agent0, agent1, stepCollision.get().getVal0(), stepCollision.get().getVal1()));
 				}
 			}
 		}
@@ -208,10 +275,10 @@ public class CBSSingleGrouped extends AStarSingle {
 
 	protected class Node implements Comparable<Node> {
 		final @NotNull Collection<Agent> agents;
-		final Map<Agent, Map<Long, Collection<Integer>>> constraints;
+		final Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints;
 		final @NotNull Distance distance;
 		final @Nullable Node parent;
-		final @Nullable Triplet<Agent, Agent, Long> collision;
+		final Quaternion<Agent, Agent, Long, Boolean> collision;
 
 		public Node(@NotNull Collection<Agent> agents) {
 			this.agents = agents;
@@ -221,7 +288,16 @@ public class CBSSingleGrouped extends AStarSingle {
 			this.collision = null;
 		}
 
-		public Node(@NotNull Collection<Agent> agents, Map<Agent, Map<Long, Collection<Integer>>> constraints, Node parent, Triplet<Agent, Agent, Long> collision) {
+		@TestOnly
+		public Node(@Nullable Node parent, Quaternion<Agent, Agent, Long, Boolean> collision) {
+			this.agents = Collections.emptySet();
+			this.distance = new Distance();
+			this.constraints = new HashMap<>();
+			this.parent = parent;
+			this.collision = collision;
+		}
+
+		public Node(@NotNull Collection<Agent> agents, Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, Node parent, Quaternion<Agent, Agent, Long, Boolean> collision) {
 			this.agents = agents;
 			this.distance = getDistance(agents);
 			this.constraints = constraints;
@@ -238,7 +314,7 @@ public class CBSSingleGrouped extends AStarSingle {
 			return agents;
 		}
 
-		public Map<Agent, Map<Long, Collection<Integer>>> getConstraints() {
+		public Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> getConstraints() {
 			return constraints;
 		}
 
@@ -246,7 +322,7 @@ public class CBSSingleGrouped extends AStarSingle {
 			return parent;
 		}
 
-		public @Nullable Triplet<Agent, Agent, Long> getCollision() {
+		public Quaternion<Agent, Agent, Long, Boolean> getCollision() {
 			return collision;
 		}
 

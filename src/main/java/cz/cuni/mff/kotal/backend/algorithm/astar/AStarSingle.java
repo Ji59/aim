@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.backend.algorithm.astar;
 import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
@@ -78,8 +79,8 @@ public class AStarSingle extends SafeLines {
 	}
 
 	@Nullable
-	protected LinkedList<Integer> getPath(Agent agent, long step, int entryID, Set<Integer> exitsIDs, Map<Long, Collection<Integer>> constraints) {
-		if (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter())) {
+	protected LinkedList<Integer> getPath(Agent agent, long step, int entryID, Set<Integer> exitsIDs, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
+		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter()))) {
 			return null;
 		}
 
@@ -95,7 +96,7 @@ public class AStarSingle extends SafeLines {
 		return searchPath(agent, exitsIDs, heuristic, entryID, queue, maximumDelay, constraints);
 	}
 
-	protected LinkedList<Integer> searchPath(Agent agent, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, int maximumDelay, Map<Long, Collection<Integer>> constraints) {
+	protected LinkedList<Integer> searchPath(Agent agent, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, int maximumDelay, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		double agentsPerimeter = agent.getAgentPerimeter();
 
 		Map<Integer, Set<Long>> stepVisitedVertices = new HashMap<>(graph.getVertices().length * 2);
@@ -132,7 +133,7 @@ public class AStarSingle extends SafeLines {
 		return path;
 	}
 
-	private void addNeighbours(int vertexID, int entryID, Set<Integer> exitIDs, State state, PriorityQueue<State> queue, Map<Integer, Double> heuristic, double agentPerimeter, int maximumDelay, @Nullable Collection<Integer> constraints) {
+	private void addNeighbours(int vertexID, int entryID, Set<Integer> exitIDs, State state, PriorityQueue<State> queue, Map<Integer, Double> heuristic, double agentPerimeter, int maximumDelay, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		long stateStep = state.getStep();
 		for (int neighbourID : state.getVertex().getNeighbourIDs()) {
 			long neighbourStep = stateStep + 1;
@@ -180,28 +181,41 @@ public class AStarSingle extends SafeLines {
 		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
 	}
 
-	private boolean canVisitVertex(VertexWithDirectionParent state, int entryID, int vertexID, int maximumDelay, @Nullable Collection<Integer> constraints) {
+	private boolean canVisitVertex(final VertexWithDirectionParent state, int entryID, int vertexID, int maximumDelay, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		if (vertexID == entryID ||
-			(constraints != null && constraints.contains(vertexID)) ||
 			(
 				!allowAgentReturn &&
 					state.getParent() != null &&
 					state.getParent().getID() == vertexID
-			)
+			) ||
+			(constraints != null && constraints.stream()
+				.anyMatch(c -> {
+					int actualID = c.getVal1();
+					if (actualID != vertexID) {
+						return false;
+					}
+
+					int lastID = c.getVal0();
+					if (lastID == actualID) {
+						return true;
+					}
+						return state.getID() == lastID;
+				}))
 		) {
 			return false;
 		}
 		int visitCount = 0;
 		int length = 1;
-		while (state != null) {
-			if (state.getID() == vertexID) {
+		VertexWithDirectionParent parent = state;
+		while (parent != null) {
+			if (parent.getID() == vertexID) {
 				visitCount++;
 				if (visitCount >= maximumVertexVisits) {
 					return false;
 				}
 			}
 			length++;
-			state = state.getParent();
+			parent = parent.getParent();
 		}
 
 		return length <= maximumDelay;

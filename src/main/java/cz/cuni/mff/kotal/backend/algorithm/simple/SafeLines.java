@@ -5,6 +5,7 @@ import cz.cuni.mff.kotal.backend.algorithm.LinkGraph;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
+import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
@@ -439,7 +440,7 @@ public class SafeLines implements Algorithm {
 		return false;
 	}
 
-	public Optional<Long> inCollision(Agent agent0, Agent agent1) {
+	public Optional<Pair<Long, Boolean>> inCollision(Agent agent0, Agent agent1) {
 		final long agent0PlannedTime = agent0.getPlannedTime();
 		final long agent1PlannedTime = agent1.getPlannedTime();
 		final List<Integer> agent0Path = agent0.getPath();
@@ -464,10 +465,10 @@ public class SafeLines implements Algorithm {
 		int vertexP1Last;
 
 		if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
-			return Optional.of(startStep);
+			return Optional.of(new Pair<>(startStep, true));
 		}
 
-		long step = startStep;
+		long step = startStep + 1;
 
 		while (itP0.hasNext() && itP1.hasNext()) {
 			vertexP0Last = vertexP0;
@@ -477,20 +478,20 @@ public class SafeLines implements Algorithm {
 			vertexP1 = itP1.next();
 
 			if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
-				return Optional.of(step);
+				return Optional.of(new Pair<>(step, true));
 			}
 
 			if (vertexP0 == vertexP1Last) {
 				if (!checkNeighbour(vertexP0, vertexP0Last, vertexP1, agent0Perimeter, agent1Perimeter)) {
 					assert !checkNeighbour(vertexP1Last, vertexP0Last, vertexP1, agent1Perimeter, agent0Perimeter);
-					return Optional.of(step);
+					return Optional.of(new Pair<>(step, false));
 				}
 			}
 
 			if (vertexP1 == vertexP0Last) {
 				if (!checkNeighbour(vertexP0Last, vertexP1Last, vertexP0, agent0Perimeter, agent1Perimeter)) {
 					assert !checkNeighbour(vertexP1, vertexP1Last, vertexP0, agent1Perimeter, agent0Perimeter);
-					return Optional.of(step);
+					return Optional.of(new Pair<>(step, false));
 				}
 			}
 
