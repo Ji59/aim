@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
  * TODO
  */
 public abstract class Simulation {
-	protected static final double GENERATED_MINIMUM_STEP_AHEAD = 8;
-	protected static final double GENERATED_MAXIMUM_STEP_AHEAD = 16;
+	public static final int GENERATED_MINIMUM_STEP_AHEAD = 8;
+	public static final int GENERATED_MAXIMUM_STEP_AHEAD = 16;
 	// TODO
 	public static long maximumDelay = 16;
 	protected final SimulationGraph intersectionGraph;

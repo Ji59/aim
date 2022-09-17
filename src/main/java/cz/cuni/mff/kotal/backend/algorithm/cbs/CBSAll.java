@@ -1,5 +1,7 @@
 package cz.cuni.mff.kotal.backend.algorithm.cbs;
 
+import cz.cuni.mff.kotal.backend.algorithm.AlgorithmAll;
+import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Quaternion;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -10,78 +12,53 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.*;
 
 public class CBSAll extends CBSSingleGrouped {
-	public static final Map<String, Object> PARAMETERS = CBSSingleGrouped.PARAMETERS;
+	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(CBSSingleGrouped.PARAMETERS);
+
+
+	static {
+		PARAMETERS.putAll(AlgorithmAll.PARAMETERS);
+	}
 
 	protected final Map<Agent, Pair<Agent, Long>> notFinishedAgents = new HashMap<>();
+	protected final int maximumReplannedAgents;
+	protected final int replanSteps;
 
 	public CBSAll(SimulationGraph graph) {
 		super(graph);
+		maximumReplannedAgents = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.MAXIMUM_REPLANNED_AGENTS_NAME, AlgorithmAll.MAXIMUM_REPLANNED_AGENTS_DEF);
+		replanSteps = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.REPLAN_STEPS_NAME, AlgorithmAll.REPLAN_STEPS_DEF);
 	}
 
 	@TestOnly
-	protected CBSAll(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
+	protected CBSAll(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, int maximumReplannedAgents, int replanSteps) {
 		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
+		this.maximumReplannedAgents = maximumReplannedAgents;
+		this.replanSteps = replanSteps;
 	}
 
 	@Override
 	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		findInitialPaths(agentsEntriesExits, step);
 
-		Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agentsEntriesExits.size() + notFinishedAgents.size());
+		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumReplannedAgents, replanSteps);
+		final Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agentsEntriesExits.size() + validNotFinishedAgents.size());
 		allAgents.putAll(agentsEntriesExits);
 
-		final Iterator<Agent> it = notFinishedAgents.keySet().iterator();
-		while (it.hasNext()) {
-			final Agent agent = it.next();
-
+		for (Agent agent : validNotFinishedAgents) {
 			final long plannedTime = agent.getPlannedTime();
 			final int travelTime = (int) (step - plannedTime);
-			if (travelTime >= agent.getPath().size() - 1) {
-				it.remove();
-			} else {
-				final int startingVertexID = agent.getPath().get(travelTime);
-				allAgents.put(agent, new Pair<>(startingVertexID, getExits(agent)));
-			}
+			assert travelTime < agent.getPath().size() - 1;
+			final int startingVertexID = agent.getPath().get(travelTime);
+			allAgents.put(agent, new Pair<>(startingVertexID, getExits(agent)));
 		}
 
 		final Node node = bestValidNode(allAgents, step);
 
 		final Collection<Agent> plannedAgents = node.getAgents();
-		processPlannedAgents(plannedAgents, step);
+		assert plannedAgents.containsAll(validNotFinishedAgents);
+		AlgorithmAll.processPlannedAgents(notFinishedAgents, plannedAgents, step);
 
 		return plannedAgents;
-	}
-
-	protected void processPlannedAgents(Collection<Agent> plannedAgents, long step) {
-		if (!plannedAgents.containsAll(notFinishedAgents.keySet())) {
-			throw new AssertionError();
-		}
-
-		final Iterator<Agent> iterator = plannedAgents.iterator();
-		while (iterator.hasNext()) {
-			final Agent agent = iterator.next();
-			if (notFinishedAgents.containsKey(agent)) {
-				iterator.remove();
-
-				List<Integer> pathEnd = agent.getPath();
-
-				final Pair<Agent, Long> plannedPathTriplet = notFinishedAgents.get(agent);
-				final Agent originalAgent = plannedPathTriplet.getVal0();
-				final long plannedTime = plannedPathTriplet.getVal1();
-
-				if (agent.getPlannedTime() == plannedTime) {
-					continue;
-				}
-
-				final List<Integer> lastPath = originalAgent.getPath();
-				for (int i = 0; i < step - plannedTime; i++) {
-					pathEnd.add(i, lastPath.get(i));
-				}
-				originalAgent.setPath(pathEnd);
-			} else {
-				notFinishedAgents.put(agent, new Pair<>(agent, agent.getPlannedTime()));
-			}
-		}
 	}
 
 	@Override
@@ -98,6 +75,23 @@ public class CBSAll extends CBSSingleGrouped {
 		}
 
 		queue.add(new Node(agents, constraints, node, collision));
+	}
+
+	/**
+	 * @param agent
+	 * @param exitsIDs
+	 * @param step
+	 * @return
+	 */
+	@Override
+	protected long getLastStep(Agent agent, Set<Integer> exitsIDs, long step) {
+		long startingStep;
+		if (notFinishedAgents.containsKey(agent)) {
+			startingStep = notFinishedAgents.get(agent).getVal1();
+		} else {
+			startingStep = step;
+		}
+		return startingStep + getMaximumTravelTime(agent, exitsIDs);
 	}
 
 	@Override
