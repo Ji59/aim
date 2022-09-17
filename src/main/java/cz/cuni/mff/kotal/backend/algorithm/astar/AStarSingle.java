@@ -84,7 +84,7 @@ public class AStarSingle extends SafeLines {
 			return null;
 		}
 
-		int maximumDelay = exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + maximumPathDelay)).min().getAsInt();
+		long lastStep = getLastStep(agent, exitsIDs, step);
 
 		Map<Integer, Double> heuristic = new HashMap<>();
 		double startEstimate = getHeuristic(exitsIDs, entryID);
@@ -93,10 +93,19 @@ public class AStarSingle extends SafeLines {
 		PriorityQueue<State> queue = new PriorityQueue<>();
 		queue.add(new State(graph.getVertex(entryID), startEstimate, step));
 
-		return searchPath(agent, exitsIDs, heuristic, entryID, queue, maximumDelay, constraints);
+		return searchPath(agent, exitsIDs, heuristic, entryID, queue, lastStep, constraints);
 	}
 
-	protected LinkedList<Integer> searchPath(Agent agent, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, int maximumDelay, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
+	protected long getLastStep(Agent agent, Set<Integer> exitsIDs, long step) {
+		return step + getMaximumTravelTime(agent, exitsIDs);
+	}
+
+	protected int getMaximumTravelTime(Agent agent, Set<Integer> exitsIDs) {
+		final int entryID = agent.getEntry();
+		return exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + maximumPathDelay)).min().getAsInt();
+	}
+
+	protected LinkedList<Integer> searchPath(Agent agent, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, long lastStep, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		double agentsPerimeter = agent.getAgentPerimeter();
 
 		Map<Integer, Set<Long>> stepVisitedVertices = new HashMap<>(graph.getVertices().length * 2);
@@ -106,7 +115,7 @@ public class AStarSingle extends SafeLines {
 			int vertexID = state.getID();
 			stepVisitedVertices.putIfAbsent(vertexID, new HashSet<>());
 
-			if (heuristic.get(vertexID) < 0 || stepVisitedVertices.get(vertexID).contains(state.step)) {
+			if (heuristic.get(vertexID) < 0 || stepVisitedVertices.get(vertexID).contains(state.getStep())) {
 				continue;
 			}
 			stepVisitedVertices.get(vertexID).add(state.getStep());
@@ -115,7 +124,9 @@ public class AStarSingle extends SafeLines {
 				return composePath(state);
 			}
 
-			addNeighbours(vertexID, entryID, exitIDs, state, queue, heuristic, agentsPerimeter, maximumDelay, constraints.get(state.getStep() + 1));
+			if (state.getStep() < lastStep) {
+				addNeighbours(vertexID, entryID, exitIDs, state, queue, heuristic, agentsPerimeter, lastStep, constraints.get(state.getStep() + 1));
+			}
 		}
 		return null;
 	}
@@ -133,15 +144,15 @@ public class AStarSingle extends SafeLines {
 		return path;
 	}
 
-	private void addNeighbours(int vertexID, int entryID, Set<Integer> exitIDs, State state, PriorityQueue<State> queue, Map<Integer, Double> heuristic, double agentPerimeter, int maximumDelay, @Nullable Collection<Pair<Integer, Integer>> constraints) {
-		long stateStep = state.getStep();
+	private void addNeighbours(int vertexID, int entryID, Set<Integer> exitIDs, State state, PriorityQueue<State> queue, Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+		final long stateStep = state.getStep();
+		final long neighbourStep = stateStep + 1;
 		for (int neighbourID : state.getVertex().getNeighbourIDs()) {
-			long neighbourStep = stateStep + 1;
 			heuristic.computeIfAbsent(neighbourID, k -> getHeuristic(exitIDs, k));
-			double estimate;
+			double estimate = heuristic.get(neighbourID);
 
-			if (Double.isFinite(estimate = heuristic.get(neighbourID)) &&
-				canVisitVertex(state, entryID, neighbourID, maximumDelay, constraints) &&
+			if (Double.isFinite(estimate) && neighbourStep + estimate<= lastStep &&
+				canVisitVertex(state, entryID, neighbourID, constraints) &&
 				(
 					stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
 						|| (
@@ -159,7 +170,7 @@ public class AStarSingle extends SafeLines {
 
 		if (
 			allowAgentStop &&
-				canVisitVertex(state, entryID, vertexID, maximumDelay, constraints) &&
+				canVisitVertex(state, entryID, vertexID, constraints) &&
 				(
 					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentPerimeter)
 				)
@@ -181,7 +192,7 @@ public class AStarSingle extends SafeLines {
 		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
 	}
 
-	private boolean canVisitVertex(final VertexWithDirectionParent state, int entryID, int vertexID, int maximumDelay, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+	private boolean canVisitVertex(final VertexWithDirectionParent state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		if (vertexID == entryID ||
 			(
 				!allowAgentReturn &&
@@ -199,13 +210,12 @@ public class AStarSingle extends SafeLines {
 					if (lastID == actualID) {
 						return true;
 					}
-						return state.getID() == lastID;
+					return state.getID() == lastID;
 				}))
 		) {
 			return false;
 		}
 		int visitCount = 0;
-		int length = 1;
 		VertexWithDirectionParent parent = state;
 		while (parent != null) {
 			if (parent.getID() == vertexID) {
@@ -214,11 +224,10 @@ public class AStarSingle extends SafeLines {
 					return false;
 				}
 			}
-			length++;
 			parent = parent.getParent();
 		}
 
-		return length <= maximumDelay;
+		return true;
 	}
 
 	protected static class State extends VertexWithDirectionParent {
