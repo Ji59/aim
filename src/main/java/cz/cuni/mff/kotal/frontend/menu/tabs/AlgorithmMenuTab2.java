@@ -3,6 +3,8 @@ package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 import cz.cuni.mff.kotal.backend.algorithm.*;
 import cz.cuni.mff.kotal.backend.algorithm.astar.*;
+import cz.cuni.mff.kotal.backend.algorithm.cbs.CBSAll;
+import cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATAll;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATRoundabout;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingle;
@@ -226,6 +228,8 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			A_STAR_ALL("A* all", "TODO", AStarAll.class),
 			A_STAR_ROUNDABOUT("A* single roundabout", "Roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarRoundabout.class),
 			A_STAR_BI_ROUNDABOUT("A* single bidirectional roundabout", "Bidirectional roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarBidirectionalRoundabout.class),
+			CBS_SINGLE_GROUPED("CBS single grouped", "TODO", CBSSingleGrouped.class),
+			CBS_ALL("CBS all", "TODO", CBSAll.class),
 			SAT_REPLAN_SINGLE_GROUPED("SAT planner", "Planning with SAT solver.", SATSingleGrouped.class),
 			SAT_REPLAN_SINGLE("SAT planner single", "Planning with SAT solver.", SATSingle.class),
 			SAT_REPLAN_ALL("SAT planner all", "Planning with SAT solver.", SATAll.class),
