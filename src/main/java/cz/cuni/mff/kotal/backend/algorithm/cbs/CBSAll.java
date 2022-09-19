@@ -77,14 +77,7 @@ public class CBSAll extends CBSSingleGrouped {
 			agents = replanAgents(agentsEntriesExits, step, constraints, node.getAgents(), agent);
 		}
 
-		Node newNode = new Node(agents, constraints, node, collision);
-		queue.add(newNode);
-
-		List<Node> nodes = new LinkedList<>();
-		for (; newNode.collision != null; newNode = newNode.getParent()) {
-			nodes.add(newNode);
-		}
-		assert nodes.stream().filter(n -> node.agents.contains(n.collision.getVal0()) && node.agents.contains(n.collision.getVal1())).count() == node.constraints.values().stream().flatMap(c -> c.values().stream()).mapToInt(Collection::size).sum();
+		queue.add(new Node(agents, constraints, node, collision));
 	}
 
 	/**

@@ -74,10 +74,17 @@ public class CBSSingleGrouped extends AStarSingle {
 
 		long nodes = 0;
 
+		Set<Node> visitedStates = new HashSet<>();
+
 		while (!queue.isEmpty()) {
 			nodes++;
 
 			final Node node = queue.poll();
+			if (visitedStates.contains(node)) {
+				continue;
+			}
+			visitedStates.add(node);
+
 			final Optional<Quaternion<Agent, Agent, Long, Boolean>> collidingAgentsOptional = collidingAgents(node.getAgents());
 			if (collidingAgentsOptional.isEmpty()) {
 				System.out.println("Step " + step + " nodes count: " + nodes);
@@ -90,12 +97,11 @@ public class CBSSingleGrouped extends AStarSingle {
 
 			final Quaternion<Agent, Agent, Long, Boolean> collidingAgents = collidingAgentsOptional.get();
 
-			final Agent agent0 = collidingAgents.getVal0();
-			Thread thread = new Thread(() -> replanAgent(agentsEntriesExits, step, queue, node, agent0, collidingAgents));
+			Thread thread = new Thread(() -> replanAgent(agentsEntriesExits, step, queue, node, collidingAgents));
 			thread.start();
 
-			final Agent agent1 = collidingAgents.getVal1();
-			replanAgent(agentsEntriesExits, step, queue, node, agent1, collidingAgents);
+			final Quaternion<Agent, Agent, Long, Boolean> switchedCollisionAgents = switchCollisionAgents(collidingAgents);
+			replanAgent(agentsEntriesExits, step, queue, node, switchedCollisionAgents);
 			try {
 				thread.join();
 			} catch (InterruptedException e) {
@@ -106,7 +112,14 @@ public class CBSSingleGrouped extends AStarSingle {
 		throw new IllegalStateException("No valid node found in CBS");
 	}
 
-	private void replanAgent(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision) {
+	@NotNull
+	private static Quaternion<Agent, Agent, Long, Boolean> switchCollisionAgents(Quaternion<Agent, Agent, Long, Boolean> collidingAgents) {
+		return new Quaternion<>(collidingAgents.getVal1(), collidingAgents.getVal0(), collidingAgents.getVal2(), collidingAgents.getVal3());
+	}
+
+	private void replanAgent(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, Quaternion<Agent, Agent, Long, Boolean> collision) {
+		final Agent agent = collision.getVal0();
+
 		final long collisionStep = collision.getVal2();
 		final int entryID = agentsEntriesExits.get(agent).getVal0();
 		final Set<Integer> exitsIDs = agentsEntriesExits.get(agent).getVal1();
@@ -114,24 +127,13 @@ public class CBSSingleGrouped extends AStarSingle {
 		Map<Long, Collection<Pair<Integer, Integer>>> agentConstraints = constraints.computeIfAbsent(agent, k -> new HashMap<>());
 		Collection<Pair<Integer, Integer>> stepConstraints = agentConstraints.getOrDefault(collisionStep, Collections.emptySet());
 		Collection<Pair<Integer, Integer>> stepConstraintsCopy = new HashSet<>(stepConstraints);
-		Collection<Pair<Integer, Integer>> oldMap = agentConstraints.put(collisionStep, stepConstraintsCopy);
+		agentConstraints.put(collisionStep, stepConstraintsCopy);
 
 		Pair<Integer, Integer> collisionEntry = createCollision(agent, collision);
-		boolean added = stepConstraintsCopy.add(collisionEntry);
-
-		List<Node> nodes = new LinkedList<>();
-		for (Node parent = node; parent.collision != null; parent = parent.getParent()) {
-			nodes.add(parent);
-		}
-		assert nodes.stream().filter(n -> node.agents.contains(n.collision.getVal0()) && node.agents.contains(n.collision.getVal1())).count() == node.constraints.values().stream().flatMap(c -> c.values().stream()).mapToInt(Collection::size).sum();
+		stepConstraintsCopy.add(collisionEntry);
 
 		final LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs, agentConstraints);
 		assignNewPath(agentsEntriesExits, step, queue, node, agent, collision, constraints, path);
-	}
-
-	@TestOnly
-	protected Pair<Integer, Integer> createCollision_(@NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision) {
-		return createCollision(agent, collision);
 	}
 
 	@NotNull
@@ -189,12 +191,9 @@ public class CBSSingleGrouped extends AStarSingle {
 				continue;
 			}
 
-			if (constraints.containsKey(otherAgent)) {
+			if (parentNode.agents.contains(otherAgent) && parent.agents.stream().noneMatch(a -> a == otherAgent)) {
 				Map<Long, Collection<Pair<Integer, Integer>>> otherAgentConstraints = constraints.get(otherAgent);
 				final long collisionStep = parentCollision.getVal2();
-				if (!otherAgentConstraints.containsKey(collisionStep)) {
-					continue;
-				}
 
 				final Collection<Pair<Integer, Integer>> stepConstraints = otherAgentConstraints.get(collisionStep);
 				final @NotNull Pair<Integer, Integer> collisionConstraint = createCollision(otherAgent, parentCollision);
@@ -239,7 +238,7 @@ public class CBSSingleGrouped extends AStarSingle {
 				agentCopy.setPath(newPath, step);
 				return agentCopy;
 			})
-			. collect(Collectors.toSet());
+			.collect(Collectors.toSet());
 	}
 
 	protected static @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> copyConstraints(final @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, final Agent agent) {
@@ -339,6 +338,22 @@ public class CBSSingleGrouped extends AStarSingle {
 				return distance.compareTo(o.distance);
 			}
 			return agentsComparison;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (!(o instanceof Node node)) return false;
+
+			if (!agents.equals(node.agents)) return false;
+			return constraints.equals(node.constraints);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = agents.hashCode();
+			result = 31 * result + constraints.hashCode();
+			return result;
 		}
 	}
 }
