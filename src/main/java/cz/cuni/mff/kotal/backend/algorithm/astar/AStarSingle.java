@@ -108,24 +108,24 @@ public class AStarSingle extends SafeLines {
 	protected LinkedList<Integer> searchPath(Agent agent, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, long lastStep, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		double agentsPerimeter = agent.getAgentPerimeter();
 
-		Map<Integer, Set<Long>> stepVisitedVertices = new HashMap<>(graph.getVertices().length * 2);
+		Set<State> visitedStates = new HashSet<>();
 
 		State state;
 		while ((state = queue.poll()) != null) {
-			int vertexID = state.getID();
-			stepVisitedVertices.putIfAbsent(vertexID, new HashSet<>());
 
-			if (heuristic.get(vertexID) < 0 || stepVisitedVertices.get(vertexID).contains(state.getStep())) {
+			if (visitedStates.contains(state) || heuristic.get(state.getID()) < 0) {
 				continue;
 			}
-			stepVisitedVertices.get(vertexID).add(state.getStep());
+			visitedStates.add(state);
+
+			final int vertexID = state.getID();
 
 			if (exitIDs.contains(vertexID)) {
 				return composePath(state);
 			}
 
 			if (state.getStep() < lastStep) {
-				addNeighbours(vertexID, entryID, exitIDs, state, queue, heuristic, agentsPerimeter, lastStep, constraints.get(state.getStep() + 1));
+				addNeighbours(vertexID, entryID, exitIDs, state, queue, heuristic, agentsPerimeter, lastStep, visitedStates, constraints.get(state.getStep() + 1));
 			}
 		}
 		return null;
@@ -144,14 +144,18 @@ public class AStarSingle extends SafeLines {
 		return path;
 	}
 
-	private void addNeighbours(int vertexID, int entryID, Set<Integer> exitIDs, State state, PriorityQueue<State> queue, Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+	private void addNeighbours(int vertexID, int entryID, Set<Integer> exitIDs, State state, PriorityQueue<State> queue, Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		final long stateStep = state.getStep();
 		final long neighbourStep = stateStep + 1;
 		for (int neighbourID : state.getVertex().getNeighbourIDs()) {
+			if (visitedStates.contains(new State(state, graph.getVertex(neighbourID), 0, 0))) {
+				continue;
+			}
+
 			heuristic.computeIfAbsent(neighbourID, k -> getHeuristic(exitIDs, k));
 			double estimate = heuristic.get(neighbourID);
 
-			if (Double.isFinite(estimate) && neighbourStep + estimate<= lastStep &&
+			if (Double.isFinite(estimate) && neighbourStep + estimate <= lastStep &&
 				canVisitVertex(state, entryID, neighbourID, constraints) &&
 				(
 					stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
@@ -164,7 +168,9 @@ public class AStarSingle extends SafeLines {
 			) {
 				double distance = graph.getDistance(vertexID, neighbourID);
 //				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);  // FIXME
-				queue.add(new State(state, graph.getVertex(neighbourID), distance, estimate));
+				final State neighbourState = new State(state, graph.getVertex(neighbourID), distance, estimate);
+				queue.add(neighbourState);
+
 			}
 		}
 
@@ -193,7 +199,7 @@ public class AStarSingle extends SafeLines {
 	}
 
 	private boolean canVisitVertex(final VertexWithDirectionParent state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
-		if (vertexID == entryID ||
+		if ((state.getParent() == null && vertexID == entryID) ||
 			(
 				!allowAgentReturn &&
 					state.getParent() != null &&
@@ -230,7 +236,7 @@ public class AStarSingle extends SafeLines {
 		return true;
 	}
 
-	protected static class State extends VertexWithDirectionParent {
+	protected class State extends VertexWithDirectionParent {
 		private final long step;
 
 		public State(GraphicalVertex vertex, double estimate, long step) {
@@ -250,6 +256,37 @@ public class AStarSingle extends SafeLines {
 
 		public long getStep() {
 			return step;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (!(o instanceof State state)) return false;
+			if (!super.equals(o)) return false;
+
+			if (step == state.step) {
+				if (!allowAgentReturn) {
+					VertexWithDirectionParent parent = getParent();
+					if (parent != null) {
+						VertexWithDirectionParent stateParent = state.getParent();
+						assert stateParent != null;
+						assert (parent.getID() == stateParent.getID()) == (angle == state.angle);
+						return parent.getID() == stateParent.getID();
+					}
+					assert state.getParent() == null;
+				}
+
+				return true;
+			}
+
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = super.hashCode();
+			result = 31 * result + (int) (step ^ (step >>> 32));
+			return result;
 		}
 	}
 }

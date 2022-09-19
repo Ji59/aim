@@ -38,9 +38,12 @@ public class CBSAll extends CBSSingleGrouped {
 
 	@Override
 	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumReplannedAgents, replanSteps);
+
+		assert stepOccupiedVertices.values().stream().flatMap(s -> s.values().stream()).distinct().noneMatch(validNotFinishedAgents::contains);
+
 		findInitialPaths(agentsEntriesExits, step);
 
-		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumReplannedAgents, replanSteps);
 		final Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agentsEntriesExits.size() + validNotFinishedAgents.size());
 		allAgents.putAll(agentsEntriesExits);
 
@@ -74,7 +77,14 @@ public class CBSAll extends CBSSingleGrouped {
 			agents = replanAgents(agentsEntriesExits, step, constraints, node.getAgents(), agent);
 		}
 
-		queue.add(new Node(agents, constraints, node, collision));
+		Node newNode = new Node(agents, constraints, node, collision);
+		queue.add(newNode);
+
+		List<Node> nodes = new LinkedList<>();
+		for (; newNode.collision != null; newNode = newNode.getParent()) {
+			nodes.add(newNode);
+		}
+		assert nodes.stream().filter(n -> node.agents.contains(n.collision.getVal0()) && node.agents.contains(n.collision.getVal1())).count() == node.constraints.values().stream().flatMap(c -> c.values().stream()).mapToInt(Collection::size).sum();
 	}
 
 	/**
@@ -102,5 +112,10 @@ public class CBSAll extends CBSSingleGrouped {
 	@Override
 	public void addPlannedPath(Agent agent, List<Integer> path, long step) {
 		// stepOccupiedVertices should be empty
+	}
+
+	@Override
+	protected void filterStepOccupiedVertices(long step) {
+		AlgorithmAll.filterStepOccupiedVertices(step, stepOccupiedVertices);
 	}
 }

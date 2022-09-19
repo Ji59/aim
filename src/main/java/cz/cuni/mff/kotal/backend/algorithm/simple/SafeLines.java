@@ -440,6 +440,26 @@ public class SafeLines implements Algorithm {
 		return false;
 	}
 
+	public boolean inCollision(final Collection<Agent> agents) {
+		int i = 0;
+		for (final Agent agent0 : agents) {
+			int j = 0;
+			for (final Agent agent1 : agents) {
+				if (j++ <= i) {
+					continue;
+				}
+				if (agent0 != agent1 && inCollision(agent0, agent1).isPresent()) {
+					System.out.println(agent0.getId() + " collides with " + agent1.getId());
+					return true;
+				}
+
+				i++;
+			}
+		}
+
+		return false;
+	}
+
 	public Optional<Pair<Long, Boolean>> inCollision(Agent agent0, Agent agent1) {
 		final long agent0PlannedTime = agent0.getPlannedTime();
 		final long agent1PlannedTime = agent1.getPlannedTime();

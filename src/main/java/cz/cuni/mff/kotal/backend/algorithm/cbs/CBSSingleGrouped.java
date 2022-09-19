@@ -180,14 +180,16 @@ public class CBSSingleGrouped extends AStarSingle {
 
 		for (Node parent = parentNode; parent.getCollision() != null; parent = parent.getParent()) {
 			final Quaternion<Agent, Agent, Long, Boolean> parentCollision = parent.getCollision();
-			Agent otherAgent = null;
+			Agent otherAgent;
 			if (parentCollision.getVal0().equals(agent)) {
 				otherAgent = parentCollision.getVal1();
 			} else if (parentCollision.getVal1().equals(agent)) {
 				otherAgent = parentCollision.getVal0();
+			} else {
+				continue;
 			}
 
-			if (otherAgent != null && constraints.containsKey(otherAgent)) {
+			if (constraints.containsKey(otherAgent)) {
 				Map<Long, Collection<Pair<Integer, Integer>>> otherAgentConstraints = constraints.get(otherAgent);
 				final long collisionStep = parentCollision.getVal2();
 				if (!otherAgentConstraints.containsKey(collisionStep)) {
@@ -232,12 +234,12 @@ public class CBSSingleGrouped extends AStarSingle {
 				final Pair<Integer, Set<Integer>> entryExits = agentsEntriesExits.get(a);
 				final int entry = entryExits.getVal0();
 				final Set<Integer> exits = entryExits.getVal1();
-				final LinkedList<Integer> newPath = getPath(agentCopy, step, entry, exits, constraints.getOrDefault(a, Collections.emptyMap()));
+				final List<Integer> newPath = getPath(agentCopy, step, entry, exits, constraints.getOrDefault(a, Collections.emptyMap()));
 				assert newPath != null;
 				agentCopy.setPath(newPath, step);
 				return agentCopy;
 			})
-			.collect(Collectors.toSet());
+			. collect(Collectors.toSet());
 	}
 
 	protected static @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> copyConstraints(final @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, final Agent agent) {

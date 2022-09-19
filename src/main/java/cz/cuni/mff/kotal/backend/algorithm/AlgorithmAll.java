@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
@@ -26,9 +27,9 @@ public interface AlgorithmAll {
 
 				final List<Integer> pathEnd = agent.getPath();
 
-				final Pair<Agent, Long> plannedPathTriplet = notFinishedAgents.get(agent);
-				final Agent originalAgent = plannedPathTriplet.getVal0();
-				final long plannedTime = plannedPathTriplet.getVal1();
+				final Pair<Agent, Long> plannedPathPair = notFinishedAgents.get(agent);
+				final Agent originalAgent = plannedPathPair.getVal0();
+				final long plannedTime = plannedPathPair.getVal1();
 
 				if (agent.getPlannedTime() == plannedTime) {
 					continue;
@@ -45,13 +46,13 @@ public interface AlgorithmAll {
 		}
 	}
 
-	static Collection<Agent> filterNotFinishedAgents(Map<Agent, Pair<Agent, Long>> notFinishedAgents, Map<Long, Map<Integer, Agent>> stepOccupiedVertices, final long step, int maximumReplannedAgents, int replanSteps) {
+	static Collection<Agent> filterNotFinishedAgents(final Map<Agent, Pair<Agent, Long>> notFinishedAgents, final Map<Long, Map<Integer, Agent>> stepOccupiedVertices, final long step, final int maximumReplannedAgents, final int replanSteps) {
 		List<Agent> validNotFinishedAgents = new LinkedList<>();
 
 		for (Iterator<Map.Entry<Agent, Pair<Agent, Long>>> iterator = notFinishedAgents.entrySet().iterator(); iterator.hasNext(); ) {
 			final Map.Entry<Agent, Pair<Agent, Long>> entry = iterator.next();
 			final Agent agent = entry.getKey();
-			if (step >= agent.getPlannedTime() + agent.getPath().size()) {
+			if (step >= agent.getPlannedTime() + agent.getPath().size() - 1) {
 				iterator.remove();
 			} else if (step - agent.getPlannedTime() <= replanSteps) {
 				validNotFinishedAgents.add(agent);
@@ -64,6 +65,7 @@ public interface AlgorithmAll {
 			removeEarliestAgents(stepOccupiedVertices, step, maximumReplannedAgents, validNotFinishedAgents);
 		}
 
+		assert validNotFinishedAgents.size() <= maximumReplannedAgents;
 		return validNotFinishedAgents;
 	}
 
@@ -71,18 +73,31 @@ public interface AlgorithmAll {
 		validNotFinishedAgents.sort((a0, a1) -> Long.compare(a1.getPlannedTime(), a0.getPlannedTime()));
 
 		for (Iterator<Agent> it = validNotFinishedAgents.listIterator(maximumReplannedAgents); it.hasNext(); ) {
-			Agent agent = it.next();
+			final Agent agent = it.next();
 			it.remove();
 			addAgentToStepOccupiedVertices(stepOccupiedVertices, agent, step);
 		}
 	}
 
-	private static void addAgentToStepOccupiedVertices(Map<Long, Map<Integer, Agent>> stepOccupiedVertices, Agent agent, long step) {
+	private static void addAgentToStepOccupiedVertices(final Map<Long, Map<Integer, Agent>> stepOccupiedVertices, final Agent agent, final long step) {
 		long pathStep = step;
-		for (Iterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedTime())); it.hasNext(); pathStep++) {
+		for (final Iterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedTime())); it.hasNext(); pathStep++) {
 			final int vertex = it.next();
 			final Map<Integer, Agent> verticesMap = stepOccupiedVertices.computeIfAbsent(pathStep, k -> new HashMap<>());
 			verticesMap.put(vertex, agent);
+		}
+	}
+
+	static void filterStepOccupiedVertices(long step, Map<Long, Map<Integer, Agent>> stepOccupiedVertices) {
+		final Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
+		while (it.hasNext()) {
+			final Map.Entry<Long, Map<Integer, Agent>> stepVertices = it.next();
+			final long occupiedStep = stepVertices.getKey();
+			if (occupiedStep < step) {
+				it.remove();
+			} else {
+				stepVertices.getValue().clear();
+			}
 		}
 	}
 }

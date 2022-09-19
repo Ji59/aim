@@ -244,5 +244,4 @@ public class Agent extends BasicAgent {
 	public double getY() {
 		return y;
 	}
-
 }
