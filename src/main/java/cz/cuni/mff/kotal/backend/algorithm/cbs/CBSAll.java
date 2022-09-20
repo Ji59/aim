@@ -20,25 +20,25 @@ public class CBSAll extends CBSSingleGrouped {
 	}
 
 	protected final Map<Agent, Pair<Agent, Long>> notFinishedAgents = new HashMap<>();
-	protected final int maximumReplannedAgents;
+	protected final int maximumPlannedAgents;
 	protected final int replanSteps;
 
 	public CBSAll(SimulationGraph graph) {
 		super(graph);
-		maximumReplannedAgents = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.MAXIMUM_REPLANNED_AGENTS_NAME, AlgorithmAll.MAXIMUM_REPLANNED_AGENTS_DEF);
+		maximumPlannedAgents = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.MAXIMUM_PLANNED_AGENTS_NAME, AlgorithmAll.MAXIMUM_PLANNED_AGENTS_DEF);
 		replanSteps = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.REPLAN_STEPS_NAME, AlgorithmAll.REPLAN_STEPS_DEF);
 	}
 
 	@TestOnly
-	protected CBSAll(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, int maximumReplannedAgents, int replanSteps) {
+	protected CBSAll(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, int maximumPlannedAgents, int replanSteps) {
 		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
-		this.maximumReplannedAgents = maximumReplannedAgents;
+		this.maximumPlannedAgents = maximumPlannedAgents;
 		this.replanSteps = replanSteps;
 	}
 
 	@Override
 	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
-		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumReplannedAgents, replanSteps);
+		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
 
 		assert stepOccupiedVertices.values().stream().flatMap(s -> s.values().stream()).distinct().noneMatch(validNotFinishedAgents::contains);
 

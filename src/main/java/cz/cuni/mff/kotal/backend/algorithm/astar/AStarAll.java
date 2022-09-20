@@ -20,13 +20,13 @@ public class AStarAll extends AStarSingleGrouped {
 	}
 
 	protected final Map<Agent, Pair<Agent, Long>> notFinishedAgents = new HashMap<>();
-	protected final int maximumReplannedAgents;
+	protected final int maximumPlannedAgents;
 	protected final int replanSteps;
 
 
 	public AStarAll(SimulationGraph graph) {
 		super(graph);
-		maximumReplannedAgents = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.MAXIMUM_REPLANNED_AGENTS_NAME, AlgorithmAll.MAXIMUM_REPLANNED_AGENTS_DEF);
+		maximumPlannedAgents = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.MAXIMUM_PLANNED_AGENTS_NAME, AlgorithmAll.MAXIMUM_PLANNED_AGENTS_DEF);
 		replanSteps = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.REPLAN_STEPS_NAME, AlgorithmAll.REPLAN_STEPS_DEF);
 	}
 
@@ -34,7 +34,7 @@ public class AStarAll extends AStarSingleGrouped {
 	public Collection<Agent> planAgents(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
 
-		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumReplannedAgents, replanSteps);
+		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
 		final Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups = new HashSet<>(validNotFinishedAgents.size());
 		final Map<Long, Map<Integer, Set<Agent>>> plannedConflictAvoidanceTable = new HashMap<>();
 
