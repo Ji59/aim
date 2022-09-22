@@ -8,6 +8,8 @@ open module aim.main {
 	requires com.google.gson;
 	requires java.desktop;
 	requires org.ow2.sat4j.core;
+	requires org.ow2.sat4j.maxsat;
+	requires org.ow2.sat4j.pb;
 
 	// Export the "cz.cuni.mff.kotal" package (needed by JavaFX to start the Application)
 	exports cz.cuni.mff.kotal;

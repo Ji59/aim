@@ -1,8 +1,8 @@
 plugins {
-    id 'java'
-    id 'application'
-    id 'com.dua3.javafxgradle7plugin' version '0.0.9'
-    id 'org.beryx.jlink' version '2.22.0'
+	id 'java'
+	id 'application'
+	id 'com.dua3.javafxgradle7plugin' version '0.0.9'
+	id 'org.beryx.jlink' version '2.22.0'
 }
 
 version '1.0-SNAPSHOT'
@@ -12,67 +12,67 @@ ext.moduleName = 'aim.main'
 mainClassName = 'cz.cuni.mff.kotal.AIM'
 
 javafx {
-    version "17.0.2"
-    modules = ['javafx.controls', 'javafx.fxml']
+	version "17.0.2"
+	modules = ['javafx.controls', 'javafx.fxml']
 }
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:23.0.0'
-    implementation 'com.google.code.gson:gson:2.9.0'
-    implementation 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
+	implementation 'org.jetbrains:annotations:23.0.0'
+	implementation 'com.google.code.gson:gson:2.9.0'
+	implementation 'org.ow2.sat4j:org.ow2.sat4j.maxsat:2.3.6'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
-    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
-    testImplementation 'org.assertj:assertj-core:3.23.1'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+	testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+	testImplementation 'org.assertj:assertj-core:3.23.1'
 }
 
 run {
-    enableAssertions = true
+	enableAssertions = true
 }
 
 test {
-    useJUnitPlatform()
-    maxHeapSize = "10g"
+	useJUnitPlatform()
+	maxHeapSize = "10g"
 }
 
 configurations {
-    // configuration that holds jars to include in the jar
-    extraLibs
+	// configuration that holds jars to include in the jar
+	extraLibs
 }
 
 jlink {
-    manifest {
-        attributes 'Main-Class': 'cz.cuni.mff.kotal.AIM'
-    }
-    launcher {
-        name = 'aim'
-    }
+	manifest {
+		attributes 'Main-Class': 'cz.cuni.mff.kotal.AIM'
+	}
+	launcher {
+		name = 'aim'
+	}
 
-    def HOME = "C:\\Users\\user\\Documents\\jdk"
+	def HOME = "C:\\Users\\user\\Documents\\jdk"
 
-    targetPlatform("mac") {
-        jdkHome = HOME + "\\jdk-14.0.2-mac\\Contents\\Home"
-    }
-    targetPlatform("linux-x64") {
-        jdkHome = HOME + "\\jdk-14.0.2-linux"
-    }
-    targetPlatform("windows-x64") {
-        jdkHome = HOME + "\\jdk-14.0.2-win"
-    }
-    options = ['--compress', '2', '--no-header-files', '--no-man-pages']
+	targetPlatform("mac") {
+		jdkHome = HOME + "\\jdk-14.0.2-mac\\Contents\\Home"
+	}
+	targetPlatform("linux-x64") {
+		jdkHome = HOME + "\\jdk-14.0.2-linux"
+	}
+	targetPlatform("windows-x64") {
+		jdkHome = HOME + "\\jdk-14.0.2-win"
+	}
+	options = ['--compress', '2', '--no-header-files', '--no-man-pages']
 }
 
 application {
-    mainModule = 'aim.main'
-    mainClass = 'cz.cuni.mff.kotal.AIM'
+	mainModule = 'aim.main'
+	mainClass = 'cz.cuni.mff.kotal.AIM'
 }
 
 plugins.withType(JavaPlugin).configureEach {
-    java {
-        modularity.inferModulePath = true
-    }
+	java {
+		modularity.inferModulePath = true
+	}
 }

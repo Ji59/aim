@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
 public class SafeLines implements Algorithm {
-	protected static final String SAFE_DISTANCE_NAME = "Safe distance";
-	protected static final double SAFE_DISTANCE_DEF = 0.;
+	public static final String SAFE_DISTANCE_NAME = "Safe distance";
+	public static final double SAFE_DISTANCE_DEF = 0.;
 	public static final Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF);
 	protected final Map<Integer, Set<Integer>> directionExits = new HashMap<>();
 

@@ -14,14 +14,14 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.*;
 
 public class AStarSingle extends SafeLines {
-	protected static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
-	protected static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
-	protected static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
-	protected static final boolean ALLOW_AGENT_STOP_DEF = false;
-	protected static final String MAXIMUM_PATH_DELAY_NAME = "Maximum path delay";
-	protected static final int MAXIMUM_PATH_DELAY_DEF = Integer.MAX_VALUE;
-	protected static final String ALLOW_AGENT_RETURN_NAME = "Allow agent to return";
-	protected static final boolean ALLOW_AGENT_RETURN_DEF = false;
+	public static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
+	public static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
+	public static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
+	public static final boolean ALLOW_AGENT_STOP_DEF = false;
+	public static final String MAXIMUM_PATH_DELAY_NAME = "Maximum path delay";
+	public static final int MAXIMUM_PATH_DELAY_DEF = Integer.MAX_VALUE;
+	public static final String ALLOW_AGENT_RETURN_NAME = "Allow agent to return";
+	public static final boolean ALLOW_AGENT_RETURN_DEF = false;
 
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SafeLines.PARAMETERS);
 
