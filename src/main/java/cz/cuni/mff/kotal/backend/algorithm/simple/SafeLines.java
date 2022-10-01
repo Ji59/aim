@@ -425,6 +425,8 @@ public class SafeLines implements Algorithm {
 				it.remove();
 			}
 		}
+
+		stepOccupiedVertices.computeIfAbsent(step, k -> new HashMap<>());
 	}
 
 	public boolean inCollision(Collection<Agent> agents0, Collection<Agent> agents1) {

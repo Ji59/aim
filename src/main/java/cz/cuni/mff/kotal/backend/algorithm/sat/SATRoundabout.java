@@ -86,7 +86,6 @@ public class SATRoundabout extends SATSingleGrouped {
 		return super.planAgent(agent, linkGraph.getLinkID(entryID), exitsIDs.stream().map(linkGraph::getLinkID).collect(Collectors.toSet()), step);
 	}
 
-	@Override
 	protected void combinePaths(Agent agent, List<Integer> path, long step) {
 		path.remove(path.size() - 1);
 		LinkGraph linkGraph = (LinkGraph) graph;
