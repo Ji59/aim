@@ -58,7 +58,7 @@ public class AStarSingle extends SafeLines {
 
 	@Override
 	public Agent planAgent(Agent agent, long step) {
-		return planAgent(agent, agent.getEntry(), Collections.singleton(agent.getExit()), step);
+		return planAgent(agent, agent.getEntry(), getExitIDs(agent), step);
 	}
 
 	@Override

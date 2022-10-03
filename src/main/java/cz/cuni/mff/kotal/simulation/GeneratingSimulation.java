@@ -27,12 +27,12 @@ public class GeneratingSimulation extends Simulation {
 
 	private static final boolean randomEntry = false;
 	private static final boolean generateEntry = true;
-	private static final boolean generateExit = true; // TODO
 
 	private final long maximumSteps;
 	protected final long newAgentsMinimum;
 	protected final long newAgentsMaximum;
 	protected final List<Long> distribution;
+	private final boolean generateExit;
 
 	private Timer timer;
 
@@ -52,7 +52,8 @@ public class GeneratingSimulation extends Simulation {
 		}
 		this.maximumSteps = steps;
 
-		distribution = AgentsMenuTab1.getDirectionDistribution().getChildren().stream().map(node -> ((AgentsMenuTab1.DirectionSlider) node).getValue()).collect(Collectors.toList());
+		distribution = AgentsMenuTab1.getDirectionDistribution().getChildren().stream().map(node -> ((AgentsMenuTab1.DirectionSlider) node).getValue()).toList();
+		generateExit = AgentsMenuTab1.specificExit();
 
 		final long possibleEntries = intersectionGraph.getEntries() * getDistribution().stream().filter(d -> d > 0).count();
 		newAgentsMinimum = Math.min(AgentsMenuTab1.getNewAgentsMinimum().getValue(), possibleEntries);
@@ -69,12 +70,13 @@ public class GeneratingSimulation extends Simulation {
 	 * @param distribution      Entries usage distribution
 	 * @param simulationAgents  Agents simulation pane
 	 */
-	public GeneratingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution, SimulationAgents simulationAgents) {
+	public GeneratingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution, boolean generateExit, SimulationAgents simulationAgents) {
 		super(intersectionGraph, algorithm, simulationAgents);
 
 		this.maximumSteps = maximumSteps;
 		this.newAgentsMinimum = newAgentsMinimum;
 		this.distribution = distribution;
+		this.generateExit = generateExit;
 
 		this.newAgentsMaximum = Math.min(newAgentsMaximum, distribution.stream().filter(d -> d > 0).count());
 	}

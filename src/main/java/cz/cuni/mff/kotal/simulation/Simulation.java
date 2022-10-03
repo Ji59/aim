@@ -217,7 +217,7 @@ public abstract class Simulation {
 		planningTime.add(endTime - startTime);
 
 		plannedAgents.forEach(agent -> {
-//			agent.setPlannedTime(step); // TODO
+			assert !agent.getPath().isEmpty() && agent.getPlannedTime() >= 0;
 			assert simulationAgents != null;
 			simulationAgents.addAgent(agent);
 
@@ -280,7 +280,7 @@ public abstract class Simulation {
 	 * @return
 	 */
 	protected double getAgentsDelay(Agent agent) {
-		Integer exitID = agent.getPath().get(agent.getPath().size() - 1);
+		final int exitID = agent.getPath().get(agent.getPath().size() - 1);
 		return agent.getPath().size() - getIntersectionGraph().getDistance(agent.getEntry(), exitID);
 	}
 

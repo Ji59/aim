@@ -457,9 +457,12 @@ public class SATSingleGrouped extends SafeLines {
 
 					assert exitsIDs.contains(path.get(path.size() - 1));
 					agent.setPath(path, step);
+				} else {
+					return null;
 				}
 			} else {
-				return null;
+				assert false;
+				// TODO throw exception
 			}
 		} catch (ContradictionException | TimeoutException e) {
 			e.printStackTrace();

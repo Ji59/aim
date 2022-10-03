@@ -16,7 +16,10 @@ import javafx.stage.FileChooser;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 
 /**
@@ -32,6 +35,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	private static final MySlider newAgentsMinimum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), 0);
 	private static final MySlider newAgentsMaximum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getRoads());
 	private static final VBox directionDistribution = ((VBox) Parameters.DIRECTION.getParameter());
+	private static final CheckBox specificExitCheckBox = (CheckBox) Parameters.EXIT.getParameter();
 
 	/**
 	 * Create new tab with nodes, add actions.
@@ -166,7 +170,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 				newAgentsMinimum.setValue(newValue.longValue());
 			}
 		});
-		Label minLabel = new Label("Minimum: ");
+		Label minLabel = new Label("Minimum:");
 		Label maxLabel = new Label("Maximum:");
 		((GridPane) Parameters.AMOUNT.getParameter()).getChildren().addAll(minLabel, newAgentsMinimum, maxLabel, newAgentsMaximum);
 		GridPane.setConstraints(minLabel, 0, 0);
@@ -309,16 +313,21 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		return directionDistribution;
 	}
 
+	public static boolean specificExit() {
+		return specificExitCheckBox.isSelected();
+	}
+
 	/**
 	 * Parameters shown in this tab.
 	 */
 	public enum Parameters {
-		INPUT("Agents input type: ", inputType),
-		STEPS("Number of steps: ", steps),
+		INPUT("Agents input type:", inputType),
+		STEPS("Number of steps:", steps),
 		AMOUNT("Amount of new agents:", new GridPane()),
-		DIRECTION("Direction distribution: ", new VBox()),
+		DIRECTION("Direction distribution:", new VBox()),
 		// TODO make spacing constant
-		FILE("File name: ", new HBox(5)),
+		FILE("File name:", new HBox(5)),
+		EXIT("Agent has specified exit:", new CheckBox()),
 		;
 
 		private final String text;
@@ -348,17 +357,17 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 				this.text = text;
 			}
 
-			public String getText() {
-				return text;
-			}
-
 			public static Input value(String name) {
-				for (Input inputType: values()) {
+				for (Input inputType : values()) {
 					if (inputType.text.equals(name)) {
 						return inputType;
 					}
 				}
 				return null;
+			}
+
+			public String getText() {
+				return text;
 			}
 		}
 	}
@@ -393,6 +402,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 
 		/**
 		 * @return Value in the text field
+		 *
 		 * @throws NumberFormatException Parsing text from text field failed
 		 */
 		public long getValue() throws NumberFormatException {
@@ -403,6 +413,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		 * Set new value to the text field.
 		 *
 		 * @param value Value to be set in text field
+		 *
 		 * @return New Value
 		 */
 		long setValue(long value) {
@@ -421,6 +432,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		 * Set value to slider.
 		 *
 		 * @param value Value to be set
+		 *
 		 * @return This direction slider
 		 */
 		DirectionSlider setSliderValue(double value) {
@@ -432,6 +444,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		 * Add action to the slider.
 		 *
 		 * @param listener Action to be added
+		 *
 		 * @return This direction slider
 		 */
 		DirectionSlider addSliderAction(ChangeListener<? super Number> listener) {
@@ -443,6 +456,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		 * Add action to be performed at text field focus.
 		 *
 		 * @param listener Action to be added
+		 *
 		 * @return This direction slider
 		 */
 		DirectionSlider addValueLabelFocusedAction(ChangeListener<? super Boolean> listener) {

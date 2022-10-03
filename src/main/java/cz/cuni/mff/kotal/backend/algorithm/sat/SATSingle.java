@@ -5,7 +5,6 @@ import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class SATSingle extends SATSingleGrouped {
 
@@ -20,13 +19,13 @@ public class SATSingle extends SATSingleGrouped {
 		return agentsEntriesExits.entrySet().stream()
 			.map(e -> {
 				Agent agent = e.getKey();
-				int entry = e.getValue().getVal0();
-				Set<Integer> exitsID = e.getValue().getVal1();
+				final int entry = e.getValue().getVal0();
+				final Set<Integer> exitsID = e.getValue().getVal1();
 				agent = super.planAgent(agent, entry, exitsID, step);
+				assert agent == null || (agent.getPlannedTime() == step && !agent.getPath().isEmpty());
 				return agent;
 			})
 			.filter(Objects::nonNull)
-			.collect(Collectors.toSet()
-			);
+			.toList();
 	}
 }
