@@ -56,7 +56,9 @@ public class SATSingleGrouped extends SafeLines {
 	}
 
 	@Override
-	public Collection<Agent> planAgents(@NotNull Collection<Agent> agents, long step) {
+	public Collection<Agent> planAgents(@NotNull Collection<Agent> agents, final long step) {
+		filterStepOccupiedVertices(step);
+
 		return planAgents(
 			agents.stream()
 				.collect(Collectors.toMap(
@@ -76,8 +78,6 @@ public class SATSingleGrouped extends SafeLines {
 			return agentsEntriesExits.keySet();
 		}
 
-		filterStepOccupiedVertices(step);
-
 		final WeightedPartialMaxsat solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newDefaultOptimizer(), false);
 
 		final int agentsCount = agentsEntriesExits.size();
@@ -94,6 +94,8 @@ public class SATSingleGrouped extends SafeLines {
 				for (Triplet<Integer, Agent, boolean[][]> agentEntry : offsets) {
 					transferAgentPath(agentsEntriesExits, step, plannedAgents, model, agentEntry);
 				}
+			} else {
+				assert false;
 			}
 		} catch (TimeoutException e) {
 			e.printStackTrace();
@@ -151,7 +153,7 @@ public class SATSingleGrouped extends SafeLines {
 
 		addAgentsClauses(solver, offsets, step);
 
-		addExitsClause(solver, startingVertex, exits, offset);
+		addExitsClause(solver, startingVertex, exits, offset, agent);
 
 		final boolean[][] validTimeVertices = offsetAgent.getVal2();
 
@@ -335,15 +337,25 @@ public class SATSingleGrouped extends SafeLines {
 	 *
 	 * @throws ContradictionException
 	 */
-	protected void addExitsClause(final @NotNull WeightedPartialMaxsat solver, final int startingVertex, final @NotNull Set<Integer> exits, final int offset) throws ContradictionException {
+	protected void addExitsClause(final @NotNull WeightedPartialMaxsat solver, final int startingVertex, final @NotNull Set<Integer> exits, final int offset, final Agent agent) throws ContradictionException {
 		final int vertices = graph.getVertices().length;
-		int[] entryExitsLits = new int[maximumSteps * exits.size() + 1];
-		entryExitsLits[0] = -(startingVertex + offset);
+		final int startingVertexOffset = startingVertex + offset;
+		final boolean addClause = addNoValidRouteClause(solver, startingVertexOffset, agent);
+		final int[] entryExitsLits;
+		final int startingIndex;
+		if (addClause) {
+			entryExitsLits = new int[maximumSteps * exits.size() + 1];
+			entryExitsLits[0] = -startingVertexOffset;
+			startingIndex = 1;
+		} else {
+			entryExitsLits = new int[maximumSteps * exits.size()];
+			startingIndex = 0;
+		}
 
 		final Iterator<Integer> exitsIt = exits.iterator();
 		for (int i = 0; exitsIt.hasNext(); i += maximumSteps) {
 			final int exit = exitsIt.next();
-			for (int s = 1, sTimeOffset = vertices + offset; s <= maximumSteps; s++, sTimeOffset += vertices) {
+			for (int s = startingIndex, sTimeOffset = vertices + offset; s < maximumSteps + startingIndex; s++, sTimeOffset += vertices) {
 				entryExitsLits[i + s] = sTimeOffset + exit;
 			}
 		}
@@ -357,11 +369,15 @@ public class SATSingleGrouped extends SafeLines {
 			IVecInt exitsLits = VecInt.of(exits.stream().mapToInt(e -> e + finalSTimeOffset).toArray());
 			solver.addSoftClause(maximumSteps - s + 1, exitsLits);
 		}
+	}
 
+	protected boolean addNoValidRouteClause(final @NotNull WeightedPartialMaxsat solver, final int startingVertexOffset, final Agent agent) throws ContradictionException {
 		/*
 			maximize planned agents so give (|agents| * (max_exit_weight + 1)) soft clause with startingVertex
 		 */
-		solver.addSoftClause(graph.getEntries() * (maximumSteps + 2), VecInt.of(startingVertex + offset));
+		solver.addSoftClause(graph.getEntries() * (maximumSteps + 2), VecInt.of(startingVertexOffset));
+
+		return true;
 	}
 
 	private boolean[][] getValidTimeVertices(final int entryID, final @NotNull Set<Integer> exitsID, final long step, final double agentsPerimeter) {

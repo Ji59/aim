@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.helpers.Quaternion;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
@@ -37,7 +38,7 @@ public class CBSAll extends CBSSingleGrouped {
 	}
 
 	@Override
-	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+	public @NotNull Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
 
 		assert stepOccupiedVertices.values().stream().flatMap(s -> s.values().stream()).distinct().noneMatch(validNotFinishedAgents::contains);
@@ -47,13 +48,7 @@ public class CBSAll extends CBSSingleGrouped {
 		final Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agentsEntriesExits.size() + validNotFinishedAgents.size());
 		allAgents.putAll(agentsEntriesExits);
 
-		for (Agent agent : validNotFinishedAgents) {
-			final long plannedTime = agent.getPlannedTime();
-			final int travelTime = (int) (step - plannedTime);
-			assert travelTime < agent.getPath().size() - 1;
-			final int startingVertexID = agent.getPath().get(travelTime);
-			allAgents.put(agent, new Pair<>(startingVertexID, getExits(agent)));
-		}
+		AlgorithmAll.addAgentsEntriesExits(this, step, validNotFinishedAgents, allAgents);
 
 		final Node node = bestValidNode(allAgents, step);
 
@@ -65,7 +60,7 @@ public class CBSAll extends CBSSingleGrouped {
 	}
 
 	@Override
-	protected void assignNewPath(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, LinkedList<Integer> path) {
+	protected void assignNewPath(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @Nullable LinkedList<Integer> path) {
 		Collection<Agent> agents;
 
 		if (path != null) {
@@ -84,10 +79,11 @@ public class CBSAll extends CBSSingleGrouped {
 	 * @param agent
 	 * @param exitsIDs
 	 * @param step
+	 *
 	 * @return
 	 */
 	@Override
-	protected long getLastStep(Agent agent, Set<Integer> exitsIDs, long step) {
+	protected long getLastStep(@NotNull Agent agent, @NotNull Set<Integer> exitsIDs, long step) {
 		long startingStep;
 		if (notFinishedAgents.containsKey(agent)) {
 			startingStep = notFinishedAgents.get(agent).getVal1();
@@ -98,7 +94,7 @@ public class CBSAll extends CBSSingleGrouped {
 	}
 
 	@Override
-	public void addPlannedAgent(Agent agent) {
+	public void addPlannedAgent(@NotNull Agent agent) {
 		setLargestAgentPerimeter(agent);
 	}
 
