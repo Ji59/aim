@@ -1,9 +1,10 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.DoubleSlider;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.IntSlider;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MyComboBox;
-import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MySlider;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -21,15 +22,18 @@ import java.util.Arrays;
  */
 public class AgentParametersMenuTab4 extends MyTabTemplate {
 
+	public static final double DEFAULT_AGENT_LENGTH = 0.6;
+	public static final double DEFAULT_AGENT_WIDTH = 0.37;
+
 	// TODO don't use static, use Component
 	// TODO rename constants
 	// TODO redesign size properties
-	private static final MySlider minimalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1., 1);
-	private static final MySlider minimalSizeWidth = new MySlider(1, Math.min(IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getExits().getValue()), 1);
-	private static final MySlider maximalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1., 1);
-	private static final MySlider maximalSizeWidth = new MySlider(1, Math.min(IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getExits().getValue()), 1);
-	private static final MySlider minimalSpeed = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue(), 1);
-	private static final MySlider maximalSpeed = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue(), 1);
+	private static final DoubleSlider minimalSizeLength = new DoubleSlider(0.1, IntersectionMenuTab0.getGranularity().getIntValue() - 1., DEFAULT_AGENT_LENGTH);
+	private static final DoubleSlider minimalSizeWidth = new DoubleSlider(0.1, Math.min(IntersectionMenuTab0.getEntries().getIntValue(), IntersectionMenuTab0.getExits().getIntValue()), DEFAULT_AGENT_WIDTH);
+	private static final DoubleSlider maximalSizeLength = new DoubleSlider(0.1, IntersectionMenuTab0.getGranularity().getIntValue() - 1., DEFAULT_AGENT_LENGTH);
+	private static final DoubleSlider maximalSizeWidth = new DoubleSlider(0.1, Math.min(IntersectionMenuTab0.getEntries().getIntValue(), IntersectionMenuTab0.getExits().getIntValue()), DEFAULT_AGENT_WIDTH);
+	private static final IntSlider minimalSpeed = new IntSlider(1, IntersectionMenuTab0.getGranularity().getIntValue(), 1);
+	private static final IntSlider maximalSpeed = new IntSlider(1, IntersectionMenuTab0.getGranularity().getIntValue(), 1);
 	private static final Slider speedDeviation = new Slider(0, 1, 0);
 
 	/**
@@ -54,26 +58,8 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	 * Create size sliders and assign actions to them.
 	 */
 	private void createSizeSlidersAndAddActions() {
-		minimalSizeLength.addAction((observable, oldValue, newValue) -> {
-			if (maximalSizeLength.getValue() < newValue.longValue()) {
-				maximalSizeLength.setValue(newValue.longValue());
-			}
-		});
-		maximalSizeLength.addAction((observable, oldValue, newValue) -> {
-			if (minimalSizeLength.getValue() > newValue.longValue()) {
-				minimalSizeLength.setValue(newValue.longValue());
-			}
-		});
-		minimalSizeWidth.addAction((observable, oldValue, newValue) -> {
-			if (maximalSizeWidth.getValue() < newValue.longValue()) {
-				maximalSizeWidth.setValue(newValue.longValue());
-			}
-		});
-		maximalSizeWidth.addAction((observable, oldValue, newValue) -> {
-			if (minimalSizeWidth.getValue() > newValue.longValue()) {
-				minimalSizeWidth.setValue(newValue.longValue());
-			}
-		});
+		addSliderValueChanges(minimalSizeLength, maximalSizeLength);
+		addSliderValueChanges(minimalSizeWidth, maximalSizeWidth);
 
 		GridPane grid = (GridPane) Parameters.SIZE.getParameter();
 		// TODO pryc s tim
@@ -92,6 +78,21 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 		grid.setVgap(20);
 	}
 
+	private void addSliderValueChanges(final DoubleSlider minimalSizeLength, final DoubleSlider maximalSizeLength) {
+		minimalSizeLength.addAction((observable, oldValue, newValue) -> {
+			final double newVal = newValue.doubleValue();
+			if (maximalSizeLength.getValue() < newVal) {
+				maximalSizeLength.setValue(newVal);
+			}
+		});
+		maximalSizeLength.addAction((observable, oldValue, newValue) -> {
+			final double newVal = newValue.doubleValue();
+			if (minimalSizeLength.getValue() > newVal) {
+				minimalSizeLength.setValue(newVal);
+			}
+		});
+	}
+
 	/**
 	 * Create speed sliders and assign actions to them.
 	 */
@@ -99,13 +100,13 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 		@NotNull Label speedDeviationLabel = new Label("0%");
 
 		minimalSpeed.addAction((observable, oldValue, newValue) -> {
-			if (maximalSpeed.getValue() < newValue.longValue()) {
-				maximalSpeed.setValue(newValue.longValue());
+			if (maximalSpeed.getIntValue() < newValue.intValue()) {
+				maximalSpeed.setValue(newValue.intValue());
 			}
 		});
 		maximalSpeed.addAction((observable, oldValue, newValue) -> {
-			if (minimalSpeed.getValue() > newValue.longValue()) {
-				minimalSpeed.setValue(newValue.longValue());
+			if (minimalSpeed.getIntValue() > newValue.intValue()) {
+				minimalSpeed.setValue(newValue.intValue());
 			}
 		});
 		speedDeviation.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -129,42 +130,42 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	/**
 	 * @return Minimal size length slider
 	 */
-	public static @NotNull MySlider getMinimalSizeLength() {
+	public static @NotNull DoubleSlider getMinimalSizeLength() {
 		return minimalSizeLength;
 	}
 
 	/**
 	 * @return Minimal size width slider
 	 */
-	public static @NotNull MySlider getMinimalSizeWidth() {
+	public static @NotNull DoubleSlider getMinimalSizeWidth() {
 		return minimalSizeWidth;
 	}
 
 	/**
 	 * @return Maximal size length slider
 	 */
-	public static @NotNull MySlider getMaximalSizeLength() {
+	public static @NotNull DoubleSlider getMaximalSizeLength() {
 		return maximalSizeLength;
 	}
 
 	/**
 	 * @return Maximal size width slider
 	 */
-	public static @NotNull MySlider getMaximalSizeWidth() {
+	public static @NotNull DoubleSlider getMaximalSizeWidth() {
 		return maximalSizeWidth;
 	}
 
 	/**
 	 * @return Minimal speed slider
 	 */
-	public static @NotNull MySlider getMinimalSpeed() {
+	public static @NotNull IntSlider getMinimalSpeed() {
 		return minimalSpeed;
 	}
 
 	/**
 	 * @return Maximal speed slider
 	 */
-	public static @NotNull MySlider getMaximalSpeed() {
+	public static @NotNull IntSlider getMaximalSpeed() {
 		return maximalSpeed;
 	}
 

@@ -4,7 +4,7 @@ package cz.cuni.mff.kotal.frontend.menu.tabs;
 import cz.cuni.mff.kotal.frontend.MyApplication;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MyComboBox;
-import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MySlider;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.IntSlider;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -34,8 +34,8 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	//TODO extract constants
 	private static final TextField steps = new TextField("0 ~ infinite simulation");
 	private static final TextField filePath = new TextField("Enter file path here");
-	private static final MySlider newAgentsMinimum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), 0);
-	private static final MySlider newAgentsMaximum = new MySlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getRoads());
+	private static final IntSlider newAgentsMinimum = new IntSlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getIntValue(), 0);
+	private static final IntSlider newAgentsMaximum = new IntSlider(0, IntersectionMenuTab0.getRoads() * IntersectionMenuTab0.getEntries().getIntValue(), IntersectionMenuTab0.getRoads());
 	private static final VBox directionDistribution = ((VBox) Parameters.DIRECTION.getParameter());
 	private static final CheckBox specificExitCheckBox = (CheckBox) Parameters.EXIT.getParameter();
 
@@ -163,12 +163,12 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	 */
 	private void createAmountMenuAndAddActions() {
 		newAgentsMinimum.addAction((observable, oldValue, newValue) -> {
-			if (newAgentsMinimum.getValue() > newAgentsMaximum.getValue()) {
+			if (newAgentsMinimum.getIntValue() > newAgentsMaximum.getIntValue()) {
 				newAgentsMaximum.setValue(newValue.longValue());
 			}
 		});
 		newAgentsMaximum.addAction((observable, oldValue, newValue) -> {
-			if (newAgentsMaximum.getValue() < newAgentsMinimum.getValue()) {
+			if (newAgentsMaximum.getIntValue() < newAgentsMinimum.getIntValue()) {
 				newAgentsMinimum.setValue(newValue.longValue());
 			}
 		});
@@ -297,14 +297,14 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	/**
 	 * @return Minimum new agents slider
 	 */
-	public static @NotNull MySlider getNewAgentsMinimum() {
+	public static @NotNull IntSlider getNewAgentsMinimum() {
 		return newAgentsMinimum;
 	}
 
 	/**
 	 * @return Maximum new agents slider
 	 */
-	public static @NotNull MySlider getNewAgentsMaximum() {
+	public static @NotNull IntSlider getNewAgentsMaximum() {
 		return newAgentsMaximum;
 	}
 

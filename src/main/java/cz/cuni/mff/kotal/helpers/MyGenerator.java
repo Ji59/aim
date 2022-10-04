@@ -1,6 +1,8 @@
 package cz.cuni.mff.kotal.helpers;
 
 
+import java.util.Random;
+
 /**
  * Class for generating random numbers.
  */
@@ -64,5 +66,9 @@ public class MyGenerator {
 		boolean deviationSmaller = Math.random() < 0.5;
 		deviation = 1 + (deviationSmaller ? -1 : 1) * deviation;
 		return baseValue * deviation;
+	}
+
+	public static double generateRandom(double minimum, double maximum) {
+		return Math.random() * (maximum - minimum) + minimum;
 	}
 }

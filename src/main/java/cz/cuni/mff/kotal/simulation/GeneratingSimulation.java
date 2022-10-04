@@ -36,6 +36,13 @@ public class GeneratingSimulation extends Simulation {
 	private final boolean generateExit;
 
 	private @Nullable Timer timer;
+	private final double minimalLength;
+	private final double maximalLength;
+	private final double minimalWidth;
+	private final double maximalWidth;
+	private final long minimalSpeed;
+	private final long maximalSpeed;
+	private final double maxDeviation;
 
 
 	/**
@@ -57,8 +64,19 @@ public class GeneratingSimulation extends Simulation {
 		generateExit = AgentsMenuTab1.specificExit();
 
 		final long possibleEntries = intersectionGraph.getEntries() * getDistribution().stream().filter(d -> d > 0).count();
-		newAgentsMinimum = Math.min(AgentsMenuTab1.getNewAgentsMinimum().getValue(), possibleEntries);
-		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getValue(), possibleEntries);
+		newAgentsMinimum = Math.min(AgentsMenuTab1.getNewAgentsMinimum().getIntValue(), possibleEntries);
+		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getIntValue(), possibleEntries);
+
+		minimalLength = AgentParametersMenuTab4.getMinimalSizeLength().getValue();
+		maximalLength = AgentParametersMenuTab4.getMaximalSizeLength().getValue();
+		minimalWidth = AgentParametersMenuTab4.getMinimalSizeWidth().getValue();
+		maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
+
+
+		minimalSpeed = AgentParametersMenuTab4.getMinimalSpeed().getIntValue();
+		maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed().getIntValue();
+
+		maxDeviation = AgentParametersMenuTab4.getSpeedDeviation().getValue();
 	}
 
 	/**
@@ -70,14 +88,28 @@ public class GeneratingSimulation extends Simulation {
 	 * @param newAgentsMaximum  Maximal amount of new agents in each step
 	 * @param distribution      Entries usage distribution
 	 * @param simulationAgents  Agents simulation pane
+	 * @param minimalLength
+	 * @param maximalLength
+	 * @param minimalWidth
+	 * @param maximalWidth
+	 * @param minimalSpeed
+	 * @param maximalSpeed
+	 * @param maxDeviation
 	 */
-	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, @NotNull List<Long> distribution, boolean generateExit, SimulationAgents simulationAgents) {
+	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, @NotNull List<Long> distribution, boolean generateExit, SimulationAgents simulationAgents, final double minimalLength, final double maximalLength, final double minimalWidth, final double maximalWidth, final long minimalSpeed, final long maximalSpeed, final double maxDeviation) {
 		super(intersectionGraph, algorithm, simulationAgents);
 
 		this.maximumSteps = maximumSteps;
 		this.newAgentsMinimum = newAgentsMinimum;
 		this.distribution = distribution;
 		this.generateExit = generateExit;
+		this.minimalLength = minimalLength;
+		this.maximalLength = maximalLength;
+		this.minimalWidth = minimalWidth;
+		this.maximalWidth = maximalWidth;
+		this.minimalSpeed = minimalSpeed;
+		this.maximalSpeed = maximalSpeed;
+		this.maxDeviation = maxDeviation;
 
 		this.newAgentsMaximum = Math.min(newAgentsMaximum, distribution.stream().filter(d -> d > 0).count());
 	}
@@ -339,21 +371,11 @@ public class GeneratingSimulation extends Simulation {
 			}
 		}
 
-		double maxDeviation = AgentParametersMenuTab4.getSpeedDeviation().getValue();
-
-		long minimalSpeed = AgentParametersMenuTab4.getMinimalSpeed().getValue();
-		long maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed().getValue();
-		double speed = generateWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
-
-		// TODO remake length and width
-		long minimalLength = AgentParametersMenuTab4.getMinimalSizeLength().getValue();
-		long maximalLength = AgentParametersMenuTab4.getMaximalSizeLength().getValue();
-		long minimalWidth = AgentParametersMenuTab4.getMinimalSizeWidth().getValue();
-		long maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
-
 		// TODO extract constants
-		double width = Math.max(generateWithDeviation(minimalWidth, maximalWidth, maxDeviation) - 0.69, 0.1);
-		double length = Math.max(generateWithDeviation(minimalLength, maximalLength, maxDeviation) - 0.42, 0.3);
+		double length = generateRandom(minimalLength, maximalLength);
+		double width = generateRandom(minimalWidth, maximalWidth);
+
+		double speed = generateWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
 
 		List<Vertex> directionEntries = entries.get(entryDirection);
 		GraphicalVertex entry;
