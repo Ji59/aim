@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -12,8 +13,8 @@ import java.util.Objects;
  */
 public class Edge {
 
-	private final Vertex u;
-	private final Vertex v;
+	private final @NotNull Vertex u;
+	private final @NotNull Vertex v;
 	private final double distance;
 
 	/**
@@ -35,14 +36,14 @@ public class Edge {
 	 * @param u First vertex
 	 * @param v Second vertex
 	 */
-	public Edge(Vertex u, Vertex v) {
+	public Edge(@NotNull Vertex u, @NotNull Vertex v) {
 		this(u, v, 1.);
 	}
 
 	/**
 	 * @return New Edge with vertices reversed
 	 */
-	public Edge reverse() {
+	public @NotNull Edge reverse() {
 		return new Edge(v, u, distance);
 	}
 
@@ -71,10 +72,10 @@ public class Edge {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		Edge edge = (Edge) o;
+		@NotNull Edge edge = (Edge) o;
 		if (u.equals(edge.u) && v.equals(edge.v)) {
 			assert Objects.equals(distance, edge.distance);
 			return true;

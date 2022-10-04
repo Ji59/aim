@@ -6,6 +6,8 @@ import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -13,7 +15,7 @@ import java.util.stream.Collectors;
 
 
 public class BreadthFirstSearch implements Algorithm {
-	private final Map<Integer, VertexWithVisit> vertices;
+	private final @NotNull Map<Integer, VertexWithVisit> vertices;
 
 	/**
 	 * Create new instance working with graph from provided simulation.
@@ -21,7 +23,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 *
 	 * @param simulation
 	 */
-	public BreadthFirstSearch(Simulation simulation) {
+	public BreadthFirstSearch(@NotNull Simulation simulation) {
 		this(simulation.getIntersectionGraph());
 	}
 
@@ -30,7 +32,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 *
 	 * @param graph Graph to search on
 	 */
-	public BreadthFirstSearch(SimulationGraph graph) {
+	public BreadthFirstSearch(@NotNull SimulationGraph graph) {
 		vertices = graph.getVerticesSet()
 			.stream()
 			.map(VertexWithVisit::new)
@@ -38,7 +40,7 @@ public class BreadthFirstSearch implements Algorithm {
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, long step) {
+	public Agent planAgent(@NotNull Agent agent, long step) {
 		Set<Integer> exits;
 		if (agent.getExit() > 0) {
 			exits = vertices.values().stream()
@@ -62,7 +64,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 * @return Agent if successfully planned otherwise null
 	 */
 	@Override
-	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsIDs, long step) {
+	public @Nullable Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsIDs, long step) {
 		final int exit = exitsIDs.stream().findFirst().orElse(agent.getExit());
 		try {
 			agent.setPath(bfs(entryID, exit), step);
@@ -82,14 +84,14 @@ public class BreadthFirstSearch implements Algorithm {
 	 *
 	 * @throws RuntimeException If no path was found.
 	 */
-	private List<Integer> bfs(int startID, int endID) {
+	private @NotNull List<Integer> bfs(int startID, int endID) {
 		VertexWithVisit start = vertices.get(startID);
 
 		// TODO add excepion
 		assert (start != null);
 
 		start.setPathAndAddSelf(new ArrayList<>());
-		Queue<VertexWithVisit> queue = new ArrayDeque<>();
+		@NotNull Queue<VertexWithVisit> queue = new ArrayDeque<>();
 		queue.add(start);
 		start.setVisited();
 
@@ -189,7 +191,7 @@ public class BreadthFirstSearch implements Algorithm {
 		 *
 		 * @param path Path to append itself to
 		 */
-		public void setPathAndAddSelf(List<Integer> path) {
+		public void setPathAndAddSelf(@NotNull List<Integer> path) {
 			this.path = path;
 			path.add(id);
 		}

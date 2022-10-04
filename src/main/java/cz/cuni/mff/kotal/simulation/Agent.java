@@ -4,6 +4,8 @@ package cz.cuni.mff.kotal.simulation;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
@@ -53,7 +55,7 @@ public class Agent extends BasicAgent {
 	 *
 	 * @param basicAgent
 	 */
-	public Agent(BasicAgent basicAgent) {
+	public Agent(@NotNull BasicAgent basicAgent) {
 		super(basicAgent);
 	}
 
@@ -112,7 +114,7 @@ public class Agent extends BasicAgent {
 	 * @return Pair od IDs of the previous and next vertex at given time
 	 * @throws IndexOutOfBoundsException TODO
 	 */
-	public Pair<Integer, Integer> getPreviousNextVertexIDs(double time) {
+	public @Nullable Pair<Integer, Integer> getPreviousNextVertexIDs(double time) {
 		// TODO add exception
 		if (time < 0) {
 			int first = path.get(0);
@@ -138,7 +140,7 @@ public class Agent extends BasicAgent {
 	public boolean computeNextXY(double time, Vertex[] vertices) {
 		double currentEdgeTravelPart = (time * getSpeed()) % 1;
 		double currentEdgeTravelRemain = 1 - currentEdgeTravelPart;
-		Pair<Integer, Integer> previousNextGoalID = getPreviousNextVertexIDs(time);
+		@Nullable Pair<Integer, Integer> previousNextGoalID = getPreviousNextVertexIDs(time);
 		if (previousNextGoalID == null) {
 			return true;
 		}
@@ -163,7 +165,7 @@ public class Agent extends BasicAgent {
 	 * @param vertices Map of vertices to get entry vertex object.
 	 * @throws RuntimeException TODO
 	 */
-	public void setStartingXY(Map<Integer, Vertex> vertices) {
+	public void setStartingXY(@NotNull Map<Integer, Vertex> vertices) {
 		if (getEntry() < 0 || getExit() < 0) {
 			throw new RuntimeException("Agent not planned.");
 		}
@@ -174,7 +176,7 @@ public class Agent extends BasicAgent {
 
 	// TODO
 
-	public Agent setPlannedTime(long plannedTime) {
+	public @NotNull Agent setPlannedTime(long plannedTime) {
 		this.plannedTime = plannedTime;
 		return this;
 	}
@@ -183,7 +185,7 @@ public class Agent extends BasicAgent {
 		return plannedTime;
 	}
 
-	public void setEntry(GraphicalVertex vertex) {
+	public void setEntry(@NotNull GraphicalVertex vertex) {
 		// TODO
 		entry = vertex.getID();
 		x = vertex.getX();
@@ -205,7 +207,7 @@ public class Agent extends BasicAgent {
 	 * @param path        New path of this agent
 	 * @param plannedTime
 	 */
-	public Agent setPath(List<Integer> path, long plannedTime) {
+	public @NotNull Agent setPath(List<Integer> path, long plannedTime) {
 		this.path = path;
 		this.plannedTime = plannedTime;
 		return this;
@@ -217,7 +219,7 @@ public class Agent extends BasicAgent {
 	 *
 	 * @param path New path of this agent
 	 */
-	public Agent setPath(List<Integer> path) {
+	public @NotNull Agent setPath(List<Integer> path) {
 		this.path = path;
 		return this;
 	}
@@ -226,7 +228,7 @@ public class Agent extends BasicAgent {
 		return collisionStep;
 	}
 
-	public Agent setCollisionStep(double step) {
+	public @NotNull Agent setCollisionStep(double step) {
 		this.collisionStep = step;
 		return this;
 	}

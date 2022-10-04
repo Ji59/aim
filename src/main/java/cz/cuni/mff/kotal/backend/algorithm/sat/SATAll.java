@@ -37,10 +37,10 @@ public class SATAll extends SATSingleGrouped {
 		}
 		filterStepOccupiedVertices(step);
 
-		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agents.size(), replanSteps);
+		final @NotNull Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agents.size(), replanSteps);
 		assert stepOccupiedVertices.values().stream().flatMap(s -> s.values().stream()).distinct().noneMatch(validNotFinishedAgents::contains);
 
-		Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agents.size() + notFinishedAgents.size());
+		@NotNull Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agents.size() + notFinishedAgents.size());
 
 		AlgorithmAll.addAgentsEntriesExits(this, step, validNotFinishedAgents, allAgents);
 

@@ -38,7 +38,7 @@ public class AStarSingle extends SafeLines {
 	protected final int maximumPathDelay;
 	protected final boolean allowAgentReturn;
 
-	public AStarSingle(SimulationGraph graph) {
+	public AStarSingle(@NotNull SimulationGraph graph) {
 		super(graph);
 
 		maximumVertexVisits = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);
@@ -48,7 +48,7 @@ public class AStarSingle extends SafeLines {
 	}
 
 	@TestOnly
-	protected AStarSingle(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
+	protected AStarSingle(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
 		super(graph, safeDistance);
 		this.maximumVertexVisits = maximumVertexVisits;
 		this.allowAgentStop = allowAgentStop;
@@ -57,14 +57,14 @@ public class AStarSingle extends SafeLines {
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, long step) {
+	public @Nullable Agent planAgent(@NotNull Agent agent, long step) {
 		return planAgent(agent, agent.getEntry(), getExitIDs(agent), step);
 	}
 
 	@Override
 	@Nullable
-	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsIDs, long step) {
-		LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
+	public Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsIDs, long step) {
+		@Nullable LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
 		if (path == null) {
 			return null;
 		}
@@ -74,41 +74,41 @@ public class AStarSingle extends SafeLines {
 	}
 
 	@Nullable
-	protected LinkedList<Integer> getPath(Agent agent, long step, int entryID, Set<Integer> exitsIDs) {
+	protected LinkedList<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs) {
 		return getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
 	}
 
 	@Nullable
-	protected LinkedList<Integer> getPath(Agent agent, long step, int entryID, Set<Integer> exitsIDs, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
+	protected LinkedList<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter())) || stopped) {
 			return null;
 		}
 
 		long lastStep = getLastStep(agent, exitsIDs, step);
 
-		Map<Integer, Double> heuristic = new HashMap<>();
+		@NotNull Map<Integer, Double> heuristic = new HashMap<>();
 		double startEstimate = getHeuristic(exitsIDs, entryID);
 		heuristic.put(entryID, startEstimate);
 
-		PriorityQueue<State> queue = new PriorityQueue<>();
+		@NotNull PriorityQueue<State> queue = new PriorityQueue<>();
 		queue.add(new State(graph.getVertex(entryID), startEstimate, step));
 
 		return searchPath(agent, exitsIDs, heuristic, entryID, queue, lastStep, constraints);
 	}
 
-	protected long getLastStep(Agent agent, Set<Integer> exitsIDs, long step) {
+	protected long getLastStep(@NotNull Agent agent, @NotNull Set<Integer> exitsIDs, long step) {
 		return step + getMaximumTravelTime(agent, exitsIDs);
 	}
 
-	protected int getMaximumTravelTime(Agent agent, Set<Integer> exitsIDs) {
+	protected int getMaximumTravelTime(@NotNull Agent agent, @NotNull Set<Integer> exitsIDs) {
 		final int entryID = agent.getEntry();
 		return exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + maximumPathDelay)).min().getAsInt();
 	}
 
-	protected LinkedList<Integer> searchPath(Agent agent, Set<Integer> exitIDs, Map<Integer, Double> heuristic, int entryID, PriorityQueue<State> queue, long lastStep, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
+	protected @Nullable LinkedList<Integer> searchPath(@NotNull Agent agent, @NotNull Set<Integer> exitIDs, @NotNull Map<Integer, Double> heuristic, int entryID, @NotNull PriorityQueue<State> queue, long lastStep, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		double agentsPerimeter = agent.getAgentPerimeter();
 
-		Set<State> visitedStates = new HashSet<>();
+		@NotNull Set<State> visitedStates = new HashSet<>();
 
 		State state;
 		while ((state = queue.poll()) != null && !stopped) {
@@ -132,8 +132,8 @@ public class AStarSingle extends SafeLines {
 	}
 
 	@NotNull
-	private LinkedList<Integer> composePath(State state) {
-		LinkedList<Integer> path = new LinkedList<>();
+	private LinkedList<Integer> composePath(@Nullable State state) {
+		@NotNull LinkedList<Integer> path = new LinkedList<>();
 		while (state != null) {
 			int id = state.getID();
 			path.addFirst(id);
@@ -144,7 +144,7 @@ public class AStarSingle extends SafeLines {
 		return path;
 	}
 
-	private void addNeighbours(int vertexID, int entryID, Set<Integer> exitIDs, State state, PriorityQueue<State> queue, Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+	private void addNeighbours(int vertexID, int entryID, @NotNull Set<Integer> exitIDs, @NotNull State state, @NotNull PriorityQueue<State> queue, @NotNull Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @NotNull Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		final long stateStep = state.getStep();
 		final long neighbourStep = stateStep + 1;
 		for (int neighbourID : state.getVertex().getNeighbourIDs()) {
@@ -168,7 +168,7 @@ public class AStarSingle extends SafeLines {
 			) {
 				double distance = graph.getDistance(vertexID, neighbourID);
 //				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);  // FIXME
-				final State neighbourState = new State(state, graph.getVertex(neighbourID), distance, estimate);
+				final @NotNull State neighbourState = new State(state, graph.getVertex(neighbourID), distance, estimate);
 				queue.add(neighbourState);
 
 			}
@@ -186,7 +186,7 @@ public class AStarSingle extends SafeLines {
 	}
 
 	@NotNull
-	protected Set<Integer> getExitIDs(Agent agent) {
+	protected Set<Integer> getExitIDs(@NotNull Agent agent) {
 		if (agent.getExit() >= 0) {
 			return Set.of(agent.getExit());
 		} else {
@@ -194,11 +194,11 @@ public class AStarSingle extends SafeLines {
 		}
 	}
 
-	protected double getHeuristic(Set<Integer> exitIDs, int vertexID) {
+	protected double getHeuristic(@NotNull Set<Integer> exitIDs, int vertexID) {
 		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
 	}
 
-	private boolean canVisitVertex(final VertexWithDirectionParent state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+	private boolean canVisitVertex(final @NotNull VertexWithDirectionParent state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		if ((state.getParent() == null && vertexID == entryID) ||
 			(
 				!allowAgentReturn &&
@@ -244,12 +244,12 @@ public class AStarSingle extends SafeLines {
 			this.step = step;
 		}
 
-		public State(State state) {
+		public State(@NotNull State state) {
 			super(state, state.getVertex(), 1, state.getEstimate() - 0.00390625);
 			step = state.getStep() + 1;
 		}
 
-		public State(State previous, GraphicalVertex actual, double distance, double estimate) {
+		public State(@NotNull State previous, GraphicalVertex actual, double distance, double estimate) {
 			super(previous, actual, distance, estimate);
 			this.step = previous.getStep() + 1;
 		}

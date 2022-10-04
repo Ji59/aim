@@ -1,5 +1,7 @@
 package cz.cuni.mff.kotal.helpers;
 
+import org.jetbrains.annotations.NotNull;
+
 import static cz.cuni.mff.kotal.helpers.Pair.getTexts;
 
 public class Triplet<E, F, G> {
@@ -17,7 +19,7 @@ public class Triplet<E, F, G> {
 		return val0;
 	}
 
-	public Triplet<E, F, G> setVal0(E val0) {
+	public @NotNull Triplet<E, F, G> setVal0(E val0) {
 		this.val0 = val0;
 		return this;
 	}
@@ -26,7 +28,7 @@ public class Triplet<E, F, G> {
 		return val1;
 	}
 
-	public Triplet<E, F, G> setVal1(F val1) {
+	public @NotNull Triplet<E, F, G> setVal1(F val1) {
 		this.val1 = val1;
 		return this;
 	}
@@ -35,13 +37,13 @@ public class Triplet<E, F, G> {
 		return val2;
 	}
 
-	public Triplet<E, F, G> setVal2(G val2) {
+	public @NotNull Triplet<E, F, G> setVal2(G val2) {
 		this.val2 = val2;
 		return this;
 	}
 
 	@Override
-	public String toString() {
+	public @NotNull String toString() {
 		return String.join(" : ", getTexts(val0, val1, val2));
 	}
 }

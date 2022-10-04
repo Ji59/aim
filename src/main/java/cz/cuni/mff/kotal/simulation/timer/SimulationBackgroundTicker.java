@@ -5,6 +5,7 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.application.Platform;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -58,7 +59,7 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 		if (!terminated) {
 
 
-			Set<AgentPane> activeAgents = new HashSet<>(agents.size());
+			@NotNull Set<AgentPane> activeAgents = new HashSet<>(agents.size());
 			updateAgents(step, activeAgents);
 
 			handleCollisions(step, activeAgents);
@@ -76,9 +77,9 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 	}
 
 	@Override
-	public void updateAgents(double step, Set<AgentPane> activeAgents) {
+	public void updateAgents(double step, @NotNull Set<AgentPane> activeAgents) {
 		synchronized (agents) {
-			Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator = agents.entrySet().iterator();
+			@NotNull Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator = agents.entrySet().iterator();
 			while (activeAgentsIterator.hasNext()) {
 				Map.Entry<Long, AgentPane> a = activeAgentsIterator.next();
 				AgentPane agentPane = a.getValue();
@@ -92,7 +93,7 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 		}
 	}
 
-	public void updateCollidedAgents(double step, AgentPane agentPane0, AgentPane agentPane1) {
+	public void updateCollidedAgents(double step, @NotNull AgentPane agentPane0, @NotNull AgentPane agentPane1) {
 		agents.remove(agentPane0.getAgent().setCollisionStep(step).getId());
 		agents.remove(agentPane1.getAgent().setCollisionStep(step).getId());
 	}

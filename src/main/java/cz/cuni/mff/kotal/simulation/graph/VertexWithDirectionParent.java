@@ -1,9 +1,11 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class VertexWithDirectionParent extends VertexWithDirection {
-	private final VertexWithDirectionParent parent;
+	private final @Nullable VertexWithDirectionParent parent;
 
 	public VertexWithDirectionParent(GraphicalVertex vertex) {
 		this(vertex, 0);
@@ -18,23 +20,23 @@ public class VertexWithDirectionParent extends VertexWithDirection {
 		parent = null;
 	}
 
-	public VertexWithDirectionParent(VertexWithDirectionParent previous, GraphicalVertex actual, Edge edge, double cellDistance) {
+	public VertexWithDirectionParent(@NotNull VertexWithDirectionParent previous, GraphicalVertex actual, Edge edge, double cellDistance) {
 		this(previous, actual, edge, cellDistance, 0);
 	}
 
 	// TODO refactor
-	public VertexWithDirectionParent(VertexWithDirectionParent previous, GraphicalVertex actual, Edge edge, double cellDistance, double estimate) {
+	public VertexWithDirectionParent(@NotNull VertexWithDirectionParent previous, GraphicalVertex actual, Edge edge, double cellDistance, double estimate) {
 		super(previous, actual, edge, cellDistance, estimate);
 		this.parent = previous;
 	}
 
-	public VertexWithDirectionParent(VertexWithDirectionParent previous, GraphicalVertex actual, double distance, double estimate) {
+	public VertexWithDirectionParent(@NotNull VertexWithDirectionParent previous, GraphicalVertex actual, double distance, double estimate) {
 		super(previous, actual, distance, estimate);
 
 		this.parent = previous;
 	}
 
-	public VertexWithDirectionParent(VertexWithDirectionParent previous, GraphicalVertex actual, double cellDistance) {
+	public VertexWithDirectionParent(@NotNull VertexWithDirectionParent previous, GraphicalVertex actual, double cellDistance) {
 		this(previous, actual, null, cellDistance, 0);
 	}
 

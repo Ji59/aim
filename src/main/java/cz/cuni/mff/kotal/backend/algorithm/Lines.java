@@ -4,6 +4,8 @@ package cz.cuni.mff.kotal.backend.algorithm;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -19,11 +21,11 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 	 * @return
 	 */
 	@Override
-	public Agent planAgent(Agent agent, long step) {
+	public @Nullable Agent planAgent(@NotNull Agent agent, long step) {
 		final int exit;
 		if (agent.getExit() < 0) {
-			List<Vertex> directionExits = graph.getEntryExitVertices().get(agent.getExitDirection()).stream().filter(vertex -> vertex.getType().isExit()).toList();
-			List<Vertex> directionEntries = graph.getEntryExitVertices().get(agent.getEntryDirection()).stream().filter(vertex -> vertex.getType().isEntry()).toList();
+			@NotNull List<Vertex> directionExits = graph.getEntryExitVertices().get(agent.getExitDirection()).stream().filter(vertex -> vertex.getType().isExit()).toList();
+			@NotNull List<Vertex> directionEntries = graph.getEntryExitVertices().get(agent.getEntryDirection()).stream().filter(vertex -> vertex.getType().isEntry()).toList();
 			int entryIndex = directionEntries.indexOf(graph.getVertex(agent.getEntry()));
 			entryIndex = directionEntries.size() - entryIndex - 1; // invert index
 			exit = directionExits.get(entryIndex * directionExits.size() / directionEntries.size()).getID();
@@ -51,7 +53,7 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 	}
 
 	// TODO
-	private boolean agentGoingStraight(Agent agent) {
+	private boolean agentGoingStraight(@NotNull Agent agent) {
 		return Math.abs(agent.getEntryDirection() - agent.getExitDirection()) % (graph.getModel().getDirections().size() / 2) == 0;
 	}
 }

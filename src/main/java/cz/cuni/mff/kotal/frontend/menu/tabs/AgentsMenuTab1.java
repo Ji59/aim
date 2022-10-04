@@ -13,6 +13,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
@@ -53,7 +55,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 
 		createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.GraphType.SQUARE);
 
-		Iterator<Parameters> iterator = Arrays.stream(Parameters.values()).iterator();
+		@NotNull Iterator<Parameters> iterator = Arrays.stream(Parameters.values()).iterator();
 		for (int index = 0; iterator.hasNext(); index++) {
 			Parameters parameter = iterator.next();
 			if (parameter.equals(Parameters.FILE)) {
@@ -71,7 +73,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	 */
 	private void addInputActions() {
 		inputType.valueProperty().addListener((observable, oldValue, newValue) -> {
-			for (Node child : getGrid().getChildren()) {
+			for (@NotNull Node child : getGrid().getChildren()) {
 				child.setVisible(!child.isVisible() || child.equals(inputType) || (child instanceof Label && ((Label) child).getText().equals(Parameters.INPUT.getText())));
 			}
 		});
@@ -128,7 +130,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 					return;
 				}
 				try {
-					File file = new File(filePath.getText());
+					@NotNull File file = new File(filePath.getText());
 					if (!file.isFile()) {
 						//TODO extract constant and create own exception
 						throw new Exception("File does not exist. Entered file: " + file.getPath());
@@ -139,13 +141,13 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 				}
 			}
 		});
-		FileChooser fileChooser = new FileChooser();
+		@NotNull FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Select agents file input");
 		fileChooser.setInitialFileName("agents.json");
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Json documents", "*.json"));
 		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files", "*.*"));
 		fileChooser.setInitialDirectory(FileSystemView.getFileSystemView().getDefaultDirectory());
-		Button fileButton = new Button("Select file");
+		@NotNull Button fileButton = new Button("Select file");
 		fileButton.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
 			File file = fileChooser.showOpenDialog(MyApplication.getMenuStage());
 			if (file != null && file.isFile()) {
@@ -170,8 +172,8 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 				newAgentsMinimum.setValue(newValue.longValue());
 			}
 		});
-		Label minLabel = new Label("Minimum:");
-		Label maxLabel = new Label("Maximum:");
+		@NotNull Label minLabel = new Label("Minimum:");
+		@NotNull Label maxLabel = new Label("Maximum:");
 		((GridPane) Parameters.AMOUNT.getParameter()).getChildren().addAll(minLabel, newAgentsMinimum, maxLabel, newAgentsMaximum);
 		GridPane.setConstraints(minLabel, 0, 0);
 		GridPane.setConstraints(maxLabel, 0, 1);
@@ -184,31 +186,31 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	 *
 	 * @param model Actual intersection model type
 	 */
-	static void createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.GraphType model) {
+	static void createDirectionsMenuAndAddActions(IntersectionMenuTab0.Parameters.@Nullable GraphType model) {
 		if (model == null || model.getDirections() == null) {
 			return;
 		}
 		directionDistribution.getChildren().clear();
 
 
-		List<DirectionSlider> sliders = new ArrayList<>();
+		@NotNull List<DirectionSlider> sliders = new ArrayList<>();
 
 		int row = 0;
 		int remains = 100;
 		for (Character direction : model.getDirections()) {
 			long value = remains / (model.getDirections().size() - row);
-			DirectionSlider directionSlider = new DirectionSlider(direction, value);
+			@NotNull DirectionSlider directionSlider = new DirectionSlider(direction, value);
 			sliders.add(directionSlider);
 
 			directionSlider.addSliderAction((observable, oldValue, newValue) -> {
 				if (directionSlider.sliderActionOn) {
 					double sum = 0;
-					for (DirectionSlider sl : sliders) {
+					for (@NotNull DirectionSlider sl : sliders) {
 						sum += sl.getSliderValue();
 					}
 
 					int remainingPercentages = 100;
-					for (DirectionSlider sl : sliders) {
+					for (@NotNull DirectionSlider sl : sliders) {
 						double oldVal = sl.getSliderValue();
 						remainingPercentages -= sl.setValue(Math.round(sl.getSliderValue() / sum * remainingPercentages));
 						sum -= oldVal;
@@ -233,12 +235,12 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 						} else {
 							double sum = 0;
 							double available = 100 - newVal;
-							for (DirectionSlider sl : sliders) {
+							for (@NotNull DirectionSlider sl : sliders) {
 								if (sl != directionSlider) {
 									sum += sl.getValue();
 								}
 							}
-							for (DirectionSlider sl : sliders) {
+							for (@NotNull DirectionSlider sl : sliders) {
 								long newSliderValue;
 								if (sl != directionSlider) {
 									sl.setValue(newSliderValue = Math.round(sl.getValue() / sum * available));
@@ -267,7 +269,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	/**
 	 * @return Input time slider
 	 */
-	public static Parameters.Input getInputType() {
+	public static Parameters.@Nullable Input getInputType() {
 
 		return Parameters.Input.value(inputType.getValue());
 	}
@@ -288,21 +290,21 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	/**
 	 * @return File path text field
 	 */
-	public static TextField getFilePath() {
+	public static @NotNull TextField getFilePath() {
 		return filePath;
 	}
 
 	/**
 	 * @return Minimum new agents slider
 	 */
-	public static MySlider getNewAgentsMinimum() {
+	public static @NotNull MySlider getNewAgentsMinimum() {
 		return newAgentsMinimum;
 	}
 
 	/**
 	 * @return Maximum new agents slider
 	 */
-	public static MySlider getNewAgentsMaximum() {
+	public static @NotNull MySlider getNewAgentsMaximum() {
 		return newAgentsMaximum;
 	}
 
@@ -357,8 +359,8 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 				this.text = text;
 			}
 
-			public static Input value(String name) {
-				for (Input inputType : values()) {
+			public static @Nullable Input value(String name) {
+				for (@NotNull Input inputType : values()) {
 					if (inputType.text.equals(name)) {
 						return inputType;
 					}
@@ -378,7 +380,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 	 */
 	public static class DirectionSlider extends HBox {
 		private final Slider slider = new Slider(0.002, 100, 50);
-		private final TextField valueText;
+		private final @NotNull TextField valueText;
 		private long oldValue = 0;
 		private boolean sliderActionOn = true;
 
@@ -395,7 +397,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 			valueText = new TextField(String.valueOf(value) + '%');
 			valueText.setPrefWidth(45);
 
-			Label directionLabel = new Label(String.valueOf(directionName));
+			@NotNull Label directionLabel = new Label(String.valueOf(directionName));
 			directionLabel.setPrefWidth(15);
 			getChildren().addAll(directionLabel, slider, valueText);
 		}
@@ -435,7 +437,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		 *
 		 * @return This direction slider
 		 */
-		DirectionSlider setSliderValue(double value) {
+		@NotNull DirectionSlider setSliderValue(double value) {
 			slider.setValue(value);
 			return this;
 		}
@@ -447,7 +449,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		 *
 		 * @return This direction slider
 		 */
-		DirectionSlider addSliderAction(ChangeListener<? super Number> listener) {
+		@NotNull DirectionSlider addSliderAction(ChangeListener<? super Number> listener) {
 			slider.valueProperty().addListener(listener);
 			return this;
 		}
@@ -459,7 +461,7 @@ public class AgentsMenuTab1 extends MyTabTemplate {
 		 *
 		 * @return This direction slider
 		 */
-		DirectionSlider addValueLabelFocusedAction(ChangeListener<? super Boolean> listener) {
+		@NotNull DirectionSlider addValueLabelFocusedAction(ChangeListener<? super Boolean> listener) {
 			valueText.focusedProperty().addListener(listener);
 			return this;
 		}

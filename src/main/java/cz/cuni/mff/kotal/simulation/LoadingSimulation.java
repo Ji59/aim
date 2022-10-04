@@ -6,6 +6,8 @@ import com.google.gson.reflect.TypeToken;
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -16,10 +18,10 @@ import java.util.stream.Collectors;
 
 public class LoadingSimulation extends Simulation {
 
-	private Timer timer;
-	private final ListIterator<Agent> sortedAgentsIterator;
+	private @Nullable Timer timer;
+	private final @NotNull ListIterator<Agent> sortedAgentsIterator;
 
-	public LoadingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents, String path) throws FileNotFoundException {
+	public LoadingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents, @NotNull String path) throws FileNotFoundException {
 		super(intersectionGraph, algorithm, simulationAgents);
 		sortedAgentsIterator = loadAgents(path);
 	}
@@ -36,10 +38,10 @@ public class LoadingSimulation extends Simulation {
 	}
 
 	@Override
-	protected Collection<Agent> loadAgents(long step) {
+	protected @NotNull Collection<Agent> loadAgents(long step) {
 		if (sortedAgentsIterator.hasNext()) {
-			List<Agent> newAgents = new ArrayList<>();
-			Agent nextAgent = null;
+			@NotNull List<Agent> newAgents = new ArrayList<>();
+			@Nullable Agent nextAgent = null;
 			while (sortedAgentsIterator.hasNext() && (nextAgent = sortedAgentsIterator.next()).getArrivalTime() <= step) {
 				newAgents.add(nextAgent);
 			}
@@ -60,12 +62,12 @@ public class LoadingSimulation extends Simulation {
 		return new ArrayList<>(0);
 	}
 
-	private ListIterator<Agent> loadAgents(String path) throws FileNotFoundException {
-		FileReader reader = new FileReader(path);
-		Gson gson = new Gson();
+	private @NotNull ListIterator<Agent> loadAgents(@NotNull String path) throws FileNotFoundException {
+		@NotNull FileReader reader = new FileReader(path);
+		@NotNull Gson gson = new Gson();
 		List<BasicAgent> basicAgents = gson.fromJson(reader, new TypeToken<List<BasicAgent>>() {
 		}.getType());
-		List<Agent> agents = basicAgents.stream().sorted(Comparator.comparingDouble(BasicAgent::getArrivalTime)).map(Agent::new).toList();
+		@NotNull List<Agent> agents = basicAgents.stream().sorted(Comparator.comparingDouble(BasicAgent::getArrivalTime)).map(Agent::new).toList();
 		allAgents.putAll(agents.stream().collect(Collectors.toMap(BasicAgent::getId, Function.identity())));
 		return agents.listIterator();
 	}
@@ -88,7 +90,7 @@ public class LoadingSimulation extends Simulation {
 	}
 
 	@Deprecated
-	private TimerTask getTimerTask() {
+	private @NotNull TimerTask getTimerTask() {
 		return new TimerTask() {
 			@Override
 			public void run() {

@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.TilePane;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 		createStatisticsGrid((GridPane) Parameters.STATISTICS.getParameter());
 
 		int row = 0;
-		for (Parameters parameter : Parameters.values()) {
+		for (@NotNull Parameters parameter : Parameters.values()) {
 			if (parameter != Parameters.BUTTONS) {
 				addRow(row++, new MenuLabel(parameter.getText()), parameter.getParameter());
 			} else {
@@ -56,12 +57,12 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	 *
 	 * @param grid Grid to add parameter nodes
 	 */
-	public static void createStatisticsGrid(GridPane grid) {
+	public static void createStatisticsGrid(@NotNull GridPane grid) {
 		// TODO remove constants
 		grid.setHgap(20);
 		int row = 0;
-		for (Parameters.Statistics statistic : Parameters.Statistics.values()) {
-			Label label = new Label(statistic.getText());
+		for (Parameters.@NotNull Statistics statistic : Parameters.Statistics.values()) {
+			@NotNull Label label = new Label(statistic.getText());
 			Label labelValue = statistic.getValue();
 			grid.getChildren().addAll(label, labelValue);
 			GridPane.setConstraints(label, 0, row);
@@ -75,12 +76,12 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	 * @param grid   Grid to add parameter nodes
 	 * @param labels Labels for nodes
 	 */
-	public static void createStatisticsGrid(GridPane grid, Map<Parameters.Statistics, Label> labels) {
+	public static void createStatisticsGrid(@NotNull GridPane grid, @NotNull Map<Parameters.Statistics, Label> labels) {
 		// TODO remove constants
 		grid.setHgap(20);
 		int row = 0;
-		for (Parameters.Statistics statistic : Parameters.Statistics.values()) {
-			Label label = new Label(statistic.getText());
+		for (Parameters.@NotNull Statistics statistic : Parameters.Statistics.values()) {
+			@NotNull Label label = new Label(statistic.getText());
 			Label labelValue = labels.get(statistic);
 			grid.getChildren().addAll(label, labelValue);
 			GridPane.setConstraints(label, 0, row);
@@ -91,77 +92,77 @@ public class SimulationMenuTab3 extends MyTabTemplate {
 	/**
 	 * @return Speed slider
 	 */
-	public static Slider getSpeedSlider() {
+	public static @NotNull Slider getSpeedSlider() {
 		return SPEED_SLIDER;
 	}
 
 	/**
 	 * @return Timeline slider
 	 */
-	public static Slider getTimelineSlider() {
+	public static @NotNull Slider getTimelineSlider() {
 		return TIMELINE_SLIDER;
 	}
 
 	/**
 	 * @return Label for number of agents that arrived
 	 */
-	public static Label getAgentsLabel() {
+	public static @NotNull Label getAgentsLabel() {
 		return agensLabel;
 	}
 
 	/**
 	 * @return Steps label
 	 */
-	public static Label getStepsLabel() {
+	public static @NotNull Label getStepsLabel() {
 		return stepsLabel;
 	}
 
 	/**
 	 * @return Delay label
 	 */
-	public static Label getDelayLabel() {
+	public static @NotNull Label getDelayLabel() {
 		return delayLabel;
 	}
 
 	/**
 	 * @return Rejections label
 	 */
-	public static Label getRejectionsLabel() {
+	public static @NotNull Label getRejectionsLabel() {
 		return rejectionsLabel;
 	}
 
 	/**
 	 * @return Collisions label
 	 */
-	public static Label getCollisionsLabel() {
+	public static @NotNull Label getCollisionsLabel() {
 		return collisionsLabel;
 	}
 
 	/**
 	 * @return Remaining time label
 	 */
-	public static Label getRemainingLabel() {
+	public static @NotNull Label getRemainingLabel() {
 		return remainingLabel;
 	}
 
 	/**
 	 * @return Play button
 	 */
-	public static Button getPlayButton() {
+	public static @NotNull Button getPlayButton() {
 		return PLAY_BUTTON;
 	}
 
 	/**
 	 * @return Restart button
 	 */
-	public static Button getRestartButton() {
+	public static @NotNull Button getRestartButton() {
 		return RESTART_BUTTON;
 	}
 
 	/**
 	 * @return Save agents button
 	 */
-	public static Button getSaveAgentsButton() {
+	public static @NotNull Button getSaveAgentsButton() {
 		return SAVE_AGENTS_BUTTON;
 	}
 

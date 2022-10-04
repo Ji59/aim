@@ -1,6 +1,9 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
 
 
@@ -44,10 +47,10 @@ public class Point {
 	 * @return True if the points have same coordinates, otherwise false
 	 */
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		Point point = (Point) o;
+		@NotNull Point point = (Point) o;
 		return Double.compare(point.x, x) == 0 && Double.compare(point.y, y) == 0;
 	}
 

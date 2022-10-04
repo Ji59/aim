@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -9,7 +10,7 @@ import java.util.stream.Collectors;
 
 class SimulationGraphTest {
 	SimulationGraph graph;
-	private int granularity = 4;
+	private final int granularity = 4;
 
 	// FIXME
 
@@ -164,9 +165,9 @@ class SimulationGraphTest {
 //		assert totalDegree == graph.getEdges().size();
 //	}
 
-	private int checkNeighbourIDs(int id, int... neighbours) {
+	private int checkNeighbourIDs(int id, int @NotNull ... neighbours) {
 		GraphicalVertex vertex = graph.getVertex(id);
-		Set<Integer> neighbourIDs = vertex.getNeighbourIDs();
+		@NotNull Set<Integer> neighbourIDs = vertex.getNeighbourIDs();
 		assert neighbourIDs.containsAll(Arrays.stream(neighbours).boxed().collect(Collectors.toSet()));
 		assert neighbourIDs.size() == neighbours.length;
 		assert neighbourIDs.stream().map(idn -> graph.getVertex(idn)).allMatch(neighbour -> graph.getEdges().stream().anyMatch(edge -> edge.getU() == vertex && edge.getV() == neighbour));

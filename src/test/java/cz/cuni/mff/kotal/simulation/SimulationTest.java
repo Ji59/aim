@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.simulation;
 
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,13 +14,13 @@ class SimulationTest {
 
 	@Test
 	void updateAgentsStats() {
-		final List<Integer> path = List.of(16, 4, 5, 6, 77, 22);
-		Agent a0 = new Agent(0, 0, 4, 16).setPath(path);
-		Agent a1 = new Agent(1, 0, 1, 16).setPath(path);
-		Agent a2 = new Agent(2, 1, -1, 16).setPath(path);
-		Agent a3 = new Agent(3, 2, 8, 16).setPath(path);
+		final @NotNull List<Integer> path = List.of(16, 4, 5, 6, 77, 22);
+		@NotNull Agent a0 = new Agent(0, 0, 4, 16).setPath(path);
+		@NotNull Agent a1 = new Agent(1, 0, 1, 16).setPath(path);
+		@NotNull Agent a2 = new Agent(2, 1, -1, 16).setPath(path);
+		@NotNull Agent a3 = new Agent(3, 2, 8, 16).setPath(path);
 
-		Simulation simulation = new InvalidSimulation();
+		@NotNull Simulation simulation = new InvalidSimulation();
 		Simulation.maximumDelay = 8;
 
 		simulation.createdAgentsQueue.addAll(List.of(a0, a1, a2, a3));

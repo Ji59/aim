@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Set;
@@ -41,7 +42,7 @@ public class GraphicalVertex extends Vertex {
 		this.y = y;
 	}
 
-	protected GraphicalVertex(GraphicalVertex vertex) {
+	protected GraphicalVertex(@NotNull GraphicalVertex vertex) {
 		super(vertex);
 		this.x = vertex.getX();
 		this.y = vertex.getY();
@@ -53,7 +54,7 @@ public class GraphicalVertex extends Vertex {
 		this.y = y;
 	}
 
-	public GraphicalVertex(int id, GraphicalVertex vertex) {
+	public GraphicalVertex(int id, @NotNull GraphicalVertex vertex) {
 		super(id, vertex.getType());
 		x = vertex.x;
 		y = vertex.y;

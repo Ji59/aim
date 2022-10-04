@@ -1,6 +1,8 @@
 package cz.cuni.mff.kotal.helpers;
 
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
 
@@ -68,7 +70,7 @@ public class Collision {
 	 * @param time Time of collision in steps
 	 * @return This Collision object
 	 */
-	public Collision setTime(double time) {
+	public @NotNull Collision setTime(double time) {
 		this.time = time;
 		return this;
 	}

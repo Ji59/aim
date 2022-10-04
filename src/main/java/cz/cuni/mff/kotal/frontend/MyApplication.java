@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -28,7 +29,7 @@ public class MyApplication extends Application {
 	 * @param primaryStage Stage where the intersection scene will be drawn
 	 */
 	@Override
-	public void start(Stage primaryStage) {
+	public void start(@NotNull Stage primaryStage) {
 		primaryStage.setTitle(STAGE_NAME);
 		primaryStage.setOnCloseRequest(event -> System.exit(0));
 
@@ -54,8 +55,8 @@ public class MyApplication extends Application {
 	 * @param x            Stage X coordinate on the monitor
 	 * @param y            Stage Y coordinate on the monitor
 	 */
-	private void createIntersectionStage(Stage primaryStage, double height, double x, double y) {
-		Scene scene = new IntersectionScene(height + INTERSECTION_MENU_WIDTH, height);
+	private void createIntersectionStage(@NotNull Stage primaryStage, double height, double x, double y) {
+		@NotNull Scene scene = new IntersectionScene(height + INTERSECTION_MENU_WIDTH, height);
 		primaryStage.setScene(scene);
 
 		primaryStage.setX(x);
@@ -69,7 +70,7 @@ public class MyApplication extends Application {
 		primaryStage.show();
 
 		SimulationGraph graph = IntersectionScene.getIntersectionGraph().redraw();
-		Thread thread = new Thread(() -> graph.createDistances(true));
+		@NotNull Thread thread = new Thread(() -> graph.createDistances(true));
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.start();
 	}

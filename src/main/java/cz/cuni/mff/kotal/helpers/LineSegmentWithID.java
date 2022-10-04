@@ -35,7 +35,7 @@ public class LineSegmentWithID extends LineSegment implements Comparable<LineSeg
 	 * @param point1 Ending point of the line segment
 	 * @param id     Agent ID the line segment is associated with
 	 */
-	public LineSegmentWithID(Point point0, Point point1, long id) {
+	public LineSegmentWithID(@NotNull Point point0, @NotNull Point point1, long id) {
 		super(point0, point1);
 		this.id = id;
 	}

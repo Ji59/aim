@@ -4,6 +4,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.Vertex.Type;
+import org.jetbrains.annotations.NotNull;
 
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType.HEXAGONAL;
 
@@ -38,7 +39,7 @@ public class HexagonalGraph extends SimulationGraph {
 		double centerY = 0.5;
 
 		// create center vertex
-		GraphicalVertex v = new GraphicalVertex(id++, centerX, centerY);
+		@NotNull GraphicalVertex v = new GraphicalVertex(id++, centerX, centerY);
 		v.addNeighbourID(1, 2, 3, 4, 5, 6);
 		vertices[0] = v;
 
@@ -124,7 +125,7 @@ public class HexagonalGraph extends SimulationGraph {
 	 */
 	private void createHexagonalGraphEdgeVertices(int i, int j, boolean notLast, int id, double x, double y, int side) {
 		// create vertex
-		GraphicalVertex v = new GraphicalVertex(id, x, y);
+		@NotNull GraphicalVertex v = new GraphicalVertex(id, x, y);
 
 		// add neighbour IDs
 		int previousLayerNeighbour = id - (i - 1) * 6 - side;
@@ -218,12 +219,12 @@ public class HexagonalGraph extends SimulationGraph {
 			int id4 = id + 4;
 			int id5 = id + 5;
 
-			GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Type.ENTRY0 : Type.EXIT0);                // top left
-			GraphicalVertex v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Type.ENTRY1 : Type.EXIT1);               // top right
-			GraphicalVertex v2 = new GraphicalVertex(id2, 1 - e5x, e2y, entry ? Type.ENTRY2 : Type.EXIT2);        // right
-			GraphicalVertex v3 = new GraphicalVertex(id3, 1 - e0x, 1 - e0y, entry ? Type.ENTRY3 : Type.EXIT3); // bottom right
-			GraphicalVertex v4 = new GraphicalVertex(id4, 1 - e1x, 1 - e1y, entry ? Type.ENTRY4 : Type.EXIT4); // bottom left
-			GraphicalVertex v5 = new GraphicalVertex(id5, e5x, 1 - e2y, entry ? Type.ENTRY5 : Type.EXIT5);        // left
+			@NotNull GraphicalVertex v0 = new GraphicalVertex(id, e0x, e0y, entry ? Type.ENTRY0 : Type.EXIT0);                // top left
+			@NotNull GraphicalVertex v1 = new GraphicalVertex(id1, e1x, e1y, entry ? Type.ENTRY1 : Type.EXIT1);               // top right
+			@NotNull GraphicalVertex v2 = new GraphicalVertex(id2, 1 - e5x, e2y, entry ? Type.ENTRY2 : Type.EXIT2);        // right
+			@NotNull GraphicalVertex v3 = new GraphicalVertex(id3, 1 - e0x, 1 - e0y, entry ? Type.ENTRY3 : Type.EXIT3); // bottom right
+			@NotNull GraphicalVertex v4 = new GraphicalVertex(id4, 1 - e1x, 1 - e1y, entry ? Type.ENTRY4 : Type.EXIT4); // bottom left
+			@NotNull GraphicalVertex v5 = new GraphicalVertex(id5, e5x, 1 - e2y, entry ? Type.ENTRY5 : Type.EXIT5);        // left
 			vertices[id] = v0;
 			vertices[id1] = v1;
 			vertices[id2] = v2;
@@ -294,7 +295,7 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @return Model Type of hexagonal graph
 	 */
 	@Override
-	public IntersectionMenuTab0.Parameters.GraphType getModel() {
+	public IntersectionMenuTab0.Parameters.@NotNull GraphType getModel() {
 		return HEXAGONAL;
 	}
 

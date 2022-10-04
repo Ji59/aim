@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.Objects;
@@ -35,7 +36,7 @@ public class BasicAgent {
 		arrivalTime = 0;
 	}
 
-	public BasicAgent(BasicAgent agent) {
+	public BasicAgent(@NotNull BasicAgent agent) {
 		id = agent.getId();
 		l = agent.getL();
 		w = agent.getW();
@@ -97,7 +98,7 @@ public class BasicAgent {
 	 *
 	 * @param entry ID of starting vertex
 	 */
-	public BasicAgent setEntry(Integer entry) {
+	public @NotNull BasicAgent setEntry(Integer entry) {
 		this.entry = entry;
 		return this;
 	}
@@ -105,14 +106,14 @@ public class BasicAgent {
 	/**
 	 * @return ID of starting vertex of this agent
 	 */
-	public Integer getEntry() {
+	public @NotNull Integer getEntry() {
 		return entry;
 	}
 
 	/**
 	 * @return ID of ending vertex of this agent
 	 */
-	public Integer getExit() {
+	public @NotNull Integer getExit() {
 		return exit;
 	}
 
@@ -162,7 +163,7 @@ public class BasicAgent {
 		return perimeter;
 	}
 
-	public double getAgentPerimeter(SimulationGraph graph) {
+	public double getAgentPerimeter(@NotNull SimulationGraph graph) {
 		if (perimeter < 0) {
 			perimeter = perimeter(getL(), getW()) * graph.getCellSize();
 		}
@@ -182,7 +183,7 @@ public class BasicAgent {
 	}
 
 	@Override
-	public String toString() {
+	public @NotNull String toString() {
 		return "Agent{" +
 			"id=" + id +
 			'}';

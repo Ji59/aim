@@ -9,6 +9,8 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -26,8 +28,8 @@ public abstract class Simulation {
 	public static long maximumDelay = 16;
 	protected final SimulationGraph intersectionGraph;
 	protected final SortedMap<Long, Agent> allAgents = new TreeMap<>();
-	protected final Algorithm algorithm;
-	protected final SimulationAgents simulationAgents;
+	protected final @Nullable Algorithm algorithm;
+	protected final @Nullable SimulationAgents simulationAgents;
 	protected final Map<Integer, List<Agent>> delayedAgents = new HashMap<>();
 	protected final PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
 	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
@@ -59,7 +61,7 @@ public abstract class Simulation {
 		stateLock.unlock();
 	}
 
-	protected Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
+	protected Simulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
 		stateLock.lock();
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
@@ -112,7 +114,7 @@ public abstract class Simulation {
 		final double stepDiff = loadedStep - step;
 
 		if (stepDiff <= GENERATED_MINIMUM_STEP_AHEAD) {
-			final Thread thread = new Thread(() -> {
+			final @NotNull Thread thread = new Thread(() -> {
 				loadAgentsLock.lock();
 				try {
 					for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD && isRunning(); loadedStep++) {
@@ -121,7 +123,7 @@ public abstract class Simulation {
 						} catch (Exception e) {
 							stop();
 							Platform.runLater(() -> {
-								final Alert alert = new Alert(Alert.AlertType.ERROR);
+								final @NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 								alert.setTitle("Algorithm planning failed");
 								alert.setHeaderText("Exception occurred during computing algorithm plan at step " + step);
 								alert.setContentText(e.getMessage());
@@ -158,7 +160,7 @@ public abstract class Simulation {
 		updateDelayedAgents(step);
 	}
 
-	protected void addCreatedAgents(Collection<Agent> newAgents) {
+	protected void addCreatedAgents(@NotNull Collection<Agent> newAgents) {
 		synchronized (delayedAgents) {
 			newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
 		}
@@ -219,7 +221,7 @@ public abstract class Simulation {
 		}
 	}
 
-	protected boolean isRejected(double step, Agent rejectedAgent) {
+	protected boolean isRejected(double step, @NotNull Agent rejectedAgent) {
 		return rejectedAgent.getArrivalTime() + maximumDelay <= step;
 	}
 
@@ -312,7 +314,7 @@ public abstract class Simulation {
 	 */
 	protected void updateTotalAgents(double step) {
 		synchronized (createdAgentsQueue) {
-			Iterator<Agent> iterator = createdAgentsQueue.iterator();
+			@NotNull Iterator<Agent> iterator = createdAgentsQueue.iterator();
 			while (iterator.hasNext()) {
 				Agent createdAgent = iterator.next();
 				if (createdAgent.getArrivalTime() > step) {
@@ -338,7 +340,7 @@ public abstract class Simulation {
 		synchronized (plannedAgentsQueue) {
 			agentsDelay += plannedAgentsQueue.stream().filter(agent -> agent.getArrivalTime() <= step).mapToLong(agent -> Math.min(step, agent.getPlannedTime()) - Math.max((long) agent.getArrivalTime(), delayedStep)).sum();
 
-			Iterator<Agent> iterator = plannedAgentsQueue.iterator();
+			@NotNull Iterator<Agent> iterator = plannedAgentsQueue.iterator();
 			while (iterator.hasNext()) {
 				Agent agent = iterator.next();
 				if (agent.getPlannedTime() > delayedStep) {
@@ -357,7 +359,7 @@ public abstract class Simulation {
 	 *
 	 * @return
 	 */
-	protected double getAgentsDelay(Agent agent) {
+	protected double getAgentsDelay(@NotNull Agent agent) {
 		final int exitID = agent.getPath().get(agent.getPath().size() - 1);
 		return agent.getPath().size() - getIntersectionGraph().getDistance(agent.getEntry(), exitID);
 	}
@@ -376,7 +378,7 @@ public abstract class Simulation {
 	 */
 	protected void updateRejectedAgents(double step, long stepRounded) {
 		synchronized (rejectedAgentsQueue) {
-			Iterator<Agent> iterator = rejectedAgentsQueue.iterator();
+			@NotNull Iterator<Agent> iterator = rejectedAgentsQueue.iterator();
 			while (iterator.hasNext()) {
 				Agent rejectedAgent = iterator.next();
 				if (rejectedAgent.getArrivalTime() >= delayedStep) {
@@ -401,11 +403,11 @@ public abstract class Simulation {
 	/**
 	 * @return All generated agents
 	 */
-	public Collection<Agent> getAllAgents() {
+	public @NotNull Collection<Agent> getAllAgents() {
 		return allAgents.values();
 	}
 
-	public Collection<Agent> getAllCreatedAgents() {
+	public @NotNull Collection<Agent> getAllCreatedAgents() {
 		return allAgents.values().stream().filter(agent -> !createdAgentsQueue.contains(agent)).toList();
 	}
 
@@ -414,7 +416,7 @@ public abstract class Simulation {
 	 *
 	 * @return
 	 */
-	public Map<Long, Agent> getAllAgentsMap() {
+	public @NotNull Map<Long, Agent> getAllAgentsMap() {
 		return allAgents;
 	}
 
@@ -465,7 +467,7 @@ public abstract class Simulation {
 		return startingStep;
 	}
 
-	public Simulation setStartingStep(double startingStep) {
+	public @NotNull Simulation setStartingStep(double startingStep) {
 		this.startingStep = startingStep;
 		return this;
 	}
@@ -509,7 +511,7 @@ public abstract class Simulation {
 		return state;
 	}
 
-	public Lock getStateLock() {
+	public @NotNull Lock getStateLock() {
 		return stateLock;
 	}
 
@@ -542,7 +544,7 @@ public abstract class Simulation {
 		return collisions;
 	}
 
-	public List<Long> getPlanningTime() {
+	public @NotNull List<Long> getPlanningTime() {
 		return planningTime;
 	}
 

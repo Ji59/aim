@@ -10,6 +10,7 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import org.jetbrains.annotations.NotNull;
 
 public class TitleMenuLabel extends Label {
    private static double x = 100, y = 200;
@@ -39,7 +40,7 @@ public class TitleMenuLabel extends Label {
       TitleMenuLabel.y = y * RATIO_Y;
    }
 
-   public TitleMenuLabel addOnClickEvent(EventHandler<MouseEvent> eventHandler) {
+   public @NotNull TitleMenuLabel addOnClickEvent(@NotNull EventHandler<MouseEvent> eventHandler) {
       addEventFilter(MouseEvent.MOUSE_CLICKED, eventHandler);
       return this;
    }

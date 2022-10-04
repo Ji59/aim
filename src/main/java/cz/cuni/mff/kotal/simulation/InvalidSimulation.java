@@ -1,5 +1,7 @@
 package cz.cuni.mff.kotal.simulation;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 
 public class InvalidSimulation extends Simulation {
@@ -33,7 +35,7 @@ public class InvalidSimulation extends Simulation {
 	}
 
 	@Override
-	protected Collection<Agent> loadAgents(long step) {
+	protected @Nullable Collection<Agent> loadAgents(long step) {
 		return null;
 	}
 }

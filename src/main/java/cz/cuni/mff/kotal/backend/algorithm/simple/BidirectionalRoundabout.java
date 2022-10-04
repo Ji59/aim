@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.backend.algorithm.simple;
 
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,16 +11,16 @@ import static cz.cuni.mff.kotal.helpers.MyNumberOperations.myModulo;
 
 public class BidirectionalRoundabout extends Roundabout {
 
-	public BidirectionalRoundabout(SimulationGraph graph) {
+	public BidirectionalRoundabout(@NotNull SimulationGraph graph) {
 		this(graph, true);
 	}
 
-	public BidirectionalRoundabout(SimulationGraph graph, boolean addPlannedAgent) {
+	public BidirectionalRoundabout(@NotNull SimulationGraph graph, boolean addPlannedAgent) {
 		super(graph, addPlannedAgent);
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, long step) {
+	public Agent planAgent(@NotNull Agent agent, long step) {
 		double agentPerimeter = agent.getAgentPerimeter();
 		int entryNeighbour = graph.getVertex(agent.getEntry()).getNeighbourIDs().stream().findFirst().orElse(0);
 		int firstExitNeighbour;
@@ -29,7 +30,7 @@ public class BidirectionalRoundabout extends Roundabout {
 		int entryNeighbourIndex = roundTrip.indexOf(entryNeighbour);
 
 		if (agent.getExit() < 0) {
-			List<Integer> exitNeighbourIndexes = directionExits.get(agent.getExitDirection()).stream()
+			@NotNull List<Integer> exitNeighbourIndexes = directionExits.get(agent.getExitDirection()).stream()
 				.map(exit -> getExitsNeighboursMapping().get(exit))
 				.toList();
 			for (int i = 0; i < roundTrip.size(); i++) {
@@ -56,7 +57,7 @@ public class BidirectionalRoundabout extends Roundabout {
 
 
 		int exitNeighbour = increasing ? firstExitNeighbour : lastExitNeighbour;
-		List<Integer> path = getPath(agent, exitNeighbour, entryNeighbourIndex, increasing);
+		@NotNull List<Integer> path = getPath(agent, exitNeighbour, entryNeighbourIndex, increasing);
 		if (!validPath(step, path, agentPerimeter)) {
 			increasing = !increasing;
 			exitNeighbour = increasing ? firstExitNeighbour : lastExitNeighbour;
@@ -72,14 +73,14 @@ public class BidirectionalRoundabout extends Roundabout {
 		return agent;
 	}
 
-	private List<Integer> getPath(Agent agent, Integer exitNeighbour, int entryNeighbourIndex, boolean increasing) {
-		List<Integer> path = new ArrayList<>(roundTrip.size());
+	private @NotNull List<Integer> getPath(@NotNull Agent agent, Integer exitNeighbour, int entryNeighbourIndex, boolean increasing) {
+		@NotNull List<Integer> path = new ArrayList<>(roundTrip.size());
 		path.add(agent.getEntry());
 		int index = entryNeighbourIndex;
 		int vertexID;
 		while ((vertexID = roundTrip.get(index)) != exitNeighbour) {
 			path.add(vertexID);
-			index = (int) myModulo(index + (increasing ? 1 : -1), roundTrip.size());
+			index = myModulo(index + (increasing ? 1 : -1), roundTrip.size());
 		}
 		path.add(exitNeighbour);
 		path.add(getExitsNeighboursMapping().get(exitNeighbour));

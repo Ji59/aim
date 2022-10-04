@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.helpers;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.Point;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -99,7 +100,7 @@ public class MyNumberOperations {
 		return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
 	}
 
-	public static double distance(Point p0, Point p1) {
+	public static double distance(@NotNull Point p0, @NotNull Point p1) {
 		return distance(p0.getX(), p0.getY(), p1.getX(), p1.getY());
 	}
 
@@ -107,13 +108,13 @@ public class MyNumberOperations {
 		return Math.sqrt(l * l + w * w) / 2;
 	}
 
-	public static <T> T[][] cartesianProduct(T[][] arrays, Class<T> tClass) {
+	public static <T> T[] @NotNull [] cartesianProduct(T[] @NotNull [] arrays, Class<T> tClass) {
 		int size = 1;
-		for (T[] array : arrays) {
+		for (T @NotNull [] array : arrays) {
 			size *= array.length;
 		}
 
-		T[][] cartesian = (T[][]) Array.newInstance(tClass, size, arrays.length);
+		T[] @NotNull [] cartesian = (T[][]) Array.newInstance(tClass, size, arrays.length);
 
 		for (int i = 0, period = size; i < arrays.length; i++) {
 			period /= arrays[i].length;
@@ -131,17 +132,17 @@ public class MyNumberOperations {
 		return cartesian;
 	}
 
-	public static <T> Stream<List<T>> combinations(final T[] arr) {
+	public static <T> @NotNull Stream<List<T>> combinations(final T @NotNull [] arr) {
 		final long N = (long) Math.pow(2, arr.length);
 		return StreamSupport.stream(new Spliterators.AbstractSpliterator<>(N, Spliterator.SIZED) {
 			long i = N - 1;
 
 			@Override
-			public boolean tryAdvance(Consumer<? super List<T>> action) {
+			public boolean tryAdvance(@NotNull Consumer<? super List<T>> action) {
 				if (i > 0) {
-					List<T> out = new ArrayList<>(Long.bitCount(i));
+					@NotNull List<T> out = new ArrayList<>(Long.bitCount(i));
 					for (int bit = 0; bit < arr.length; bit++) {
-						if ((i & (1 << bit)) != 0) {
+						if ((i & (1L << bit)) != 0) {
 							out.add(arr[bit]);
 						}
 					}
@@ -155,17 +156,17 @@ public class MyNumberOperations {
 		}, false);
 	}
 
-	public static <T> Stream<Collection<T>> combinations(final Collection<T> arr) {
+	public static <T> @NotNull Stream<Collection<T>> combinations(final @NotNull Collection<T> arr) {
 		final long N = (long) Math.pow(2, arr.size());
 		return StreamSupport.stream(new Spliterators.AbstractSpliterator<>(N, Spliterator.SIZED) {
 			int i = arr.size();
-			long j = 0;
-			long nCi = combinationNumber(arr.size(), i);
+			final long j = 0;
+			final long nCi = combinationNumber(arr.size(), i);
 
 			@Override
-			public boolean tryAdvance(Consumer<? super Collection<T>> action) {
+			public boolean tryAdvance(@NotNull Consumer<? super Collection<T>> action) {
 				if (i >= 0) {
-					Set<T> out = new HashSet<>(i);
+					@NotNull Set<T> out = new HashSet<>(i);
 					action.accept(out);
 					i--;
 					// TODO
@@ -185,23 +186,23 @@ public class MyNumberOperations {
 	 * @param <T>
 	 * @return
 	 */
-	public static <T> Collection<Collection<T>> combinations(final Collection<T> arr, int size) {
+	public static <T> @NotNull Collection<Collection<T>> combinations(final @NotNull Collection<T> arr, int size) {
 		if (size <= 0) {
 			return Collections.singleton(new HashSet<>());
 		} else if (arr.size() <= size) {
 			return Collections.singleton(arr);
 		}
 
-		Collection<T> arrCopy = new ArrayList<>(arr.size() - 1);
-		Iterator<T> it = arr.iterator();
+		@NotNull Collection<T> arrCopy = new ArrayList<>(arr.size() - 1);
+		@NotNull Iterator<T> it = arr.iterator();
 		T element = it.next();
 		while (it.hasNext()) {
 			arrCopy.add(it.next());
 		}
 
-		Collection<Collection<T>> combinations = new HashSet<>(combinations(arrCopy, size));
+		@NotNull Collection<Collection<T>> combinations = new HashSet<>(combinations(arrCopy, size));
 
-		for (Collection<T> smaller : combinations(arrCopy, size - 1)) {
+		for (@NotNull Collection<T> smaller : combinations(arrCopy, size - 1)) {
 			smaller.add(element);
 			combinations.add(smaller);
 		}
@@ -226,14 +227,14 @@ public class MyNumberOperations {
 
 	// TODO move to test
 	public static void main(String... args) {
-		String[] arr = new String[]{"0", "1", "2", "3", "4"};
-		String result = combinations(arr).map(l -> String.join(" ", l)).collect(Collectors.joining("\n"));
+		String @NotNull [] arr = new String[]{"0", "1", "2", "3", "4"};
+		@NotNull String result = combinations(arr).map(l -> String.join(" ", l)).collect(Collectors.joining("\n"));
 		System.out.println(result);
 
-		List<String> arr1 = new LinkedList<>(Arrays.asList(arr));
+		@NotNull List<String> arr1 = new LinkedList<>(Arrays.asList(arr));
 		for (int i = 0; i <= arr1.size(); i++) {
-			Collection<Collection<String>> combinations = combinations(arr1, i);
-			for (Collection<String> result1 : combinations) {
+			@NotNull Collection<Collection<String>> combinations = combinations(arr1, i);
+			for (@NotNull Collection<String> result1 : combinations) {
 				System.out.println(String.join(" ", result1));
 			}
 			System.out.println(combinationNumber(arr1.size(), i) + ", " + combinations.size() + '\n');

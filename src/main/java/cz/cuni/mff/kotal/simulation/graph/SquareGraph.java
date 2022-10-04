@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import org.jetbrains.annotations.NotNull;
 
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType.SQUARE;
 
@@ -34,7 +35,7 @@ public class SquareGraph extends SimulationGraph {
 	 * @param exits          Number of exits from each direction
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
-	protected SquareGraph(GraphType model, int granularity, int entries, int exits, int vertices, double shift, boolean withoutCorners) {
+	protected SquareGraph(@NotNull GraphType model, int granularity, int entries, int exits, int vertices, double shift, boolean withoutCorners) {
 		super(model, granularity, entries, exits, vertices);
 
 		int id = createSquareGraphVertices(0, shift, withoutCorners);
@@ -62,7 +63,7 @@ public class SquareGraph extends SimulationGraph {
 				}
 
 				// create vertex
-				GraphicalVertex vertex = new GraphicalVertex(id, (i + 1.5) * shift, (j + 1.5) * shift);
+				@NotNull GraphicalVertex vertex = new GraphicalVertex(id, (i + 1.5) * shift, (j + 1.5) * shift);
 				vertices[id] = vertex;
 
 				// add neighbours ids
@@ -82,7 +83,7 @@ public class SquareGraph extends SimulationGraph {
 	 * @param vertex         Vertex whose neighbours are computed
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
-	private void createSquareGraphAddNeighbours(GraphicalVertex vertex, boolean withoutCorners) {
+	private void createSquareGraphAddNeighbours(@NotNull GraphicalVertex vertex, boolean withoutCorners) {
 		int g = granularity;
 		int id = vertex.getID();
 		int i = id / granularity;
@@ -175,10 +176,10 @@ public class SquareGraph extends SimulationGraph {
 		for (int i = 0; i < entries; i++) {
 
 			// create vertices
-			GraphicalVertex topE = new GraphicalVertex(id++, topX, topY, entry ? Vertex.Type.ENTRY0 : Vertex.Type.EXIT0);
-			GraphicalVertex rightE = new GraphicalVertex(id++, botY, topX, entry ? Vertex.Type.ENTRY1 : Vertex.Type.EXIT1);
-			GraphicalVertex bottomE = new GraphicalVertex(id++, botX, botY, entry ? Vertex.Type.ENTRY2 : Vertex.Type.EXIT2);
-			GraphicalVertex leftE = new GraphicalVertex(id++, topY, botX, entry ? Vertex.Type.ENTRY3 : Vertex.Type.EXIT3);
+			@NotNull GraphicalVertex topE = new GraphicalVertex(id++, topX, topY, entry ? Vertex.Type.ENTRY0 : Vertex.Type.EXIT0);
+			@NotNull GraphicalVertex rightE = new GraphicalVertex(id++, botY, topX, entry ? Vertex.Type.ENTRY1 : Vertex.Type.EXIT1);
+			@NotNull GraphicalVertex bottomE = new GraphicalVertex(id++, botX, botY, entry ? Vertex.Type.ENTRY2 : Vertex.Type.EXIT2);
+			@NotNull GraphicalVertex leftE = new GraphicalVertex(id++, topY, botX, entry ? Vertex.Type.ENTRY3 : Vertex.Type.EXIT3);
 
 			// add graph vertices
 			vertices[topE.getID()] = topE;

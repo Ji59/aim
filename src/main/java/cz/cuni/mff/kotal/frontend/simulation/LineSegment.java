@@ -1,6 +1,9 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -10,11 +13,11 @@ import java.util.Set;
  * Class representing line segment between two points.
  */
 public class LineSegment {
-	private final Point point0;
-	private final Point point1;
+	private final @NotNull Point point0;
+	private final @NotNull Point point1;
 
-	private Double a = null;
-	private Double b = null;
+	private @Nullable Double a = null;
+	private @Nullable Double b = null;
 
 	/**
 	 * Create new line segment between points [x0, y0] and [x1, y1], sorted increasingly by X coordinate, then by Y.
@@ -40,7 +43,7 @@ public class LineSegment {
 	 * @param point0 First end if the new line segment
 	 * @param point1 Second end of the new line segment
 	 */
-	public LineSegment(Point point0, Point point1) {
+	public LineSegment(@NotNull Point point0, @NotNull Point point1) {
 		if (point0.getX() < point1.getX() || (point0.getX() == point1.getX() && point0.getY() <= point1.getY())) {
 			this.point0 = point0;
 			this.point1 = point1;
@@ -67,7 +70,7 @@ public class LineSegment {
 	 * @param point Point used in calculations
 	 * @return Shifted scalar product of the point and the line segment
 	 */
-	public double getSide(Point point) {
+	public double getSide(@NotNull Point point) {
 		double x = point.getX();
 		double y = point.getY();
 		return (x - getX0()) * (getY1() - getY0()) - (y - getY0()) * (getX1() - getX0());
@@ -80,7 +83,7 @@ public class LineSegment {
 	 * @param lineSegment Line segment dividing this line
 	 * @return Ratio in which is this line segment divided
 	 */
-	public double getIntersectionRatio(LineSegment lineSegment) {
+	public double getIntersectionRatio(@NotNull LineSegment lineSegment) {
 		if (a == null) {
 			computeLineEquation();
 		}
@@ -157,8 +160,8 @@ public class LineSegment {
 	 * @param agentPane Agent to create line segments from
 	 * @return Line segments associated with agents sides
 	 */
-	public static Set<LineSegment> getLineSegmentsFromAgent(AgentPane agentPane) {
-		List<Point> vertices = agentPane.getCornerPoints();
+	public static @NotNull Set<LineSegment> getLineSegmentsFromAgent(@NotNull AgentPane agentPane) {
+		@NotNull List<Point> vertices = agentPane.getCornerPoints();
 
 		return getLineSegments(vertices);
 	}
@@ -169,8 +172,8 @@ public class LineSegment {
 	 * @param vertices Sorted list of vertices creating closed loop
 	 * @return Line segments associated with agents sides
 	 */
-	public static Set<LineSegment> getLineSegments(List<Point> vertices) {
-		Set<LineSegment> lineSegments = new HashSet<>();
+	public static @NotNull Set<LineSegment> getLineSegments(@NotNull List<Point> vertices) {
+		@NotNull Set<LineSegment> lineSegments = new HashSet<>();
 		int verticesCount = vertices.size();
 		for (int i = 0; i < verticesCount; ) {
 			lineSegments.add(new LineSegment(vertices.get(i), vertices.get(++i % verticesCount)));

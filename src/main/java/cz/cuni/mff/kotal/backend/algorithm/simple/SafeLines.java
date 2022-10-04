@@ -26,7 +26,7 @@ public class SafeLines implements Algorithm {
 
 
 	private final double safeDistance;
-	protected final SimulationGraph graph;
+	protected final @NotNull SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
 	protected double largestAgentPerimeter = 0;
@@ -35,11 +35,11 @@ public class SafeLines implements Algorithm {
 	public SafeLines(@NotNull SimulationGraph graph) {
 		this.graph = graph;
 
-		List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
+		@NotNull List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
 		sortedGraphicalVertices.forEach(v -> verticesDistances.put(v.getID(), new PriorityQueue<>(sortedGraphicalVertices.size())));
 		sortedGraphicalVertices.parallelStream().forEach(v0 -> {
 			final int v0ID = v0.getID();
-			List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()
+			@NotNull List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()
 				.takeWhile(v1 -> v1.getID() <= v0ID)
 				.map(v1 -> {
 					final double distance = distance(v0.getX(), v0.getY(), v1.getX(), v1.getY());
@@ -54,7 +54,7 @@ public class SafeLines implements Algorithm {
 		});
 
 		graph.getEntryExitVertices().forEach((key, value) -> {
-			Set<Integer> exits = value.stream()
+			@NotNull Set<Integer> exits = value.stream()
 				.filter(vertex -> vertex.getType().isExit())
 				.map(Vertex::getID)
 				.collect(Collectors.toSet());
@@ -68,11 +68,11 @@ public class SafeLines implements Algorithm {
 	protected SafeLines(@NotNull SimulationGraph graph, double safeDistance) {
 		this.graph = graph;
 
-		List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
+		@NotNull List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
 		sortedGraphicalVertices.forEach(v -> verticesDistances.put(v.getID(), new PriorityQueue<>(sortedGraphicalVertices.size())));
 		sortedGraphicalVertices.parallelStream().forEach(v0 -> {
 			final int v0ID = v0.getID();
-			List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()
+			@NotNull List<VertexDistance> v0Distances = sortedGraphicalVertices.stream()
 				.takeWhile(v1 -> v1.getID() <= v0ID)
 				.map(v1 -> {
 					final double distance = distance(v0.getX(), v0.getY(), v1.getX(), v1.getY());
@@ -87,7 +87,7 @@ public class SafeLines implements Algorithm {
 		});
 
 		graph.getEntryExitVertices().forEach((key, value) -> {
-			Set<Integer> exits = value.stream()
+			@NotNull Set<Integer> exits = value.stream()
 				.filter(vertex -> vertex.getType().isExit())
 				.map(Vertex::getID)
 				.collect(Collectors.toSet());
@@ -105,13 +105,13 @@ public class SafeLines implements Algorithm {
 
 	@Override
 	public @Nullable Agent planAgent(@NotNull Agent agent, long step) {
-		List<Integer> selectedPath = null;
+		@Nullable List<Integer> selectedPath = null;
 		double agentPerimeter = agent.getAgentPerimeter();
 		if (agent.getExit() < 0) {
-			List<List<Integer>> directionPaths = directionExits.get(agent.getExitDirection()).stream()
+			@NotNull List<List<Integer>> directionPaths = directionExits.get(agent.getExitDirection()).stream()
 				.map(exit -> graph.getLines().get(agent.getEntry()).get(exit))
 				.sorted(Comparator.comparingInt(List::size)).toList();
-			for (List<Integer> path : directionPaths) {
+			for (@NotNull List<Integer> path : directionPaths) {
 				if (validPath(step, path, agentPerimeter)) {
 					selectedPath = path;
 					break;
@@ -429,7 +429,7 @@ public class SafeLines implements Algorithm {
 	}
 
 	protected void filterStepOccupiedVertices(long step) {
-		Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
+		@NotNull Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry<Long, Map<Integer, Agent>> stepVertices = it.next();
 			long occupiedStep = stepVertices.getKey();
@@ -442,8 +442,8 @@ public class SafeLines implements Algorithm {
 	}
 
 	public boolean inCollision(@NotNull Collection<Agent> agents0, @NotNull Collection<Agent> agents1) {
-		for (Agent agent0 : agents0) {
-			for (Agent agent1 : agents1) {
+		for (@NotNull Agent agent0 : agents0) {
+			for (@NotNull Agent agent1 : agents1) {
 				if (agent0 != agent1 && inCollision(agent0, agent1).isPresent()) {
 					System.out.println(agent0.getId() + " collides with " + agent1.getId());
 					return true;
@@ -456,9 +456,9 @@ public class SafeLines implements Algorithm {
 
 	public boolean inCollision(final @NotNull Collection<Agent> agents) {
 		int i = 0;
-		for (final Agent agent0 : agents) {
+		for (final @NotNull Agent agent0 : agents) {
 			int j = 0;
-			for (final Agent agent1 : agents) {
+			for (final @NotNull Agent agent1 : agents) {
 				if (j++ <= i) {
 					continue;
 				}
@@ -490,8 +490,8 @@ public class SafeLines implements Algorithm {
 			return Optional.empty();
 		}
 
-		ListIterator<Integer> itP0 = agent0Path.listIterator((int) (startStep - agent0PlannedTime));
-		ListIterator<Integer> itP1 = agent1Path.listIterator((int) (startStep - agent1PlannedTime));
+		@NotNull ListIterator<Integer> itP0 = agent0Path.listIterator((int) (startStep - agent0PlannedTime));
+		@NotNull ListIterator<Integer> itP1 = agent1Path.listIterator((int) (startStep - agent1PlannedTime));
 
 		int vertexP0 = itP0.next();
 		int vertexP1 = itP1.next();

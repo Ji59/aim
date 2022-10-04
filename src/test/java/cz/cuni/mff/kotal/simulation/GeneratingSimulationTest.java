@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -19,7 +20,7 @@ class GeneratingSimulationTest {
 
 	private final long NEW_AGENTS_MINIMUM = 2,
 		NEW_AGENTS_MAXIMUM = 4;
-	List<Long> DISTRIBUTION = Arrays.asList(10L, 70L, 20L, 0L);
+	@NotNull List<Long> DISTRIBUTION = Arrays.asList(10L, 70L, 20L, 0L);
 	private GeneratingSimulation simulation;
 
 	// FIXME

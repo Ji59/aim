@@ -4,6 +4,7 @@ import cz.cuni.mff.kotal.backend.algorithm.simple.Semaphore;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.OctagonalGraph;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ class SemaphoreTest {
 		assert !safeStep;
 	}
 
-	private void addPath(Agent agent1) {
+	private void addPath(@NotNull Agent agent1) {
 		for (int i = 0; i < agent1.getPath().size(); i++) {
 			stepOccupiedVertices.get(agent1.getPlannedTime() + i).put(agent1.getPath().get(i), agent1);
 		}

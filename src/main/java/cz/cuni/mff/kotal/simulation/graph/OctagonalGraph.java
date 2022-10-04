@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import org.jetbrains.annotations.NotNull;
 
 import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType.OCTAGONAL;
 
@@ -31,7 +32,7 @@ public class OctagonalGraph extends SquareGraph {
 	protected void createOctagonalGraphInBetweenVertices(int id, double shift) {
 		// create first column
 		for (int j = 0; j < granularity - 1; j++, id++) {
-			GraphicalVertex v = new GraphicalVertex(id, 2 * shift, (j + 2) * shift);
+			@NotNull GraphicalVertex v = new GraphicalVertex(id, 2 * shift, (j + 2) * shift);
 
 			int rightTopNeighbourID = granularity - 2 + j;
 			v.addNeighbourID(rightTopNeighbourID, rightTopNeighbourID + 1);
@@ -55,7 +56,7 @@ public class OctagonalGraph extends SquareGraph {
 		// create vertices in second, ..., last but one column
 		for (int i = 1; i < granularity - 2; i++) {
 			for (int j = 0; j < granularity - 1; j++, id++) {
-				GraphicalVertex v = new GraphicalVertex(id, (i + 2) * shift, (j + 2) * shift);
+				@NotNull GraphicalVertex v = new GraphicalVertex(id, (i + 2) * shift, (j + 2) * shift);
 
 				int leftTopNeighbourID = i * granularity - 2 + j;
 				int rightTopNeighbourID = leftTopNeighbourID + granularity;
@@ -74,7 +75,7 @@ public class OctagonalGraph extends SquareGraph {
 		int lastColumnIDStartMinusTwo = (granularity - 1) * granularity - 2;
 		int lastButOneColumnIDStartMinusTwo = lastColumnIDStartMinusTwo - granularity;
 		for (int j = 0; j < granularity - 1; j++, id++) {
-			GraphicalVertex v = new GraphicalVertex(id, granularity * shift, (j + 2) * shift);
+			@NotNull GraphicalVertex v = new GraphicalVertex(id, granularity * shift, (j + 2) * shift);
 
 			int leftTopNeighbourID = lastButOneColumnIDStartMinusTwo + j;
 			v.addNeighbourID(leftTopNeighbourID, leftTopNeighbourID + 1);
@@ -105,7 +106,7 @@ public class OctagonalGraph extends SquareGraph {
 	 * @return Model Type of octagonal graph
 	 */
 	@Override
-	public IntersectionMenuTab0.Parameters.GraphType getModel() {
+	public IntersectionMenuTab0.Parameters.@NotNull GraphType getModel() {
 		return OCTAGONAL;
 	}
 }

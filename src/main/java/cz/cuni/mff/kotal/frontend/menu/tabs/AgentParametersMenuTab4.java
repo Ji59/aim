@@ -10,6 +10,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -45,7 +46,7 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 		// TODO pridat akce
 
 		int row = 0;
-		for (Parameters parameter : Parameters.values()) {
+		for (@NotNull Parameters parameter : Parameters.values()) {
 			addRow(row++, new MenuLabel(parameter.getText()), parameter.getParameter());
 		}
 	}
@@ -77,10 +78,10 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 
 		GridPane grid = (GridPane) Parameters.SIZE.getParameter();
 		// TODO pryc s tim
-		Label l0 = new Label("L");
-		Label l1 = new Label("L");
-		Label w0 = new Label("W");
-		Label w1 = new Label("W");
+		@NotNull Label l0 = new Label("L");
+		@NotNull Label l1 = new Label("L");
+		@NotNull Label w0 = new Label("W");
+		@NotNull Label w1 = new Label("W");
 		l0.setPrefWidth(20);
 		l1.setPrefWidth(20);
 		w0.setPrefWidth(20);
@@ -96,7 +97,7 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	 * Create speed sliders and assign actions to them.
 	 */
 	private void createSpeedSlidersAndAddActions() {
-		Label speedDeviationLabel = new Label("0%");
+		@NotNull Label speedDeviationLabel = new Label("0%");
 
 		minimalSpeed.addAction((observable, oldValue, newValue) -> {
 			if (maximalSpeed.getValue() < newValue.longValue()) {
@@ -129,49 +130,49 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	/**
 	 * @return Minimal size length slider
 	 */
-	public static MySlider getMinimalSizeLength() {
+	public static @NotNull MySlider getMinimalSizeLength() {
 		return minimalSizeLength;
 	}
 
 	/**
 	 * @return Minimal size width slider
 	 */
-	public static MySlider getMinimalSizeWidth() {
+	public static @NotNull MySlider getMinimalSizeWidth() {
 		return minimalSizeWidth;
 	}
 
 	/**
 	 * @return Maximal size length slider
 	 */
-	public static MySlider getMaximalSizeLength() {
+	public static @NotNull MySlider getMaximalSizeLength() {
 		return maximalSizeLength;
 	}
 
 	/**
 	 * @return Maximal size width slider
 	 */
-	public static MySlider getMaximalSizeWidth() {
+	public static @NotNull MySlider getMaximalSizeWidth() {
 		return maximalSizeWidth;
 	}
 
 	/**
 	 * @return Minimal speed slider
 	 */
-	public static MySlider getMinimalSpeed() {
+	public static @NotNull MySlider getMinimalSpeed() {
 		return minimalSpeed;
 	}
 
 	/**
 	 * @return Maximal speed slider
 	 */
-	public static MySlider getMaximalSpeed() {
+	public static @NotNull MySlider getMaximalSpeed() {
 		return maximalSpeed;
 	}
 
 	/**
 	 * @return Speed deviation slider
 	 */
-	public static Slider getSpeedDeviation() {
+	public static @NotNull Slider getSpeedDeviation() {
 		return speedDeviation;
 	}
 

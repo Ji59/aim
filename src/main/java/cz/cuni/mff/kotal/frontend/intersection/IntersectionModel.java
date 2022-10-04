@@ -19,6 +19,7 @@ import javafx.scene.shape.*;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Screen;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -67,18 +68,18 @@ public class IntersectionModel extends Pane {
 	 * @param shift Distance between 2 vertices
 	 */
 	private void drawAbstractModel(double shift) {
-		for (Edge e : graph.getEdges()) {
+		for (@NotNull Edge e : graph.getEdges()) {
 			GraphicalVertex u = (GraphicalVertex) e.getU();
 			GraphicalVertex v = (GraphicalVertex) e.getV();
-			Line l = new Line(vCoor(u.getX()), vCoor(u.getY()), vCoor(v.getX()), vCoor(v.getY()));
+			@NotNull Line l = new Line(vCoor(u.getX()), vCoor(u.getY()), vCoor(v.getX()), vCoor(v.getY()));
 			nodes.add(l);
 		}
 		for (Vertex v : graph.getVertices()) {
 			GraphicalVertex vertex = (GraphicalVertex) v;
-			Circle circle = new Circle(shift * VERTEX_RATIO, vertex.getType().getColor());
-			Text t = new Text(String.valueOf(vertex.getID()));
+			@NotNull Circle circle = new Circle(shift * VERTEX_RATIO, vertex.getType().getColor());
+			@NotNull Text t = new Text(String.valueOf(vertex.getID()));
 			t.setBoundsType(TextBoundsType.VISUAL);
-			StackPane stack = new StackPane(circle, t);
+			@NotNull StackPane stack = new StackPane(circle, t);
 			stack.setLayoutX(vCoor(vertex.getX()) - shift * VERTEX_RATIO);
 			stack.setLayoutY(vCoor(vertex.getY()) - shift * VERTEX_RATIO);
 			nodes.add(stack);
@@ -171,7 +172,7 @@ public class IntersectionModel extends Pane {
 	private void drawSquareVertex(double size, double x, double y, int id, Color color) {
 		double halfSize = size / 2;
 
-		Rectangle square = new Rectangle(size, size, color);
+		@NotNull Rectangle square = new Rectangle(size, size, color);
 		square.setStroke(STROKE_COLOR);
 		square.setX(x - halfSize);
 		square.setY(y - halfSize);
@@ -192,7 +193,7 @@ public class IntersectionModel extends Pane {
 	 * @param color  Color inside the rectangle
 	 */
 	private void drawHexagonalModelRectangleEntry(double x, double y, double width, double height, int id, Color color) {
-		Rectangle rectangle = new Rectangle(x, y, width, height);
+		@NotNull Rectangle rectangle = new Rectangle(x, y, width, height);
 		rectangle.setStroke(STROKE_COLOR);
 		rectangle.setFill(color);
 		nodes.add(rectangle);
@@ -214,7 +215,7 @@ public class IntersectionModel extends Pane {
 		double tan30HalfShift = Math.sqrt(3) * shift / 6;
 		double halfShift = shift / 2;
 
-		Polygon hexagon = new Polygon(
+		@NotNull Polygon hexagon = new Polygon(
 			x + tan30HalfShift, y - halfShift, // top right
 			x + 2 * tan30HalfShift, y,                 // right
 			x + tan30HalfShift, y + halfShift,         // bottom right
@@ -244,7 +245,7 @@ public class IntersectionModel extends Pane {
 		double shorterSize = OCTAGON_RATIO * halfSize;
 
 		// create polygon
-		Polygon octagon = new Polygon(
+		@NotNull Polygon octagon = new Polygon(
 			x - shorterSize, y - halfSize, // top left
 			x + shorterSize, y - halfSize, // top right
 			x + halfSize, y - shorterSize, // mid-top right
@@ -275,7 +276,7 @@ public class IntersectionModel extends Pane {
 		double halfSize = size / 2;
 
 		// create square
-		Polygon square = new Polygon(
+		@NotNull Polygon square = new Polygon(
 			x, y - halfSize, // top
 			x - halfSize, y, // left
 			x, y + halfSize, // bottom
@@ -295,7 +296,7 @@ public class IntersectionModel extends Pane {
 	 * @param shift  Distance between 2 opposite sides of hexagons in the model
 	 * @param vertex Vertex symbolizing the entry / exit
 	 */
-	private void drawHexagonEntry(double shift, GraphicalVertex vertex) {
+	private void drawHexagonEntry(double shift, @NotNull GraphicalVertex vertex) {
 		switch (vertex.getType()) {
 			case ENTRY2, EXIT2, ENTRY5, EXIT5 -> {
 				double x = vertex.getType() == Type.ENTRY5 || vertex.getType() == Type.EXIT5 ? 0 : vCoor(vertex.getX()) + (Math.sqrt(3) / 6 - 1) * shift;
@@ -347,9 +348,9 @@ public class IntersectionModel extends Pane {
 	 * @param points Polygon points location in format x0, y0, x1, y1, ...
 	 * @return
 	 */
-	private Polygon drawHexagonalModelObliqueEntry(Color color, double... points) {
+	private @NotNull Polygon drawHexagonalModelObliqueEntry(Color color, double... points) {
 		// create associated entry
-		Polygon polygon = new Polygon(
+		@NotNull Polygon polygon = new Polygon(
 			points
 		);
 		polygon.setStroke(STROKE_COLOR);
@@ -364,11 +365,11 @@ public class IntersectionModel extends Pane {
 	 * @param vertex
 	 * @param points
 	 */
-	private void drawHexagonalModelObliqueEntries(GraphicalVertex vertex, double... points) {
+	private void drawHexagonalModelObliqueEntries(@NotNull GraphicalVertex vertex, double @NotNull ... points) {
 		Color color = vertex.getType().getColor();
 		int id = vertex.getID();
 
-		Polygon polygon = drawHexagonalModelObliqueEntry(color, points);
+		@NotNull Polygon polygon = drawHexagonalModelObliqueEntry(color, points);
 		vertexNodes[id] = polygon;
 
 		for (int i = 0; i < points.length; i++) {
@@ -393,7 +394,7 @@ public class IntersectionModel extends Pane {
 	private void drawOctagonalEntry(double size, double x, double y, int id, Color color, int direction) {
 		assert (direction < 4);
 		// create rectangle
-		Rectangle rectangle = new Rectangle();
+		@NotNull Rectangle rectangle = new Rectangle();
 		rectangle.setFill(color);
 		rectangle.setStroke(STROKE_COLOR);
 
@@ -426,7 +427,7 @@ public class IntersectionModel extends Pane {
 	 * @param id     Text of the id field
 	 */
 	private void addTextField(double x, double y, double width, double height, String id) {
-		Label vertexLabel = new Label(id);
+		@NotNull Label vertexLabel = new Label(id);
 		vertexLabel.setBackground(Background.EMPTY);
 		vertexLabel.setLayoutX(x);
 		vertexLabel.setLayoutY(y);
@@ -464,10 +465,10 @@ public class IntersectionModel extends Pane {
 		int granularity = IntersectionMenuTab0.getGranularity().getValue();
 		int entries = IntersectionMenuTab0.getEntries().getValue();
 		int exits = IntersectionMenuTab0.getExits().getValue();
-		IntersectionMenuTab0.Parameters.GraphType model = IntersectionMenuTab0.getModel();
+		IntersectionMenuTab0.Parameters.@NotNull GraphType model = IntersectionMenuTab0.getModel();
 
 		// create graph with key properties set
-		SimulationGraph graphAbstract = new AbstractGraph(model, granularity, entries, exits, false);
+		@NotNull SimulationGraph graphAbstract = new AbstractGraph(model, granularity, entries, exits, false);
 
 		if (!ignoreOld && graphAbstract.equals(graph)) { // if last graph is the same, return
 			return createdGraphs.get(graph);
@@ -572,7 +573,7 @@ public class IntersectionModel extends Pane {
 	 * @param height size of the square
 	 */
 	private void drawBackground(double height) {
-		Rectangle backgroundSquare = new Rectangle(0, 0, height, height);
+		@NotNull Rectangle backgroundSquare = new Rectangle(0, 0, height, height);
 		backgroundSquare.setFill(BACKGROUND_COLOR);
 
 		getChildren().add(backgroundSquare);
@@ -605,7 +606,7 @@ public class IntersectionModel extends Pane {
 	 * @param verticesUsage
 	 * @param frames
 	 */
-	private static void updateVertexNodesColors(long[] verticesUsage, double frames) {
+	private static void updateVertexNodesColors(long @NotNull [] verticesUsage, double frames) {
 		if (vertexNodesLock.tryLock()) {
 			for (int vertexID = 0; vertexID < verticesUsage.length; vertexID++) {
 				Color color = graph.getVertex(vertexID).getType().getColor();
@@ -619,7 +620,7 @@ public class IntersectionModel extends Pane {
 
 				colorShift = Math.max(0, colorShift);
 
-				Color newColor = Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift);
+				@NotNull Color newColor = Color.color(color.getRed() * colorShift, color.getGreen() * colorShift, color.getBlue() * colorShift);
 				vertexNode.setFill(newColor);
 			}
 			vertexNodesLock.unlock();

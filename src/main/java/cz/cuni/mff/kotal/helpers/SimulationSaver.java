@@ -9,6 +9,7 @@ import cz.cuni.mff.kotal.simulation.BasicAgent;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -20,32 +21,32 @@ import java.util.Objects;
 
 public class SimulationSaver {
 
-	public static void saveAgents(Simulation simulation, File file) throws IOException {
-		FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8, false);
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	public static void saveAgents(@NotNull Simulation simulation, @NotNull File file) throws IOException {
+		@NotNull FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8, false);
+		@NotNull Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		gson.toJson(simulation.getAllCreatedAgents().stream().map(BasicAgent::new).toList(), writer);
 		writer.close();
 	}
 
-	public static void saveStatistics(Simulation simulation, File directory) throws IOException {
+	public static void saveStatistics(@NotNull Simulation simulation, @NotNull File directory) throws IOException {
 		assert directory.isDirectory() && directory.list().length == 0;
 
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		@NotNull Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 		saveStatisticsParameters(gson, simulation, directory);
 
-		FileWriter agentsWriter = new FileWriter(Paths.get(directory.getAbsolutePath(), "agents.json").toFile());
+		@NotNull FileWriter agentsWriter = new FileWriter(Paths.get(directory.getAbsolutePath(), "agents.json").toFile());
 		gson.toJson(simulation.getAllCreatedAgents().stream().map(PathAgent::new).toList(), agentsWriter);
 		agentsWriter.close();
 	}
 
-	private static void saveStatisticsParameters(Gson gson, Simulation simulation, File directory) throws IOException {
-		Parameters parameters = new Parameters(
+	private static void saveStatisticsParameters(@NotNull Gson gson, @NotNull Simulation simulation, @NotNull File directory) throws IOException {
+		@NotNull Parameters parameters = new Parameters(
 			simulation.getAgents(), simulation.getStartingStep(), simulation.getDelay(), simulation.getRejections(), simulation.getCollisions(),
 			Objects.requireNonNull(AlgorithmMenuTab2.Parameters.Algorithm.nameOf(simulation.getAlgorithm())).getName(),
 			new TypedGraph(simulation.getIntersectionGraph()), simulation.getPlanningTime()
 		);
-		FileWriter statisticsWriter = new FileWriter(Paths.get(directory.getAbsolutePath(), "Parameters.json").toFile(), StandardCharsets.UTF_8, false);
+		@NotNull FileWriter statisticsWriter = new FileWriter(Paths.get(directory.getAbsolutePath(), "Parameters.json").toFile(), StandardCharsets.UTF_8, false);
 		gson.toJson(parameters, statisticsWriter);
 		statisticsWriter.close();
 	}
@@ -54,7 +55,7 @@ public class SimulationSaver {
 		private final String type;
 		private final Vertex[] vertices;
 
-		private TypedGraph(Graph graph) {
+		private TypedGraph(@NotNull Graph graph) {
 			super(true, graph);
 			type = IntersectionMenuTab0.getModel().getText();
 			vertices = graph.getVertices();
@@ -67,7 +68,7 @@ public class SimulationSaver {
 	private static class PathAgent extends BasicAgent {
 		private final List<Integer> path;
 
-		private PathAgent(Agent agent) {
+		private PathAgent(@NotNull Agent agent) {
 			super(agent);
 			this.path = agent.getPath();
 		}

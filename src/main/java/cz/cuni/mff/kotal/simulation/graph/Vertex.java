@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import javafx.scene.paint.Color;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -24,7 +25,7 @@ public class Vertex {
 	 * @param id   Desired ID of the vertex
 	 * @param type Desired type of the vertex
 	 */
-	public Vertex(int id, Type type, Set<Integer> neighbourIDs) {
+	public Vertex(int id, Type type, @NotNull Set<Integer> neighbourIDs) {
 		this.id = id;
 		this.type = type;
 		this.getNeighbourIDs().addAll(neighbourIDs);
@@ -51,11 +52,11 @@ public class Vertex {
 		this.type = Type.ROAD;
 	}
 
-	public Vertex(Vertex vertex) {
+	public Vertex(@NotNull Vertex vertex) {
 		this(vertex, true);
 	}
 
-	public Vertex(Vertex vertex, boolean copyNeighbours) {
+	public Vertex(@NotNull Vertex vertex, boolean copyNeighbours) {
 		this.id = vertex.getID();
 		this.type = vertex.getType();
 		if (copyNeighbours) {
@@ -69,7 +70,7 @@ public class Vertex {
 	 * @param ids IDs of neighbour vertices
 	 * @return True if neighbour IDs set changed
 	 */
-	public boolean addNeighbourID(Integer... ids) {
+	public boolean addNeighbourID(Integer @NotNull ... ids) {
 		if (ids.length == 1) {
 			return neighbourIds.add(ids[0]);
 		}
@@ -105,7 +106,7 @@ public class Vertex {
 	/**
 	 * @return IDs of neighbours
 	 */
-	public Set<Integer> getNeighbourIDs() {
+	public @NotNull Set<Integer> getNeighbourIDs() {
 		return neighbourIds;
 	}
 

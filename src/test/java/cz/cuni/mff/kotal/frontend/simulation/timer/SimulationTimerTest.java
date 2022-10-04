@@ -19,18 +19,18 @@ class SimulationTimerTest {
 
 	@Test
 	void existsSeparatingLine() {
-		Point a0 = new Point(0, 0);
-		Point a1 = new Point(0, 1);
-		Point a2 = new Point(1, 1);
-		Point a3 = new Point(1, 0);
+		@NotNull Point a0 = new Point(0, 0);
+		@NotNull Point a1 = new Point(0, 1);
+		@NotNull Point a2 = new Point(1, 1);
+		@NotNull Point a3 = new Point(1, 0);
 
-		Point b0 = new Point(1, 1.1);
-		Point b1 = new Point(0, 1.1);
-		Point b2 = new Point(0, 2);
-		Point b3 = new Point(1, 2);
+		@NotNull Point b0 = new Point(1, 1.1);
+		@NotNull Point b1 = new Point(0, 1.1);
+		@NotNull Point b2 = new Point(0, 2);
+		@NotNull Point b3 = new Point(1, 2);
 
-		List<Point> points0 = getLinkedList(a0, a1, a2, a3);
-		List<Point> points1 = getLinkedList(b0, b1, b2, b3);
+		@NotNull List<Point> points0 = getLinkedList(a0, a1, a2, a3);
+		@NotNull List<Point> points1 = getLinkedList(b0, b1, b2, b3);
 
 		assert Collisions.existsSeparatingLine(points0, points1);
 		assert Collisions.existsSeparatingLine(points1, points0);
@@ -61,7 +61,7 @@ class SimulationTimerTest {
 		assert Collisions.existsSeparatingLine(points0, points1);
 		assert Collisions.existsSeparatingLine(points1, points0);
 
-		double[] pointDoubles0 = {100.01, 150.7,
+		double @NotNull [] pointDoubles0 = {100.01, 150.7,
 			150.7, 100.01,
 			201.42, 150.7,
 			150.7, 201.42};
@@ -69,7 +69,7 @@ class SimulationTimerTest {
 			pointDoubles0
 		);
 
-		double[] pointDoubles1 = {70.5, 100.,
+		double @NotNull [] pointDoubles1 = {70.5, 100.,
 			180., 50.,
 			300., 100.,
 			180., 120.};
@@ -88,13 +88,13 @@ class SimulationTimerTest {
 	}
 
 	@NotNull
-	private List<Point> getLinkedList(Point... points) {
+	private List<Point> getLinkedList(Point @NotNull ... points) {
 		return Arrays.stream(points).collect(Collectors.toList());
 	}
 
 	@NotNull
-	private List<Point> getLinkedList(double... pointsCoordinates) {
-		List<Point> points = new ArrayList<>(pointsCoordinates.length / 2);
+	private List<Point> getLinkedList(double @NotNull ... pointsCoordinates) {
+		@NotNull List<Point> points = new ArrayList<>(pointsCoordinates.length / 2);
 		for (int i = 0; i < pointsCoordinates.length / 2; i++) {
 			points.add(new Point(pointsCoordinates[2 * i], pointsCoordinates[2 * i + 1]));
 		}

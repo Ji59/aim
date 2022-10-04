@@ -2,6 +2,8 @@ package cz.cuni.mff.kotal.backend.algorithm;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +33,7 @@ public class LinkGraph extends SimulationGraph {
 		return baseGraph.getCellSize();
 	}
 
-	public Integer addVertexMapping(LinkVertex vertex) {
+	public @Nullable Integer addVertexMapping(@NotNull LinkVertex vertex) {
 		return vertexMapping.put(vertex.getRealID(), vertex.getID());
 	}
 
@@ -43,7 +45,7 @@ public class LinkGraph extends SimulationGraph {
 		return vertexMapping.containsKey(realID);
 	}
 
-	public List<Integer> getRealPath(List<Integer> linkPath) {
+	public @NotNull List<Integer> getRealPath(@NotNull List<Integer> linkPath) {
 		return linkPath.stream().map(id -> getLinkVertex(id).getRealID()).toList();
 	}
 

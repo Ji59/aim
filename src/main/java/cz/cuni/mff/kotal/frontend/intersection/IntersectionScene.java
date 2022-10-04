@@ -14,6 +14,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.FileNotFoundException;
 
@@ -30,7 +31,7 @@ public class IntersectionScene extends Scene {
 	private static final SimulationAgents AGENTS = new SimulationAgents(Screen.getPrimary().getVisualBounds().getHeight());
 	private static final HBox ROOT = new HBox(MENU, new StackPane(GRAPH, AGENTS));
 
-	private static Simulation simulation = new InvalidSimulation();
+	private static @NotNull Simulation simulation = new InvalidSimulation();
 
 	/**
 	 * Create intersection scene object.
@@ -189,7 +190,7 @@ public class IntersectionScene extends Scene {
 	 *
 	 * @return Graph constant
 	 */
-	public static IntersectionModel getIntersectionGraph() {
+	public static @NotNull IntersectionModel getIntersectionGraph() {
 		return GRAPH;
 	}
 
@@ -198,7 +199,7 @@ public class IntersectionScene extends Scene {
 	 *
 	 * @return
 	 */
-	public static SimulationAgents getSimulationAgents() {
+	public static @NotNull SimulationAgents getSimulationAgents() {
 		return AGENTS;
 	}
 
@@ -207,7 +208,7 @@ public class IntersectionScene extends Scene {
 	 *
 	 * @return Menu VBox
 	 */
-	public static VBox getMENU() {
+	public static @NotNull VBox getMENU() {
 		return MENU;
 	}
 

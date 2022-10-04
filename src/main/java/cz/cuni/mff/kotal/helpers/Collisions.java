@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.frontend.simulation.LineSegment;
 import cz.cuni.mff.kotal.frontend.simulation.Point;
 import cz.cuni.mff.kotal.simulation.timer.AgentBoundingBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,14 +31,14 @@ public class Collisions {
 	 * @param agents Map of agents and their ID to check
 	 * @return Set of agents with overlapping agent bounding boxes
 	 */
-	public static Set<Pair<AgentPane, AgentPane>> getBoundingBoxesOverlaps(Set<AgentPane> agents) {
+	public static @NotNull Set<Pair<AgentPane, AgentPane>> getBoundingBoxesOverlaps(@NotNull Set<AgentPane> agents) {
 		List<AgentBoundingBox> boundingBoxes;
 		boundingBoxes = agents.stream().map(a -> new AgentBoundingBox(a, a.getBoundingBox())).sorted().toList();
 
-		Set<Pair<AgentPane, AgentPane>> overlappingAgents = new HashSet<>();
-		List<AgentBoundingBox> actualBoundingBoxes = new LinkedList<>();
+		@NotNull Set<Pair<AgentPane, AgentPane>> overlappingAgents = new HashSet<>();
+		@NotNull List<AgentBoundingBox> actualBoundingBoxes = new LinkedList<>();
 
-		SortedSet<AgentBoundingBox> stopValues = new TreeSet<>((a0, a1) -> {
+		@NotNull SortedSet<AgentBoundingBox> stopValues = new TreeSet<>((a0, a1) -> {
 			int c0 = Double.compare(a0.getEndX(), a1.getEndX());
 			if (c0 != 0) {
 				return c0;
@@ -49,9 +50,9 @@ public class Collisions {
 			return Long.compare(a0.getAgentPane().getAgentID(), a1.getAgentPane().getAgentID());
 		});
 
-		for (AgentBoundingBox agentBoundingBox : boundingBoxes) {
+		for (@NotNull AgentBoundingBox agentBoundingBox : boundingBoxes) {
 			double boundingBoxStartX = agentBoundingBox.getStartX();
-			Iterator<AgentBoundingBox> iterator = stopValues.iterator();
+			@NotNull Iterator<AgentBoundingBox> iterator = stopValues.iterator();
 			AgentBoundingBox next;
 			while (iterator.hasNext() && boundingBoxStartX > (next = iterator.next()).getEndX()) {
 				assert (next.getAgentPane().getAgentID() == actualBoundingBoxes.get(actualBoundingBoxes.indexOf(next)).getAgentPane().getAgentID());
@@ -99,7 +100,7 @@ public class Collisions {
 	 * @param agent1 Second agent to check
 	 * @return True if they are overlapping, otherwise False
 	 */
-	public static boolean inCollision(AgentPane agent0, AgentPane agent1) {
+	public static boolean inCollision(@NotNull AgentPane agent0, @NotNull AgentPane agent1) {
 		List<Point> cornerPoints0 = agent0.getCornerPoints();
 		List<Point> cornerPoints1 = agent1.getCornerPoints();
 
@@ -128,7 +129,7 @@ public class Collisions {
 
 		for (int i = 0; i < points0Size; i++) {
 			point1 = points0.remove(0);
-			LineSegment line = new LineSegment(point0, point1);
+			@NotNull LineSegment line = new LineSegment(point0, point1);
 
 			double side = line.getSide(points0.get(0));
 			assert side != 0;
@@ -153,10 +154,10 @@ public class Collisions {
 	 * @param newStates  Map of agent polygons and their ID in new state
 	 * @return Set of collisions between agents
 	 */
-	public static Set<Collision> getTimeShiftCollisions(Map<Long, AgentPolygon> lastStates, Map<Long, AgentPolygon> newStates) {
-		Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments = new HashSet<>();
+	public static @NotNull Set<Collision> getTimeShiftCollisions(@NotNull Map<Long, AgentPolygon> lastStates, @NotNull Map<Long, AgentPolygon> newStates) {
+		@NotNull Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments = new HashSet<>();
 
-		Queue<LineSegmentWithID> lineSegments = new PriorityQueue<>(lastStates.size());
+		@NotNull Queue<LineSegmentWithID> lineSegments = new PriorityQueue<>(lastStates.size());
 
 		lastStates.forEach((id, polygon) -> {
 			if (newStates.containsKey(id)) {
@@ -170,9 +171,9 @@ public class Collisions {
 			}
 		});
 
-		Queue<LineSegmentWithY> newVerticalSegmentQueue = new PriorityQueue<>();
+		@NotNull Queue<LineSegmentWithY> newVerticalSegmentQueue = new PriorityQueue<>();
 
-		Queue<LineSegmentWithID> segmentEnds = new PriorityQueue<>(Comparator.comparingDouble(LineSegment::getX1));
+		@NotNull Queue<LineSegmentWithID> segmentEnds = new PriorityQueue<>(Comparator.comparingDouble(LineSegment::getX1));
 
 		LineSegmentWithID nextSegment;
 		while ((nextSegment = lineSegments.poll()) != null) {
@@ -185,7 +186,7 @@ public class Collisions {
 			newVerticalSegmentQueue = checkLineSegmentsCollisions(collidedSegments, newVerticalSegmentQueue, nextSegment.getX0());
 
 			final double startingY = nextSegment.getY0();
-			for (LineSegmentWithY lineSegmentWithY : newVerticalSegmentQueue) {
+			for (@NotNull LineSegmentWithY lineSegmentWithY : newVerticalSegmentQueue) {
 				if (lineSegmentWithY.getY() == startingY && lineSegmentWithY.getLineSegment().getId() != nextSegment.getId()) {
 					collidedSegments.add(new Pair<>(lineSegmentWithY.getLineSegment(), nextSegment));
 				} else if (lineSegmentWithY.getY() > startingY) {
@@ -224,15 +225,15 @@ public class Collisions {
 	 * @return New X queue of segments sorted by Y
 	 */
 	@NotNull
-	private static Queue<LineSegmentWithY> checkLineSegmentsCollisions(Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments, Queue<LineSegmentWithY> newVerticalSegmentList, double endingX) {
+	private static Queue<LineSegmentWithY> checkLineSegmentsCollisions(@NotNull Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments, Queue<LineSegmentWithY> newVerticalSegmentList, double endingX) {
 		Queue<LineSegmentWithY> lastVerticalSegmentList;
 		lastVerticalSegmentList = newVerticalSegmentList;
 		newVerticalSegmentList = getSegmentsAtX(newVerticalSegmentList, endingX);
 
-		Iterator<LineSegmentWithY> lastIt = lastVerticalSegmentList.iterator();
-		Iterator<LineSegmentWithY> newIt = newVerticalSegmentList.iterator();
+		@NotNull Iterator<LineSegmentWithY> lastIt = lastVerticalSegmentList.iterator();
+		@NotNull Iterator<LineSegmentWithY> newIt = newVerticalSegmentList.iterator();
 
-		List<LineSegmentWithY> mismatchingSegments = new LinkedList<>();
+		@NotNull List<LineSegmentWithY> mismatchingSegments = new LinkedList<>();
 		LineSegmentWithY lastVerticalSegment;
 		LineSegmentWithY newVerticalSegment;
 		while (lastIt.hasNext()) {
@@ -262,7 +263,7 @@ public class Collisions {
 	 * @return Sorted segments by Y coordination at X
 	 */
 	@NotNull
-	private static PriorityQueue<LineSegmentWithY> getSegmentsAtX(Queue<LineSegmentWithY> segmentList, double x) {
+	private static PriorityQueue<LineSegmentWithY> getSegmentsAtX(@NotNull Queue<LineSegmentWithY> segmentList, double x) {
 		return segmentList.stream()
 			.map(lineSegmentWithY -> {
 				LineSegmentWithID lineSegmentWithID = lineSegmentWithY.getLineSegment();
@@ -279,8 +280,8 @@ public class Collisions {
 	 * @param lastVerticalSegment Actually processing segment in last state
 	 * @return True if mismatching segments contain the segment, otherwise False
 	 */
-	private static boolean checkMismatchingSegments(Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments, List<LineSegmentWithY> mismatchingSegments, LineSegmentWithID lastVerticalSegment) {
-		Iterator<LineSegmentWithY> mismatchingSegmentsIt = mismatchingSegments.iterator();
+	private static boolean checkMismatchingSegments(@NotNull Set<Pair<LineSegmentWithID, LineSegmentWithID>> collidedSegments, @NotNull List<LineSegmentWithY> mismatchingSegments, @NotNull LineSegmentWithID lastVerticalSegment) {
+		@NotNull Iterator<LineSegmentWithY> mismatchingSegmentsIt = mismatchingSegments.iterator();
 		while (mismatchingSegmentsIt.hasNext()) {
 			LineSegmentWithID mismatchingSegment = mismatchingSegmentsIt.next().getLineSegment();
 			long mismatchingSegmentID = mismatchingSegment.getId();
@@ -315,10 +316,10 @@ public class Collisions {
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		public boolean equals(@Nullable Object o) {
 			if (this == o) return true;
 			if (o == null || getClass() != o.getClass()) return false;
-			LineSegmentWithY that = (LineSegmentWithY) o;
+			@NotNull LineSegmentWithY that = (LineSegmentWithY) o;
 			return Double.compare(that.y, y) == 0 && lineSegment.equals(that.lineSegment);
 		}
 

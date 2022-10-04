@@ -39,18 +39,18 @@ public class CBSAll extends CBSSingleGrouped {
 
 	@Override
 	public @NotNull Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
-		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
+		final @NotNull Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
 
 		assert stepOccupiedVertices.values().stream().flatMap(s -> s.values().stream()).distinct().noneMatch(validNotFinishedAgents::contains);
 
 		findInitialPaths(agentsEntriesExits, step);
 
-		final Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agentsEntriesExits.size() + validNotFinishedAgents.size());
+		final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agentsEntriesExits.size() + validNotFinishedAgents.size());
 		allAgents.putAll(agentsEntriesExits);
 
 		AlgorithmAll.addAgentsEntriesExits(this, step, validNotFinishedAgents, allAgents);
 
-		final Node node = bestValidNode(allAgents, step);
+		final @NotNull Node node = bestValidNode(allAgents, step);
 
 		final Collection<Agent> plannedAgents = node.getAgents();
 		assert stopped || plannedAgents.containsAll(validNotFinishedAgents);

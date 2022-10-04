@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.frontend.menu;
 
 import cz.cuni.mff.kotal.frontend.menu.scenes.MenuScene;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -23,7 +24,7 @@ public class MenuStage extends Stage {
 		setTitle(STAGE_NAME);
 		setMaximized(false);
 
-		MenuScene menuScene = new MenuScene(width, height);
+		@NotNull MenuScene menuScene = new MenuScene(width, height);
 		setScene(menuScene);
 
 		setX(x);

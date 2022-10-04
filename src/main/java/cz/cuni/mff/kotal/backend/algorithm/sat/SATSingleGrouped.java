@@ -49,7 +49,7 @@ public class SATSingleGrouped extends SafeLines {
 		for (int i = 0; i < graph.getVertices().length; i++) {
 			inverseNeighbours[i] = new LinkedList<>();
 		}
-		for (Vertex vertex : graph.getVertices()) {
+		for (@NotNull Vertex vertex : graph.getVertices()) {
 			for (int neighbourID : vertex.getNeighbourIDs()) {
 				inverseNeighbours[neighbourID].add(vertex.getID());
 			}
@@ -79,20 +79,20 @@ public class SATSingleGrouped extends SafeLines {
 			return agentsEntriesExits.keySet();
 		}
 
-		final WeightedPartialMaxsat solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newDefaultOptimizer(), false);
+		final @NotNull WeightedPartialMaxsat solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newDefaultOptimizer(), false);
 
 		final int agentsCount = agentsEntriesExits.size();
 		final int vertices = graph.getVertices().length;
 
-		final Deque<Triplet<Integer, Agent, boolean[][]>> offsets = new ArrayDeque<>(agentsCount);
+		final @NotNull Deque<Triplet<Integer, Agent, boolean[][]>> offsets = new ArrayDeque<>(agentsCount);
 
 		createAgentsClauses(agentsEntriesExits, step, solver, vertices, offsets);
 
-		final Set<Agent> plannedAgents = new HashSet<>(agentsCount);
+		final @NotNull Set<Agent> plannedAgents = new HashSet<>(agentsCount);
 		try {
 			if (solver.isSatisfiable()) {
 				int[] model = solver.model();
-				for (Triplet<Integer, Agent, boolean[][]> agentEntry : offsets) {
+				for (@NotNull Triplet<Integer, Agent, boolean[][]> agentEntry : offsets) {
 					transferAgentPath(agentsEntriesExits, step, plannedAgents, model, agentEntry);
 				}
 			} else {
@@ -105,12 +105,12 @@ public class SATSingleGrouped extends SafeLines {
 		return plannedAgents;
 	}
 
-	private void createAgentsClauses(final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, final long step, final WeightedPartialMaxsat solver, final int vertices, final Deque<Triplet<Integer, Agent, boolean[][]>> offsets) {
+	private void createAgentsClauses(final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, final long step, final @NotNull WeightedPartialMaxsat solver, final int vertices, final @NotNull Deque<Triplet<Integer, Agent, boolean[][]>> offsets) {
 		final int agentsCount = agentsEntriesExits.size();
 
 		solver.newVar(agentsCount * (vertices * (maximumSteps + 1)) + 1);
 		int offset = 1;
-		for (Map.Entry<Agent, Pair<Integer, Set<Integer>>> agentEntryExit : agentsEntriesExits.entrySet()) {
+		for (Map.@NotNull Entry<Agent, Pair<Integer, Set<Integer>>> agentEntryExit : agentsEntriesExits.entrySet()) {
 			if (stopped) {
 				return;
 			}
@@ -121,7 +121,7 @@ public class SATSingleGrouped extends SafeLines {
 			}
 			Set<Integer> exits = agentEntryExit.getValue().getVal1();
 
-			boolean[][] validTimeVertices = getValidTimeVertices(entry, exits, step, agent.getAgentPerimeter());
+			boolean[] @NotNull [] validTimeVertices = getValidTimeVertices(entry, exits, step, agent.getAgentPerimeter());
 
 			offsets.add(new Triplet<>(offset, agent, validTimeVertices));
 			try {
@@ -164,7 +164,7 @@ public class SATSingleGrouped extends SafeLines {
 		/*
 			Restrict agent from visiting vertex more than specified
 		 */
-		final List<Integer>[] validLits = new LinkedList[vertices];
+		final List<Integer> @NotNull [] validLits = new LinkedList[vertices];
 		for (int i = 0; i < vertices; i++) {
 			validLits[i] = new LinkedList<>();
 		}
@@ -186,7 +186,7 @@ public class SATSingleGrouped extends SafeLines {
 		for (int t = 0; t <= maximumSteps; t++) {
 			final int timeOffset = vertices * t + offset;
 
-			List<Integer> validVerticesIDs = new LinkedList<>();
+			@NotNull List<Integer> validVerticesIDs = new LinkedList<>();
 			for (int i = 0; i < vertices; i++) {
 				if (validTimeVertices[t][i]) {
 					validVerticesIDs.add(i);
@@ -221,7 +221,7 @@ public class SATSingleGrouped extends SafeLines {
 							∀ vertex v_i different from exit in time t if |V| * t + i + 1 (agent is on v_i in t) then agent has to be on any neighbour in next time
 							=> ¬(|V| * t + i + offset) = - (|V| * t + i + offset) ∨ (V_{neighbour j of v_i} |V| * (t + 1) + j + offset)
 						*/
-						List<Integer> validNeighbours = graph.getVertex(i).getNeighbourIDs().stream()
+						@NotNull List<Integer> validNeighbours = graph.getVertex(i).getNeighbourIDs().stream()
 							.filter(id -> safeStepTo(tStep + 1, id, i, agentPerimeter) && safeStepFrom(tStep, i, id, agentPerimeter))
 							.collect(Collectors.toList());
 						if (allowAgentStop && i != startingVertex) {
@@ -233,7 +233,7 @@ public class SATSingleGrouped extends SafeLines {
 							*/
 							solver.addHardClause(VecInt.of(-(timeOffset + i)));
 						} else {
-							final IVecInt clause = new VecInt(validNeighbours.stream().mapToInt(id -> nextTimeOffset + id).toArray());
+							final @NotNull IVecInt clause = new VecInt(validNeighbours.stream().mapToInt(id -> nextTimeOffset + id).toArray());
 							clause.push(-(timeOffset + i));
 							solver.addHardClause(clause);
 						}
@@ -262,7 +262,7 @@ public class SATSingleGrouped extends SafeLines {
 			=> ∀_{vertex x, time t} ((|V| * t + x + offset_i) -> ∧_{agent j != i, vertex y near x} ¬(|V| * t + y + offset_j))
 			<=> ∀_{vertex x, time t} ∀_{agent j != i} ∀_{vertex y near x} (¬(|V| * t + x + offset_i) ∨ ¬(|V| * t + y + offset_j))
 		*/
-		for (Triplet<Integer, Agent, boolean[][]> offsetTriplet : offsets) {
+		for (@NotNull Triplet<Integer, Agent, boolean[][]> offsetTriplet : offsets) {
 			final int neighbourOffset = offsetTriplet.getVal0();
 			if (neighbourOffset == agentOffset) {
 				continue;
@@ -345,7 +345,7 @@ public class SATSingleGrouped extends SafeLines {
 		final int vertices = graph.getVertices().length;
 		final int startingVertexOffset = startingVertex + offset;
 		final boolean addClause = addNoValidRouteClause(solver, startingVertexOffset, agent);
-		final int[] entryExitsLits;
+		final int @NotNull [] entryExitsLits;
 		final int startingIndex;
 		if (addClause) {
 			entryExitsLits = new int[maximumSteps * exits.size() + 1];
@@ -356,7 +356,7 @@ public class SATSingleGrouped extends SafeLines {
 			startingIndex = 0;
 		}
 
-		final Iterator<Integer> exitsIt = exits.iterator();
+		final @NotNull Iterator<Integer> exitsIt = exits.iterator();
 		for (int i = 0; exitsIt.hasNext(); i += maximumSteps) {
 			final int exit = exitsIt.next();
 			for (int s = startingIndex, sTimeOffset = vertices + offset; s < maximumSteps + startingIndex; s++, sTimeOffset += vertices) {
@@ -370,7 +370,7 @@ public class SATSingleGrouped extends SafeLines {
 		 */
 		for (int s = 1, sTimeOffset = vertices + offset; s <= maximumSteps; s++, sTimeOffset += vertices) {
 			final int finalSTimeOffset = sTimeOffset;
-			IVecInt exitsLits = VecInt.of(exits.stream().mapToInt(e -> e + finalSTimeOffset).toArray());
+			@NotNull IVecInt exitsLits = VecInt.of(exits.stream().mapToInt(e -> e + finalSTimeOffset).toArray());
 			solver.addSoftClause(maximumSteps - s + 1, exitsLits);
 		}
 	}
@@ -386,7 +386,7 @@ public class SATSingleGrouped extends SafeLines {
 
 	private boolean[][] getValidTimeVertices(final int entryID, final @NotNull Set<Integer> exitsID, final long step, final double agentsPerimeter) {
 		final int vertices = graph.getVertices().length;
-		final boolean[][] validTimeVertices = new boolean[maximumSteps + 1][vertices];
+		final boolean[] @NotNull [] validTimeVertices = new boolean[maximumSteps + 1][vertices];
 		for (int vertexID = 0; vertexID < vertices; vertexID++) {
 			final double startingStep = graph.getDistance(entryID, vertexID);
 			final int finalI = vertexID;
@@ -398,13 +398,13 @@ public class SATSingleGrouped extends SafeLines {
 		return validTimeVertices;
 	}
 
-	private void transferAgentPath(final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, final long step, final Set<Agent> plannedAgents, final int[] model, final Triplet<Integer, Agent, boolean[][]> agentOffsetEntry) {
+	private void transferAgentPath(final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, final long step, final @NotNull Set<Agent> plannedAgents, final int @NotNull [] model, final @NotNull Triplet<Integer, Agent, boolean[][]> agentOffsetEntry) {
 		final int offset = agentOffsetEntry.getVal0();
 		final Agent agent = agentOffsetEntry.getVal1();
 		final Pair<Integer, Set<Integer>> entryExitsIDs = agentsEntriesExits.get(agent);
-		final Optional<List<Integer>> pathOptional = createPath(model, offset, entryExitsIDs.getVal0(), entryExitsIDs.getVal1());
+		final @NotNull Optional<List<Integer>> pathOptional = createPath(model, offset, entryExitsIDs.getVal0(), entryExitsIDs.getVal1());
 		if (pathOptional.isPresent()) {
-			final List<Integer> path = pathOptional.get();
+			final @NotNull List<Integer> path = pathOptional.get();
 			assert entryExitsIDs.getVal1().contains(path.get(path.size() - 1));
 			agent.setPath(path, step);
 			plannedAgents.add(agent);
@@ -419,7 +419,7 @@ public class SATSingleGrouped extends SafeLines {
 			return Optional.empty();
 		}
 
-		final List<Integer> path = new LinkedList<>();
+		final @NotNull List<Integer> path = new LinkedList<>();
 		path.add(entry);
 
 		final int vertices = graph.getVertices().length;
@@ -450,14 +450,14 @@ public class SATSingleGrouped extends SafeLines {
 		solver.newVar(vertices * (maximumSteps + 1));
 
 		try {
-			boolean[][] validTimeVertices = getValidTimeVertices(entryID, exitsIDs, step, agent.getAgentPerimeter());
+			boolean[] @NotNull [] validTimeVertices = getValidTimeVertices(entryID, exitsIDs, step, agent.getAgentPerimeter());
 
 			createAgentClauses(solver, entryID, exitsIDs, new ArrayDeque<>(Collections.singleton(new Triplet<>(1, agent, validTimeVertices))), step, 1);
 			if (solver.isSatisfiable()) {
 				int[] model = solver.model();
-				final Optional<List<Integer>> pathOptional = createPath(model, 1, entryID, exitsIDs);
+				final @NotNull Optional<List<Integer>> pathOptional = createPath(model, 1, entryID, exitsIDs);
 				if (pathOptional.isPresent()) {
-					final List<Integer> path = pathOptional.get();
+					final @NotNull List<Integer> path = pathOptional.get();
 
 					assert exitsIDs.contains(path.get(path.size() - 1));
 					agent.setPath(path, step);

@@ -4,6 +4,7 @@ package cz.cuni.mff.kotal.backend.algorithm;
 import cz.cuni.mff.kotal.backend.algorithm.simple.Roundabout;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +39,7 @@ class RoundaboutTest {
 //		assertThat(previousAgent.getPath(), contains(19, 2, 3, 7, 11, 15, 14, 13, 12, 8, 20));
 		assertThat(previousAgent.getPath()).contains(19, 2, 3, 7, 11, 15, 14, 13, 12, 8, 20);
 
-		Agent plannedAgent = roundabout.planAgent(nextAgent, NEXT_AGENT_START);
+		@Nullable Agent plannedAgent = roundabout.planAgent(nextAgent, NEXT_AGENT_START);
 //		assertThat(plannedAgent, not(nullValue()));
 		assertThat(plannedAgent).isNotNull();
 	}

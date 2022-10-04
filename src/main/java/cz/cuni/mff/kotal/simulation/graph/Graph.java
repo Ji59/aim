@@ -2,6 +2,8 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.Semaphore;
@@ -22,7 +24,7 @@ public class 	Graph {
 	protected final int granularity;
 	protected final int entries;
 	protected final int exits;
-	protected transient Vertex[] vertices;
+	protected transient Vertex @Nullable [] vertices;
 	protected transient Map<Integer, List<Vertex>> entryExitVertices;
 	protected transient Set<Edge> edges;
 	protected transient double[][] distances;
@@ -36,7 +38,7 @@ public class 	Graph {
 	 * @param entryExitVertices Map of entry and exit vertices from different sides. Indexed by index of entry side
 	 * @param edges             Set of edges
 	 */
-	public Graph(boolean oriented, Set<? extends Vertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, Set<Edge> edges, int granularity, int entries, int exits) {
+	public Graph(boolean oriented, @Nullable Set<? extends Vertex> vertices, Map<Integer, List<Vertex>> entryExitVertices, @Nullable Set<Edge> edges, int granularity, int entries, int exits) {
 		this.oriented = oriented;
 		this.entryExitVertices = entryExitVertices;
 		if (vertices != null) {
@@ -56,7 +58,7 @@ public class 	Graph {
 		this.exits = exits;
 	}
 
-	public Graph(boolean oriented, Graph graph) {
+	public Graph(boolean oriented, @NotNull Graph graph) {
 		this.oriented = oriented;
 		granularity = graph.granularity;
 		entries = graph.entries;
@@ -91,7 +93,7 @@ public class 	Graph {
 	 *
 	 * @param id ID of the vertex
 	 */
-	protected void addGraphEdges(Integer id) {
+	protected void addGraphEdges(@NotNull Integer id) {
 		Vertex vertex = vertices[id];
 		assert (vertex != null);
 		for (Integer neighbourID : vertex.getNeighbourIDs()) {
@@ -124,18 +126,18 @@ public class 	Graph {
 		return vertices;
 	}
 
-	public Graph setVertices(Vertex[] vertices) {
+	public @NotNull Graph setVertices(Vertex[] vertices) {
 		this.vertices = vertices;
 		return this;
 	}
 
-	public Graph setVertices(Collection<? extends Vertex> vertices) {
+	public @NotNull Graph setVertices(@NotNull Collection<? extends Vertex> vertices) {
 		this.vertices = vertices.toArray(new Vertex[0]);
 		return this;
 	}
 
 	@Deprecated
-	public Map<Integer, Vertex> getVerticesWithIDs() {
+	public @NotNull Map<Integer, Vertex> getVerticesWithIDs() {
 		return Stream.of(vertices).collect(Collectors.toMap(Vertex::getID, Function.identity()));
 	}
 
@@ -175,14 +177,14 @@ public class 	Graph {
 		int entriesVertices = directions * entries;
 		int exitsVertices = directions * exits;
 
-		int[] verticesEdgesTo = new int[vertices.length - entriesVertices];
+		int @NotNull [] verticesEdgesTo = new int[vertices.length - entriesVertices];
 		int to = 0;
-		int[] verticesEdgesFrom = new int[vertices.length - exitsVertices];
+		int @NotNull [] verticesEdgesFrom = new int[vertices.length - exitsVertices];
 		int from = 0;
-		int[] verticesBoth = new int[vertices.length - entriesVertices - exitsVertices];
+		int @NotNull [] verticesBoth = new int[vertices.length - entriesVertices - exitsVertices];
 		int both = 0;
 
-		for (Vertex vertex : vertices) {
+		for (@NotNull Vertex vertex : vertices) {
 			int id = vertex.getID();
 			if (vertex.getType().isEntry()) {
 				verticesEdgesFrom[from++] = id;
@@ -248,7 +250,7 @@ public class 	Graph {
 			}
 		}
 
-		for (Edge edge : edges) {
+		for (@NotNull Edge edge : edges) {
 			int id0 = edge.getU().getID();
 			int id1 = edge.getV().getID();
 			double distance = edge.getDistance();

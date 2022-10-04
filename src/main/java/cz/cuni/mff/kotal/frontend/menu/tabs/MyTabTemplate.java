@@ -5,6 +5,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -39,7 +40,7 @@ public abstract class MyTabTemplate extends Tab {
 	 * @param node
 	 * @return
 	 */
-	public MyTabTemplate addRowNode(int index, Node node) {
+	public @NotNull MyTabTemplate addRowNode(int index, Node node) {
 		grid.add(node, 0, index, grid.getColumnCount(), 1);
 		return this;
 	}
@@ -51,9 +52,9 @@ public abstract class MyTabTemplate extends Tab {
 	 * @param children List of nodes to add
 	 * @return This object
 	 */
-	public MyTabTemplate addRow(int index, Node... children) {
+	public @NotNull MyTabTemplate addRow(int index, Node @NotNull ... children) {
 		grid.addRow(index, children);
-		Iterator<Node> iterator = Arrays.stream(children).iterator();
+		@NotNull Iterator<Node> iterator = Arrays.stream(children).iterator();
 		for (int i = 0; iterator.hasNext(); i++) {
 			GridPane.setConstraints(iterator.next(), i, index);
 		}
@@ -67,9 +68,9 @@ public abstract class MyTabTemplate extends Tab {
 	 * @param children List of nodes to add
 	 * @return This object
 	 */
-	public MyTabTemplate addInvisibleRow(int index, Node... children) {
+	public @NotNull MyTabTemplate addInvisibleRow(int index, Node @NotNull ... children) {
 		grid.addRow(index, children);
-		Iterator<Node> iterator = Arrays.stream(children).iterator();
+		@NotNull Iterator<Node> iterator = Arrays.stream(children).iterator();
 		for (int i = 0; iterator.hasNext(); i++) {
 			Node child = iterator.next();
 			GridPane.setConstraints(child, i, index);

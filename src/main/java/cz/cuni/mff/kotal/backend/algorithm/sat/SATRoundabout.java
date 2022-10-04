@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -24,11 +25,11 @@ public class SATRoundabout extends SATSingleGrouped {
 	private final int lanes;
 	private final Map<Integer, Set<Integer>> directionExits = new HashMap<>();
 
-	public SATRoundabout(SimulationGraph graph) {
+	public SATRoundabout(@NotNull SimulationGraph graph) {
 		this(graph, true);
 	}
 
-	public SATRoundabout(SimulationGraph graph, boolean oriented) {
+	public SATRoundabout(@NotNull SimulationGraph graph, boolean oriented) {
 		super(AStarRoundabout.createRoundaboutGraph(graph, AlgorithmMenuTab2.getIntegerParameter(LANES_NAME, LANES_DEF), oriented));
 		lanes = AlgorithmMenuTab2.getIntegerParameter(LANES_NAME, LANES_DEF);
 		graph.getEntryExitVertices().forEach((key, value) ->
@@ -43,9 +44,9 @@ public class SATRoundabout extends SATSingleGrouped {
 	}
 
 	@Override
-	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
+	public Collection<Agent> planAgents(@NotNull Collection<Agent> agents, long step) {
 		LinkGraph linkGraph = (LinkGraph) graph;
-		Map<Agent, Pair<Integer, Set<Integer>>> agentsLinkEntriesExits = agents.stream()
+		@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsLinkEntriesExits = agents.stream()
 			.collect(Collectors.toMap(
 					Function.identity(),
 					a -> new Pair<>(
@@ -59,15 +60,15 @@ public class SATRoundabout extends SATSingleGrouped {
 		return super.planAgents(agentsLinkEntriesExits, step);
 	}
 
-	private void transferPath(Agent agent) {
-		List<Integer> path = agent.getPath().stream().map(id -> ((LinkVertex) graph.getVertex(id)).getRealID()).toList();
+	private void transferPath(@NotNull Agent agent) {
+		@NotNull List<Integer> path = agent.getPath().stream().map(id -> ((LinkVertex) graph.getVertex(id)).getRealID()).toList();
 		agent.setPath(path, agent.getPlannedTime());
 	}
 
 	@Override
-	public Collection<Agent> planAgents(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		LinkGraph linkGraph = (LinkGraph) graph;
-		Map<Agent, Pair<Integer, Set<Integer>>> agentsLinkEntriesExits = agentsEntriesExits.entrySet().stream()
+		@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsLinkEntriesExits = agentsEntriesExits.entrySet().stream()
 			.collect(Collectors.toMap(
 				Map.Entry::getKey,
 				e -> new Pair<>(
@@ -81,12 +82,12 @@ public class SATRoundabout extends SATSingleGrouped {
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitsIDs, long step) {
+	public Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsIDs, long step) {
 		LinkGraph linkGraph = (LinkGraph) graph;
 		return super.planAgent(agent, linkGraph.getLinkID(entryID), exitsIDs.stream().map(linkGraph::getLinkID).collect(Collectors.toSet()), step);
 	}
 
-	protected void combinePaths(Agent agent, List<Integer> path, long step) {
+	protected void combinePaths(@NotNull Agent agent, @NotNull List<Integer> path, long step) {
 		path.remove(path.size() - 1);
 		LinkGraph linkGraph = (LinkGraph) graph;
 		for (int id : agent.getPath()) {

@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -46,7 +47,7 @@ public abstract class SimulationGraph extends Graph {
 	 * @param entries     Number of entries from each direction
 	 * @param exits       Number of exits from each direction
 	 */
-	protected SimulationGraph(Parameters.GraphType model, int granularity, int entries, int exits, int vertices) {
+	protected SimulationGraph(Parameters.@NotNull GraphType model, int granularity, int entries, int exits, int vertices) {
 		super(false, vertices, model.getDirections().size(), granularity, entries, exits);
 
 
@@ -55,7 +56,7 @@ public abstract class SimulationGraph extends Graph {
 		}
 	}
 
-	protected SimulationGraph(boolean oriented, Graph graph) {
+	protected SimulationGraph(boolean oriented, @NotNull Graph graph) {
 		super(oriented, graph);
 	}
 
@@ -65,7 +66,7 @@ public abstract class SimulationGraph extends Graph {
 	 *
 	 * @param graph Graph to be cloned
 	 */
-	public void addGraphVertices(Graph graph) {
+	public void addGraphVertices(@NotNull Graph graph) {
 		this.vertices = graph.getVertices();
 		this.entryExitVertices = graph.getEntryExitVertices();
 		this.edges = graph.getEdges();
@@ -86,12 +87,12 @@ public abstract class SimulationGraph extends Graph {
 		return shortestPaths;
 	}
 
-	private Map<Integer, List<Integer>> shortestPaths(GraphicalVertex start) {
+	private @NotNull Map<Integer, List<Integer>> shortestPaths(GraphicalVertex start) {
 
-		VertexWithDirectionParent startWithDirection = new VertexWithDirectionParent(start);
-		Map<Integer, List<Integer>> allPaths = ucs(startWithDirection);
+		@NotNull VertexWithDirectionParent startWithDirection = new VertexWithDirectionParent(start);
+		@NotNull Map<Integer, List<Integer>> allPaths = ucs(startWithDirection);
 
-		Map<Integer, List<Integer>> paths = new HashMap<>();
+		@NotNull Map<Integer, List<Integer>> paths = new HashMap<>();
 		entryExitVertices.values().stream()
 			.flatMap(Collection::stream)
 			.filter(exit -> exit.getType().isExit())
@@ -101,10 +102,10 @@ public abstract class SimulationGraph extends Graph {
 		return paths;
 	}
 
-	private Map<Integer, List<Integer>> ucs(VertexWithDirectionParent startingVertex) {
-		Map<Integer, List<Integer>> vertexDistances = new HashMap<>(vertices.length);
+	private @NotNull Map<Integer, List<Integer>> ucs(VertexWithDirectionParent startingVertex) {
+		@NotNull Map<Integer, List<Integer>> vertexDistances = new HashMap<>(vertices.length);
 
-		PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
+		@NotNull PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
 		queue.add(startingVertex);
 
 		while (!queue.isEmpty()) {
@@ -113,7 +114,7 @@ public abstract class SimulationGraph extends Graph {
 				if (vertex.getParent() == null) {
 					vertexDistances.put(vertex.getID(), Collections.singletonList(vertex.getID()));
 				} else {
-					List<Integer> vertexPath = new ArrayList<>(vertexDistances.get(vertex.getParent().getID()));
+					@NotNull List<Integer> vertexPath = new ArrayList<>(vertexDistances.get(vertex.getParent().getID()));
 					vertexPath.add(vertex.getID());
 					vertexDistances.put(vertex.getID(), vertexPath);
 				}
@@ -135,20 +136,20 @@ public abstract class SimulationGraph extends Graph {
 	 * @param to
 	 * @return
 	 */
-	public List<Integer> shortestPath(GraphicalVertex from, GraphicalVertex to) {
+	public List<Integer> shortestPath(GraphicalVertex from, @NotNull GraphicalVertex to) {
 		return shortestPath(from, to, 0);
 	}
 
 	// TODO
 
-	public List<Integer> shortestPath(GraphicalVertex from, GraphicalVertex to, double startingAngle) {
-				PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
-		HashSet<Integer> visitedIDs = new HashSet<>();
+	public @NotNull List<Integer> shortestPath(GraphicalVertex from, @NotNull GraphicalVertex to, double startingAngle) {
+				@NotNull PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
+		@NotNull HashSet<Integer> visitedIDs = new HashSet<>();
 		queue.add(new VertexWithDirectionParent(from, startingAngle));
 		while (!queue.isEmpty()) {
 			VertexWithDirectionParent vertex = queue.poll();
 			if (vertex.getID() == to.getID()) {
-				LinkedList<Integer> path = new LinkedList<>();
+				@NotNull LinkedList<Integer> path = new LinkedList<>();
 				VertexWithDirectionParent vertexPath = vertex;
 				while (vertexPath != null) {
 					path.addFirst(vertexPath.getID());
@@ -173,7 +174,7 @@ public abstract class SimulationGraph extends Graph {
 	}
 
 	@Deprecated
-	private void dfs(Map<Integer, VertexWithDirectionParent> vertices, VertexWithDirectionParent vertex) {
+	private void dfs(@NotNull Map<Integer, VertexWithDirectionParent> vertices, @NotNull VertexWithDirectionParent vertex) {
 		for (Integer neighbourID : vertex.getVertex().getNeighbourIDs()) {
 			GraphicalVertex neighbourVertex;
 			neighbourVertex = (GraphicalVertex) this.vertices[neighbourID];
@@ -183,7 +184,7 @@ public abstract class SimulationGraph extends Graph {
 					continue;
 				}
 			}
-			VertexWithDirectionParent neighbourVertexWithDirection = new VertexWithDirectionParent(vertex, neighbourVertex, getCellSize());
+			@NotNull VertexWithDirectionParent neighbourVertexWithDirection = new VertexWithDirectionParent(vertex, neighbourVertex, getCellSize());
 			vertices.put(neighbourID, neighbourVertexWithDirection);
 			dfs(vertices, neighbourVertexWithDirection);
 		}
@@ -211,7 +212,7 @@ public abstract class SimulationGraph extends Graph {
 	/**
 	 * @return Set of vertices of the graph
 	 */
-	public Collection<GraphicalVertex> getVerticesSet() {
+	public @NotNull Collection<GraphicalVertex> getVerticesSet() {
 		return Stream.of(vertices).map(GraphicalVertex.class::cast).collect(Collectors.toSet());
 	}
 
@@ -258,7 +259,7 @@ public abstract class SimulationGraph extends Graph {
 	 */
 	public abstract double getCellSize();
 
-	protected Map<GraphicalVertex, Map<GraphicalVertex, Edge>> getVerticesDistances() {
+	protected @NotNull Map<GraphicalVertex, Map<GraphicalVertex, Edge>> getVerticesDistances() {
 		verticesDistancesLock.lock();
 		if (verticesDistances.isEmpty()) {
 			initializeVerticesDistances();
@@ -271,7 +272,7 @@ public abstract class SimulationGraph extends Graph {
 		for (Vertex vertex : vertices) {
 			verticesDistances.put((GraphicalVertex) vertex, new HashMap<>());
 		}
-		for (Edge edge : this.edges) {
+		for (@NotNull Edge edge : this.edges) {
 			verticesDistances.get(edge.getU()).put((GraphicalVertex) edge.getV(), edge);
 		}
 		verticesDistancesLock.unlock();

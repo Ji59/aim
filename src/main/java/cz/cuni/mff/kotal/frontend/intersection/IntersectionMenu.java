@@ -17,6 +17,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
@@ -91,7 +92,7 @@ public class IntersectionMenu extends VBox {
 
 	private static void startSimulation() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 		SimulationGraph graph = IntersectionModel.getGraph();
-		AlgorithmMenuTab2.Parameters.Algorithm algorithmEnum = AlgorithmMenuTab2.getAlgorithm();
+		AlgorithmMenuTab2.Parameters.@Nullable Algorithm algorithmEnum = AlgorithmMenuTab2.getAlgorithm();
 		if (algorithmEnum == null) {
 			// TODO exception
 			return;
@@ -115,17 +116,17 @@ public class IntersectionMenu extends VBox {
 	private void createControlNodes(double padding) {
 		// TODO extract constants
 
-		GridPane sliders = new GridPane();
+		@NotNull GridPane sliders = new GridPane();
 		sliders.addRow(0, SPEED_LABEL, SPEED_SLIDER);
 		sliders.addRow(1, TIMELINE_LABEL, TIMELINE_SLIDER);
 		sliders.setVgap(padding);
 
-		Slider tabSpeedSlider = SimulationMenuTab3.getSpeedSlider();
+		@NotNull Slider tabSpeedSlider = SimulationMenuTab3.getSpeedSlider();
 		tabSpeedSlider.setMax(SPEED_SLIDER.getMax());
 		tabSpeedSlider.setMin(SPEED_SLIDER.getMin());
 		tabSpeedSlider.setValue(SPEED_SLIDER.getValue());
 		setSliderValuePropertyListeners(SPEED_SLIDER, tabSpeedSlider);
-		Slider tabTimelineSlider = SimulationMenuTab3.getTimelineSlider();
+		@NotNull Slider tabTimelineSlider = SimulationMenuTab3.getTimelineSlider();
 		setSliderValuePropertyListeners(TIMELINE_SLIDER, tabTimelineSlider);
 		setSliderMaxPropertyListeners(TIMELINE_SLIDER, tabTimelineSlider);
 
@@ -142,11 +143,11 @@ public class IntersectionMenu extends VBox {
 
 		PLAY_IN_BACKGROUND.setSelected(false);
 
-		GridPane statistics = new GridPane();
-		Map<Statistics, Label> labels = Map.of(Statistics.AGENTS, AGENTS_LABEL, Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL /*, Statistics.REMAINS, REMAINING_LABEL*/);
+		@NotNull GridPane statistics = new GridPane();
+		@NotNull Map<Statistics, Label> labels = Map.of(Statistics.AGENTS, AGENTS_LABEL, Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL /*, Statistics.REMAINS, REMAINING_LABEL*/);
 		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
-		HBox buttons = new HBox(padding, SAVE_AGENTS_BUTTON, SAVE_STATISTICS_BUTTON);
+		@NotNull HBox buttons = new HBox(padding, SAVE_AGENTS_BUTTON, SAVE_STATISTICS_BUTTON);
 		buttons.setPrefWidth(Double.MAX_VALUE);
 		SAVE_AGENTS_BUTTON.setPrefWidth(4096);
 		SAVE_STATISTICS_BUTTON.setPrefWidth(SAVE_AGENTS_BUTTON.getPrefWidth());
@@ -160,7 +161,7 @@ public class IntersectionMenu extends VBox {
 	 * @return
 	 */
 	@NotNull
-	private ChangeListener<Number> getSliderValueListener(DoubleConsumer function) {
+	private ChangeListener<Number> getSliderValueListener(@NotNull DoubleConsumer function) {
 		return (observable, oldValue, newValue) -> function.accept(newValue.doubleValue());
 	}
 
@@ -170,7 +171,7 @@ public class IntersectionMenu extends VBox {
 	 * @param slider0
 	 * @param slider1
 	 */
-	private void setSliderValuePropertyListeners(Slider slider0, Slider slider1) {
+	private void setSliderValuePropertyListeners(@NotNull Slider slider0, @NotNull Slider slider1) {
 		slider0.valueProperty().addListener(getSliderValueListener(slider1::setValue));
 		slider1.valueProperty().addListener(getSliderValueListener(slider0::setValue));
 	}
@@ -178,7 +179,7 @@ public class IntersectionMenu extends VBox {
 	/**
 	 * TODO
 	 */
-	private void setSliderMaxPropertyListeners(Slider slider0, Slider slider1) {
+	private void setSliderMaxPropertyListeners(@NotNull Slider slider0, @NotNull Slider slider1) {
 		slider0.maxProperty().addListener(getSliderValueListener(slider1::setMax));
 		slider1.maxProperty().addListener(getSliderValueListener(slider0::setMax));
 	}
@@ -193,10 +194,10 @@ public class IntersectionMenu extends VBox {
 	}
 
 	private void addTimelineSliderActions() {
-		Slider menuTimelineSlider = SimulationMenuTab3.getTimelineSlider();
+		@NotNull Slider menuTimelineSlider = SimulationMenuTab3.getTimelineSlider();
 		menuTimelineSlider.setBlockIncrement(1); // TODO extract constant
 		TIMELINE_SLIDER.setBlockIncrement(1);
-		ChangeListener<Boolean> focusListener = (observable, oldValue, newValue) -> {
+		@NotNull ChangeListener<Boolean> focusListener = (observable, oldValue, newValue) -> {
 			if (Boolean.TRUE.equals(newValue)) {
 				pauseSimulation();
 			}
@@ -204,7 +205,7 @@ public class IntersectionMenu extends VBox {
 		TIMELINE_SLIDER.focusedProperty().addListener(focusListener);
 		menuTimelineSlider.focusedProperty().addListener(focusListener);
 
-		ChangeListener<Number> valueListener = (observable, oldValue, newValue) -> {
+		@NotNull ChangeListener<Number> valueListener = (observable, oldValue, newValue) -> {
 			if (!playing && (TIMELINE_SLIDER.isFocused() || menuTimelineSlider.isFocused())) {
 				setStep(newValue.doubleValue());
 				IntersectionScene.startSimulationAt(newValue.doubleValue(), false);  // FIXME set play parameter to playing
@@ -227,7 +228,7 @@ public class IntersectionMenu extends VBox {
 				try {
 					startSimulation();
 				} catch (Exception ex) {
-					final Alert alert = new Alert(Alert.AlertType.ERROR);
+					final @NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 					alert.setTitle("Starting simulation failed");
 					alert.setHeaderText("Exception occurred during simulation initialization");
 					alert.setContentText(ex.getMessage());
@@ -265,7 +266,7 @@ public class IntersectionMenu extends VBox {
 					return;
 				}
 				while (!agentsFile.getPath().endsWith(".json")) {
-					AtomicInteger result = getWarningResult(agentsFile);
+					@NotNull AtomicInteger result = getWarningResult(agentsFile);
 
 					if (result.get() == 2) {
 						return;
@@ -283,19 +284,19 @@ public class IntersectionMenu extends VBox {
 				SimulationSaver.saveAgents(IntersectionScene.getSimulation(), agentsFile);
 				// FIXME exceptions
 			} catch (IOException ex) {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
+				@NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle("Saving agents failed.");
 				alert.setHeaderText("Input/output exception occurred while saving agents. \n Exception info below.");
 				alert.setContentText(ex.getMessage());
 				alert.show();
 			} catch (NullPointerException ex) {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
+				@NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle("Saving agents failed.");
 				alert.setHeaderText("Found null value. \n Exception info below.");
 				alert.setContentText(ex.getMessage());
 				alert.show();
 			} catch (Exception ex) {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
+				@NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle("Saving agents failed.");
 				alert.setHeaderText("Unexpected exception occurred. \n Exception info below.");
 				alert.setContentText(ex.getMessage());
@@ -310,7 +311,7 @@ public class IntersectionMenu extends VBox {
 	private static void addSaveStatisticsButtonAction() {
 		SAVE_STATISTICS_BUTTON.setOnMouseClicked(e -> {
 			boolean deleteInitialDirectory = false;
-			File initialDirectory = Paths.get(FileSystemView.getFileSystemView().getDefaultDirectory().getAbsolutePath(), "statistics").toFile();  // TODO smarter name genereating
+			@NotNull File initialDirectory = Paths.get(FileSystemView.getFileSystemView().getDefaultDirectory().getAbsolutePath(), "statistics").toFile();  // TODO smarter name genereating
 
 			try {
 				// TODO check simulation
@@ -328,19 +329,19 @@ public class IntersectionMenu extends VBox {
 
 				// FIXME exceptions
 			} catch (IOException ex) {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
+				@NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle("Saving agents failed.");
 				alert.setHeaderText("Input/output exception occurred while saving agents. \n Exception info below.");
 				alert.setContentText(ex.getMessage());
 				alert.show();
 			} catch (NullPointerException ex) {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
+				@NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle("Saving agents failed.");
 				alert.setHeaderText("Found null value. \n Exception info below.");
 				alert.setContentText(ex.getMessage());
 				alert.show();
 			} catch (Exception ex) {
-				Alert alert = new Alert(Alert.AlertType.ERROR);
+				@NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 				alert.setTitle("Saving agents failed.");
 				alert.setHeaderText("Unexpected exception occurred. \n Exception info below.");
 				alert.setContentText(ex.getMessage());
@@ -360,12 +361,12 @@ public class IntersectionMenu extends VBox {
 	 * @return
 	 */
 	@NotNull
-	private static AtomicInteger getWarningResult(File agentsFile) {
-		AtomicInteger result = new AtomicInteger();
-		String contentText = "Agents are saved in json format, so using \".json\" extension is recommended.\n" +
+	private static AtomicInteger getWarningResult(@NotNull File agentsFile) {
+		@NotNull AtomicInteger result = new AtomicInteger();
+		@NotNull String contentText = "Agents are saved in json format, so using \".json\" extension is recommended.\n" +
 			"Entered filename: " + agentsFile.getName() + "\n" +
 			"Are you sure you want to save agents into selected file?";
-		Alert extensionConfirmation = new Alert(Alert.AlertType.CONFIRMATION, contentText, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+		@NotNull Alert extensionConfirmation = new Alert(Alert.AlertType.CONFIRMATION, contentText, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
 		extensionConfirmation.setTitle("Unexpected file extension");
 		extensionConfirmation.setHeaderText("File with unexpected extension entered.");
 		extensionConfirmation.showAndWait().ifPresentOrElse(response -> {
@@ -386,7 +387,7 @@ public class IntersectionMenu extends VBox {
 	 * @return
 	 */
 	private static File getAgentsSaveFile() {
-		FileChooser fileChooser = new FileChooser();
+		@NotNull FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Agents data save file"); // FIXME get rid of this stoopid name
 		fileChooser.setInitialFileName("agents.json");
 		fileChooser.getExtensionFilters().add(new ExtensionFilter("Json documents", "*.json"));
@@ -400,7 +401,7 @@ public class IntersectionMenu extends VBox {
 	 * @return
 	 */
 	private static File getStatisticsSaveDirectory(File initialDirectory) {
-		DirectoryChooser directoryChooser = new DirectoryChooser();
+		@NotNull DirectoryChooser directoryChooser = new DirectoryChooser();
 		directoryChooser.setTitle("Statistics data save directory"); // FIXME get rid of this stoopid name
 		directoryChooser.setInitialDirectory(initialDirectory);
 		return directoryChooser.showDialog(null); // FIXME replace null
@@ -421,7 +422,7 @@ public class IntersectionMenu extends VBox {
 	public static void setPlayButtonPlaying(boolean playing) {
 		IntersectionMenu.playing = playing;
 		// TODO extract constants
-		String text = playing ? "Pause" : "Play";// TODO
+		@NotNull String text = playing ? "Pause" : "Play";// TODO
 		if (Platform.isFxApplicationThread()) {
 			PLAY_BUTTON.setText(text); // TODO
 			SimulationMenuTab3.getPlayButton().setText(text);
@@ -544,14 +545,14 @@ public class IntersectionMenu extends VBox {
 	/**
 	 * @return Play button node
 	 */
-	public static Button getPlayButton() {
+	public static @NotNull Button getPlayButton() {
 		return PLAY_BUTTON;
 	}
 
 	/**
 	 * @return Restart button node
 	 */
-	public static Button getRestartButton() {
+	public static @NotNull Button getRestartButton() {
 		return RESTART_BUTTON;
 	}
 
@@ -562,21 +563,21 @@ public class IntersectionMenu extends VBox {
 	/**
 	 * @return Save button node
 	 */
-	public static Button getSaveAgentsButton() {
+	public static @NotNull Button getSaveAgentsButton() {
 		return SAVE_AGENTS_BUTTON;
 	}
 
 	/**
 	 * @return Label for number of agents that arrived
 	 */
-	public static Label getAgentsLabel() {
+	public static @NotNull Label getAgentsLabel() {
 		return AGENTS_LABEL;
 	}
 
 	/**
 	 * @return Step label node
 	 */
-	public static Label getStepsLabel() {
+	public static @NotNull Label getStepsLabel() {
 		return STEPS_LABEL;
 	}
 
@@ -590,7 +591,7 @@ public class IntersectionMenu extends VBox {
 		String stepFormatted = String.format("%,.2f", stepValue);  // TODO extract constant
 		String delayFormatted = String.format("%,d", delayValue);
 		String rejectionsFormatted = String.format("%,d", rejectionsValue);
-		String collisionsFormatted = String.valueOf(collisionsValue);
+		@NotNull String collisionsFormatted = String.valueOf(collisionsValue);
 		statisticsLock.unlock();
 
 		Platform.runLater(() -> {
@@ -605,7 +606,7 @@ public class IntersectionMenu extends VBox {
 		String stepFormatted = String.format("%,.2f", stepValue = step);  // TODO extract constant
 		String delayFormatted = String.format("%,d", delayValue = delays);
 		String rejectionsFormatted = String.format("%,d", rejectionsValue = rejections);
-		String collisionsFormatted = String.valueOf(collisionsValue = collisions);
+		@NotNull String collisionsFormatted = String.valueOf(collisionsValue = collisions);
 		statisticsLock.unlock();
 
 		Platform.runLater(() -> {
@@ -699,28 +700,28 @@ public class IntersectionMenu extends VBox {
 	/**
 	 * @return Label displaying total rejections since start of the simulation
 	 */
-	public static Label getDelayLabel() {
+	public static @NotNull Label getDelayLabel() {
 		return DELAY_LABEL;
 	}
 
 	/**
 	 * @return Label displaying number of rejections
 	 */
-	public static Label getRejectionsLabel() {
+	public static @NotNull Label getRejectionsLabel() {
 		return REJECTIONS_LABEL;
 	}
 
 	/**
 	 * @return Label displaying number of collisions
 	 */
-	public static Label getCollisionsLabel() {
+	public static @NotNull Label getCollisionsLabel() {
 		return COLLISIONS_LABEL;
 	}
 
 	/**
 	 * @return Label displaying remaining running time
 	 */
-	public static Label getRemainingLabel() {
+	public static @NotNull Label getRemainingLabel() {
 		return REMAINING_LABEL;
 	}
 }

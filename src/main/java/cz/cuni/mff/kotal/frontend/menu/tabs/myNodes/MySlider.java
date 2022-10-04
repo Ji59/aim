@@ -9,6 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.events.Event;
 
 import java.util.function.IntConsumer;
@@ -18,10 +19,10 @@ import java.util.function.IntConsumer;
  * Custom slider with added text using long values.
  */
 public class MySlider extends HBox {
-	private final Slider slider;
-	private final TextField textField;
+	private final @NotNull Slider slider;
+	private final @NotNull TextField textField;
 
-	private Runnable mouseReleaseAction = null;
+	private @Nullable Runnable mouseReleaseAction = null;
 
 	/**
 	 * Create new slider with specified values.
@@ -72,7 +73,7 @@ public class MySlider extends HBox {
 			setDisable(true);
 
 			if (newValue == null || !newValue) {
-				String sliderValue = String.valueOf(Math.round(slider.getValue()));
+				@NotNull String sliderValue = String.valueOf(Math.round(slider.getValue()));
 				if (textField.getText().isEmpty()) {
 					textField.setText(sliderValue);
 					return;
@@ -106,12 +107,12 @@ public class MySlider extends HBox {
 	 * @param listener Listener to be added
 	 * @return Affected MySlider object
 	 */
-	public MySlider addAction(ChangeListener<? super Number> listener) {
+	public @NotNull MySlider addAction(ChangeListener<? super Number> listener) {
 		slider.valueProperty().addListener(listener);
 		return this;
 	}
 
-	public MySlider addAction(Runnable action) {
+	public @NotNull MySlider addAction(@NotNull Runnable action) {
 		mouseReleaseAction = action;
 		slider.setOnMouseReleased(event -> action.run());
 		return this;
@@ -130,7 +131,7 @@ public class MySlider extends HBox {
 	 * @param value New value
 	 * @return Affected MySlider object
 	 */
-	public MySlider setValue(long value) {
+	public @NotNull MySlider setValue(long value) {
 		slider.setValue(value);
 		textField.setText(String.valueOf(value));
 		return this;
@@ -156,7 +157,7 @@ public class MySlider extends HBox {
 	 * @param value New value to be set
 	 * @return Affected MySlider object
 	 */
-	public MySlider setMin(long value) {
+	public @NotNull MySlider setMin(long value) {
 		slider.setMin(value);
 		return this;
 	}
@@ -167,7 +168,7 @@ public class MySlider extends HBox {
 	 * @param value New value to be set
 	 * @return Affected MySlider object
 	 */
-	public MySlider setMax(int value) {
+	public @NotNull MySlider setMax(int value) {
 		slider.setMax(value);
 		return this;
 	}
@@ -182,7 +183,7 @@ public class MySlider extends HBox {
 	 */
 	@NotNull
 	private static Slider createSlider(double min, double max, int value) {
-		final Slider slider = new Slider(min, max, value);
+		final @NotNull Slider slider = new Slider(min, max, value);
 		slider.setShowTickLabels(true);
 		slider.setShowTickMarks(true);
 		int count = (int) (max - min + 1);

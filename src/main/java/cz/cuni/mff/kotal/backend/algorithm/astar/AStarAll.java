@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -31,14 +32,14 @@ public class AStarAll extends AStarSingleGrouped {
 	}
 
 	@Override
-	public Collection<Agent> planAgents(Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+	public @NotNull Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
 
-		final Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
-		final Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups = new HashSet<>(validNotFinishedAgents.size());
-		final Map<Long, Map<Integer, Set<Agent>>> plannedConflictAvoidanceTable = new HashMap<>();
+		final @NotNull Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
+		final @NotNull Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups = new HashSet<>(validNotFinishedAgents.size());
+		final @NotNull Map<Long, Map<Integer, Set<Agent>>> plannedConflictAvoidanceTable = new HashMap<>();
 
-		for (final Agent agent : validNotFinishedAgents) {
+		for (final @NotNull Agent agent : validNotFinishedAgents) {
 			if (stopped) {
 				return Collections.emptySet();
 			}
@@ -48,10 +49,10 @@ public class AStarAll extends AStarSingleGrouped {
 			assert travelTime < agent.getPath().size() - 1;
 
 			final int startingVertexID = agent.getPath().get(travelTime);
-			final Map<Agent, Pair<Integer, Set<Integer>>> agentMap = new HashMap<>(1);
+			final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentMap = new HashMap<>(1);
 			final Agent agentsCopy = new Agent(agent).setPath(agent.getPath(), plannedTime);
 			agentMap.put(agentsCopy, new Pair<>(startingVertexID, getExits(agent)));
-			final Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = getConflictAvoidanceTable(agentMap, step);
+			final @NotNull Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = getConflictAvoidanceTable(agentMap, step);
 			mergeConflictAvoidanceTables(plannedConflictAvoidanceTable, conflictAvoidanceTable);
 			agentsGroups.add(new Triplet<>(agentMap, conflictAvoidanceTable, Collections.emptySet()));
 		}
@@ -69,7 +70,7 @@ public class AStarAll extends AStarSingleGrouped {
 			return Collections.emptySet();
 		}
 
-		Collection<Agent> plannedAgents = agentsGroups.stream().flatMap(group -> group.getVal0().keySet().stream()).collect(Collectors.toList());
+		@NotNull Collection<Agent> plannedAgents = agentsGroups.stream().flatMap(group -> group.getVal0().keySet().stream()).collect(Collectors.toList());
 		assert plannedAgents.containsAll(validNotFinishedAgents);
 		AlgorithmAll.processPlannedAgents(notFinishedAgents, plannedAgents, step);
 
@@ -80,15 +81,15 @@ public class AStarAll extends AStarSingleGrouped {
 
 	@Override
 	protected void tryMergeGroups(
-		long step, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
-		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
-		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
+		long step, @NotNull Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
+		@NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
+		@NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
 		Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable, Map<Long, Map<Integer, Set<Agent>>> group1IllegalMovesTable
 	) {
 		boolean groupsMerged = mergeGroups(step, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, restGroupsConflictAvoidanceTable);
 		if (groupsMerged) {
-			final Set<Agent> group0Agents = group0CollisionTriplet.getVal0().keySet();
-			final Set<Agent> group1Agents = group1CollisionTriplet.getVal0().keySet();
+			final @NotNull Set<Agent> group0Agents = group0CollisionTriplet.getVal0().keySet();
+			final @NotNull Set<Agent> group1Agents = group1CollisionTriplet.getVal0().keySet();
 			System.out.println("Merged 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
 				+ " with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
 				+ " creating " + agentsGroups.stream().filter(g -> !Collections.disjoint(g.getVal0().keySet(), group0Agents) || !Collections.disjoint(g.getVal0().keySet(), group1Agents)).findAny().orElse(new Triplet<>(Collections.emptyMap(), null, null)).getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
@@ -96,7 +97,7 @@ public class AStarAll extends AStarSingleGrouped {
 	}
 
 	@Override
-	protected boolean switchGroups(Set<Agent> group0Agents, Set<Agent> group1Agents) {
+	protected boolean switchGroups(@NotNull Set<Agent> group0Agents, @NotNull Set<Agent> group1Agents) {
 		return group0Agents.size() < group1Agents.size() ||
 			(
 				group0Agents.size() == group1Agents.size() &&
@@ -105,20 +106,20 @@ public class AStarAll extends AStarSingleGrouped {
 	}
 
 	private boolean mergeGroups(
-		long step, Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
-		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
-		Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
+		long step, @NotNull Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
+		@NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
+		@NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
 		Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable) {
 
 
 		final Map<Agent, Pair<Integer, Set<Integer>>> group0 = group0CollisionTriplet.getVal0();
 		final Map<Agent, Pair<Integer, Set<Integer>>> group1 = group1CollisionTriplet.getVal0();
 
-		Set<Agent> group0PlannedAgents = group0.keySet().stream().filter(notFinishedAgents.keySet()::contains).collect(Collectors.toSet());
-		Set<Agent> group1PlannedAgents = group1.keySet().stream().filter(notFinishedAgents.keySet()::contains).collect(Collectors.toSet());
+		@NotNull Set<Agent> group0PlannedAgents = group0.keySet().stream().filter(notFinishedAgents.keySet()::contains).collect(Collectors.toSet());
+		@NotNull Set<Agent> group1PlannedAgents = group1.keySet().stream().filter(notFinishedAgents.keySet()::contains).collect(Collectors.toSet());
 
-		final Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents = new HashMap<>(group0PlannedAgents.size() + group1PlannedAgents.size());
-		final Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents = new HashMap<>(group0.size() - group0PlannedAgents.size() + group1.size() - group1PlannedAgents.size());
+		final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents = new HashMap<>(group0PlannedAgents.size() + group1PlannedAgents.size());
+		final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents = new HashMap<>(group0.size() - group0PlannedAgents.size() + group1.size() - group1PlannedAgents.size());
 		divideGroupToPlannedAndNew(group0, group0PlannedAgents, combinedPlannedAgents, combinedNewAgents);
 		divideGroupToPlannedAndNew(group1, group1PlannedAgents, combinedPlannedAgents, combinedNewAgents);
 
@@ -128,13 +129,13 @@ public class AStarAll extends AStarSingleGrouped {
 		filterReplannedCollisionAgents(agentsGroups, group1.keySet());
 
 		for (int i = combinedNewAgents.size(); i >= 0; i--) {
-			for (Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedNewAgents.entrySet(), i)) {
+			for (@NotNull Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedNewAgents.entrySet(), i)) {
 
 				if (stopped) {
 					return false;
 				}
 
-				Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(combinedPlannedAgents);
+				@NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(combinedPlannedAgents);
 				combination.forEach(agentEntryExits -> combinedAgents.put(agentEntryExits.getKey(), agentEntryExits.getValue()));
 
 				if (combinedAgents.size() == 0) {
@@ -151,7 +152,7 @@ public class AStarAll extends AStarSingleGrouped {
 		return false;
 	}
 
-	private static void divideGroupToPlannedAndNew(Map<Agent, Pair<Integer, Set<Integer>>> group0, Set<Agent> group0PlannedAgents, Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents, Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents) {
+	private static void divideGroupToPlannedAndNew(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> group0, @NotNull Set<Agent> group0PlannedAgents, @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents, @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents) {
 		group0.forEach((agent, entryExits) -> {
 			if (group0PlannedAgents.contains(agent)) {
 				combinedPlannedAgents.put(agent, entryExits);
@@ -168,7 +169,7 @@ public class AStarAll extends AStarSingleGrouped {
 	 * @return
 	 */
 	@Override
-	protected long getLastStep(Agent agent, Set<Integer> exitsIDs, long step) {
+	protected long getLastStep(@NotNull Agent agent, @NotNull Set<Integer> exitsIDs, long step) {
 		long startingStep;
 		if (notFinishedAgents.containsKey(agent)) {
 			startingStep = notFinishedAgents.get(agent).getVal1();
@@ -184,7 +185,7 @@ public class AStarAll extends AStarSingleGrouped {
 	}
 
 	@Override
-	public void addPlannedAgent(Agent agent) {
+	public void addPlannedAgent(@NotNull Agent agent) {
 		setLargestAgentPerimeter(agent);
 	}
 

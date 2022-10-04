@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.backend.algorithm.simple;
 
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,10 +14,10 @@ public class Semaphore extends SafeLines {
 	private final long greenTime;
 	private final long directionTime; // TODO
 
-	public Semaphore(SimulationGraph graph) {
+	public Semaphore(@NotNull SimulationGraph graph) {
 		super(graph);
 
-		Integer longestPath = graph
+		@NotNull Integer longestPath = graph
 			.getLines().values().stream()
 			.flatMap(
 				map -> map.values().stream()
@@ -25,22 +26,22 @@ public class Semaphore extends SafeLines {
 			.orElse(0);
 
 		directions = graph.getModel().getDirections().size() / 2;
-		directionTime = (graph.getGranularity() * graph.getEntryExitVertices().size()) / (directions - 1); // TODO zero division TODO extract method
+		directionTime = ((long) graph.getGranularity() * graph.getEntryExitVertices().size()) / (directions - 1); // TODO zero division TODO extract method
 		greenTime = Math.max(1, directionTime - longestPath);
 	}
 
 	@Override
-	public Collection<Agent> planAgents(Collection<Agent> agents, long step) {
+	public @NotNull Collection<Agent> planAgents(@NotNull Collection<Agent> agents, long step) {
 		if (step % directionTime >= greenTime) {
 			return new ArrayList<>();
 		}
 
 		filterStepOccupiedVertices(step);
 
-		List<Agent> straightAgents = new ArrayList<>();
-		List<Agent> turningAgents = new ArrayList<>();
+		@NotNull List<Agent> straightAgents = new ArrayList<>();
+		@NotNull List<Agent> turningAgents = new ArrayList<>();
 
-		for (Agent agent : agents) {
+		for (@NotNull Agent agent : agents) {
 			if (isFromCurrentDirection(agent, step)) {
 				if (agentGoingStraight(agent)) {
 					straightAgents.add(agent);
@@ -50,17 +51,17 @@ public class Semaphore extends SafeLines {
 			}
 		}
 
-		List<Agent> plannedAgents = straightAgents.stream().filter(agent -> planAgent(agent, step) != null).collect(Collectors.toList());
+		@NotNull List<Agent> plannedAgents = straightAgents.stream().filter(agent -> planAgent(agent, step) != null).collect(Collectors.toList());
 		plannedAgents.addAll(turningAgents.stream().filter(agent -> planAgent(agent, step) != null).toList());
 
 		return plannedAgents;
 	}
 
-	private boolean isFromCurrentDirection(Agent agent, long step) {
+	private boolean isFromCurrentDirection(@NotNull Agent agent, long step) {
 		return graph.getVertex(agent.getEntry()).getType().getDirection() % directions == (step / directionTime) % directions;
 	}
 
-	private boolean agentGoingStraight(Agent agent) {
+	private boolean agentGoingStraight(@NotNull Agent agent) {
 		return Math.abs(agent.getEntryDirection() - agent.getExitDirection()) % directions == 0;
 	}
 }

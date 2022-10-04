@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.backend.algorithm;
 import cz.cuni.mff.kotal.backend.algorithm.astar.AStarRoundabout;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.simulation.graph.*;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -16,10 +17,10 @@ class AStarRoundaboutTest {
 
 	@Test
 	void testCreateRoundaboutGraphSimple() {
-		SimulationGraph square = new SquareGraph(4, 1, 1);
-		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(square, 1, true);
+		@NotNull SimulationGraph square = new SquareGraph(4, 1, 1);
+		@NotNull LinkGraph graph = AStarRoundabout.createRoundaboutGraph(square, 1, true);
 
-		int[] roadVertexIDs = {0, 1, 2, 3, 4, 7, 8, 11, 12, 13, 14, 15};
+		int @NotNull [] roadVertexIDs = {0, 1, 2, 3, 4, 7, 8, 11, 12, 13, 14, 15};
 		int[] vertices = Arrays.stream(graph.getVertices()).mapToInt(v -> ((LinkVertex) v).getRealID()).toArray();
 		assertThat(vertices).contains(roadVertexIDs).contains(16, 17, 18, 19, 20, 21, 22, 23);
 
@@ -30,9 +31,9 @@ class AStarRoundaboutTest {
 		}
 
 		assertThat(graph.getEntryExitVertices()).hasSize(4);
-		Collection<List<Vertex>> entryExitValues = graph.getEntryExitVertices().values();
+		@NotNull Collection<List<Vertex>> entryExitValues = graph.getEntryExitVertices().values();
 		assertThat(entryExitValues.stream().mapToInt(List::size).sum()).isEqualTo(8);
-		List<LinkVertex> entriesExits = entryExitValues.stream()
+		@NotNull List<LinkVertex> entriesExits = entryExitValues.stream()
 			.flatMap(List::stream)
 			.map(v -> graph.getLinkVertexByReal(v.getID())).toList();
 		assertThat(
@@ -52,8 +53,8 @@ class AStarRoundaboutTest {
 
 	@Test
 	void testCreateRoundaboutGraphDoubleLanesOriented() {
-		SimulationGraph square = new SquareGraph(4, 1, 1);
-		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(square, 2, true);
+		@NotNull SimulationGraph square = new SquareGraph(4, 1, 1);
+		@NotNull LinkGraph graph = AStarRoundabout.createRoundaboutGraph(square, 2, true);
 
 		assertThat(
 			Arrays.stream(graph.getVertices())
@@ -100,8 +101,8 @@ class AStarRoundaboutTest {
 
 	@Test
 	void testCreateRoundaboutGraphDoubleLanesNonDirect() {
-		SimulationGraph octagonal = new SquareGraph(4, 1, 1);
-		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(octagonal, 2, false);
+		@NotNull SimulationGraph octagonal = new SquareGraph(4, 1, 1);
+		@NotNull LinkGraph graph = AStarRoundabout.createRoundaboutGraph(octagonal, 2, false);
 
 		assertThat(
 			Arrays.stream(graph.getVertices())
@@ -148,8 +149,8 @@ class AStarRoundaboutTest {
 
 	@Test
 	void testCreateRoundaboutGraphTripleLanesOctagonal() {
-		SimulationGraph octagonal = new OctagonalGraph(4, 1, 1);
-		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(octagonal, 3, true);
+		@NotNull SimulationGraph octagonal = new OctagonalGraph(4, 1, 1);
+		@NotNull LinkGraph graph = AStarRoundabout.createRoundaboutGraph(octagonal, 3, true);
 
 		assertThat(
 			Arrays.stream(graph.getVertices())
@@ -206,8 +207,8 @@ class AStarRoundaboutTest {
 
 	@Test
 	void testCreateRoundaboutGraphTripleLanesBigOctagonal() {
-		SimulationGraph octagonal = new OctagonalGraph(7, 1, 1);
-		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(octagonal, 3, true);
+		@NotNull SimulationGraph octagonal = new OctagonalGraph(7, 1, 1);
+		@NotNull LinkGraph graph = AStarRoundabout.createRoundaboutGraph(octagonal, 3, true);
 
 		assertThat(
 			Arrays.stream(graph.getVertices())
@@ -314,8 +315,8 @@ class AStarRoundaboutTest {
 
 	@Test
 	void testCreateRoundaboutGraphTripleLanesHexagonal() {
-		SimulationGraph hexagonal = new HexagonalGraph(4, 1, 1);
-		LinkGraph graph = AStarRoundabout.createRoundaboutGraph(hexagonal, 3, true);
+		@NotNull SimulationGraph hexagonal = new HexagonalGraph(4, 1, 1);
+		@NotNull LinkGraph graph = AStarRoundabout.createRoundaboutGraph(hexagonal, 3, true);
 
 		assertThat(
 			Arrays.stream(graph.getVertices())

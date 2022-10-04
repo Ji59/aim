@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.simulation.timer;
 
 import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -14,7 +15,7 @@ import java.util.Objects;
  */
 public class AgentBoundingBox implements Comparable<AgentBoundingBox> {
 	private final AgentPane agentPane;
-	private final double[] boundingBox;
+	private final double @NotNull [] boundingBox;
 
 	/**
 	 * Create new agent bounding box.
@@ -22,7 +23,7 @@ public class AgentBoundingBox implements Comparable<AgentBoundingBox> {
 	 * @param agentPane   Agent pane inside the box
 	 * @param boundingBox Array of points creating the bounding box, in format [min_x, min_y, max_x, max_y]
 	 */
-	public AgentBoundingBox(AgentPane agentPane, double[] boundingBox) {
+	public AgentBoundingBox(AgentPane agentPane, double @NotNull [] boundingBox) {
 		assert boundingBox.length == 4;
 
 		this.agentPane = agentPane;
@@ -65,10 +66,10 @@ public class AgentBoundingBox implements Comparable<AgentBoundingBox> {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equals(@Nullable Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		AgentBoundingBox that = (AgentBoundingBox) o;
+		@NotNull AgentBoundingBox that = (AgentBoundingBox) o;
 		return agentPane.equals(that.agentPane) && Arrays.equals(boundingBox, that.boundingBox);
 	}
 

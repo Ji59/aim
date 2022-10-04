@@ -4,6 +4,8 @@ package cz.cuni.mff.kotal.simulation;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,9 +33,9 @@ class AgentTest {
 		agent = new Agent(id, start, end, 0, 0, speed, arrivalTime, l, w, x, y); // FIXME fix entry / exit directions
 		path = new ArrayList<>();
 		vertices = new Vertex[end + 1];
-		for (Integer i = start; i <= end; i++) {
+		for (@NotNull Integer i = start; i <= end; i++) {
 			path.add(i);
-			Vertex vertex = new GraphicalVertex(i, i % 2 == 0 ? 2 * i : 2 * i + 1, i % 2 == 0 ? 2 * i + 1 : 2 * i);
+			@NotNull Vertex vertex = new GraphicalVertex(i, i % 2 == 0 ? 2 * i : 2 * i + 1, i % 2 == 0 ? 2 * i + 1 : 2 * i);
 			vertices[i] = vertex;
 		}
 		agent.setPath(path);
@@ -48,7 +50,7 @@ class AgentTest {
 			try {
 				long nextID = i < 0 ? 0 : i >= end ? end : i + 1,
 					previousID = i == end ? nextID : nextID > 0 ? nextID - 1 : 0;
-				Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
+				@Nullable Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
 				assert IDsPrediction.getVal0() == previousID;
 				assert IDsPrediction.getVal1() == nextID;
 			} catch (IndexOutOfBoundsException e) {
@@ -60,7 +62,7 @@ class AgentTest {
 			try {
 				long nextID = i < 0 ? 0 : i > end ? end : Math.round(i),
 					previousID = nextID > 0 ? nextID - 1 : 0;
-				Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
+				@Nullable Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
 				assert IDsPrediction.getVal0() == previousID;
 				assert IDsPrediction.getVal1() == nextID;
 			} catch (IndexOutOfBoundsException e) {
@@ -72,7 +74,7 @@ class AgentTest {
 			try {
 				long nextID = i < 0 ? 0 : i > end ? end : Math.round(i) + 1,
 					previousID = nextID > 0 ? nextID - 1 : 0;
-				Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
+				@Nullable Pair<Integer, Integer> IDsPrediction = agent.getPreviousNextVertexIDs(i);
 				assert IDsPrediction.getVal0() == previousID;
 				assert IDsPrediction.getVal1() == nextID;
 			} catch (IndexOutOfBoundsException e) {
@@ -80,7 +82,7 @@ class AgentTest {
 			}
 		}
 
-		Pair<Integer, Integer> IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.7);
+		@Nullable Pair<Integer, Integer> IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.7);
 		assert IDsPrediction.getVal0() == 0 && IDsPrediction.getVal1() == 1;
 
 		IDsPrediction = nonTrivialAgent.getPreviousNextVertexIDs(0.8);

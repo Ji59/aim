@@ -12,6 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.LinkedList;
@@ -24,8 +25,8 @@ import java.util.List;
 public class AgentPane extends StackPane {
 	private static final long BIG_PRIMAL_NUMBER = 807833501;
 	private static final long SMALL_PRIMAL_NUMBER = 452807;
-	private final Vertex[] simulationVertices;  // FIXME remove
-	private final Rectangle rectangle;
+	private final Vertex @Nullable [] simulationVertices;  // FIXME remove
+	private final @NotNull Rectangle rectangle;
 	private final Rotate rotation = new Rotate();
 	private final Agent agent;
 	@Deprecated
@@ -50,7 +51,7 @@ public class AgentPane extends StackPane {
 	 * @param simulationVertices Intersection vertices the agent is travelling on
 	 */
 	@Deprecated
-	public AgentPane(long startTime, double firstStep, Agent agent, double period, Vertex[] simulationVertices, double cellSize) {
+	public AgentPane(long startTime, double firstStep, @NotNull Agent agent, double period, Vertex[] simulationVertices, double cellSize) {
 		this.agent = agent;
 		this.distanceTraveled = 0;
 		this.startTime = startTime;
@@ -65,7 +66,7 @@ public class AgentPane extends StackPane {
 		}
 	}
 
-	public AgentPane(double firstStep, Agent agent, Vertex[] simulationVertices, double cellSize) {
+	public AgentPane(double firstStep, @NotNull Agent agent, Vertex[] simulationVertices, double cellSize) {
 		this.agent = agent;
 		this.simulationVertices = simulationVertices;
 
@@ -78,14 +79,14 @@ public class AgentPane extends StackPane {
 	}
 
 	@NotNull
-	private Rectangle createNodes(Agent agent, double cellSize) {
+	private Rectangle createNodes(@NotNull Agent agent, double cellSize) {
 		// Create rectangle representing agent
 		double width = agent.getW() * cellSize;
 		double height = agent.getL() * cellSize;
-		final Rectangle rectangle = new Rectangle(width, height);
+		final @NotNull Rectangle rectangle = new Rectangle(width, height);
 
 		// Create ID label
-		Label label = new Label(String.valueOf(agent.getId()));
+		@NotNull Label label = new Label(String.valueOf(agent.getId()));
 
 		// TODO set rotation based on the arriving location
 		// Add rotation parameters
@@ -113,7 +114,7 @@ public class AgentPane extends StackPane {
 	 *
 	 * @param agent Agent the pane is based on
 	 */
-	AgentPane(Agent agent) {
+	AgentPane(@NotNull Agent agent) {
 		this.agent = agent;
 
 		rectangle = new Rectangle(agent.getW(), agent.getL());
@@ -242,7 +243,7 @@ public class AgentPane extends StackPane {
 	 *
 	 * @return List of corner points
 	 */
-	public List<Point> getCornerPoints() {
+	public @NotNull List<Point> getCornerPoints() {
 		double radianAngle = Math.toRadians(angle);
 		double sinAngle = Math.sin(radianAngle);
 		double cosAngle = Math.cos(radianAngle);
@@ -257,7 +258,7 @@ public class AgentPane extends StackPane {
 		double counterMiddleHeightX = halfHeight * sinAngle;
 		double middleHeightY = halfHeight * cosAngle;
 
-		List<Point> vertices = new LinkedList<>();
+		@NotNull List<Point> vertices = new LinkedList<>();
 		vertices.add(new Point(sx - middleWidthX + counterMiddleHeightX, sy - middleWidthY - middleHeightY)); // rotated top left vertex of the rectangle
 		vertices.add(new Point(sx + middleWidthX + counterMiddleHeightX, sy + middleWidthY - middleHeightY)); // rotated top right vertex of the rectangle
 		vertices.add(new Point(sx + middleWidthX - counterMiddleHeightX, sy + middleWidthY + middleHeightY)); // rotated bottom right vertex of the rectangle
@@ -271,7 +272,7 @@ public class AgentPane extends StackPane {
 	 */
 	public double[] getBoundingBox() {
 		double perimeter = agent.getAgentPerimeter();
-		double[] corners = new double[4];
+		double @NotNull [] corners = new double[4];
 		corners[0] = agent.getX() - perimeter;
 		corners[1] = agent.getY() - perimeter;
 		corners[2] = agent.getX() + perimeter;
@@ -397,7 +398,7 @@ public class AgentPane extends StackPane {
 	 *
 	 * @return
 	 */
-	public Color getColor() {
+	public @NotNull Color getColor() {
 		int hashCode = Long.hashCode(agent.getId() * SMALL_PRIMAL_NUMBER + BIG_PRIMAL_NUMBER);
 		int redValue = hashCode & 0xFF;
 		hashCode >>= 8;

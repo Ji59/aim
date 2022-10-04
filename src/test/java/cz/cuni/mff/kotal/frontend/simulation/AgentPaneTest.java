@@ -3,6 +3,7 @@ package cz.cuni.mff.kotal.frontend.simulation;
 
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.simulation.Agent;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -28,7 +29,7 @@ public class AgentPaneTest {
 	void getCornerPoints() {
 		setAgentPaneParameters(AGENT_PANE);
 
-		List<Point> cornerPoints = AGENT_PANE.getCornerPoints();
+		@NotNull List<Point> cornerPoints = AGENT_PANE.getCornerPoints();
 //		cornerPoints.forEach(point -> System.out.println(point.getX() + "; " + point.getY()));
 		assert cornerPoints.contains(new Point(CENTER_X - HALF_WIDTH, CENTER_Y - HALF_LENGTH));
 		assert cornerPoints.contains(new Point(CENTER_X + HALF_WIDTH, CENTER_Y - HALF_LENGTH));
@@ -138,9 +139,9 @@ public class AgentPaneTest {
 	}
 
 	private void checkCornersAtAngle2(double length, double width, boolean inverted, boolean plus90) {
-		Agent agent = new Agent(0, 0, 1, 0, 0, 1, 0, length, width, CENTER_X, CENTER_Y); // FIXME entry / exit directions
+		@NotNull Agent agent = new Agent(0, 0, 1, 0, 0, 1, 0, length, width, CENTER_X, CENTER_Y); // FIXME entry / exit directions
 
-		AgentPane agentPane = setAgentPaneParameters(new AgentPane(agent));
+		@NotNull AgentPane agentPane = setAgentPaneParameters(new AgentPane(agent));
 
 		double diagonalAngle = Math.atan(width / length);
 		if (inverted) {
@@ -198,7 +199,7 @@ public class AgentPaneTest {
 		assert cornerPointsContainPoint(cornerPoints, newDX, newDY);
 	}
 
-	public static void printLines(double... points) {
+	public static void printLines(double @NotNull ... points) {
 		int length = points.length;
 		if (length <= 2) {
 			System.out.println(Arrays.toString(points));
@@ -228,11 +229,11 @@ public class AgentPaneTest {
 		}
 	}
 
-	private boolean cornerPointsContainPoint(List<Point> cornerPoints, double newX, double newY) {
+	private boolean cornerPointsContainPoint(@NotNull List<Point> cornerPoints, double newX, double newY) {
 		return cornerPoints.stream().anyMatch(point -> MyNumberOperations.doubleAlmostEqual(point.getX(), newX, 1e-7) && MyNumberOperations.doubleAlmostEqual(point.getY(), newY, 1e-7));
 	}
 
-	private static AgentPane setAgentPaneParameters(AgentPane agentPane) {
+	private static @NotNull AgentPane setAgentPaneParameters(@NotNull AgentPane agentPane) {
 		agentPane.setLayoutX(CORNER_X);
 		agentPane.setLayoutY(CORNER_Y);
 		agentPane.setWidth(WIDTH);

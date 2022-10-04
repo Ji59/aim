@@ -6,6 +6,7 @@ import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.AgentPane;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import javafx.animation.AnimationTimer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -83,9 +84,9 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	}
 
 	@Override
-	public void updateAgents(double step, Set<AgentPane> activeAgents) {
+	public void updateAgents(double step, @NotNull Set<AgentPane> activeAgents) {
 		synchronized (agents) {
-			Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator = agents.entrySet().iterator();
+			@NotNull Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator = agents.entrySet().iterator();
 			while (activeAgentsIterator.hasNext()) {
 				Map.Entry<Long, AgentPane> a = activeAgentsIterator.next();
 				AgentPane agentPane = a.getValue();
@@ -108,7 +109,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	}
 
 	@Override
-	public void updateCollidedAgents(double step, AgentPane agentPane0, AgentPane agentPane1) {
+	public void updateCollidedAgents(double step, @NotNull AgentPane agentPane0, @NotNull AgentPane agentPane1) {
 		agentPane0.collide(step);
 		agentPane1.collide(step);
 	}
@@ -122,7 +123,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 			return;
 		}
 
-		Set<AgentPane> activeAgents = new HashSet<>(agents.size());
+		@NotNull Set<AgentPane> activeAgents = new HashSet<>(agents.size());
 		updateAgents(step, activeAgents);
 
 		handleCollisions(step, activeAgents);
@@ -173,7 +174,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 		forceUpdateSimulationStats(step, simulation);
 	}
 
-	private void removeAgent(Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
+	private void removeAgent(@NotNull Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
 		activeAgentsIterator.remove();
 		IntersectionScene.getSimulationAgents().removeAgentPane(agentPane);
 	}

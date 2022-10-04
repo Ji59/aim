@@ -11,6 +11,7 @@ import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,21 +30,21 @@ public class AStarRoundabout extends AStarSingle {
 
 	private final int lanes;
 
-	public AStarRoundabout(SimulationGraph graph) {
+	public AStarRoundabout(@NotNull SimulationGraph graph) {
 		this(graph, true);
 	}
 
-	protected AStarRoundabout(SimulationGraph graph, boolean oriented) {
+	protected AStarRoundabout(@NotNull SimulationGraph graph, boolean oriented) {
 		super(createRoundaboutGraph(graph, AlgorithmMenuTab2.getIntegerParameter(LANES_NAME, LANES_DEF), oriented));
 		lanes = AlgorithmMenuTab2.getIntegerParameter(LANES_NAME, LANES_DEF);
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, long step) {
+	public Agent planAgent(@NotNull Agent agent, long step) {
 		LinkGraph linkGraph = (LinkGraph) graph;
 		int entryID = linkGraph.getLinkID(agent.getEntry());
 
-		List<Integer> path = getPath(agent, step, entryID, getExitIDs(agent));
+		@Nullable List<Integer> path = getPath(agent, step, entryID, getExitIDs(agent));
 
 		if (path == null) {
 			return null;
@@ -55,7 +56,7 @@ public class AStarRoundabout extends AStarSingle {
 
 	@Override
 	@NotNull
-	protected Set<Integer> getExitIDs(Agent agent) {
+	protected Set<Integer> getExitIDs(@NotNull Agent agent) {
 		if (agent.getExit() >= 0) {
 			return Set.of(((LinkGraph) graph).getLinkID(agent.getExit()));
 		} else {
@@ -63,25 +64,25 @@ public class AStarRoundabout extends AStarSingle {
 		}
 	}
 
-	public static LinkGraph createRoundaboutGraph(SimulationGraph baseGraph, int lanes, boolean oriented) {
-		LinkGraph graph = new LinkGraph(oriented, baseGraph);
+	public static @NotNull LinkGraph createRoundaboutGraph(@NotNull SimulationGraph baseGraph, int lanes, boolean oriented) {
+		@NotNull LinkGraph graph = new LinkGraph(oriented, baseGraph);
 		int id = 0;
 
-		List<LinkVertex> vertices = new ArrayList<>();
-		for (Map.Entry<Integer, List<Vertex>> entry : baseGraph.getEntryExitVertices().entrySet()) {
+		@NotNull List<LinkVertex> vertices = new ArrayList<>();
+		for (Map.@NotNull Entry<Integer, List<Vertex>> entry : baseGraph.getEntryExitVertices().entrySet()) {
 			for (Vertex vertex : entry.getValue()) {
-				LinkVertex linkVertex = new LinkVertex(id++, (GraphicalVertex) vertex);
+				@NotNull LinkVertex linkVertex = new LinkVertex(id++, (GraphicalVertex) vertex);
 				vertices.add(linkVertex);
 				graph.addVertexMapping(linkVertex);
 			}
 		}
 
-		List<Integer> loop = createInitialLoop(baseGraph, oriented, graph, id, vertices);
+		@NotNull List<Integer> loop = createInitialLoop(baseGraph, oriented, graph, id, vertices);
 
 		for (int lane = 1; lane < lanes && !loop.isEmpty(); lane++) {
 			id += loop.size();
 
-			List<? extends Vertex> newLoop = getNewLoopBaseVertices(baseGraph, graph, id, loop, vertices);
+			@NotNull List<? extends Vertex> newLoop = getNewLoopBaseVertices(baseGraph, graph, id, loop, vertices);
 
 			if (newLoop.size() == 1) {
 				Vertex vertex = newLoop.get(0);
@@ -94,7 +95,7 @@ public class AStarRoundabout extends AStarSingle {
 				break;
 			}
 
-			List<Integer> newLoopIndexes = newLoop.stream().map(Vertex::getID).toList();
+			@NotNull List<Integer> newLoopIndexes = newLoop.stream().map(Vertex::getID).toList();
 
 			addNewLoopNeighbours(oriented, baseGraph, graph, vertices, newLoop, newLoopIndexes);
 
@@ -110,7 +111,7 @@ public class AStarRoundabout extends AStarSingle {
 			.flatMap(List::stream)
 			.filter(v -> v.getType().isEntry())
 			.forEach(v -> {
-				List<Integer> neighbours = v.getNeighbourIDs().stream().map(graph::getLinkID).toList();
+				@NotNull List<Integer> neighbours = v.getNeighbourIDs().stream().map(graph::getLinkID).toList();
 				LinkVertex linkVertex = graph.getLinkVertexByReal(v.getID());
 				for (int neighbourID : neighbours) {
 					LinkVertex neighbour = vertices.get(neighbourID);
@@ -121,21 +122,21 @@ public class AStarRoundabout extends AStarSingle {
 		return graph;
 	}
 
-	private static void addNonDirectNeighbours(Graph baseGraph, LinkGraph graph, List<LinkVertex> vertices, LinkVertex linkVertex, int neighbourID) {
+	private static void addNonDirectNeighbours(@NotNull Graph baseGraph, @NotNull LinkGraph graph, @NotNull List<LinkVertex> vertices, @NotNull LinkVertex linkVertex, int neighbourID) {
 		LinkVertex neighbour = vertices.get(graph.getLinkID(neighbourID));
 		addNeighbour(linkVertex, neighbour, baseGraph, graph);
 		addNeighbour(neighbour, linkVertex, baseGraph, graph);
 	}
 
-	private static void addNeighbour(LinkVertex linkVertex, LinkVertex neighbour, Graph baseGraph, LinkGraph graph) {
+	private static void addNeighbour(@NotNull LinkVertex linkVertex, @NotNull LinkVertex neighbour, @NotNull Graph baseGraph, @NotNull LinkGraph graph) {
 		linkVertex.addNeighbourID(neighbour.getID());
 		graph.getEdges().add(new Edge(linkVertex, neighbour, baseGraph.getDistance(linkVertex.getRealID(), neighbour.getRealID())));
 	}
 
-	private static void addOldNewLoopsNeighbours(boolean oriented, Graph baseGraph, LinkGraph graph, List<LinkVertex> vertices, List<Integer> loop, List<? extends Vertex> newLoop) {
-		for (Vertex vertex : newLoop) {
+	private static void addOldNewLoopsNeighbours(boolean oriented, @NotNull Graph baseGraph, @NotNull LinkGraph graph, @NotNull List<LinkVertex> vertices, @NotNull List<Integer> loop, @NotNull List<? extends Vertex> newLoop) {
+		for (@NotNull Vertex vertex : newLoop) {
 			LinkVertex linkVertex = vertices.get(graph.getLinkID(vertex.getID()));
-			List<Integer> oldLoopNeighbours = new LinkedList<>();
+			@NotNull List<Integer> oldLoopNeighbours = new LinkedList<>();
 			for (int oldLoopID : loop) {
 				if (vertex.getNeighbourIDs().contains(oldLoopID)) {
 					oldLoopNeighbours.add(oldLoopID);
@@ -174,8 +175,8 @@ public class AStarRoundabout extends AStarSingle {
 		}
 	}
 
-	private static List<? extends Vertex> getNewLoopBaseVertices(SimulationGraph baseGraph, LinkGraph graph, int id, List<Integer> loop, List<LinkVertex> vertices) {
-		List<GraphicalVertex> newLoop = new LinkedList<>();
+	private static @NotNull List<? extends Vertex> getNewLoopBaseVertices(@NotNull SimulationGraph baseGraph, @NotNull LinkGraph graph, int id, @NotNull List<Integer> loop, @NotNull List<LinkVertex> vertices) {
+		@NotNull List<GraphicalVertex> newLoop = new LinkedList<>();
 
 		int lastNewLoopID;
 		int oldLoopFirstIndex = 0;
@@ -215,7 +216,7 @@ public class AStarRoundabout extends AStarSingle {
 					lastNewLoopID = newLoopID;
 					newLoop.add(lastNewLoopVertex);
 
-					LinkVertex linkVertex = new LinkVertex(id++, lastNewLoopVertex);
+					@NotNull LinkVertex linkVertex = new LinkVertex(id++, lastNewLoopVertex);
 					vertices.add(linkVertex);
 					graph.addVertexMapping(linkVertex);
 				}
@@ -234,7 +235,7 @@ public class AStarRoundabout extends AStarSingle {
 		return newLoop;
 	}
 
-	private static int getNeighboursIntersection(LinkGraph graph, Vertex oldLoopVertex, Vertex newLoopVertex, int oldLoopPreviousID) {
+	private static int getNeighboursIntersection(@NotNull LinkGraph graph, @NotNull Vertex oldLoopVertex, @NotNull Vertex newLoopVertex, int oldLoopPreviousID) {
 		int candidate = -1;
 		for (int neighbour : oldLoopVertex.getNeighbourIDs()) {
 			if (!graph.existsMapping(neighbour) && newLoopVertex.getNeighbourIDs().contains(neighbour)) {
@@ -249,11 +250,11 @@ public class AStarRoundabout extends AStarSingle {
 		return candidate;
 	}
 
-	private static List<Integer> createInitialLoop(SimulationGraph baseGraph, boolean oriented, LinkGraph graph, int id, List<LinkVertex> vertices) {
-		List<Integer> loop = Roundabout.createLoop(baseGraph);
-		List<LinkVertex> createdLoop = new ArrayList<>();  // FIXME
+	private static @NotNull List<Integer> createInitialLoop(@NotNull SimulationGraph baseGraph, boolean oriented, @NotNull LinkGraph graph, int id, @NotNull List<LinkVertex> vertices) {
+		@NotNull List<Integer> loop = Roundabout.createLoop(baseGraph);
+		@NotNull List<LinkVertex> createdLoop = new ArrayList<>();  // FIXME
 		for (int loopID : loop) {
-			LinkVertex linkVertex = new LinkVertex(id++, baseGraph.getVertex(loopID));
+			@NotNull LinkVertex linkVertex = new LinkVertex(id++, baseGraph.getVertex(loopID));
 			createdLoop.add(linkVertex);
 			vertices.add(linkVertex);
 			graph.addVertexMapping(linkVertex);
@@ -269,8 +270,8 @@ public class AStarRoundabout extends AStarSingle {
 		return loop;
 	}
 
-	private static void addNewLoopNeighbours(boolean oriented, Graph baseGraph, LinkGraph graph, List<LinkVertex> vertices, List<? extends Vertex> newLoop, List<Integer> newLoopIndexes) {
-		for (Vertex vertex : newLoop) {
+	private static void addNewLoopNeighbours(boolean oriented, @NotNull Graph baseGraph, @NotNull LinkGraph graph, @NotNull List<LinkVertex> vertices, @NotNull List<? extends Vertex> newLoop, @NotNull List<Integer> newLoopIndexes) {
+		for (@NotNull Vertex vertex : newLoop) {
 			LinkVertex linkVertex = vertices.get(graph.getLinkID(vertex.getID()));
 			for (int newLoopID : newLoopIndexes) {
 				if (vertex.getNeighbourIDs().contains(newLoopID)) {
@@ -290,7 +291,7 @@ public class AStarRoundabout extends AStarSingle {
 	}
 
 	@Deprecated
-	private static void addLoopNeighbours(List<? extends Vertex> loop, boolean oriented) {
+	private static void addLoopNeighbours(@NotNull List<? extends Vertex> loop, boolean oriented) {
 		Vertex first = loop.get(0);
 		Vertex last = first;
 		for (int i = 1; i < loop.size(); i++) {
@@ -307,11 +308,11 @@ public class AStarRoundabout extends AStarSingle {
 		}
 	}
 
-	private static boolean isBeforeVertex(List<Integer> loop, int firstVertexID, int secondVertexID) {
+	private static boolean isBeforeVertex(@NotNull List<Integer> loop, int firstVertexID, int secondVertexID) {
 		return getLaneDistance(loop, firstVertexID, secondVertexID) <= loop.size() / 2;
 	}
 
-	private static int getLaneDistance(List<Integer> loop, int id0, int id1) {
+	private static int getLaneDistance(@NotNull List<Integer> loop, int id0, int id1) {
 		int i0 = loop.indexOf(id0);
 		int i1 = loop.indexOf(id1);
 		int distance = i1 - i0;

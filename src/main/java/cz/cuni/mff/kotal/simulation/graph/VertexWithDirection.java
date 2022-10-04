@@ -11,7 +11,7 @@ import java.util.Objects;
 public class VertexWithDirection implements Comparable<VertexWithDirection> {
 	protected final GraphicalVertex vertex;
 	protected final double angle;
-	protected final Distance distance;
+	protected final @NotNull Distance distance;
 	protected final double estimate;
 
 	public VertexWithDirection(GraphicalVertex vertex) {
@@ -29,12 +29,12 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 		this.estimate = estimate;
 	}
 
-	public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, Edge edge, double cellDistance) {
+	public VertexWithDirection(@NotNull VertexWithDirection previous, GraphicalVertex actual, Edge edge, double cellDistance) {
 		this(previous, actual, edge, cellDistance, 0);
 	}
 
 	// TODO refactor
-	public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, Edge edge, double cellDistance, double estimate) {
+	public VertexWithDirection(@NotNull VertexWithDirection previous, GraphicalVertex actual, @Nullable Edge edge, double cellDistance, double estimate) {
 		vertex = actual;
 
 		GraphicalVertex previousVertex = previous.getVertex();
@@ -62,7 +62,7 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 		this.estimate = estimate;
 	}
 
-	public VertexWithDirection(VertexWithDirection previous, GraphicalVertex actual, double distance, double estimate) {
+	public VertexWithDirection(@NotNull VertexWithDirection previous, GraphicalVertex actual, double distance, double estimate) {
 		vertex = actual;
 		GraphicalVertex previousVertex = previous.vertex;
 		double xDiff = previousVertex.getX() - vertex.getX();
@@ -83,11 +83,11 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 		this.estimate = estimate;
 	}
 
-	public VertexWithDirection(VertexWithDirectionParent previous, GraphicalVertex actual, double cellDistance) {
+	public VertexWithDirection(@NotNull VertexWithDirectionParent previous, GraphicalVertex actual, double cellDistance) {
 		this(previous, actual, null, cellDistance, 0);
 	}
 
-	public static double computeAngle(GraphicalVertex start, GraphicalVertex end) {
+	public static double computeAngle(@NotNull GraphicalVertex start, @NotNull GraphicalVertex end) {
 		double xDiff = start.getX() - end.getX();
 		double yDiff = start.getY() - end.getY();
 		return VertexWithDirection.computeAngle(xDiff, yDiff);
@@ -98,7 +98,7 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 	}
 
 	@Deprecated
-	public static double getDistance(VertexWithDirection start, GraphicalVertex end) {
+	public static double getDistance(@NotNull VertexWithDirection start, @NotNull GraphicalVertex end) {
 		GraphicalVertex startVertex = start.getVertex();
 		double x0 = startVertex.getX();
 		double y0 = startVertex.getY();
@@ -190,13 +190,13 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 			this.turns = turns;
 		}
 
-		public Distance(Distance previous, double distance, double turnPenalty, int turns) {
+		public Distance(@NotNull Distance previous, double distance, double turnPenalty, int turns) {
 			this.distance = previous.distance + distance;
 			this.turnPenalty = previous.turnPenalty + turnPenalty;
 			this.turns = previous.turns + turns;
 		}
 
-		public Distance(List<Integer> path, SimulationGraph graph) {
+		public Distance(@NotNull List<Integer> path, @NotNull SimulationGraph graph) {
 			double distance = 0;
 			double turnPenalty = 0;
 			int turns = 0;

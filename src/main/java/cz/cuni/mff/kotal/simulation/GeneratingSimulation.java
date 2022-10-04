@@ -10,6 +10,7 @@ import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -34,7 +35,7 @@ public class GeneratingSimulation extends Simulation {
 	protected final List<Long> distribution;
 	private final boolean generateExit;
 
-	private Timer timer;
+	private @Nullable Timer timer;
 
 
 	/**
@@ -44,7 +45,7 @@ public class GeneratingSimulation extends Simulation {
 	 * @param algorithm         Algorithm used in computation
 	 * @param simulationAgents  Agents simulation pane
 	 */
-	public GeneratingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
+	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
 		super(intersectionGraph, algorithm, simulationAgents);
 		long steps = AgentsMenuTab1.getSteps();
 		if (steps <= 0) {
@@ -70,7 +71,7 @@ public class GeneratingSimulation extends Simulation {
 	 * @param distribution      Entries usage distribution
 	 * @param simulationAgents  Agents simulation pane
 	 */
-	public GeneratingSimulation(SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, List<Long> distribution, boolean generateExit, SimulationAgents simulationAgents) {
+	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, @NotNull List<Long> distribution, boolean generateExit, SimulationAgents simulationAgents) {
 		super(intersectionGraph, algorithm, simulationAgents);
 
 		this.maximumSteps = maximumSteps;
@@ -136,10 +137,11 @@ public class GeneratingSimulation extends Simulation {
 	 * TODO
 	 *
 	 * @param step
+	 *
 	 * @return
 	 */
 	@Override
-	protected Collection<Agent> loadAgents(long step) {
+	protected @NotNull Collection<Agent> loadAgents(long step) {
 		if (step > maximumSteps) {
 			synchronized (delayedAgents) {
 				if (delayedAgents.values().stream().allMatch(Collection::isEmpty)) {
@@ -150,7 +152,7 @@ public class GeneratingSimulation extends Simulation {
 				}
 			}
 		} else {
-			List<Agent> newAgents = generateAgents(step, allAgents.size());
+			@NotNull List<Agent> newAgents = generateAgents(step, allAgents.size());
 			allAgents.putAll(newAgents.stream().collect(Collectors.toMap(Agent::getId, Function.identity())));
 			return newAgents;
 		}
@@ -184,35 +186,36 @@ public class GeneratingSimulation extends Simulation {
 	 * Generate new agents with IDs starting from specified ID.
 	 *
 	 * @param id ID of first generated agent; increases with reach generated agent
+	 *
 	 * @return Set of newly generated agents
 	 */
-	protected List<Agent> generateAgents(long step, int id) {
+	protected @NotNull List<Agent> generateAgents(long step, int id) {
 		assert (distribution.stream().reduce(0L, Long::sum) == 100);
 		long newAgentsCount = generateRandomLong(newAgentsMinimum, newAgentsMaximum);
 
-		List<Agent> newAgents = new ArrayList<>();
-		Map<Integer, List<Vertex>> entries = getEntriesExitsMap(true);
-		Map<Integer, List<Vertex>> exits = getEntriesExitsMap(false);
+		@NotNull List<Agent> newAgents = new ArrayList<>();
+		@NotNull Map<Integer, List<Vertex>> entries = getEntriesExitsMap(true);
+		@NotNull Map<Integer, List<Vertex>> exits = getEntriesExitsMap(false);
 
 		for (long i = 0; i < newAgentsCount; i++) {
 			long entryValue = generateRandomLong(100);
 			long exitValue = generateRandomLong(100);
 
-			Agent newAgent = generateAgent(step, id++, entryValue, exitValue, entries, exits);
+			@NotNull Agent newAgent = generateAgent(step, id++, entryValue, exitValue, entries, exits);
 			newAgents.add(newAgent);
 		}
 
 		if (!randomEntry && generateEntry) {
-			Map<Integer, PriorityQueue<Agent>> directionsAgents = new HashMap<>();
+			@NotNull Map<Integer, PriorityQueue<Agent>> directionsAgents = new HashMap<>();
 			int directions = getIntersectionGraph().getEntryExitVertices().size();
 			for (int direction = 0; direction < directions; direction++) {
 				directionsAgents.put(direction, new PriorityQueue<>((agent0, agent1) -> Long.compare(myModulo(agent1.getExitDirection() - agent1.getEntryDirection(), directions), myModulo(agent0.getExitDirection() - agent0.getEntryDirection(), directions))));  // descendant order
 			}
-			for (Agent agent : newAgents) {
+			for (@NotNull Agent agent : newAgents) {
 				directionsAgents.get(agent.getEntryDirection()).add(agent);
 			}
 
-			final Map<Integer, Integer> delayedAgentsSize = delayedAgents.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size()));
+			final @NotNull Map<Integer, Integer> delayedAgentsSize = delayedAgents.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().size()));
 
 			for (int entryDirection = 0; entryDirection < directions; entryDirection++) {
 				PriorityQueue<Agent> directionAgents = directionsAgents.get(entryDirection);
@@ -223,7 +226,7 @@ public class GeneratingSimulation extends Simulation {
 //					}
 //					return directionDifference;
 //				});
-				List<Vertex> directionEntries = getIntersectionGraph().getEntryExitVertices().get(entryDirection).stream().filter(vertex -> vertex.getType().isEntry()).toList(); // FIXME parallelStream?
+				@NotNull List<Vertex> directionEntries = getIntersectionGraph().getEntryExitVertices().get(entryDirection).stream().filter(vertex -> vertex.getType().isEntry()).toList(); // FIXME parallelStream?
 
 				final int directionAgentsMaxIndex = directionAgents.size() - 1;
 				for (int agentIndex = 0; agentIndex <= directionAgentsMaxIndex; agentIndex++) {
@@ -232,7 +235,7 @@ public class GeneratingSimulation extends Simulation {
 					long relativeExitDirection = myModulo(agent.getExitDirection() - entryDirection, directions) - 1;
 					int maxDirectionEntryIndex = directionEntries.size() - 1;
 					long goldenEntryIndex = maxDirectionEntryIndex - maxDirectionEntryIndex * relativeExitDirection / (directions - 2);
-					GraphicalVertex bestEntry = null;
+					@Nullable GraphicalVertex bestEntry = null;
 					long bestPriority = Long.MAX_VALUE;
 					long bestQueueSize = Long.MAX_VALUE;
 					for (int entryIndex = 0; entryIndex <= maxDirectionEntryIndex; entryIndex++) {
@@ -273,9 +276,10 @@ public class GeneratingSimulation extends Simulation {
 	 * @param exitValue  Value used for exit direction selection
 	 * @param entries    Map of entries from different directions
 	 * @param exits      Map of exits from different directions
+	 *
 	 * @return Newly generated agent
 	 */
-	protected Agent generateAgent(double step, int id, long entryValue, long exitValue, Map<Integer, List<Vertex>> entries, Map<Integer, List<Vertex>> exits) {
+	protected @NotNull Agent generateAgent(double step, int id, long entryValue, long exitValue, @NotNull Map<Integer, List<Vertex>> entries, @NotNull Map<Integer, List<Vertex>> exits) {
 		// FIXME No agents from E to S in square
 		// TODO generate only directions
 		int entryDirection;
@@ -360,7 +364,7 @@ public class GeneratingSimulation extends Simulation {
 		entryX = entry.getX() * IntersectionModel.getPreferredHeight();
 		entryY = entry.getY() * IntersectionModel.getPreferredHeight();
 
-		Vertex exit = null;
+		@Nullable Vertex exit = null;
 		if (generateExit) {
 			List<Vertex> directionExits = exits.get(exitDirection);
 			exit = directionExits.get(generateRandomInt(directionExits.size() - 1));
@@ -375,12 +379,12 @@ public class GeneratingSimulation extends Simulation {
 	 * Get map of entry / exit directions and vertices at the direction.
 	 *
 	 * @param isEntry If wanted entries or exits
+	 *
 	 * @return Map of entry direction numbers and vertices
 	 */
-	@NotNull
-	Map<Integer, List<Vertex>> getEntriesExitsMap(boolean isEntry) {
-		Map<Integer, List<Vertex>> entries = new HashMap<>();
-		for (Map.Entry<Integer, List<Vertex>> entry : getIntersectionGraph().getEntryExitVertices().entrySet()) {
+	@NotNull Map<Integer, List<Vertex>> getEntriesExitsMap(boolean isEntry) {
+		@NotNull Map<Integer, List<Vertex>> entries = new HashMap<>();
+		for (Map.@NotNull Entry<Integer, List<Vertex>> entry : getIntersectionGraph().getEntryExitVertices().entrySet()) {
 			entries.put(entry.getKey(), entry.getValue().stream().filter(v -> isEntry == v.getType().isEntry()).collect(Collectors.toCollection(LinkedList::new)));
 		}
 		return entries;

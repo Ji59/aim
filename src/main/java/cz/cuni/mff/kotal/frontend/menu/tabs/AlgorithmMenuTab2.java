@@ -20,6 +20,7 @@ import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -42,7 +43,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	public AlgorithmMenuTab2() {
 		super(Tabs.T2.getText());
 
-		Parameters.Algorithm algorithm = Parameters.Algorithm.nameOf(ALGORITHM.getValue());
+		Parameters.@Nullable Algorithm algorithm = Parameters.Algorithm.nameOf(ALGORITHM.getValue());
 
 		addRow(0, new MenuLabel(Parameters.ALGORITHM_NAME.getText()), ALGORITHM);
 
@@ -65,15 +66,15 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 
 	}
 
-	private void setAlgorithmActions(TextField description) {
+	private void setAlgorithmActions(@NotNull TextField description) {
 		ALGORITHM.valueProperty().addListener((observable, oldValue, newValue) -> {
-			Parameters.Algorithm algorithm = Parameters.Algorithm.nameOf(newValue);
+			Parameters.@Nullable Algorithm algorithm = Parameters.Algorithm.nameOf(newValue);
 			description.setText(algorithm.getDescription());
 			setParameters(algorithm);
 		});
 	}
 
-	private void setParameters(Parameters.Algorithm algorithm) {
+	private void setParameters(Parameters.@NotNull Algorithm algorithm) {
 		Map<String, Object> parameters;
 		try {
 			parameters = (Map<String, Object>) algorithm.getAlgorithmClass().getField("PARAMETERS").get(null);
@@ -83,19 +84,19 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		}
 		PARAMETERS.getChildren().clear();
 
-		Iterator<Map.Entry<String, Object>> iterator = parameters.entrySet().iterator();
+		@NotNull Iterator<Map.Entry<String, Object>> iterator = parameters.entrySet().iterator();
 		for (int i = 0; iterator.hasNext(); i++) {
 			Map.Entry<String, Object> entry = iterator.next();
 			String name = entry.getKey();
-			MenuLabel nameLabel = new MenuLabel(name);
+			@NotNull MenuLabel nameLabel = new MenuLabel(name);
 			Node valueNode;
 			Object value = entry.getValue();
 			if (value instanceof Boolean booleanValue) {
-				CheckBox checkBox = new CheckBox();
+				@NotNull CheckBox checkBox = new CheckBox();
 				checkBox.setSelected(booleanValue);
 				valueNode = checkBox;
 			} else {
-				TextField textField = new TextField(value.toString());
+				@NotNull TextField textField = new TextField(value.toString());
 				textField.setPrefWidth(42);
 				valueNode = textField;
 			}
@@ -107,8 +108,8 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	/**
 	 * @return Selected algorithm
 	 */
-	public static Parameters.Algorithm getAlgorithm() {
-		for (Parameters.Algorithm algorithm : Parameters.Algorithm.values()) {
+	public static Parameters.@Nullable Algorithm getAlgorithm() {
+		for (Parameters.@NotNull Algorithm algorithm : Parameters.Algorithm.values()) {
 			if (AlgorithmMenuTab2.ALGORITHM.getValue().equals(algorithm.name)) {
 				return algorithm;
 			}
@@ -124,7 +125,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	 * @param defaultValue
 	 * @return
 	 */
-	public static double getDoubleParameter(String parameterName, double defaultValue) {
+	public static double getDoubleParameter(@NotNull String parameterName, double defaultValue) {
 		return getParameter(parameterName, defaultValue, Double.class);
 	}
 
@@ -135,7 +136,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	 * @param defaultValue
 	 * @return
 	 */
-	public static int getIntegerParameter(String parameterName, int defaultValue) {
+	public static int getIntegerParameter(@NotNull String parameterName, int defaultValue) {
 		return getParameter(parameterName, defaultValue, Integer.class);
 	}
 
@@ -146,7 +147,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	 * @param defaultValue
 	 * @return
 	 */
-	public static boolean getBooleanParameter(String parameterName, boolean defaultValue) {
+	public static boolean getBooleanParameter(@NotNull String parameterName, boolean defaultValue) {
 		return getParameter(parameterName, defaultValue, Boolean.class);
 	}
 
@@ -157,7 +158,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	 * @param defaultValue
 	 * @return
 	 */
-	public static String getStringParameter(String parameterName, String defaultValue) {
+	public static String getStringParameter(@NotNull String parameterName, String defaultValue) {
 		return getParameter(parameterName, defaultValue, String.class);
 	}
 
@@ -169,8 +170,8 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	 * @param defaultValue
 	 * @return
 	 */
-	public static <T> T getParameter(String parameterName, T defaultValue, Class<T> tClass) {
-		for (Node child : PARAMETERS.getChildren()) {
+	public static <T> @Nullable T getParameter(@NotNull String parameterName, T defaultValue, @NotNull Class<T> tClass) {
+		for (@NotNull Node child : PARAMETERS.getChildren()) {
 			if (parameterName.equals(child.getId())) {
 				try {
 					if (tClass == Boolean.class) {
@@ -260,7 +261,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			}
 
 			public static @Nullable Algorithm nameOf(String name) {
-				for (Algorithm algorithm : values()) {
+				for (@NotNull Algorithm algorithm : values()) {
 					if (algorithm.name.equals(name)) {
 						return algorithm;
 					}
@@ -268,8 +269,8 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 				return null;
 			}
 
-			public static @Nullable Algorithm nameOf(cz.cuni.mff.kotal.backend.algorithm.Algorithm algorithm) {
-				for (Algorithm alg : values()) {
+			public static @Nullable Algorithm nameOf(cz.cuni.mff.kotal.backend.algorithm.@NotNull Algorithm algorithm) {
+				for (@NotNull Algorithm alg : values()) {
 					if (alg.getAlgorithmClass().equals(algorithm.getClass())) {
 						return alg;
 					}

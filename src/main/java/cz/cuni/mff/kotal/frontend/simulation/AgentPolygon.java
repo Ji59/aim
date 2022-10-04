@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.frontend.simulation;
 
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class AgentPolygon {
 	 * @param points
 	 */
 	@TestOnly
-	public AgentPolygon(long id, double ... points) {
+	public AgentPolygon(long id, double @NotNull ... points) {
 		this.corners = new ArrayList<>(points.length / 2);
 		for (int i = 0; i < points.length; i += 2) {
 			corners.add(new Point(points[i], points[i + 1]));

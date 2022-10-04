@@ -9,6 +9,7 @@ import cz.cuni.mff.kotal.helpers.Collisions;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Simulation;
 import cz.cuni.mff.kotal.simulation.graph.Graph;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -68,7 +69,7 @@ public interface SimulationTicker {
 	 *
 	 * @param graph
 	 */
-	static void resetValues(Graph graph) {
+	static void resetValues(@NotNull Graph graph) {
 		verticesUsageLock.lock();
 		verticesUsage.clear();
 		for (int i = 0; i < graph.getVertices().length; i++) {
@@ -83,8 +84,8 @@ public interface SimulationTicker {
 
 	void updateAgents(double step, Set<AgentPane> activeAgents);
 
-	default void handleCollisions(double step, Set<AgentPane> activeAgents) {
-		Set<Pair<AgentPane, AgentPane>> overlappingAgents = Collisions.getBoundingBoxesOverlaps(activeAgents);
+	default void handleCollisions(double step, @NotNull Set<AgentPane> activeAgents) {
+		@NotNull Set<Pair<AgentPane, AgentPane>> overlappingAgents = Collisions.getBoundingBoxesOverlaps(activeAgents);
 		overlappingAgents = overlappingAgents.stream().filter(pair -> Collisions.inCollision(pair.getVal0(), pair.getVal1())).collect(Collectors.toSet());
 
 		// Handle collisions
@@ -119,7 +120,7 @@ public interface SimulationTicker {
 		IntersectionMenu.setTimelineMaximum(step, maxStep.value);
 	}
 
-	default void forceUpdateSimulationStats(double step, Simulation simulation) {
+	default void forceUpdateSimulationStats(double step, @NotNull Simulation simulation) {
 		// update vertices usage
 		IntersectionScene.getSimulationAgents().setVertexLabelText();
 		IntersectionModel.forceUpdateVertexNodesColors();
@@ -148,7 +149,7 @@ public interface SimulationTicker {
 			return value;
 		}
 
-		public T setGreaterValue(T newValue) {
+		public T setGreaterValue(@NotNull T newValue) {
 			if (newValue.doubleValue() > value.doubleValue()) {
 				value = newValue;
 			}

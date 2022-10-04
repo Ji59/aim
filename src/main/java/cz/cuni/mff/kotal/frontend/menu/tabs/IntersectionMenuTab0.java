@@ -10,6 +10,8 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.HBox;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +49,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		addHistoryButtonsActions();
 		addModelActions();
 
-		Iterator<Parameters> iterator = Arrays.stream(Parameters.values()).iterator();
+		@NotNull Iterator<Parameters> iterator = Arrays.stream(Parameters.values()).iterator();
 		for (int index = 0; iterator.hasNext(); index++) {
 			Parameters parameter = iterator.next();
 			addRow(index, new MenuLabel(parameter.text), parameter.parameter);
@@ -65,8 +67,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 				return;
 			}
 
-			Parameters.GraphType selected = null;
-			for (Parameters.GraphType modelType : Parameters.GraphType.values()) {
+			Parameters.@Nullable GraphType selected = null;
+			for (Parameters.@NotNull GraphType modelType : Parameters.GraphType.values()) {
 				if (modelType.getText().equals(newValue)) {
 					selected = modelType;
 				}
@@ -90,7 +92,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 			correctEntriesExitsValues(granularity.getValue());
 
 			SimulationGraph graph = IntersectionScene.getIntersectionGraph().redraw();
-			Thread thread = new Thread(() -> graph.createDistances(true));
+			@NotNull Thread thread = new Thread(() -> graph.createDistances(true));
 			thread.setPriority(Thread.MIN_PRIORITY);
 			thread.start();
 
@@ -137,7 +139,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	private void startGraphDistanceComputing() {
 		SimulationGraph graph = IntersectionScene.getIntersectionGraph().redraw();
 
-		Thread thread = new Thread(() -> graph.createDistances(true));
+		@NotNull Thread thread = new Thread(() -> graph.createDistances(true));
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.start();
 	}
@@ -216,7 +218,7 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 		setSlidersDisable(false);
 	}
 
-	private void adjustEntriesExitsValues(Number newValue, MySlider slider) {
+	private void adjustEntriesExitsValues(@NotNull Number newValue, @NotNull MySlider slider) {
 		setSlidersDisable(true);
 		int newVal = newValue.intValue();
 		if (newVal + slider.getValue() + granularityDifference > granularity.getValue()) {
@@ -228,8 +230,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	/**
 	 * @return Selected model
 	 */
-	public static Parameters.GraphType getModel() {
-		for (Parameters.GraphType model : Parameters.GraphType.values()) {
+	public static Parameters.@NotNull GraphType getModel() {
+		for (Parameters.@NotNull GraphType model : Parameters.GraphType.values()) {
 			if (model.getText().equals(IntersectionMenuTab0.model.getValue())) {
 				return model;
 			}
@@ -240,28 +242,28 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 	/**
 	 * @return Restriction combo box
 	 */
-	public static MyComboBox getRestriction() {
+	public static @NotNull MyComboBox getRestriction() {
 		return restriction;
 	}
 
 	/**
 	 * @return Granularity slider
 	 */
-	public static MySlider getGranularity() {
+	public static @NotNull MySlider getGranularity() {
 		return granularity;
 	}
 
 	/**
 	 * @return Entries slider
 	 */
-	public static MySlider getEntries() {
+	public static @NotNull MySlider getEntries() {
 		return entries;
 	}
 
 	/**
 	 * @return Exits slider
 	 */
-	public static MySlider getExits() {
+	public static @NotNull MySlider getExits() {
 		return exits;
 	}
 
