@@ -89,7 +89,7 @@ public class IntersectionMenu extends VBox {
 		createControlNodes(padding);
 	}
 
-	private static void startSimulation() {
+	private static void startSimulation() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
 		SimulationGraph graph = IntersectionModel.getGraph();
 		AlgorithmMenuTab2.Parameters.Algorithm algorithmEnum = AlgorithmMenuTab2.getAlgorithm();
 		if (algorithmEnum == null) {
@@ -97,13 +97,7 @@ public class IntersectionMenu extends VBox {
 			return;
 		}
 		Algorithm algorithm;
-		try {
-			// TODO
 			algorithm = algorithmEnum.getAlgorithmClass().getConstructor(SimulationGraph.class).newInstance(graph);
-		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException ex) {
-			ex.printStackTrace();
-			return;
-		}
 		IntersectionScene.startSimulation(algorithm);
 		setPlayButtonPlaying(true);
 	}
@@ -230,7 +224,15 @@ public class IntersectionMenu extends VBox {
 			if (playing) {
 				pauseSimulation();
 			} else {
-				startSimulation();
+				try {
+					startSimulation();
+				} catch (Exception ex) {
+					final Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.setTitle("Starting simulation failed");
+					alert.setHeaderText("Exception occurred during simulation initialization");
+					alert.setContentText(ex.getMessage());
+					alert.showAndWait();
+				}
 			}
 			PLAY_BUTTON.setDisable(false);
 		});
@@ -241,8 +243,10 @@ public class IntersectionMenu extends VBox {
 	 */
 	private static void addResetButtonAction() {
 		RESTART_BUTTON.setOnMouseClicked(e -> {
+			PLAY_BUTTON.setDisable(true);
 			pauseSimulation();
 			IntersectionScene.resetSimulation();
+			PLAY_BUTTON.setDisable(false);
 		});
 	}
 

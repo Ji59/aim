@@ -32,7 +32,7 @@ public interface SimulationTicker {
 		updateSimulation(step, true);
 	}
 
-	static void updateSimulation(double step, boolean showAgents) {
+	static void updateSimulation(double step, boolean showAgents){
 		IntersectionMenu.setStep(step);
 		IntersectionScene.getSimulation().loadAndUpdateAgents(step);
 		IntersectionScene.getSimulationAgents().addArrivedAgents(step, showAgents);

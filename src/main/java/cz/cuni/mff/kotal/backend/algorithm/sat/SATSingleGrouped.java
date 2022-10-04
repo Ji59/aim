@@ -38,6 +38,7 @@ public class SATSingleGrouped extends SafeLines {
 	protected final boolean allowAgentStop;
 	protected final int maximumSteps;
 	protected final List<Integer>[] inverseNeighbours = new List[graph.getVertices().length];
+	protected WeightedPartialMaxsat solver;
 
 	public SATSingleGrouped(@NotNull SimulationGraph graph) {
 		super(graph);
@@ -110,6 +111,9 @@ public class SATSingleGrouped extends SafeLines {
 		solver.newVar(agentsCount * (vertices * (maximumSteps + 1)) + 1);
 		int offset = 1;
 		for (Map.Entry<Agent, Pair<Integer, Set<Integer>>> agentEntryExit : agentsEntriesExits.entrySet()) {
+			if (stopped) {
+				return;
+			}
 			final Agent agent = agentEntryExit.getKey();
 			final int entry = agentEntryExit.getValue().getVal0();
 			if (stepOccupiedVertices.get(step).containsKey(entry)) {
@@ -441,7 +445,7 @@ public class SATSingleGrouped extends SafeLines {
 
 	@Override
 	public @Nullable Agent planAgent(@NotNull Agent agent, final int entryID, final @NotNull Set<Integer> exitsIDs, final long step) {
-		WeightedPartialMaxsat solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newDefaultOptimizer(), false);
+		solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newDefaultOptimizer(), false);
 		final int vertices = graph.getVertices().length;
 		solver.newVar(vertices * (maximumSteps + 1));
 
@@ -471,5 +475,12 @@ public class SATSingleGrouped extends SafeLines {
 
 		addPlannedAgent(agent);
 		return agent;
+	}
+
+	@Override
+	public void stop() {
+		if (solver != null) {
+			solver.expireTimeout();
+		}
 	}
 }

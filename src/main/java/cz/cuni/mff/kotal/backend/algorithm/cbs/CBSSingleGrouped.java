@@ -76,7 +76,7 @@ public class CBSSingleGrouped extends AStarSingle {
 
 		Set<Node> visitedStates = new HashSet<>();
 
-		while (!queue.isEmpty()) {
+		while (!(queue.isEmpty() || stopped)) {
 			nodes++;
 
 			final Node node = queue.poll();
@@ -109,7 +109,11 @@ public class CBSSingleGrouped extends AStarSingle {
 			}
 		}
 
-		throw new IllegalStateException("No valid node found in CBS");
+		if (!stopped) {
+			throw new IllegalStateException("No valid node found in CBS");
+		}
+
+		return new Node(Collections.emptySet());
 	}
 
 	@NotNull
@@ -234,7 +238,7 @@ public class CBSSingleGrouped extends AStarSingle {
 				final int entry = entryExits.getVal0();
 				final Set<Integer> exits = entryExits.getVal1();
 				final List<Integer> newPath = getPath(agentCopy, step, entry, exits, constraints.getOrDefault(a, Collections.emptyMap()));
-				assert newPath != null;
+				assert newPath != null || stopped;
 				agentCopy.setPath(newPath, step);
 				return agentCopy;
 			})

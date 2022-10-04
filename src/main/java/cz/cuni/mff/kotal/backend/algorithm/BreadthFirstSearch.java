@@ -11,8 +11,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static cz.cuni.mff.kotal.helpers.MyGenerator.generateRandomInt;
-
 
 public class BreadthFirstSearch implements Algorithm {
 	private final Map<Integer, VertexWithVisit> vertices;
@@ -60,6 +58,7 @@ public class BreadthFirstSearch implements Algorithm {
 	 * @param entryID  TODO
 	 * @param exitsIDs
 	 * @param step     Actual step of simulation, ignored
+	 *
 	 * @return Agent if successfully planned otherwise null
 	 */
 	@Override
@@ -78,7 +77,9 @@ public class BreadthFirstSearch implements Algorithm {
 	 *
 	 * @param startID ID of starting vertex
 	 * @param endID   ID of ending vertex
+	 *
 	 * @return Found path as list
+	 *
 	 * @throws RuntimeException If no path was found.
 	 */
 	private List<Integer> bfs(int startID, int endID) {
@@ -116,6 +117,11 @@ public class BreadthFirstSearch implements Algorithm {
 
 	private void resetVisitedVertices() {
 		vertices.values().forEach(VertexWithVisit::setNotVisited);
+	}
+
+	@Override
+	public void stop() {
+		// TODO
 	}
 
 	/**

@@ -14,11 +14,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class SimulationBackgroundTicker implements SimulationTicker {
+	private static final Lock terminatedLock = new ReentrantLock(true);
 	private static boolean terminated;
-
 	private final Map<Long, AgentPane> agents;
 	private final Simulation simulation;
-	private static final Lock stepLock = new ReentrantLock(true);
 
 	public SimulationBackgroundTicker(Map<Long, AgentPane> agents, Simulation simulation) {
 		this.agents = agents;
@@ -26,7 +25,9 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 	}
 
 	public void start() {
+		terminatedLock.lock();
 		terminated = false;
+		terminatedLock.unlock();
 		final double step = simulation.getNextStep();
 
 		if (Platform.isFxApplicationThread()) {
@@ -40,12 +41,7 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 		step -= MAXIMUM_STEP_SIZE_PER_FRAME;
 		while (!(terminated || (simulation.ended() && agents.isEmpty() && IntersectionScene.getSimulationAgents().emptyArrivingAgents()))) {
 			step += MAXIMUM_STEP_SIZE_PER_FRAME;
-			stepLock.lock();
 			handleStep(step);
-			synchronized (stepLock) {
-				stepLock.unlock();
-				stepLock.notify();
-			}
 		}
 		IntersectionMenu.pauseSimulation();
 		simulation.updateStatistics(step);
@@ -55,21 +51,28 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 
 	@Override
 	public void handleStep(double step) {
+		assert step <= simulation.getLoadedStep();
 		SimulationTicker.updateSimulation(step, false);
 
-		Set<AgentPane> activeAgents = new HashSet<>(agents.size());
-		updateAgents(step, activeAgents);
+		terminatedLock.lock();
+		if (!terminated) {
 
-		handleCollisions(step, activeAgents);
 
-		updateVerticesUsageAndTimeline(step);
+			Set<AgentPane> activeAgents = new HashSet<>(agents.size());
+			updateAgents(step, activeAgents);
+
+			handleCollisions(step, activeAgents);
+
+			updateVerticesUsageAndTimeline(step);
+		}
+		terminatedLock.unlock();
 	}
 
 	@Override
 	public void stop() {
-		stepLock.lock();
+		terminatedLock.lock();
 		terminated = true;
-		stepLock.unlock();
+		terminatedLock.unlock();
 	}
 
 	@Override

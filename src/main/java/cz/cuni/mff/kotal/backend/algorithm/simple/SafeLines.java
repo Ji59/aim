@@ -30,6 +30,7 @@ public class SafeLines implements Algorithm {
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
 	protected double largestAgentPerimeter = 0;
+	protected boolean stopped = false;
 
 	public SafeLines(@NotNull SimulationGraph graph) {
 		this.graph = graph;
@@ -99,7 +100,7 @@ public class SafeLines implements Algorithm {
 	@Override
 	public Collection<Agent> planAgents(@NotNull Collection<Agent> agents, long step) {
 		filterStepOccupiedVertices(step);
-		return agents.stream().filter(agent -> planAgent(agent, step) != null).toList();
+		return agents.stream().filter(agent -> !stopped && planAgent(agent, step) != null).toList();
 	}
 
 	@Override
@@ -176,7 +177,18 @@ public class SafeLines implements Algorithm {
 		setLargestAgentPerimeter(agent);
 	}
 
+	@Override
+	public void stop() {
+		stopped = true;
+	}
+
+
+
 	public boolean validPath(long step, @NotNull List<Integer> path, double agentPerimeter) {
+		if (stopped) {
+			return false;
+		}
+
 		for (int i = 0; i < path.size(); i++) {
 			long actualStep = step + i;
 			if (stepOccupiedVertices.containsKey(actualStep)) {

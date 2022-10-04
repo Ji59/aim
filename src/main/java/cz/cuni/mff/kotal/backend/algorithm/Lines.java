@@ -45,6 +45,11 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public void stop() {
+		// TODO
+	}
+
 	// TODO
 	private boolean agentGoingStraight(Agent agent) {
 		return Math.abs(agent.getEntryDirection() - agent.getExitDirection()) % (graph.getModel().getDirections().size() / 2) == 0;

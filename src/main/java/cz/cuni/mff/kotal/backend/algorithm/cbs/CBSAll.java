@@ -53,7 +53,7 @@ public class CBSAll extends CBSSingleGrouped {
 		final Node node = bestValidNode(allAgents, step);
 
 		final Collection<Agent> plannedAgents = node.getAgents();
-		assert plannedAgents.containsAll(validNotFinishedAgents);
+		assert stopped || plannedAgents.containsAll(validNotFinishedAgents);
 		AlgorithmAll.processPlannedAgents(notFinishedAgents, plannedAgents, step);
 
 		return plannedAgents;
@@ -70,6 +70,10 @@ public class CBSAll extends CBSSingleGrouped {
 		} else {
 			removeAgentFromConstraints(node, constraints, agent);
 			agents = replanAgents(agentsEntriesExits, step, constraints, node.getAgents(), agent);
+		}
+
+		if (stopped) {
+			return;
 		}
 
 		queue.add(new Node(agents, constraints, node, collision));

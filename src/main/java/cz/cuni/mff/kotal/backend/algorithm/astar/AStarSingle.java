@@ -80,7 +80,7 @@ public class AStarSingle extends SafeLines {
 
 	@Nullable
 	protected LinkedList<Integer> getPath(Agent agent, long step, int entryID, Set<Integer> exitsIDs, Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
-		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter()))) {
+		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter())) || stopped) {
 			return null;
 		}
 
@@ -111,7 +111,7 @@ public class AStarSingle extends SafeLines {
 		Set<State> visitedStates = new HashSet<>();
 
 		State state;
-		while ((state = queue.poll()) != null) {
+		while ((state = queue.poll()) != null && !stopped) {
 
 			if (visitedStates.contains(state) || heuristic.get(state.getID()) < 0) {
 				continue;

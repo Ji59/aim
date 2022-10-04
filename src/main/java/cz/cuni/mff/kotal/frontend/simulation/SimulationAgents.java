@@ -36,21 +36,18 @@ import java.util.*;
  */
 public class SimulationAgents extends Pane {
 	public static final int LABEL_MOUSE_OFFSET = 12;
-	private Simulation simulation = new InvalidSimulation();
 	private static final Map<Long, AgentPane> activeAgents = new HashMap<>();
 	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
-	private double cellSize; // FIXME move somewhere else
-
 	private final Label vertexLabel = new Label();
-	private boolean vertexLabelUpdateRunning = false;
-	private int vertexLabelID;
 	private final Label agentLabel = new Label();
-	private Set<Node> agentPath = null;
-
-	private SimulationTicker timer;
-
 	@TestOnly
 	private final Set<Polygon> rectangles = new HashSet<>(); // only for debug
+	private Simulation simulation = new InvalidSimulation();
+	private double cellSize; // FIXME move somewhere else
+	private boolean vertexLabelUpdateRunning = false;
+	private int vertexLabelID;
+	private Set<Node> agentPath = null;
+	private SimulationTicker timer;
 
 	/**
 	 * Create new pane with specified parameters.
@@ -94,6 +91,50 @@ public class SimulationAgents extends Pane {
 
 	/**
 	 * TODO
+	 *
+	 * @param event
+	 */
+	private void onMouseMoveAction(MouseEvent event) {
+		double size = IntersectionModel.getPreferredHeight();
+
+		double x = event.getX() / size;
+		double y = event.getY() / size;
+
+		SimulationGraph graph = IntersectionModel.getGraph();
+		double cellSize = graph.getCellSize();
+
+		if (!simulation.isRunning() && coordinatesOverAgent(event, x, y, graph, cellSize)) {
+			return;
+		}
+		resetAgentPath();
+
+		double precision = cellSize * IntersectionModel.VERTEX_RATIO; // TODO extract constant
+
+		for (Vertex v : graph.getVertices()) {
+			GraphicalVertex vertex = (GraphicalVertex) v;
+			if (MyNumberOperations.distance(x, y, vertex.getX(), vertex.getY()) <= precision) {
+				vertexLabelID = vertex.getID();
+				updateVertexLabelProperties(event);
+				return;
+			}
+		}
+		vertexLabel.setVisible(false);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param event
+	 */
+	private void updateVertexLabelProperties(MouseEvent event) {
+		setVertexLabelText();
+		vertexLabel.setLayoutX(event.getX() + 12);
+		vertexLabel.setLayoutY(event.getY() + 12);
+		vertexLabel.setVisible(true);
+	}
+
+	/**
+	 * TODO
 	 */
 	public void setVertexLabelText() {
 		if (!vertexLabel.isVisible() || vertexLabelUpdateRunning) {
@@ -108,12 +149,92 @@ public class SimulationAgents extends Pane {
 		});
 	}
 
+	private void resetAgentPath() {
+		if (agentPath != null) {
+			agentLabel.setVisible(false);
+			getChildren().removeAll(agentPath);
+			agentPath = null;
+		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param x
+	 * @param y
+	 * @param graph
+	 * @param cellSize
+	 *
+	 * @return
+	 */
+	private boolean coordinatesOverAgent(MouseEvent event, double x, double y, SimulationGraph graph, double cellSize) {
+		double agentSizeScale = cellSize / 2;
+		for (AgentPane agentPane : activeAgents.values()) {
+			Agent agent = agentPane.getAgent();
+			if (MyNumberOperations.distance(x, y, agent.getX(), agent.getY()) <= Math.min(agent.getW(), agent.getL()) * agentSizeScale) {
+				agentLabel.setLayoutX(event.getX() + LABEL_MOUSE_OFFSET);
+				agentLabel.setLayoutY(event.getY() + LABEL_MOUSE_OFFSET);
+
+				if (agentPath == null) {
+					SimulationAgents.this.setAgentLabelText(agent);
+					agentLabel.setVisible(true);
+					vertexLabel.setVisible(false);
+					createAgentPath(graph, agentPane, agent);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * TODO
 	 */
 	public void setAgentLabelText(Agent agent) {
 		int exit = agent.getPath().get(agent.getPath().size() - 1);
 		agentLabel.setText(String.format("ID: %d%nArrival: %,.2f%nPlanned: %d%nEntry: %d%nExit: %d", agent.getId(), agent.getArrivalTime(), agent.getPlannedTime(), agent.getEntry(), exit));
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param graph
+	 * @param agentPane
+	 * @param agent
+	 */
+	private void createAgentPath(SimulationGraph graph, AgentPane agentPane, Agent agent) {
+		double size = IntersectionModel.getPreferredHeight();
+		List<Integer> path = agent.getPath();
+		agentPath = new HashSet<>(path.size());
+		for (int i = 1; i < path.size(); i++) {
+			GraphicalVertex lastVertex = graph.getVertex(path.get(i - 1));
+			GraphicalVertex nextVertex = graph.getVertex(path.get(i));
+			Line line = new Line(lastVertex.getX() * size, lastVertex.getY() * size, nextVertex.getX() * size, nextVertex.getY() * size);
+			getChildren().add(line);
+			setPathLineProperties(agentPane, line);
+			agentPath.add(line);
+		}
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param agentPane
+	 * @param line
+	 */
+	private void setPathLineProperties(AgentPane agentPane, Line line) {
+		line.toFront();
+		line.setStroke(agentPane.getColor());
+		line.setStrokeLineCap(StrokeLineCap.ROUND);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @return
+	 */
+	public static Map<Long, AgentPane> getActiveAgents() {
+		return activeAgents;
 	}
 
 	/**
@@ -225,6 +346,15 @@ public class SimulationAgents extends Pane {
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @param agentPane
+	 */
+	public void removeAgentPane(AgentPane agentPane) {
+		getChildren().remove(agentPane);
+	}
+
+	/**
 	 * Remove this agent from the simulation GUI.
 	 *
 	 * @param agentEntry Agent with its ID
@@ -235,24 +365,6 @@ public class SimulationAgents extends Pane {
 		}
 		AgentPane agentPane = agentEntry.getValue();
 		removeAgentPane(agentPane);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param agentPane
-	 */
-	public void removeAgentPane(AgentPane agentPane) {
-		getChildren().remove(agentPane);
-	}
-
-	/**
-	 * Set actually using simulation.
-	 *
-	 * @param simulation Running simulation
-	 */
-	public void setSimulation(Simulation simulation) {
-		this.simulation = simulation;
 	}
 
 	/**
@@ -285,7 +397,12 @@ public class SimulationAgents extends Pane {
 		} else {
 			timer = new SimulationAnimationTimer(activeAgents, simulation);
 		}
-		timer.start();
+
+		simulation.getStateLock().lock();
+		if (simulation.isRunning()) {
+			timer.start();
+		}
+		simulation.getStateLock().unlock();
 	}
 
 	/**
@@ -408,6 +525,18 @@ public class SimulationAgents extends Pane {
 	 * Only for debug purposes
 	 */
 	@TestOnly
+	public void addRectangle(double[] points, int red) {
+		Polygon rectangle = new Polygon(points);
+		rectangle.setFill(Color.rgb(red, 0, 0, 0.3));
+		rectangle.toBack();
+		rectangles.add(rectangle);
+		getChildren().add(rectangle);
+	}
+
+	/**
+	 * Only for debug purposes
+	 */
+	@TestOnly
 	public void addRectangle(double[] boundingBox) {
 		double[] points = new double[boundingBox.length * 2];
 		points[0] = boundingBox[0];
@@ -422,18 +551,6 @@ public class SimulationAgents extends Pane {
 	}
 
 	/**
-	 * Only for debug purposes
-	 */
-	@TestOnly
-	public void addRectangle(double[] points, int red) {
-		Polygon rectangle = new Polygon(points);
-		rectangle.setFill(Color.rgb(red, 0, 0, 0.3));
-		rectangle.toBack();
-		rectangles.add(rectangle);
-		getChildren().add(rectangle);
-	}
-
-	/**
 	 * TODO
 	 *
 	 * @return
@@ -443,125 +560,11 @@ public class SimulationAgents extends Pane {
 	}
 
 	/**
-	 * TODO
+	 * Set actually using simulation.
 	 *
-	 * @return
+	 * @param simulation Running simulation
 	 */
-	public static Map<Long, AgentPane> getActiveAgents() {
-		return activeAgents;
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param event
-	 */
-	private void onMouseMoveAction(MouseEvent event) {
-		double size = IntersectionModel.getPreferredHeight();
-
-		double x = event.getX() / size;
-		double y = event.getY() / size;
-
-		SimulationGraph graph = IntersectionModel.getGraph();
-		double cellSize = graph.getCellSize();
-
-		if (!simulation.isRunning() && coordinatesOverAgent(event, x, y, graph, cellSize)) {
-			return;
-		}
-		resetAgentPath();
-
-		double precision = cellSize * IntersectionModel.VERTEX_RATIO; // TODO extract constant
-
-		for (Vertex v : graph.getVertices()) {
-			GraphicalVertex vertex = (GraphicalVertex) v;
-			if (MyNumberOperations.distance(x, y, vertex.getX(), vertex.getY()) <= precision) {
-				vertexLabelID = vertex.getID();
-				updateVertexLabelProperties(event);
-				return;
-			}
-		}
-		vertexLabel.setVisible(false);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param event
-	 */
-	private void updateVertexLabelProperties(MouseEvent event) {
-		setVertexLabelText();
-		vertexLabel.setLayoutX(event.getX() + 12);
-		vertexLabel.setLayoutY(event.getY() + 12);
-		vertexLabel.setVisible(true);
-	}
-
-	private void resetAgentPath() {
-		if (agentPath != null) {
-			agentLabel.setVisible(false);
-			getChildren().removeAll(agentPath);
-			agentPath = null;
-		}
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param x
-	 * @param y
-	 * @param graph
-	 * @param cellSize
-	 * @return
-	 */
-	private boolean coordinatesOverAgent(MouseEvent event, double x, double y, SimulationGraph graph, double cellSize) {
-		double agentSizeScale = cellSize / 2;
-		for (AgentPane agentPane : activeAgents.values()) {
-			Agent agent = agentPane.getAgent();
-			if (MyNumberOperations.distance(x, y, agent.getX(), agent.getY()) <= Math.min(agent.getW(), agent.getL()) * agentSizeScale) {
-				agentLabel.setLayoutX(event.getX() + LABEL_MOUSE_OFFSET);
-				agentLabel.setLayoutY(event.getY() + LABEL_MOUSE_OFFSET);
-
-				if (agentPath == null) {
-					SimulationAgents.this.setAgentLabelText(agent);
-					agentLabel.setVisible(true);
-					vertexLabel.setVisible(false);
-					createAgentPath(graph, agentPane, agent);
-				}
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param graph
-	 * @param agentPane
-	 * @param agent
-	 */
-	private void createAgentPath(SimulationGraph graph, AgentPane agentPane, Agent agent) {
-		double size = IntersectionModel.getPreferredHeight();
-		List<Integer> path = agent.getPath();
-		agentPath = new HashSet<>(path.size());
-		for (int i = 1; i < path.size(); i++) {
-			GraphicalVertex lastVertex = graph.getVertex(path.get(i - 1));
-			GraphicalVertex nextVertex = graph.getVertex(path.get(i));
-			Line line = new Line(lastVertex.getX() * size, lastVertex.getY() * size, nextVertex.getX() * size, nextVertex.getY() * size);
-			getChildren().add(line);
-			setPathLineProperties(agentPane, line);
-			agentPath.add(line);
-		}
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param agentPane
-	 * @param line
-	 */
-	private void setPathLineProperties(AgentPane agentPane, Line line) {
-		line.toFront();
-		line.setStroke(agentPane.getColor());
-		line.setStrokeLineCap(StrokeLineCap.ROUND);
+	public void setSimulation(Simulation simulation) {
+		this.simulation = simulation;
 	}
 }

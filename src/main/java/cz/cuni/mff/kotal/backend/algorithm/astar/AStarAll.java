@@ -39,6 +39,10 @@ public class AStarAll extends AStarSingleGrouped {
 		final Map<Long, Map<Integer, Set<Agent>>> plannedConflictAvoidanceTable = new HashMap<>();
 
 		for (final Agent agent : validNotFinishedAgents) {
+			if (stopped) {
+				return Collections.emptySet();
+			}
+
 			final long plannedTime = agent.getPlannedTime();
 			final int travelTime = (int) (step - plannedTime);
 			assert travelTime < agent.getPath().size() - 1;
@@ -52,14 +56,18 @@ public class AStarAll extends AStarSingleGrouped {
 			agentsGroups.add(new Triplet<>(agentMap, conflictAvoidanceTable, Collections.emptySet()));
 		}
 
-		Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> initialPaths = createInitialPaths(agentsEntriesExits, step, plannedConflictAvoidanceTable);
-		if (initialPaths.isEmpty()) {
+		final Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> initialPaths = createInitialPaths(agentsEntriesExits, step, plannedConflictAvoidanceTable);
+		if (initialPaths.isEmpty() || stopped) {
 			return Collections.emptySet();
 		}
 
 		agentsGroups.addAll(initialPaths);
 
 		solveAgentsCollisions(step, agentsGroups);
+
+		if (stopped) {
+			return Collections.emptySet();
+		}
 
 		Collection<Agent> plannedAgents = agentsGroups.stream().flatMap(group -> group.getVal0().keySet().stream()).collect(Collectors.toList());
 		assert plannedAgents.containsAll(validNotFinishedAgents);
@@ -84,9 +92,7 @@ public class AStarAll extends AStarSingleGrouped {
 			System.out.println("Merged 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
 				+ " with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
 				+ " creating " + agentsGroups.stream().filter(g -> !Collections.disjoint(g.getVal0().keySet(), group0Agents) || !Collections.disjoint(g.getVal0().keySet(), group1Agents)).findAny().orElse(new Triplet<>(Collections.emptyMap(), null, null)).getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
-			return;
 		}
-		assert false;
 	}
 
 	@Override
@@ -123,6 +129,10 @@ public class AStarAll extends AStarSingleGrouped {
 
 		for (int i = combinedNewAgents.size(); i >= 0; i--) {
 			for (Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedNewAgents.entrySet(), i)) {
+
+				if (stopped) {
+					return false;
+				}
 
 				Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(combinedPlannedAgents);
 				combination.forEach(agentEntryExits -> combinedAgents.put(agentEntryExits.getKey(), agentEntryExits.getValue()));

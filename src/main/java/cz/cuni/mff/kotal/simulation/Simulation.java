@@ -3,9 +3,12 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
+import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -25,6 +28,12 @@ public abstract class Simulation {
 	protected final SortedMap<Long, Agent> allAgents = new TreeMap<>();
 	protected final Algorithm algorithm;
 	protected final SimulationAgents simulationAgents;
+	protected final Map<Integer, List<Agent>> delayedAgents = new HashMap<>();
+	protected final PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
+	protected final PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
+	protected final List<Long> planningTime = new LinkedList<>();
+	private final Lock loadAgentsLock = new ReentrantLock(false);
 	protected long step = 0;
 	protected long agentsTotal = 0;
 	protected long agentsDelay = 0;
@@ -35,30 +44,23 @@ public abstract class Simulation {
 	protected double startingStep = 0;
 	protected long period;
 	protected State state;
-
-
+	protected final Lock stateLock = new ReentrantLock();
 	protected long loadedStep = 0;
 	protected long delayedStep = 0;
-	protected final Map<Integer, List<Agent>> delayedAgents = new HashMap<>();
-	protected final PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
-	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
-	protected final PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
-
-	private final Lock loadAgentsLock = new ReentrantLock(false);
-
 	protected boolean ended = false;
 	protected long finalStep = 0;
 
-	protected final List<Long> planningTime = new LinkedList<>();
-
 	protected Simulation() {
+		stateLock.lock();
 		state = State.INVALID;
 		intersectionGraph = new SquareGraph(4, 1, 1);
 		algorithm = null;
 		simulationAgents = null;
+		stateLock.unlock();
 	}
 
 	protected Simulation(SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
+		stateLock.lock();
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
 		this.simulationAgents = simulationAgents;
@@ -68,10 +70,37 @@ public abstract class Simulation {
 		maximumDelay = (long) intersectionGraph.getGranularity() * intersectionGraph.getEntryExitVertices().size();
 
 		intersectionGraph.getEntryExitVertices().values().forEach(
-						directionList -> directionList.stream()
-										.filter(vertex -> vertex.getType().isEntry())
-										.forEach(entry -> delayedAgents.put(entry.getID(), new ArrayList<>()))
+			directionList -> directionList.stream()
+				.filter(vertex -> vertex.getType().isEntry())
+				.forEach(entry -> delayedAgents.put(entry.getID(), new ArrayList<>()))
 		);
+		stateLock.unlock();
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param period Time in nanoseconds
+	 */
+	public final void start(long period) {
+		stateLock.lock();
+		state = State.RUNNING;
+		this.period = period;
+
+		new Thread(() -> {
+			if (startingStep <= 0) {
+				loadAndUpdateAgents(0.);
+			}
+			simulationAgents.resumeSimulation(this);
+		}).start();
+
+		if (startingStep <= 0) {
+			IntersectionMenu.setAgents(0);
+			IntersectionMenu.setStep(0);
+			IntersectionMenu.setDelay(0);
+			IntersectionMenu.setCollisions(0);
+		}
+		stateLock.unlock();
 	}
 
 	/**
@@ -80,29 +109,40 @@ public abstract class Simulation {
 	 * @param step
 	 */
 	public void loadAndUpdateAgents(double step) {
-		double stepDiff = loadedStep - step;
-		if (stepDiff <= GENERATED_MINIMUM_STEP_AHEAD / 2) {
-			try {
-				loadAgentsLock.lock();
-				for (; loadedStep - step <= GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-					loadAndUpdateAgents(loadedStep);
-				}
-			} finally {
-				loadAgentsLock.unlock();
-			}
-		}
+		final double stepDiff = loadedStep - step;
 
 		if (stepDiff <= GENERATED_MINIMUM_STEP_AHEAD) {
-			new Thread(() -> {
+			final Thread thread = new Thread(() -> {
 				loadAgentsLock.lock();
 				try {
-					for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD; loadedStep++) {
-						loadAndUpdateAgents(loadedStep);
+					for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD && isRunning(); loadedStep++) {
+						try {
+							loadAndUpdateAgents(loadedStep);
+						} catch (Exception e) {
+							stop();
+							Platform.runLater(() -> {
+								final Alert alert = new Alert(Alert.AlertType.ERROR);
+								alert.setTitle("Algorithm planning failed");
+								alert.setHeaderText("Exception occurred during computing algorithm plan at step " + step);
+								alert.setContentText(e.getMessage());
+								alert.showAndWait();
+							});
+							return;
+						}
 					}
 				} finally {
 					loadAgentsLock.unlock();
 				}
-			}).start();
+			});
+			thread.start();
+
+			if (stepDiff < GENERATED_MINIMUM_STEP_AHEAD && !Platform.isFxApplicationThread()) {
+				try {
+					thread.join();
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
 		}
 	}
 
@@ -118,64 +158,6 @@ public abstract class Simulation {
 		updateDelayedAgents(step);
 	}
 
-	/**
-	 * TODO
-	 *
-	 * @param period Time in nanoseconds
-	 */
-	public final void start(long period) {
-		this.period = period;
-		if (startingStep <= 0) {
-			loadAndUpdateAgents(0.);
-			IntersectionMenu.setAgents(0);
-			IntersectionMenu.setStep(0);
-			IntersectionMenu.setDelay(0);
-			IntersectionMenu.setCollisions(0);
-		}
-		state = State.RUNNING;
-
-		simulationAgents.resumeSimulation(this);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param period Time in nanoseconds
-	 */
-	@Deprecated
-	public final void startAt(long period, double step) {
-		if (ended) {
-			return;
-		}
-
-		this.period = period;
-		state = State.RUNNING;
-		setStartAndAgents(step);
-//		simulationAgents.resumeSimulationWithAgents(this, startTime, allAgents.values());
-		startTime = System.nanoTime();
-		simulationAgents.resumeSimulation(this);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param step
-	 */
-	public final void setStartAndAgents(double step) {
-		simulationAgents.setAgents(allAgents.values(), step);
-		startingStep = step;
-	}
-
-	protected abstract void start();
-
-	public final void stop() {
-		if (state == State.RUNNING) {
-			state = State.STOPPED;
-			simulationAgents.pauseSimulation();
-//			startingStep = getStep(System.nanoTime());
-		}
-	}
-
 	protected void addCreatedAgents(Collection<Agent> newAgents) {
 		synchronized (delayedAgents) {
 			newAgents.forEach(agent -> delayedAgents.get(agent.getEntry()).add(agent));
@@ -185,17 +167,6 @@ public abstract class Simulation {
 			createdAgentsQueue.addAll(newAgents);
 		}
 	}
-
-	@Deprecated
-	protected abstract void stopSimulation();
-
-	public final void reset() {
-		state = State.INVALID;
-		delayedAgents.values().forEach(Collection::clear);
-		resetSimulation();
-	}
-
-	protected abstract void resetSimulation();
 
 	/**
 	 * TODO
@@ -212,7 +183,7 @@ public abstract class Simulation {
 
 		assert algorithm != null;
 		final long startTime = System.nanoTime();
-		Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
+		final Collection<Agent> plannedAgents = algorithm.planAgents(entriesAgents, step);
 		final long endTime = System.nanoTime();
 		planningTime.add(endTime - startTime);
 
@@ -248,6 +219,67 @@ public abstract class Simulation {
 		}
 	}
 
+	protected boolean isRejected(double step, Agent rejectedAgent) {
+		return rejectedAgent.getArrivalTime() + maximumDelay <= step;
+	}
+
+	public final void stop() {
+		stateLock.lock();
+		if (state == State.RUNNING) {
+			state = State.STOPPED;
+			simulationAgents.pauseSimulation();
+			IntersectionMenu.setPlayButtonPlaying(false);
+		}
+		stateLock.unlock();
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param period Time in nanoseconds
+	 */
+	@Deprecated
+	public final void startAt(long period, double step) {
+		if (ended) {
+			return;
+		}
+
+		this.period = period;
+		state = State.RUNNING;
+		setStartAndAgents(step);
+//		simulationAgents.resumeSimulationWithAgents(this, startTime, allAgents.values());
+		startTime = System.nanoTime();
+		simulationAgents.resumeSimulation(this);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param step
+	 */
+	public final void setStartAndAgents(double step) {
+		simulationAgents.setAgents(allAgents.values(), step);
+		startingStep = step;
+	}
+
+	protected abstract void start();
+
+	@Deprecated
+	protected abstract void stopSimulation();
+
+	public final void reset() {
+		stateLock.lock();
+		state = State.INVALID;
+		algorithm.stop();
+		resetSimulation();
+		synchronized (delayedAgents) {
+			delayedAgents.values().forEach(Collection::clear);
+		}
+		stateLock.unlock();
+	}
+
+	protected abstract void resetSimulation();
+
 	@Deprecated
 	protected void updateStatistics(long agents) {
 		IntersectionMenu.setAgents(agents);
@@ -271,17 +303,6 @@ public abstract class Simulation {
 		updateRejectedAgents(step, step_rounded);
 
 		delayedStep = step_rounded;
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param agent
-	 * @return
-	 */
-	protected double getAgentsDelay(Agent agent) {
-		final int exitID = agent.getPath().get(agent.getPath().size() - 1);
-		return agent.getPath().size() - getIntersectionGraph().getDistance(agent.getEntry(), exitID);
 	}
 
 	/**
@@ -332,6 +353,25 @@ public abstract class Simulation {
 	/**
 	 * TODO
 	 *
+	 * @param agent
+	 *
+	 * @return
+	 */
+	protected double getAgentsDelay(Agent agent) {
+		final int exitID = agent.getPath().get(agent.getPath().size() - 1);
+		return agent.getPath().size() - getIntersectionGraph().getDistance(agent.getEntry(), exitID);
+	}
+
+	/**
+	 * @return Graph of this simulation
+	 */
+	public SimulationGraph getIntersectionGraph() {
+		return intersectionGraph;
+	}
+
+	/**
+	 * TODO
+	 *
 	 * @param step
 	 */
 	protected void updateRejectedAgents(double step, long stepRounded) {
@@ -351,22 +391,11 @@ public abstract class Simulation {
 		}
 	}
 
-	protected boolean isRejected(double step, Agent rejectedAgent) {
-		return rejectedAgent.getArrivalTime() + maximumDelay <= step;
-	}
-
 	/**
 	 * @return If this simulation is running
 	 */
 	public boolean isRunning() {
 		return state == State.RUNNING;
-	}
-
-	/**
-	 * @return Graph of this simulation
-	 */
-	public SimulationGraph getIntersectionGraph() {
-		return intersectionGraph;
 	}
 
 	/**
@@ -393,6 +422,7 @@ public abstract class Simulation {
 	 * Get generated agent with specified ID.
 	 *
 	 * @param id ID of the agent
+	 *
 	 * @return Found agent
 	 */
 	public Agent getAgent(long id) {
@@ -415,6 +445,7 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param time
+	 *
 	 * @return
 	 */
 	public double getStep(long time) {
@@ -443,6 +474,7 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param step
+	 *
 	 * @return
 	 */
 	@Deprecated
@@ -475,6 +507,14 @@ public abstract class Simulation {
 
 	public State getState() {
 		return state;
+	}
+
+	public Lock getStateLock() {
+		return stateLock;
+	}
+
+	public long getLoadedStep() {
+		return loadedStep;
 	}
 
 	/**

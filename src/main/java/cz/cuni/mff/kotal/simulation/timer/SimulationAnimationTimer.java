@@ -19,8 +19,6 @@ import java.util.Set;
 public class SimulationAnimationTimer extends AnimationTimer implements SimulationTicker {
 	private static double lastStep = Double.MAX_VALUE;
 	private static int overLimitCount = 0;
-	private static long[] lastCalls = new long[128];
-	private static int lastCallsIt = 0;
 
 	private final Map<Long, AgentPane> agents;
 	private final Simulation simulation;
@@ -40,6 +38,20 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	}
 
 	/**
+	 * TODO
+	 *
+	 * @param value
+	 */
+	private static void setLastStep(double value) {
+		lastStep = value;
+		overLimitCount = 0;
+	}
+
+	protected static void resetValues() {
+		SimulationAnimationTimer.setLastStep(Double.MAX_VALUE);
+	}
+
+	/**
 	 * Compute agents positions, update values, check for collisions.
 	 *
 	 * @param now System time of frame
@@ -55,12 +67,14 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 		}
 
 		handleStep(step);
+	}
 
-		lastCallsIt = (lastCallsIt + 1) % 128;
-		if (lastCallsIt % 16 == 0) {
-			System.out.println("FPS: " + (1_000_000_000. * 128 / (now - lastCalls[lastCallsIt])));
-		}
-		lastCalls[lastCallsIt] = now;
+	@Override
+	public void stop() {
+		long stopTime = System.nanoTime();
+		super.stop();
+		double lastHandledStep = lastStep < Double.MAX_VALUE ? lastStep : simulation.getStep(stopTime - startTime);
+		simulation.setStartingStep(lastHandledStep);
 	}
 
 	@Override
@@ -68,10 +82,45 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 		handleStep(step, false);
 	}
 
+	@Override
+	public void updateAgents(double step, Set<AgentPane> activeAgents) {
+		synchronized (agents) {
+			Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator = agents.entrySet().iterator();
+			while (activeAgentsIterator.hasNext()) {
+				Map.Entry<Long, AgentPane> a = activeAgentsIterator.next();
+				AgentPane agentPane = a.getValue();
+				if (agentPane.getCollisionStep() > step) {
+					boolean finished = agentPane.handleTick(step);
+					if (finished) {
+						removeAgent(activeAgentsIterator, agentPane);
+					} else {
+						activeAgents.add(agentPane);
+					}
+				} else {
+					if (agentPane.getCollisionStep() + SimulationTicker.COLLISION_AGENTS_SHOWN_STEPS <= step) {
+						removeAgent(activeAgentsIterator, agentPane);
+					} else {
+						agentPane.collide();
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void updateCollidedAgents(double step, AgentPane agentPane0, AgentPane agentPane1) {
+		agentPane0.collide(step);
+		agentPane1.collide(step);
+	}
+
 	private void handleStep(double step, boolean isMiddleStep) {
 		updateSpeed(step, isMiddleStep);
 
 		SimulationTicker.updateSimulation(step);
+		if (simulation.getLoadedStep() < step) {
+			simulation.stop();
+			return;
+		}
 
 		Set<AgentPane> activeAgents = new HashSet<>(agents.size());
 		updateAgents(step, activeAgents);
@@ -119,47 +168,7 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 		}
 	}
 
-	@Override
-	public void updateAgents(double step, Set<AgentPane> activeAgents) {
-		synchronized (agents) {
-			Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator = agents.entrySet().iterator();
-			while (activeAgentsIterator.hasNext()) {
-				Map.Entry<Long, AgentPane> a = activeAgentsIterator.next();
-				AgentPane agentPane = a.getValue();
-				if (agentPane.getCollisionStep() > step) {
-					boolean finished = agentPane.handleTick(step);
-					if (finished) {
-						removeAgent(activeAgentsIterator, agentPane);
-					} else {
-						activeAgents.add(agentPane);
-					}
-				} else {
-					if (agentPane.getCollisionStep() + SimulationTicker.COLLISION_AGENTS_SHOWN_STEPS <= step) {
-						removeAgent(activeAgentsIterator, agentPane);
-					} else {
-						agentPane.collide();
-					}
-				}
-			}
-		}
-	}
-
-	@Override
-	public void updateCollidedAgents(double step, AgentPane agentPane0, AgentPane agentPane1) {
-		agentPane0.collide(step);
-		agentPane1.collide(step);
-	}
-
-	@Override
-	public void stop() {
-		long stopTime = System.nanoTime();
-		super.stop();
-		double lastHandledStep = lastStep < Double.MAX_VALUE ? lastStep : simulation.getStep(stopTime - startTime);
-		simulation.setStartingStep(lastHandledStep);
-	}
-
 	private void stopSimulation(double step) {
-		SimulationTicker.updateSimulation(step);  // TODO is this necessary?
 		IntersectionMenu.pauseSimulation();
 		forceUpdateSimulationStats(step, simulation);
 	}
@@ -167,20 +176,5 @@ public class SimulationAnimationTimer extends AnimationTimer implements Simulati
 	private void removeAgent(Iterator<Map.Entry<Long, AgentPane>> activeAgentsIterator, AgentPane agentPane) {
 		activeAgentsIterator.remove();
 		IntersectionScene.getSimulationAgents().removeAgentPane(agentPane);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param value
-	 */
-	private static void setLastStep(double value) {
-		lastStep = value;
-		overLimitCount = 0;
-	}
-
-	protected static void resetValues() {
-		SimulationAnimationTimer.setLastStep(Double.MAX_VALUE);
-		SimulationAnimationTimer.lastCalls = new long[128];
 	}
 }
