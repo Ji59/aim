@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.frontend.menu.tabs.myNodes;
+package cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes;
 
 
 import javafx.collections.FXCollections;

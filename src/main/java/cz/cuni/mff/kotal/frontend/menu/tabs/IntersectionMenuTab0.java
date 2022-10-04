@@ -3,9 +3,9 @@ package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MyComboBox;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MySlider;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import javafx.scene.Node;
 import javafx.scene.control.Button;

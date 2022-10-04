@@ -2,9 +2,9 @@ package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
 import cz.cuni.mff.kotal.frontend.MyApplication;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MyComboBox;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MySlider;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.*;

@@ -1,4 +1,4 @@
-package cz.cuni.mff.kotal.frontend.menu.tabs.myNodes;
+package cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes;
 
 
 import javafx.beans.value.ChangeListener;
@@ -6,13 +6,9 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.events.Event;
-
-import java.util.function.IntConsumer;
 
 
 /**

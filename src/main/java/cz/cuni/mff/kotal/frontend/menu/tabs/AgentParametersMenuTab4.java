@@ -1,9 +1,9 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MyComboBox;
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MySlider;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MyComboBox;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MySlider;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 /**
@@ -25,9 +24,9 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	// TODO don't use static, use Component
 	// TODO rename constants
 	// TODO redesign size properties
-	private static final MySlider minimalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1, 1);
+	private static final MySlider minimalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1., 1);
 	private static final MySlider minimalSizeWidth = new MySlider(1, Math.min(IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getExits().getValue()), 1);
-	private static final MySlider maximalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1, 1);
+	private static final MySlider maximalSizeLength = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue() - 1., 1);
 	private static final MySlider maximalSizeWidth = new MySlider(1, Math.min(IntersectionMenuTab0.getEntries().getValue(), IntersectionMenuTab0.getExits().getValue()), 1);
 	private static final MySlider minimalSpeed = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue(), 1);
 	private static final MySlider maximalSpeed = new MySlider(1, IntersectionMenuTab0.getGranularity().getValue(), 1);

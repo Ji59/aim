@@ -1,7 +1,7 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
-import cz.cuni.mff.kotal.frontend.menu.tabs.myNodes.MenuLabel;
+import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
