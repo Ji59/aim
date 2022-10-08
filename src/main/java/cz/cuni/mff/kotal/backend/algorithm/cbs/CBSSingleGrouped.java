@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 public class CBSSingleGrouped extends AStarSingle {
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingle.PARAMETERS);
 
+	protected final Map<Agent, List<Integer>> initialPaths = new HashMap<>();
+
 	public CBSSingleGrouped(SimulationGraph graph) {
 		super(graph);
 	}
@@ -44,6 +46,7 @@ public class CBSSingleGrouped extends AStarSingle {
 	 */
 	@Override
 	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
+		initialPaths.clear();
 		findInitialPaths(agentsEntriesExits, step);
 
 		final @NotNull Node node = bestValidNode(agentsEntriesExits, step);
@@ -64,6 +67,7 @@ public class CBSSingleGrouped extends AStarSingle {
 				it.remove();
 			} else {
 				agent.setPath(path, step);
+				initialPaths.put(agent, path);
 			}
 		}
 	}
@@ -230,16 +234,11 @@ public class CBSSingleGrouped extends AStarSingle {
 	}
 
 	protected @NotNull Collection<Agent> replanAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @NotNull Collection<Agent> agents, final Agent agent) {
-		return agents.stream().parallel()
+		return agents.stream()
 			.filter(a -> !a.equals(agent))
 			.map(a -> {
 				final @NotNull Agent agentCopy = new Agent(a);
-				final Pair<Integer, Set<Integer>> entryExits = agentsEntriesExits.get(a);
-				final int entry = entryExits.getVal0();
-				final Set<Integer> exits = entryExits.getVal1();
-				final @Nullable List<Integer> newPath = getPath(agentCopy, step, entry, exits, constraints.getOrDefault(a, Collections.emptyMap()));
-				assert newPath != null || stopped;
-				agentCopy.setPath(newPath, step);
+				agentCopy.setPath(initialPaths.get(a), step);
 				return agentCopy;
 			})
 			.collect(Collectors.toSet());
