@@ -23,6 +23,7 @@ public class AStarAll extends AStarSingleGrouped {
 	protected final Map<Agent, Pair<Agent, Long>> notFinishedAgents = new HashMap<>();
 	protected final int maximumPlannedAgents;
 	protected final int replanSteps;
+	protected final Map<Agent, Map<Integer, Integer>> agentVerticesVisits = new HashMap<>();
 
 	public AStarAll(SimulationGraph graph) {
 		super(graph);
@@ -30,10 +31,20 @@ public class AStarAll extends AStarSingleGrouped {
 		replanSteps = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.REPLAN_STEPS_NAME, AlgorithmAll.REPLAN_STEPS_DEF);
 	}
 
+	private static void divideGroupToPlannedAndNew(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> group0, @NotNull Set<Agent> group0PlannedAgents, @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents, @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents) {
+		group0.forEach((agent, entryExits) -> {
+			if (group0PlannedAgents.contains(agent)) {
+				combinedPlannedAgents.put(agent, entryExits);
+			} else {
+				combinedNewAgents.put(agent, entryExits);
+			}
+		});
+	}
+
 	@Override
 	public @NotNull Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
-
+		agentVerticesVisits.clear();
 
 		final @NotNull Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
 		final @NotNull Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups = new HashSet<>(validNotFinishedAgents.size());
@@ -56,6 +67,14 @@ public class AStarAll extends AStarSingleGrouped {
 			final @NotNull Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = getConflictAvoidanceTable(agentMap, step);
 			mergeConflictAvoidanceTables(plannedConflictAvoidanceTable, conflictAvoidanceTable);
 			agentsGroups.add(new Triplet<>(agentMap, conflictAvoidanceTable, Collections.emptySet()));
+
+			final Map<Integer, Integer> agentVertexVisits = new HashMap<>();
+			agentVerticesVisits.put(agent, agentVertexVisits);
+			for (int i = 0; i < travelTime; i++) {
+				final int vertex = path.get(i);
+				int visits = agentVertexVisits.getOrDefault(vertex, 0);
+				agentVertexVisits.put(vertex, visits + 1);
+			}
 		}
 
 		final Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> initialPaths = createInitialPaths(agentsEntriesExits, step, plannedConflictAvoidanceTable);
@@ -94,6 +113,50 @@ public class AStarAll extends AStarSingleGrouped {
 			System.out.println("Merged 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
 				+ " with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
 				+ " creating " + agentsGroups.stream().filter(g -> !Collections.disjoint(g.getVal0().keySet(), group0Agents) || !Collections.disjoint(g.getVal0().keySet(), group1Agents)).findAny().orElse(new Triplet<>(Collections.emptyMap(), null, null)).getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
+		}
+	}
+
+	/**
+	 * @param agents
+	 * @param state
+	 * @param neighbours
+	 * @param neighboursVisited
+	 */
+	@Override
+	protected void filterVisitedNeighbours(Agent @NotNull [] agents, CompositeState state, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited) {
+		if (state.getParent() == null && !allowAgentReturn) {
+			for (int i = 0, agentsLength = agents.length; i < agentsLength; i++) {
+				final Agent agent = agents[i];
+				if (notFinishedAgents.containsKey(agent)) {
+					final Pair<Agent, Long> nonFinishedAgent = notFinishedAgents.get(agent);
+					final int pathLastIndex = (int) (state.getStep() - nonFinishedAgent.getVal1() - 1);
+					final int lastVertex = nonFinishedAgent.getVal0().getPath().get(pathLastIndex);
+					neighbours[i].remove(lastVertex);
+				}
+			}
+		}
+		super.filterVisitedNeighbours(agents, state, neighbours, neighboursVisited);
+	}
+
+	/**
+	 * @param agent
+	 * @param neighbours
+	 * @param neighboursVisited
+	 * @param i
+	 * @param predecessorVertexID
+	 */
+	@Override
+	protected void modifyNeighbours(Agent agent, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited, int i, int predecessorVertexID) {
+		int maximumAgentVertexVisits = maximumVertexVisits;
+		if (agentVerticesVisits.containsKey(agent) && agentVerticesVisits.get(agent).containsKey(predecessorVertexID)) {
+			maximumAgentVertexVisits -= agentVerticesVisits.get(agent).getOrDefault(predecessorVertexID, 0);
+		}
+
+		final int vertexVisits = neighboursVisited[i].get(predecessorVertexID);
+		if (vertexVisits >= maximumAgentVertexVisits) {
+			neighbours[i].remove(predecessorVertexID);
+		} else {
+			neighboursVisited[i].put(predecessorVertexID, vertexVisits + 1);
 		}
 	}
 
@@ -164,16 +227,6 @@ public class AStarAll extends AStarSingleGrouped {
 		}
 
 		return true;
-	}
-
-	private static void divideGroupToPlannedAndNew(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> group0, @NotNull Set<Agent> group0PlannedAgents, @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedPlannedAgents, @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedNewAgents) {
-		group0.forEach((agent, entryExits) -> {
-			if (group0PlannedAgents.contains(agent)) {
-				combinedPlannedAgents.put(agent, entryExits);
-			} else {
-				combinedNewAgents.put(agent, entryExits);
-			}
-		});
 	}
 
 	/**

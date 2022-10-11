@@ -420,7 +420,7 @@ public class AStarSingleGrouped extends AStarSingle {
 			generateIndividualNeighbours(step, agentsCount, exitsIDs, heuristics, maximumDelays, state, nextStep, neighbours, neighboursVisited);
 
 			// Remove neighbours visited too many times
-			filterVisitedNeighbours(agentsCount, state, neighbours, neighboursVisited);
+			filterVisitedNeighbours(agents, state, neighbours, neighboursVisited);
 
 
 			// remove colliding neighbours
@@ -497,21 +497,25 @@ public class AStarSingleGrouped extends AStarSingle {
 		return neighboursCollisions;
 	}
 
-	private void filterVisitedNeighbours(int agentsCount, CompositeState state, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited) {
+	protected void filterVisitedNeighbours(Agent @NotNull [] agents, CompositeState state, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited) {
 		CompositeState predecessorState = state;
 		while (predecessorState != null) {
-			for (int i = 0; i < agentsCount; i++) {
+			for (int i = 0; i < agents.length; i++) {
 				int predecessorVertexID = predecessorState.getStates()[i].getID();
 				if (neighbours[i].contains(predecessorVertexID)) {
-					int vertexVisits = neighboursVisited[i].get(predecessorVertexID);
-					if (vertexVisits >= maximumVertexVisits) {
-						neighbours[i].remove(predecessorVertexID);
-					} else {
-						neighboursVisited[i].put(predecessorVertexID, vertexVisits + 1);
-					}
+					modifyNeighbours(agents[i], neighbours, neighboursVisited, i, predecessorVertexID);
 				}
 			}
 			predecessorState = predecessorState.getParent();
+		}
+	}
+
+	protected void modifyNeighbours(Agent agent, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited, int i, int predecessorVertexID) {
+		final int vertexVisits = neighboursVisited[i].get(predecessorVertexID);
+		if (vertexVisits >= maximumVertexVisits) {
+			neighbours[i].remove(predecessorVertexID);
+		} else {
+			neighboursVisited[i].put(predecessorVertexID, vertexVisits + 1);
 		}
 	}
 
@@ -685,7 +689,7 @@ public class AStarSingleGrouped extends AStarSingle {
 			heuristics[i] = new double[graph.getVertices().length];
 			heuristics[i][entryID] = startEstimate;
 
-			maximumDelays[i] = exits.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + super.maximumPathDelay)).min().getAsInt();
+			maximumDelays[i] = exits.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(agent.getEntry(), exitID)) + super.maximumPathDelay)).min().getAsInt();
 		}
 
 		return new CompositeState(initialStates, step);
