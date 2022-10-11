@@ -48,6 +48,7 @@ public class CBSSingleGrouped extends AStarSingle {
 	public Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		initialPaths.clear();
 		findInitialPaths(agentsEntriesExits, step);
+		assert initialPaths.keySet().containsAll(agentsEntriesExits.keySet());
 
 		final @NotNull Node node = bestValidNode(agentsEntriesExits, step);
 		node.getAgents().forEach(this::addPlannedAgent);
@@ -238,6 +239,8 @@ public class CBSSingleGrouped extends AStarSingle {
 			.filter(a -> !a.equals(agent))
 			.map(a -> {
 				final @NotNull Agent agentCopy = new Agent(a);
+
+				assert initialPaths.containsKey(a);
 				agentCopy.setPath(initialPaths.get(a), step);
 				return agentCopy;
 			})

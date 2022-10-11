@@ -244,10 +244,12 @@ public class IntersectionMenu extends VBox {
 	 */
 	private static void addResetButtonAction() {
 		RESTART_BUTTON.setOnMouseClicked(e -> {
+			RESTART_BUTTON.setDisable(true);
 			PLAY_BUTTON.setDisable(true);
-			pauseSimulation();
+//			pauseSimulation();
 			IntersectionScene.resetSimulation();
 			PLAY_BUTTON.setDisable(false);
+			RESTART_BUTTON.setDisable(false);
 		});
 	}
 

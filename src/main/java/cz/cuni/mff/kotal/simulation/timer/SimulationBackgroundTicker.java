@@ -31,11 +31,7 @@ public class SimulationBackgroundTicker implements SimulationTicker {
 		terminatedLock.unlock();
 		final double step = simulation.getNextStep();
 
-		if (Platform.isFxApplicationThread()) {
-			new Thread(() -> start(step)).start();
-		} else {
-			start(step);
-		}
+		new Thread(() -> start(step)).start();
 	}
 
 	private void start(double step) {

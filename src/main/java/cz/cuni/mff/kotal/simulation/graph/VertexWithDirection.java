@@ -201,7 +201,7 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 			double turnPenalty = 0;
 			int turns = 0;
 
-			if (path.size() >= 2) {
+			if (	path.size() >= 2) {
 				double angle = 0;
 				GraphicalVertex lastVertex;
 				GraphicalVertex vertex;

@@ -270,9 +270,13 @@ public abstract class Simulation {
 	protected abstract void stopSimulation();
 
 	public final void reset() {
+		assert simulationAgents != null;
+		simulationAgents.pauseSimulation();
+		assert algorithm != null;
+		algorithm.stop();
+
 		stateLock.lock();
 		state = State.INVALID;
-		algorithm.stop();
 		resetSimulation();
 		synchronized (delayedAgents) {
 			delayedAgents.values().forEach(Collection::clear);

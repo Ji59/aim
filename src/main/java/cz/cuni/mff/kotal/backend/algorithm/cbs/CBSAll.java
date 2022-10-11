@@ -43,8 +43,8 @@ public class CBSAll extends CBSSingleGrouped {
 
 		assert stepOccupiedVertices.values().stream().flatMap(s -> s.values().stream()).distinct().noneMatch(validNotFinishedAgents::contains);
 
-		validNotFinishedAgents.forEach(a -> initialPaths.put(a, a.getPath()));
 		initialPaths.clear();
+		validNotFinishedAgents.forEach(a -> initialPaths.put(a, a.getPath()));
 		findInitialPaths(agentsEntriesExits, step);
 
 		final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> allAgents = new LinkedHashMap<>(agentsEntriesExits.size() + validNotFinishedAgents.size());
