@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 import org.sat4j.core.VecInt;
 import org.sat4j.maxsat.WeightedMaxSatDecorator;
 import org.sat4j.maxsat.WeightedPartialMaxsat;
+import org.sat4j.pb.IPBSolver;
+import org.sat4j.pb.SolverFactory;
 import org.sat4j.specs.ContradictionException;
 import org.sat4j.specs.IVecInt;
 import org.sat4j.specs.TimeoutException;
@@ -21,30 +23,37 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingle.*;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2.getBooleanParameter;
+import static cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2.getIntegerParameter;
 
 public class SATSingleGrouped extends SafeLines {
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SafeLines.PARAMETERS);
 	protected static final String MAXIMUM_STEPS_NAME = "Maximum simulation steps";
 	protected static final int MAXIMUM_STEPS_DEF = 64;
+	protected static final String OPTIMIZED_NAME = "Optimize paths";
+	protected static final boolean OPTIMIZED_DEF = true;
 
 	static {
 		PARAMETERS.put(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);
 		PARAMETERS.put(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
 
 		PARAMETERS.put(MAXIMUM_STEPS_NAME, MAXIMUM_STEPS_DEF);
+		PARAMETERS.put(OPTIMIZED_NAME, OPTIMIZED_DEF);
 	}
 
 	protected final int maximumVertexVisits;
 	protected final boolean allowAgentStop;
 	protected final int maximumSteps;
+	protected final boolean optimized;
 	protected final List<Integer>[] inverseNeighbours = new List[graph.getVertices().length];
 	protected WeightedPartialMaxsat solver;
 
 	public SATSingleGrouped(@NotNull SimulationGraph graph) {
 		super(graph);
-		maximumSteps = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_STEPS_NAME, MAXIMUM_STEPS_DEF);
-		maximumVertexVisits = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);
-		allowAgentStop = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
+		maximumVertexVisits = getIntegerParameter(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);
+		allowAgentStop = getBooleanParameter(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
+		maximumSteps = getIntegerParameter(MAXIMUM_STEPS_NAME, MAXIMUM_STEPS_DEF);
+		optimized = getBooleanParameter(OPTIMIZED_NAME, OPTIMIZED_DEF);
 
 		for (int i = 0; i < graph.getVertices().length; i++) {
 			inverseNeighbours[i] = new LinkedList<>();
@@ -79,7 +88,8 @@ public class SATSingleGrouped extends SafeLines {
 			return agentsEntriesExits.keySet();
 		}
 
-		final @NotNull WeightedPartialMaxsat solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newDefaultOptimizer(), false);
+		final IPBSolver ipbSolver = optimized ? SolverFactory.newDefaultOptimizer() : SolverFactory.newDefault();
+		final @NotNull WeightedPartialMaxsat solver = new WeightedMaxSatDecorator(ipbSolver, false);
 
 		final int agentsCount = agentsEntriesExits.size();
 		final int vertices = graph.getVertices().length;
@@ -144,7 +154,6 @@ public class SATSingleGrouped extends SafeLines {
 	 * @param offsets
 	 * @param step
 	 * @param agentsCount
-	 *
 	 * @return
 	 */
 	protected void createAgentClauses(@NotNull WeightedPartialMaxsat solver, int startingVertex, @NotNull Set<Integer> exits, @NotNull Deque<Triplet<Integer, Agent, boolean[][]>> offsets, long step, int agentsCount) throws ContradictionException {
@@ -338,7 +347,6 @@ public class SATSingleGrouped extends SafeLines {
 	 * @param startingVertex
 	 * @param exits
 	 * @param offset
-	 *
 	 * @throws ContradictionException
 	 */
 	protected void addExitsClause(final @NotNull WeightedPartialMaxsat solver, final int startingVertex, final @NotNull Set<Integer> exits, final int offset, final Agent agent) throws ContradictionException {
@@ -445,7 +453,8 @@ public class SATSingleGrouped extends SafeLines {
 
 	@Override
 	public @Nullable Agent planAgent(@NotNull Agent agent, final int entryID, final @NotNull Set<Integer> exitsIDs, final long step) {
-		solver = new WeightedMaxSatDecorator(org.sat4j.pb.SolverFactory.newDefaultOptimizer(), false);
+		final IPBSolver ipbSolver = optimized ? SolverFactory.newDefaultOptimizer() : SolverFactory.newDefault();
+		solver = new WeightedMaxSatDecorator(ipbSolver, false);
 		final int vertices = graph.getVertices().length;
 		solver.newVar(vertices * (maximumSteps + 1));
 
