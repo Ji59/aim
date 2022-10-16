@@ -68,13 +68,8 @@ public class AStarAll extends AStarSingleGrouped {
 			mergeConflictAvoidanceTables(plannedConflictAvoidanceTable, conflictAvoidanceTable);
 			agentsGroups.add(new Triplet<>(agentMap, conflictAvoidanceTable, Collections.emptySet()));
 
-			final Map<Integer, Integer> agentVertexVisits = new HashMap<>();
-			agentVerticesVisits.put(agent, agentVertexVisits);
-			for (int i = 0; i < travelTime; i++) {
-				final int vertex = path.get(i);
-				int visits = agentVertexVisits.getOrDefault(vertex, 0);
-				agentVertexVisits.put(vertex, visits + 1);
-			}
+			Map<Integer, Integer> vertexVisitsMap = AlgorithmAll.createVertexVisitsMap(path, travelTime);
+			agentVerticesVisits.put(agent, vertexVisitsMap);
 		}
 
 		final Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> initialPaths = createInitialPaths(agentsEntriesExits, step, plannedConflictAvoidanceTable);

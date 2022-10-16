@@ -115,4 +115,15 @@ public interface AlgorithmAll {
 			allAgents.put(agent, new Pair<>(startingVertexID, algorithm.getExits(agent)));
 		}
 	}
+
+	static Map<Integer, Integer> createVertexVisitsMap(List<Integer> path, int travelTime) {
+		final Map<Integer, Integer> agentVertexVisits = new HashMap<>();
+		for (int i = 0; i < travelTime; i++) {
+			final int vertex = path.get(i);
+			int visits = agentVertexVisits.getOrDefault(vertex, 0);
+			agentVertexVisits.put(vertex, visits + 1);
+		}
+
+		return agentVertexVisits;
+	}
 }

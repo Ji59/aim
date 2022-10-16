@@ -144,7 +144,7 @@ public class AStarSingle extends SafeLines {
 		return path;
 	}
 
-	private void addNeighbours(int vertexID, int entryID, @NotNull Set<Integer> exitIDs, @NotNull State state, @NotNull PriorityQueue<State> queue, @NotNull Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @NotNull Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+	protected void addNeighbours(int vertexID, int entryID, @NotNull Set<Integer> exitIDs, @NotNull State state, @NotNull PriorityQueue<State> queue, @NotNull Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @NotNull Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		final long stateStep = state.getStep();
 		final long neighbourStep = stateStep + 1;
 		for (int neighbourID : state.getVertex().getNeighbourIDs()) {
@@ -198,29 +198,20 @@ public class AStarSingle extends SafeLines {
 		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
 	}
 
-	private boolean canVisitVertex(final @NotNull VertexWithDirectionParent state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
-		if ((state.getParent() == null && vertexID == entryID) ||
-			(
-				!allowAgentReturn &&
-					state.getParent() != null &&
-					state.getParent().getID() == vertexID
-			) ||
-			(constraints != null && constraints.stream()
-				.anyMatch(c -> {
-					int actualID = c.getVal1();
-					if (actualID != vertexID) {
-						return false;
-					}
+	protected boolean canVisitVertex(final @NotNull State state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+		return validParent(state, vertexID) && safeConstraints(state, vertexID, constraints) && validVisitCount(state, vertexID, maximumVertexVisits);
+	}
 
-					int lastID = c.getVal0();
-					if (lastID == actualID) {
-						return true;
-					}
-					return state.getID() == lastID;
-				}))
-		) {
-			return false;
-		}
+	protected boolean validParent(@NotNull VertexWithDirectionParent state, int vertexID) {
+		return (state.getParent() != null || vertexID != state.getID()) && // agent cannot stop at starting vertex
+			(
+				allowAgentReturn ||
+					state.getParent() == null ||
+					state.getParent().getID() != vertexID
+			);
+	}
+
+	protected boolean validVisitCount(@NotNull VertexWithDirectionParent state, int vertexID, int maximumVertexVisits) {
 		int visitCount = 0;
 		VertexWithDirectionParent parent = state;
 		while (parent != null) {
@@ -234,6 +225,19 @@ public class AStarSingle extends SafeLines {
 		}
 
 		return true;
+	}
+
+	protected boolean safeConstraints(@NotNull VertexWithDirectionParent state, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+		return constraints == null || constraints.stream()
+			.allMatch(c -> {
+				final int actualID = c.getVal1();
+				if (actualID != vertexID) {
+					return true;
+				}
+
+				final int lastID = c.getVal0();
+				return lastID != actualID && state.getID() != lastID;
+			});
 	}
 
 	protected class State extends VertexWithDirectionParent {

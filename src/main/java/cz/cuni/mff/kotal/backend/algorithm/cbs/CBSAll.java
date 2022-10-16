@@ -23,6 +23,7 @@ public class CBSAll extends CBSSingleGrouped {
 	protected final Map<Agent, Pair<Agent, Long>> notFinishedAgents = new HashMap<>();
 	protected final int maximumPlannedAgents;
 	protected final int replanSteps;
+	protected final Map<Integer, Pair<Agent, Map<Integer, Integer>>> agentVerticesVisits = new HashMap<>();
 
 	public CBSAll(SimulationGraph graph) {
 		super(graph);
@@ -43,6 +44,14 @@ public class CBSAll extends CBSSingleGrouped {
 
 		assert stepOccupiedVertices.values().stream().flatMap(s -> s.values().stream()).distinct().noneMatch(validNotFinishedAgents::contains);
 
+		agentVerticesVisits.clear();
+		validNotFinishedAgents.forEach(agent -> {
+			final List<Integer> path = agent.getPath();
+			final int travelTime = (int) (step - agent.getPlannedTime());
+			final Map<Integer, Integer> vertexVisitsMap = AlgorithmAll.createVertexVisitsMap(path, travelTime);
+			agentVerticesVisits.put(path.get(travelTime), new Pair<>(agent, vertexVisitsMap));
+		});
+
 		initialPaths.clear();
 		validNotFinishedAgents.forEach(a -> initialPaths.put(a, a.getPath()));
 		findInitialPaths(agentsEntriesExits, step);
@@ -61,8 +70,57 @@ public class CBSAll extends CBSSingleGrouped {
 		return plannedAgents;
 	}
 
+	/**
+	 * @param state
+	 * @param entryID
+	 * @param vertexID
+	 * @param constraints
+	 * @return
+	 */
 	@Override
-	protected void assignNewPath(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @Nullable LinkedList<Integer> path) {
+	protected boolean canVisitVertex(@NotNull State state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+		int maximumVertexVisits = this.maximumVertexVisits;
+		if (agentVerticesVisits.containsKey(entryID)) {
+			final Pair<Agent, Map<Integer, Integer>> agentVertexVisits = agentVerticesVisits.get(entryID);
+			if (!allowAgentReturn) {
+				final int lastVertex;
+				if (state.getParent() == null) {
+					final Agent agent = agentVertexVisits.getVal0();
+					final int lastFixTime = (int) (state.getStep() - agent.getPlannedTime() - 1);
+					lastVertex = agent.getPath().get(lastFixTime);
+				} else {
+					lastVertex = state.getParent().getID();
+				}
+				if (lastVertex == vertexID) {
+					return false;
+				}
+			}
+			final Map<Integer, Integer> vertexVisitsMap = agentVertexVisits.getVal1();
+			if (vertexVisitsMap.containsKey(vertexID)) {
+				maximumVertexVisits -= vertexVisitsMap.get(vertexID);
+			}
+		} else if (state.getParent() != null && state.getParent().getID() == vertexID) {
+			return false;
+		}
+
+		return maximumVertexVisits > 0 && safeConstraints(state, vertexID, constraints) && validVisitCount(state, vertexID, maximumVertexVisits);
+	}
+
+	/**
+	 * @param agent
+	 * @param step
+	 * @return
+	 */
+	@Override
+	protected long getInitialPlannedStep(Agent agent, long step) {
+		if (notFinishedAgents.containsKey(agent)) {
+			return notFinishedAgents.get(agent).getVal1();
+		}
+		return step;
+	}
+
+	@Override
+	protected void assignNewPath(long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @Nullable LinkedList<Integer> path) {
 		Collection<Agent> agents;
 
 		if (path != null) {
@@ -71,7 +129,7 @@ public class CBSAll extends CBSSingleGrouped {
 			return;
 		} else {
 			removeAgentFromConstraints(node, constraints, agent);
-			agents = replanAgents(agentsEntriesExits, step, constraints, node.getAgents(), agent);
+			agents = replanAgents(step, node.getAgents(), agent);
 		}
 
 		if (stopped) {

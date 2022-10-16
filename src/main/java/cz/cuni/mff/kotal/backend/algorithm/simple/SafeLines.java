@@ -23,12 +23,10 @@ public class SafeLines implements Algorithm {
 	public static final double SAFE_DISTANCE_DEF = 0.;
 	public static final Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF);
 	protected final Map<Integer, Set<Integer>> directionExits = new HashMap<>();
-
-
-	private final double safeDistance;
 	protected final @NotNull SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
+	private final double safeDistance;
 	protected double largestAgentPerimeter = 0;
 	protected boolean stopped = false;
 
@@ -181,7 +179,6 @@ public class SafeLines implements Algorithm {
 	public void stop() {
 		stopped = true;
 	}
-
 
 
 	public boolean validPath(long step, @NotNull List<Integer> path, double agentPerimeter) {
@@ -455,20 +452,19 @@ public class SafeLines implements Algorithm {
 	}
 
 	public boolean inCollision(final @NotNull Collection<Agent> agents) {
+		Agent[] visitedAgents = new Agent[agents.size()];
 		int i = 0;
-		for (final @NotNull Agent agent0 : agents) {
-			int j = 0;
-			for (final @NotNull Agent agent1 : agents) {
-				if (j++ <= i) {
-					continue;
-				}
+		for (Iterator<Agent> iterator = agents.iterator(); iterator.hasNext(); i++) {
+			final Agent agent0 = iterator.next();
+			for (int j = 0; j < i; j++) {
+				final Agent agent1 = visitedAgents[j];
 				if (agent0 != agent1 && inCollision(agent0, agent1).isPresent()) {
 					System.out.println(agent0.getId() + " collides with " + agent1.getId());
 					return true;
 				}
-
-				i++;
 			}
+
+			visitedAgents[i] = agent0;
 		}
 
 		return false;
