@@ -150,34 +150,28 @@ public class CBSSingleGrouped extends AStarSingle {
 		filterStepOccupiedVertices(step);
 		simple = false;
 
-		final AtomicReference<Collection<Agent>> plannedAgents = new AtomicReference<>(Collections.emptyList());
-		final Thread planningThread = new Thread(() -> {
-			System.out.println("Starting computing " + step);
-			plannedAgents.set(planAgents(agents.stream().collect(Collectors.toMap(Function.identity(), a -> new Pair<>(a.getEntry(), getExitIDs(a)))), step));
-		}, "CBS " + step);
-		planningThread.start();
-		try {
-			planningThread.join(simpleStrategyAfter);
-			if (!planningThread.isAlive()) {
-				System.out.println("Finished computing " + step);
-				return plannedAgents.get();
+		System.out.println("Starting computing " + step);
+
+		Thread timer = new Thread(() -> {
+			try {
+				Thread.sleep(simpleStrategyAfter);
+				simpleLock.lock();
+				simple = true;
+			} catch (InterruptedException ignored) {
+			} finally {
+				if (simpleLock.isHeldByCurrentThread()) {
+					simpleLock.unlock();
+				}
 			}
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+		});
+		timer.start();
 
-		simpleLock.lock();
-		simple = true;
-		simpleLock.unlock();
+		Collection<Agent> plannedAgents = planAgents(agents.stream().collect(Collectors.toMap(Function.identity(), a -> new Pair<>(a.getEntry(), getExitIDs(a)))), step);
+		timer.interrupt();
 
-		try {
-			planningThread.join();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+		System.out.println("Finished computing " + step);
 
-		System.out.println("Finished computing " + step + " with simple");
-		return plannedAgents.get();
+		return plannedAgents;
 	}
 
 	/**
