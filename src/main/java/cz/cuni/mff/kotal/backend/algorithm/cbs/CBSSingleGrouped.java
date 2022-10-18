@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
 public class CBSSingleGrouped extends AStarSingle {
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingle.PARAMETERS);
 
-	protected static final String SIMPLE_STRATEGY_NAME = "Simple strategy after (ms)";
-	protected static final long SIMPLE_STRATEGY_DEF = 1000;
+	public static final String SIMPLE_STRATEGY_NAME = "Simple strategy after (ms)";
+	public static final long SIMPLE_STRATEGY_DEF = 1000;
 
 	static {
 		PARAMETERS.put(SIMPLE_STRATEGY_NAME, SIMPLE_STRATEGY_DEF);

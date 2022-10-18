@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm.astar;
 
+import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -11,20 +12,35 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped.SIMPLE_STRATEGY_DEF;
+import static cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped.SIMPLE_STRATEGY_NAME;
 
 public class AStarSingleGrouped extends AStarSingle {
 
 	public static final Map<String, Object> PARAMETERS = AStarSingle.PARAMETERS;
 
+	static {
+		PARAMETERS.put(SIMPLE_STRATEGY_NAME, SIMPLE_STRATEGY_DEF);
+	}
+
+	protected final long simpleStrategyAfter;
+	protected final ReentrantLock simpleLock = new ReentrantLock();
+	protected boolean simple = false;
+
 	public AStarSingleGrouped(@NotNull SimulationGraph graph) {
 		super(graph);
+
+		simpleStrategyAfter = AlgorithmMenuTab2.getLongParameter(SIMPLE_STRATEGY_NAME, SIMPLE_STRATEGY_DEF);
 	}
 
 	@TestOnly
-	protected AStarSingleGrouped(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
+	protected AStarSingleGrouped(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, long simpleStrategyAfter) {
 		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
+		this.simpleStrategyAfter = simpleStrategyAfter;
 	}
 
 	@NotNull
@@ -120,9 +136,6 @@ public class AStarSingleGrouped extends AStarSingle {
 
 	@Override
 	public @NotNull Collection<Agent> planAgents(final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
-		// filter agents that cannot enter intersection
-//		filterAgentsWithNoEntry(agentsEntriesExits, step);
-
 		if (agentsEntriesExits.isEmpty()) {
 			return Collections.emptySet();
 		}
@@ -133,7 +146,27 @@ public class AStarSingleGrouped extends AStarSingle {
 			return Collections.emptySet();
 		}
 
+		simple = false;
+
+		System.out.println("Starting computing " + step);
+
+		Thread timer = new Thread(() -> {
+			try {
+				Thread.sleep(simpleStrategyAfter);
+				simpleLock.lock();
+				simple = true;
+			} catch (InterruptedException ignored) {
+			} finally {
+				if (simpleLock.isHeldByCurrentThread()) {
+					simpleLock.unlock();
+				}
+			}
+		});
+		timer.start();
+
 		solveAgentsCollisions(step, agentsGroups);
+		timer.interrupt();
+		System.out.println("Finished computing " + step);
 
 		if (stopped) {
 			return Collections.emptySet();
@@ -229,7 +262,15 @@ public class AStarSingleGrouped extends AStarSingle {
 
 		final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(group0CollisionTriplet.getVal0());
 		combinedAgents.putAll(group1);
-		@Nullable Set<Agent> collisionAgents = findPaths(combinedAgents, step, mapStepOccupiedVertices(), restGroupsConflictAvoidanceTable);
+		@Nullable Set<Agent> collisionAgents = null;
+
+		simpleLock.lock();
+		final boolean notSimple = !simple;
+		simpleLock.unlock();
+		if (notSimple) {
+			collisionAgents = findPaths(combinedAgents, step, mapStepOccupiedVertices(), restGroupsConflictAvoidanceTable);
+		}
+
 		agentsGroups.remove(group0CollisionTriplet);
 		filterReplannedCollisionAgents(agentsGroups, group0CollisionTriplet.getVal0().keySet());
 		filterReplannedCollisionAgents(agentsGroups, group1CollisionTriplet.getVal0().keySet());
@@ -237,10 +278,15 @@ public class AStarSingleGrouped extends AStarSingle {
 			agentsGroups.remove(group1CollisionTriplet);
 
 			agentsGroups.add(new Triplet<>(combinedAgents, getConflictAvoidanceTable(combinedAgents, step), collisionAgents));
+			System.out.println("Merged 0: " + group0CollisionTriplet.getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
+				+ " with 1: " + group1.keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
+				+ " creating " + combinedAgents.keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 		} else {
 			final @Nullable Set<Agent> group1Collisions = findPaths(group1, step, group1IllegalMovesTable, restGroupsConflictAvoidanceTable);
+			assert group1Collisions != null || stopped;
 			if (group1Collisions != null) {
 				updateAgentsGroup(step, group1CollisionTriplet, group1Collisions);
+				System.out.println("Replan 1: " + group1.keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")) + "; remove 0: " + group0CollisionTriplet.getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 			}
 		}
 	}
@@ -401,12 +447,6 @@ public class AStarSingleGrouped extends AStarSingle {
 				return state.collisionAgents;
 			}
 
-			if (visitedStates.contains(state)) {
-				continue;
-			} else {
-				visitedStates.add(state);
-			}
-
 			long stateStep = state.getStep();
 			final long nextStep = stateStep + 1;
 
@@ -438,10 +478,10 @@ public class AStarSingleGrouped extends AStarSingle {
 			@NotNull Set<VertexWithDirection[]> cartesianNeighbours = cartesianProductWithCheck(agents, exitsIDs, collisionPairs, collisionTransfers, state, neighboursVertices);
 			for (VertexWithDirection @NotNull [] neighboursCombination : cartesianNeighbours) {
 				@NotNull CompositeState nextState = new CompositeState(neighboursCombination, state, collisionCount(neighboursCombination, neighboursCollisions));
-				if (visitedStates.contains(nextState)) {
-					continue;
+				if (!visitedStates.contains(nextState)) {
+					visitedStates.add(nextState);
+					queue.add(nextState);
 				}
-				queue.add(nextState);
 			}
 		}
 
@@ -743,25 +783,26 @@ public class AStarSingleGrouped extends AStarSingle {
 		}
 
 		@Override
-		public int compareTo(@NotNull final CompositeState collectiveState) {
-			final int heuristicsComparison = Double.compare(getHeuristics(), collectiveState.getHeuristics());
+		public int compareTo(@NotNull final CompositeState compositeState) {
+			final int heuristicsComparison = Double.compare(getHeuristics(), compositeState.getHeuristics());
 			if (heuristicsComparison == 0) {
-				final int turnPenaltyComparison = Double.compare(getTurnPenalty(), collectiveState.getTurnPenalty());
+				final int turnPenaltyComparison = Double.compare(getTurnPenalty(), compositeState.getTurnPenalty());
 				if (turnPenaltyComparison == 0) {
-					final int turnsComparison = Integer.compare(collectiveState.getTurns(), getTurns());  // prefer higher number of turns
+					final int turnsComparison = Integer.compare(compositeState.getTurns(), getTurns());  // prefer higher number of turns
 					if (turnsComparison == 0) {
-						final int collisionsComparison = Integer.compare(collisionAgents.size(), collectiveState.collisionAgents.size());
+						final int collisionsComparison = Integer.compare(collisionAgents.size(), compositeState.collisionAgents.size());
 						if (collisionsComparison == 0) {
-							final int collisionsCountComparison = Integer.compare(collisions, collectiveState.collisions);
+							final int collisionsCountComparison = Integer.compare(collisions, compositeState.collisions);
 							if (collisionsCountComparison == 0) {
-								final int distanceComparison = Double.compare(collectiveState.getDistance(), getDistance());   // prefer vertex with greater traveled distance
+								final int distanceComparison = Double.compare(compositeState.getDistance(), getDistance());   // prefer vertex with greater traveled distance
 								if (distanceComparison == 0) {
 									for (int i = 0; i < states.length; i++) {
-										int idComparison = Integer.compare(states[i].getID(), collectiveState.states[i].getID());
+										final int idComparison = Integer.compare(states[i].getID(), compositeState.states[i].getID());
 										if (idComparison != 0) {
 											return idComparison;
 										}
 									}
+									return 0;
 								}
 								return distanceComparison;
 							}
@@ -840,10 +881,10 @@ public class AStarSingleGrouped extends AStarSingle {
 
 			// Probably incorrect - comparing Object[] arrays with Arrays.equals
 			final boolean statesEqual = Arrays.equals(states, compositeState.states);
-			if (!allowAgentReturn && statesEqual && parent != null) {
-				assert compositeState.parent != null;
-				return Arrays.equals(parent.states, compositeState.parent.states);
-			}
+//			if (!allowAgentReturn && statesEqual && parent != null) {  FIXME
+//				assert compositeState.parent != null;
+//				return Arrays.equals(parent.states, compositeState.parent.states);
+//			}
 
 			return statesEqual;
 		}

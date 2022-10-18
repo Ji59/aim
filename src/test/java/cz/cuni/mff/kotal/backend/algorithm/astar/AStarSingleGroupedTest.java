@@ -1,12 +1,9 @@
 package cz.cuni.mff.kotal.backend.algorithm.astar;
 
-import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
-import cz.cuni.mff.kotal.simulation.graph.Graph;
 import cz.cuni.mff.kotal.simulation.graph.HexagonalGraph;
-import cz.cuni.mff.kotal.simulation.graph.OctagonalGraph;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +66,7 @@ class AStarSingleGroupedTest {
 			mergeConflictAvoidanceTables(restGroupsConflictAvoidanceTable, conflictAvoidanceTable);
 		}
 
-		final @NotNull AStarSingleGrouped algorithm = new AStarSingleGrouped(graph, 0, 2, false, Integer.MAX_VALUE, false);
+		final @NotNull AStarSingleGrouped algorithm = new AStarSingleGrouped(graph, 0, 2, false, Integer.MAX_VALUE, false, Long.MAX_VALUE);
 
 		algorithm.replanGroup(0, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, group0CollisionTriplet.getVal0(), invalidMovesMap, restGroupsConflictAvoidanceTable);
 

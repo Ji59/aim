@@ -99,7 +99,7 @@ public class AStarAll extends AStarSingleGrouped {
 		long step, @NotNull Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
 		@NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group0CollisionTriplet,
 		@NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet,
-		Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable, Map<Long, Map<Integer, Set<Agent>>> group1IllegalMovesTable
+		@NotNull Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable, @NotNull Map<Long, Map<Integer, Set<Agent>>> group1IllegalMovesTable
 	) {
 		boolean groupsMerged = mergeGroups(step, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, restGroupsConflictAvoidanceTable);
 		if (groupsMerged) {
@@ -109,6 +109,7 @@ public class AStarAll extends AStarSingleGrouped {
 				+ " with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
 				+ " creating " + agentsGroups.stream().filter(g -> !Collections.disjoint(g.getVal0().keySet(), group0Agents) || !Collections.disjoint(g.getVal0().keySet(), group1Agents)).findAny().orElse(new Triplet<>(Collections.emptyMap(), null, null)).getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 		}
+		assert groupsMerged || stopped;
 	}
 
 	/**
@@ -187,7 +188,11 @@ public class AStarAll extends AStarSingleGrouped {
 		filterReplannedCollisionAgents(agentsGroups, group0.keySet());
 		filterReplannedCollisionAgents(agentsGroups, group1.keySet());
 
-		for (int i = combinedNewAgents.size(); i > 0; i--) {
+		simpleLock.lock();
+		final boolean notSimple = !simple;
+		simpleLock.unlock();
+
+		for (int i = notSimple ? combinedNewAgents.size() : 0; i > 0; i--) {
 			for (@NotNull Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedNewAgents.entrySet(), i)) {
 
 				if (stopped) {
