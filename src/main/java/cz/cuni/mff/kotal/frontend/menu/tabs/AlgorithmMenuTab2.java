@@ -147,6 +147,17 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 	 * @param defaultValue
 	 * @return
 	 */
+	public static long getLongParameter(@NotNull String parameterName, long defaultValue) {
+		return getParameter(parameterName, defaultValue, Long.class);
+	}
+
+	/**
+	 * TODO
+	 *
+	 * @param parameterName
+	 * @param defaultValue
+	 * @return
+	 */
 	public static boolean getBooleanParameter(@NotNull String parameterName, boolean defaultValue) {
 		return getParameter(parameterName, defaultValue, Boolean.class);
 	}

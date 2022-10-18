@@ -32,10 +32,24 @@ public class CBSAll extends CBSSingleGrouped {
 	}
 
 	@TestOnly
-	protected CBSAll(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, int maximumPlannedAgents, int replanSteps) {
-		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
+	protected CBSAll(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, long simpleStrategyAfter, int maximumPlannedAgents, int replanSteps) {
+		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn, simpleStrategyAfter);
 		this.maximumPlannedAgents = maximumPlannedAgents;
 		this.replanSteps = replanSteps;
+	}
+
+	/**
+	 * @param step
+	 * @param queue
+	 * @param node
+	 * @param collision
+	 * @param agent
+	 */
+	@Override
+	protected void applySimpleAlgorithm(long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Quaternion<Agent, Agent, Long, Boolean> collision, Agent agent) {
+		if (!notFinishedAgents.containsKey(agent)) {
+			super.applySimpleAlgorithm(step, queue, node, collision, agent);
+		}
 	}
 
 	@Override

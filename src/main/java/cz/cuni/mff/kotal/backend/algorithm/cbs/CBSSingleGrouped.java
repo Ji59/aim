@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.backend.algorithm.cbs;
 
 import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingle;
+import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Quaternion;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -11,21 +12,35 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CBSSingleGrouped extends AStarSingle {
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingle.PARAMETERS);
 
+	protected static final String SIMPLE_STRATEGY_NAME = "Simple strategy after (ms)";
+	protected static final long SIMPLE_STRATEGY_DEF = 1000;
+
+	static {
+		PARAMETERS.put(SIMPLE_STRATEGY_NAME, SIMPLE_STRATEGY_DEF);
+	}
+
 	protected final Map<Agent, List<Integer>> initialPaths = new HashMap<>();
+	protected final long simpleStrategyAfter;
+	protected final ReentrantLock simpleLock = new ReentrantLock();
+	protected boolean simple = false;
 
 	public CBSSingleGrouped(SimulationGraph graph) {
 		super(graph);
+		simpleStrategyAfter = AlgorithmMenuTab2.getLongParameter(SIMPLE_STRATEGY_NAME, SIMPLE_STRATEGY_DEF);
 	}
 
 	@TestOnly
-	protected CBSSingleGrouped(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
+	protected CBSSingleGrouped(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, long simpleStrategyAfter) {
 		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
+		this.simpleStrategyAfter = simpleStrategyAfter;
 	}
 
 	@NotNull
@@ -65,7 +80,7 @@ public class CBSSingleGrouped extends AStarSingle {
 
 		final @NotNull Set<Agent> changedAgents = new HashSet<>(parentNode.getAgents().size());
 
-		for (@Nullable Node parent = parentNode; parent.getCollision() != null; parent = parent.getParent()) {
+		for (@NotNull Node parent = parentNode; parent.getCollision() != null; parent = Objects.requireNonNull(parent.getParent())) {
 			final Quaternion<Agent, Agent, Long, Boolean> parentCollision = parent.getCollision();
 			Agent otherAgent;
 			if (parentCollision.getVal0().equals(agent)) {
@@ -133,7 +148,36 @@ public class CBSSingleGrouped extends AStarSingle {
 			return agents;
 		}
 		filterStepOccupiedVertices(step);
-		return planAgents(agents.stream().collect(Collectors.toMap(Function.identity(), a -> new Pair<>(a.getEntry(), getExitIDs(a)))), step);
+		simple = false;
+
+		final AtomicReference<Collection<Agent>> plannedAgents = new AtomicReference<>(Collections.emptyList());
+		final Thread planningThread = new Thread(() -> {
+			System.out.println("Starting computing " + step);
+			plannedAgents.set(planAgents(agents.stream().collect(Collectors.toMap(Function.identity(), a -> new Pair<>(a.getEntry(), getExitIDs(a)))), step));
+		}, "CBS " + step);
+		planningThread.start();
+		try {
+			planningThread.join(simpleStrategyAfter);
+			if (!planningThread.isAlive()) {
+				System.out.println("Finished computing " + step);
+				return plannedAgents.get();
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		simpleLock.lock();
+		simple = true;
+		simpleLock.unlock();
+
+		try {
+			planningThread.join();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		System.out.println("Finished computing " + step + " with simple");
+		return plannedAgents.get();
 	}
 
 	/**
@@ -221,6 +265,15 @@ public class CBSSingleGrouped extends AStarSingle {
 	private void replanAgent(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Quaternion<Agent, Agent, Long, Boolean> collision) {
 		final Agent agent = collision.getVal0();
 
+		final boolean simpleStrategy;
+		simpleLock.lock();
+		simpleStrategy = simple;
+		simpleLock.unlock();
+		if (simpleStrategy) {
+			applySimpleAlgorithm(step, queue, node, collision, agent);
+			return;
+		}
+
 		final long collisionStep = collision.getVal2();
 		final int entryID = agentsEntriesExits.get(agent).getVal0();
 		final Set<Integer> exitsIDs = agentsEntriesExits.get(agent).getVal1();
@@ -237,8 +290,16 @@ public class CBSSingleGrouped extends AStarSingle {
 		assignNewPath(step, queue, node, agent, collision, constraints, path);
 	}
 
+	protected void applySimpleAlgorithm(long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Quaternion<Agent, Agent, Long, Boolean> collision, Agent agent) {
+		final Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints = copyConstraints(node.getConstraints(), agent);
+		removeAgentFromConstraints(node, constraints, agent);
+		final Collection<Agent> agents = replanAgents(step, node.getAgents(), agent);
+		queue.add(new Node(agents, constraints, node, collision));
+	}
+
 	protected void assignNewPath(final long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @Nullable LinkedList<Integer> path) {
-		Collection<Agent> agents;
+		final Collection<Agent> agents;
+
 		if (path != null) {
 			agents = copyAgents(step, node, agent, path);
 		} else {
