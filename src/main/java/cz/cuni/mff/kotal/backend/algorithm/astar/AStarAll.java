@@ -188,12 +188,16 @@ public class AStarAll extends AStarSingleGrouped {
 		filterReplannedCollisionAgents(agentsGroups, group0.keySet());
 		filterReplannedCollisionAgents(agentsGroups, group1.keySet());
 
-		simpleLock.lock();
-		final boolean notSimple = !simple;
-		simpleLock.unlock();
-
-		for (int i = notSimple ? combinedNewAgents.size() : 0; i > 0; i--) {
+		agentsSize: for (int i = combinedNewAgents.size(); i > 0; i--) {
 			for (@NotNull Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedNewAgents.entrySet(), i)) {
+
+				simpleLock.lock();
+				final boolean notSimple = !simple;
+				simpleLock.unlock();
+
+				if (notSimple) {
+					break agentsSize;
+				}
 
 				if (stopped) {
 					return false;

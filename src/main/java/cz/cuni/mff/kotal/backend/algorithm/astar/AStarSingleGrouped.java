@@ -1,6 +1,7 @@
 package cz.cuni.mff.kotal.backend.algorithm.astar;
 
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
+import cz.cuni.mff.kotal.helpers.MyNumberOperations;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -260,20 +261,40 @@ public class AStarSingleGrouped extends AStarSingle {
 	) {
 		Map<Agent, Pair<Integer, Set<Integer>>> group1 = group1CollisionTriplet.getVal0();
 
-		final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(group0CollisionTriplet.getVal0());
+		@NotNull Map<Agent, Pair<Integer, Set<Integer>>> combinedAgents = new HashMap<>(group0CollisionTriplet.getVal0());
 		combinedAgents.putAll(group1);
 		@Nullable Set<Agent> collisionAgents = null;
-
-		simpleLock.lock();
-		final boolean notSimple = !simple;
-		simpleLock.unlock();
-		if (notSimple) {
-			collisionAgents = findPaths(combinedAgents, step, mapStepOccupiedVertices(), restGroupsConflictAvoidanceTable);
-		}
 
 		agentsGroups.remove(group0CollisionTriplet);
 		filterReplannedCollisionAgents(agentsGroups, group0CollisionTriplet.getVal0().keySet());
 		filterReplannedCollisionAgents(agentsGroups, group1CollisionTriplet.getVal0().keySet());
+
+		agentsSize:
+		for (int i = group0CollisionTriplet.getVal0().size() + group1.size(); i > group1.size(); i--) {
+			for (@NotNull Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedAgents.entrySet(), i)) {
+				simpleLock.lock();
+				final boolean simpleCopy = simple;
+				simpleLock.unlock();
+
+				if (simpleCopy) {
+					break agentsSize;
+				}
+
+				if (stopped) {
+					return;
+				}
+
+				@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agents = new HashMap<>();
+				combination.forEach(agentEntryExits -> agents.put(agentEntryExits.getKey(), agentEntryExits.getValue()));
+
+				collisionAgents = findPaths(agents, step, mapStepOccupiedVertices(), restGroupsConflictAvoidanceTable);
+				if (collisionAgents != null) {
+					combinedAgents = agents;
+					break agentsSize;
+				}
+			}
+		}
+
 		if (collisionAgents != null) {
 			agentsGroups.remove(group1CollisionTriplet);
 
