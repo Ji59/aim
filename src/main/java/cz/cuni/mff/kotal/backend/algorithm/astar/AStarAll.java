@@ -188,7 +188,8 @@ public class AStarAll extends AStarSingleGrouped {
 		filterReplannedCollisionAgents(agentsGroups, group0.keySet());
 		filterReplannedCollisionAgents(agentsGroups, group1.keySet());
 
-		agentsSize: for (int i = combinedNewAgents.size(); i > 0; i--) {
+		agentsSize:
+		for (int i = combinedNewAgents.size(); i > 0; i--) {
 			for (@NotNull Collection<Map.Entry<Agent, Pair<Integer, Set<Integer>>>> combination : MyNumberOperations.combinations(combinedNewAgents.entrySet(), i)) {
 
 				simpleLock.lock();
@@ -257,11 +258,10 @@ public class AStarAll extends AStarSingleGrouped {
 
 	@Override
 	public void addPlannedAgent(@NotNull Agent agent) {
-		setLargestAgentPerimeter(agent);
 	}
 
 	@Override
-	public void addPlannedPath(Agent agent, List<Integer> path, long step) {
+	public void addPlannedPath(@NotNull Agent agent, @NotNull List<Integer> path, long step) {
 		// stepOccupiedVertices should be empty
 	}
 }

@@ -10,8 +10,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Set;
 
-
-public record Lines(SimulationGraph graph) implements Algorithm {
+@Deprecated
+public record Lanes(SimulationGraph graph) implements Algorithm {
 
 	/**
 	 * TODO
@@ -33,7 +33,7 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 			exit = agent.getExit();
 		}
 
-		List<Integer> path = graph.getLines().get(agent.getEntry()).get(exit);
+		List<Integer> path = null;  // graph.getLanes().get(agent.getEntry()).get(exit);
 		if (path == null) {
 			return null;
 		}
@@ -42,7 +42,7 @@ public record Lines(SimulationGraph graph) implements Algorithm {
 	}
 
 	@Override
-	public Agent planAgent(Agent agent, int entryID, Set<Integer> exitID, long step) {
+	public Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitID, long step) {
 		// FIXME
 		throw new UnsupportedOperationException();
 	}

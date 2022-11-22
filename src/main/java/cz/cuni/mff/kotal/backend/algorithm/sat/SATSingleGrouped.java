@@ -1,7 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm.sat;
 
-import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
-import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLanes;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.helpers.Triplet;
 import cz.cuni.mff.kotal.simulation.Agent;
@@ -26,8 +25,8 @@ import static cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingle.*;
 import static cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2.getBooleanParameter;
 import static cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2.getIntegerParameter;
 
-public class SATSingleGrouped extends SafeLines {
-	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SafeLines.PARAMETERS);
+public class SATSingleGrouped extends SafeLanes {
+	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SafeLanes.PARAMETERS);
 	protected static final String MAXIMUM_STEPS_NAME = "Maximum simulation steps";
 	protected static final int MAXIMUM_STEPS_DEF = 64;
 	protected static final String OPTIMIZED_NAME = "Optimize paths";

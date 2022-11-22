@@ -67,16 +67,16 @@ public class GeneratingSimulation extends Simulation {
 		newAgentsMinimum = Math.min(AgentsMenuTab1.getNewAgentsMinimum().getIntValue(), possibleEntries);
 		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getIntValue(), possibleEntries);
 
-		minimalLength = AgentParametersMenuTab4.getMinimalSizeLength().getValue();
-		maximalLength = AgentParametersMenuTab4.getMaximalSizeLength().getValue();
-		minimalWidth = AgentParametersMenuTab4.getMinimalSizeWidth().getValue();
-		maximalWidth = AgentParametersMenuTab4.getMaximalSizeWidth().getValue();
+		minimalLength = AgentParametersMenuTab4.getMinimalLength();
+		maximalLength = AgentParametersMenuTab4.getMaximalLength();
+		minimalWidth = AgentParametersMenuTab4.getMinimalWidth();
+		maximalWidth = AgentParametersMenuTab4.getMaximalWidth();
 
 
-		minimalSpeed = AgentParametersMenuTab4.getMinimalSpeed().getIntValue();
-		maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed().getIntValue();
+		minimalSpeed = AgentParametersMenuTab4.getMinimalSpeed();
+		maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed();
 
-		maxDeviation = AgentParametersMenuTab4.getSpeedDeviation().getValue();
+		maxDeviation = AgentParametersMenuTab4.getSpeedDeviation();
 	}
 
 	/**

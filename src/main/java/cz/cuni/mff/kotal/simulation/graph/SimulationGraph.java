@@ -18,9 +18,8 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Paramete
  */
 public abstract class SimulationGraph extends Graph {
 	public static final double EPSILON = 0.0625;  // 2 ^ -4
-	protected transient final Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
-	private transient final Lock verticesDistancesLock = new ReentrantLock(false);
-	protected transient Map<Integer, Map<Integer, List<Integer>>> shortestPaths;
+	protected final transient Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
+	private final transient Lock verticesDistancesLock = new ReentrantLock(false);
 
 	protected transient double cellSize;
 
@@ -72,63 +71,6 @@ public abstract class SimulationGraph extends Graph {
 		this.edges = graph.getEdges();
 	}
 
-	// TODO create exception if path does not exists
-	public Map<Integer, Map<Integer, List<Integer>>> getLines() {
-		if (shortestPaths == null) {
-			shortestPaths = new HashMap<>(entries * getModel().getDirections().size());
-			initializeVerticesDistances();
-
-			entryExitVertices.values().parallelStream()
-				.flatMap(Collection::stream)
-				.filter(entry -> entry.getType().isEntry())
-				.map(GraphicalVertex.class::cast)
-				.forEach(entry -> shortestPaths.put(entry.getID(), shortestPaths(entry)));
-		}
-		return shortestPaths;
-	}
-
-	private @NotNull Map<Integer, List<Integer>> shortestPaths(GraphicalVertex start) {
-
-		@NotNull VertexWithDirectionParent startWithDirection = new VertexWithDirectionParent(start);
-		@NotNull Map<Integer, List<Integer>> allPaths = ucs(startWithDirection);
-
-		@NotNull Map<Integer, List<Integer>> paths = new HashMap<>();
-		entryExitVertices.values().stream()
-			.flatMap(Collection::stream)
-			.filter(exit -> exit.getType().isExit())
-			.map(Vertex::getID)
-			.forEach(vertexID -> paths.put(vertexID, allPaths.get(vertexID)));
-
-		return paths;
-	}
-
-	private @NotNull Map<Integer, List<Integer>> ucs(VertexWithDirectionParent startingVertex) {
-		@NotNull Map<Integer, List<Integer>> vertexDistances = new HashMap<>(vertices.length);
-
-		@NotNull PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
-		queue.add(startingVertex);
-
-		while (!queue.isEmpty()) {
-			VertexWithDirectionParent vertex = queue.poll();
-			if (!vertexDistances.containsKey(vertex.getID())) {
-				if (vertex.getParent() == null) {
-					vertexDistances.put(vertex.getID(), Collections.singletonList(vertex.getID()));
-				} else {
-					@NotNull List<Integer> vertexPath = new ArrayList<>(vertexDistances.get(vertex.getParent().getID()));
-					vertexPath.add(vertex.getID());
-					vertexDistances.put(vertex.getID(), vertexPath);
-				}
-
-				getVerticesDistances().get(vertex).forEach((neighbour, edge) -> {
-					if (!vertexDistances.containsKey(neighbour.getID())) {
-						queue.add(new VertexWithDirectionParent(vertex, neighbour, edge, getCellSize())); // TODO refactor
-					}
-				});
-			}
-		}
-		return vertexDistances;
-	}
-
 	/**
 	 * TODO
 	 *
@@ -143,7 +85,7 @@ public abstract class SimulationGraph extends Graph {
 	// TODO
 
 	public @NotNull List<Integer> shortestPath(GraphicalVertex from, @NotNull GraphicalVertex to, double startingAngle) {
-				@NotNull PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
+		@NotNull PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
 		@NotNull HashSet<Integer> visitedIDs = new HashSet<>();
 		queue.add(new VertexWithDirectionParent(from, startingAngle));
 		while (!queue.isEmpty()) {
@@ -259,7 +201,7 @@ public abstract class SimulationGraph extends Graph {
 	 */
 	public abstract double getCellSize();
 
-	protected @NotNull Map<GraphicalVertex, Map<GraphicalVertex, Edge>> getVerticesDistances() {
+	public @NotNull Map<GraphicalVertex, Map<GraphicalVertex, Edge>> getVerticesDistances() {
 		verticesDistancesLock.lock();
 		if (verticesDistances.isEmpty()) {
 			initializeVerticesDistances();
@@ -267,6 +209,7 @@ public abstract class SimulationGraph extends Graph {
 		verticesDistancesLock.unlock();
 		return verticesDistances;
 	}
+
 	protected void initializeVerticesDistances() {
 		verticesDistancesLock.lock();
 		for (Vertex vertex : vertices) {

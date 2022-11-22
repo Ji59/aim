@@ -1,1 +1,49 @@
-\section{Safe lines}\label{sec:safe-lines}
+\section{Safe lanes}\label{sec:safe_lanes}
+
+Algoritmus~\nameref{sec:safe_lanes} je založen na~principu aktuálních křižovatek a dopravy obecně.
+Každá křižovatka má uloženou nejkratší cestu z~vjezdů do~výjezdů.
+Tuto cestu definuji jako \emph{pruh}, který známe z~reálného světa.
+
+\nameref{sec:safe_lanes} spoléhá na~obecnou implementaci obou funkcí $plan\_agents$.
+Implementuje jedinou funkci $plan\_agent$, která už dostává individuální agenty namísto množiny agentů.
+Tudíž jsou agenti pro~daný krok plánováni jeden po~druhém v~nepředvídatelném pořadí.
+
+Algoritmus~\nameref{sec:safe_lanes} se podívá na~pruh, popřípadě pruhy, podle vjezdu a výjezdu či výjezdů daných agentem.
+Pro~každou cestu algoritmus provede kontrolu popsanou v~předchozí kapitole~\ref{sec:kolize}.
+Agentovi je přiřazena první nalezená nekolizní cesta.
+Pokud taková cesta neexistuje, vjezd agenta je zamítnut.
+
+% @formatter:off
+\begin{code}
+// konstanty tabulka obsazených pozic t, množina pruhů p,
+// minimální vzdálenost agentů d
+
+plan_agent(step, agent_entries_exits)
+  agent = agent_entries_exits[0]
+  entry = agent_entries_exits[1]
+  exits = agent_entries_exits[2]
+  r <- diameter(agent)
+
+  for exit in sorted(exits, x -> dist(entry, x))
+    path <- p[agent.entry, exit]
+    for i in 0, \ldots, path.length - 1
+      vertex = path[i]
+      safe_vertex_ = safe_vertex(step + i, vertex, r)
+      if not safe_vertex_
+        continue
+
+      else if i > 0
+        safe_to = safe_step_to(step + i, vertex, path[i - 1], r)
+        if not safe_to
+          continue
+
+      else if i < path.length - 1
+        safe_from = safe_step_from(step + i,vertex, path[i + 1], r)
+        if not safe_from
+          continue
+
+    agent.path <- path
+    return agent
+  return NULL
+\end{code}
+% @formatter:on

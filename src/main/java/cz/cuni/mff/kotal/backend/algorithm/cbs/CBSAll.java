@@ -172,11 +172,10 @@ public class CBSAll extends CBSSingleGrouped {
 
 	@Override
 	public void addPlannedAgent(@NotNull Agent agent) {
-		setLargestAgentPerimeter(agent);
 	}
 
 	@Override
-	public void addPlannedPath(Agent agent, List<Integer> path, long step) {
+	public void addPlannedPath(@NotNull Agent agent, @NotNull List<Integer> path, long step) {
 		// stepOccupiedVertices should be empty
 	}
 

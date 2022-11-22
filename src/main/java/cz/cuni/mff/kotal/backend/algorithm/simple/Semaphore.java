@@ -9,7 +9,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Semaphore extends SafeLines {
+@Deprecated
+public class Semaphore extends SafeLanes {
 	private final int directions;
 	private final long greenTime;
 	private final long directionTime; // TODO
@@ -17,8 +18,7 @@ public class Semaphore extends SafeLines {
 	public Semaphore(@NotNull SimulationGraph graph) {
 		super(graph);
 
-		@NotNull Integer longestPath = graph
-			.getLines().values().stream()
+		@NotNull Integer longestPath = lanes.values().stream()
 			.flatMap(
 				map -> map.values().stream()
 					.map(List::size)

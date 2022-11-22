@@ -1,6 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm.astar;
 
-import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLanes;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.Pair;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 
-public class AStarSingle extends SafeLines {
+public class AStarSingle extends SafeLanes {
 	public static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
 	public static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
 	public static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
@@ -23,7 +23,7 @@ public class AStarSingle extends SafeLines {
 	public static final String ALLOW_AGENT_RETURN_NAME = "Allow agent to return";
 	public static final boolean ALLOW_AGENT_RETURN_DEF = false;
 
-	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SafeLines.PARAMETERS);
+	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SafeLanes.PARAMETERS);
 
 	static {
 		PARAMETERS.put(MAXIMUM_VERTEX_VISITS_NAME, MAXIMUM_VERTEX_VISITS_DEF);

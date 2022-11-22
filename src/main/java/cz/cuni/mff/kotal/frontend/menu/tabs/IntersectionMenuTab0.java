@@ -130,8 +130,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
 			startGraphDistanceComputing();
 
-			AgentParametersMenuTab4.getMaximalSizeLength().setMax(newVal - 1.);
-			AgentParametersMenuTab4.getMinimalSizeLength().setMax(newVal - 1.);
+			AgentParametersMenuTab4.getMaximalLengthSlider().setMax(newVal - 1.);
+			AgentParametersMenuTab4.getMinimalLengthSlider().setMax(newVal - 1.);
 			setSlidersDisable(false);
 		});
 	}
@@ -212,8 +212,8 @@ public class IntersectionMenuTab0 extends MyTabTemplate {
 
 		int entriesVal = entries.getIntValue();
 		int exitsVal = exits.getIntValue();
-		AgentParametersMenuTab4.getMinimalSizeWidth().setMax(Math.min(entriesVal, exitsVal));
-		AgentParametersMenuTab4.getMaximalSizeWidth().setMax(Math.min(entriesVal, exitsVal));
+		AgentParametersMenuTab4.getMinimalWidthSlider().setMax(Math.min(entriesVal, exitsVal));
+		AgentParametersMenuTab4.getMaximalWidthSlider().setMax(Math.min(entriesVal, exitsVal));
 
 		setSlidersDisable(false);
 	}

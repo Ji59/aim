@@ -50,6 +50,7 @@ public interface Algorithm {
 	 * @param step  Number of step in which agents should be planned
 	 * @return Agent if planning was successful, otherwise null
 	 */
+	@Deprecated
 	default @Nullable Agent planAgent(@NotNull Agent agent, long step) {
 		return planAgent(agent, agent.getEntry(), Collections.singleton(agent.getExit()), step);
 	}
@@ -63,7 +64,7 @@ public interface Algorithm {
 	 * @param step    Number of step in which agents should be planned
 	 * @return Agent if planning was successful, otherwise null
 	 */
-	@Nullable Agent planAgent(Agent agent, int entryID, Set<Integer> exitsID, long step);
+	@Nullable Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsID, long step);
 
 	default void addPlannedAgent(Agent agent) {
 	}

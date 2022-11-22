@@ -1,6 +1,6 @@
 \section{Křižovatka}\label{sec:krizovatka}
 
-Křižovatka značí hlavní plochu po~které se auta budou pohybovat.
+Křižovatka značí hlavní plochu, po~které se auta budou pohybovat.
 Křižovatka byla rozdělena na~diskrétní nepřekrývající~se bloky zaplňující celou plochu křižovatky.
 Auta mohou mezi sousedními bloky přejíždět.
 Křižovatka je definována pomocí orientovaného grafu, kde~každý blok je reprezentován jedním vrcholem a hrany vedou mezi sousedními bloky.
@@ -9,7 +9,7 @@ Vzdálenost mezi sousedními bloky (čas přejezdu) je u~všech bloků stejný a
 Bloky jsou rozděleny do~třech skupin.
 První skupina jsou vrcholy reprezentující použitelnou \emph{plochu} křižovatky.
 Zbylé dvě skupiny reprezentují \emph{vjezdy} do~křižovatky a \emph{výjezdy} z~křižovatky.
-\emph{Vjezdy} jsou vrcholy ze~kterých vede jedna hrana a žádná hrana do~nich nevede.
+\emph{Vjezdy} jsou vrcholy, ze~kterých vede jedna hrana a žádná hrana do~nich nevede.
 Obdobně \emph{vrcholy} výjezdů naopak nemají žádné hrany vedoucí z~nich a právě jednu hranu směřující do~nich.
 
 Simulátor nabízí $3$~možné \emph{typy} křižovatek.
@@ -49,7 +49,7 @@ Vzdálenost mezi jednotlivými bloky je vždy stejná a je rovna \emph{velikosti
 Tento typ křižovatky má čtyři \emph{směry}, jeden \emph{směr} na~každé straně čtverce celkové plochy.
 Křižovatka je převedena na~graf s~$g^2 + 4i + 4o$ vrcholy, kde $g$ značí \emph{granularitu}, $i$~\emph{vjezdy} a $o$~\emph{výjezdy}.
 
-Ukázka křižovatky s~granularitou~$4$, jedním vjezdem a jedním výjezdem je vidět na~obrázku (Obrázek~\ref{fig:square_type_graph}).
+Ukázka křižovatky s~granularitou~$4$, jedním vjezdem a jedním výjezdem je vidět na~obrázku~\ref{fig:square_type_graph}.
 Na~obrázku jsou šedou barvou označeny vrcholy značící běžnou plochu křižovatky,
 červeno-šedou barvou označeny vrcholy reprezentující vjezdy a modro-šedé vrcholy reprezentují výjezdy.
 

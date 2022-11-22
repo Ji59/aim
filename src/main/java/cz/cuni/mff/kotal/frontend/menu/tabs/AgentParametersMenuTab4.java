@@ -28,13 +28,13 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	// TODO don't use static, use Component
 	// TODO rename constants
 	// TODO redesign size properties
-	private static final DoubleSlider minimalSizeLength = new DoubleSlider(0.1, IntersectionMenuTab0.getGranularity().getIntValue() - 1., DEFAULT_AGENT_LENGTH);
-	private static final DoubleSlider minimalSizeWidth = new DoubleSlider(0.1, Math.min(IntersectionMenuTab0.getEntries().getIntValue(), IntersectionMenuTab0.getExits().getIntValue()), DEFAULT_AGENT_WIDTH);
-	private static final DoubleSlider maximalSizeLength = new DoubleSlider(0.1, IntersectionMenuTab0.getGranularity().getIntValue() - 1., DEFAULT_AGENT_LENGTH);
-	private static final DoubleSlider maximalSizeWidth = new DoubleSlider(0.1, Math.min(IntersectionMenuTab0.getEntries().getIntValue(), IntersectionMenuTab0.getExits().getIntValue()), DEFAULT_AGENT_WIDTH);
-	private static final IntSlider minimalSpeed = new IntSlider(1, IntersectionMenuTab0.getGranularity().getIntValue(), 1);
-	private static final IntSlider maximalSpeed = new IntSlider(1, IntersectionMenuTab0.getGranularity().getIntValue(), 1);
-	private static final Slider speedDeviation = new Slider(0, 1, 0);
+	private static final DoubleSlider MINIMAL_LENGTH_SLIDER = new DoubleSlider(0.1, IntersectionMenuTab0.getGranularity().getIntValue() - 1., DEFAULT_AGENT_LENGTH);
+	private static final DoubleSlider MINIMAL_WIDTH_SLIDER = new DoubleSlider(0.1, Math.min(IntersectionMenuTab0.getEntries().getIntValue(), IntersectionMenuTab0.getExits().getIntValue()), DEFAULT_AGENT_WIDTH);
+	private static final DoubleSlider MAXIMAL_LENGTH_SLIDER = new DoubleSlider(0.1, IntersectionMenuTab0.getGranularity().getIntValue() - 1., DEFAULT_AGENT_LENGTH);
+	private static final DoubleSlider MAXIMAL_WIDTH_SLIDER = new DoubleSlider(0.1, Math.min(IntersectionMenuTab0.getEntries().getIntValue(), IntersectionMenuTab0.getExits().getIntValue()), DEFAULT_AGENT_WIDTH);
+	private static final IntSlider MINIMAl_SPEED_SLIDER = new IntSlider(1, IntersectionMenuTab0.getGranularity().getIntValue(), 1);
+	private static final IntSlider MAXIMAL_SPEED_SLIDER = new IntSlider(1, IntersectionMenuTab0.getGranularity().getIntValue(), 1);
+	private static final Slider SPEED_DEVIATION_SLIDER = new Slider(0, 1, 0);
 
 	/**
 	 * Create new tab with nodes, add actions.
@@ -58,8 +58,8 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	 * Create size sliders and assign actions to them.
 	 */
 	private void createSizeSlidersAndAddActions() {
-		addSliderValueChanges(minimalSizeLength, maximalSizeLength);
-		addSliderValueChanges(minimalSizeWidth, maximalSizeWidth);
+		addSliderValueChanges(MINIMAL_LENGTH_SLIDER, MAXIMAL_LENGTH_SLIDER);
+		addSliderValueChanges(MINIMAL_WIDTH_SLIDER, MAXIMAL_WIDTH_SLIDER);
 
 		GridPane grid = (GridPane) Parameters.SIZE.getParameter();
 		// TODO pryc s tim
@@ -72,8 +72,8 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 		w0.setPrefWidth(20);
 		w1.setPrefWidth(20);
 		// TODO odebrat konstanty
-		grid.addRow(0, new Label("Minimum:"), new VBox(new HBox(10, l0, minimalSizeLength), new HBox(10, w0, minimalSizeWidth)));
-		grid.addRow(1, new Label("Maximum:"), new VBox(new HBox(10, l1, maximalSizeLength), new HBox(10, w1, maximalSizeWidth)));
+		grid.addRow(0, new Label("Minimum:"), new VBox(new HBox(10, l0, MINIMAL_LENGTH_SLIDER), new HBox(10, w0, MINIMAL_WIDTH_SLIDER)));
+		grid.addRow(1, new Label("Maximum:"), new VBox(new HBox(10, l1, MAXIMAL_LENGTH_SLIDER), new HBox(10, w1, MAXIMAL_WIDTH_SLIDER)));
 		grid.setHgap(20);
 		grid.setVgap(20);
 	}
@@ -99,30 +99,30 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	private void createSpeedSlidersAndAddActions() {
 		@NotNull Label speedDeviationLabel = new Label("0%");
 
-		minimalSpeed.addAction((observable, oldValue, newValue) -> {
-			if (maximalSpeed.getIntValue() < newValue.intValue()) {
-				maximalSpeed.setValue(newValue.intValue());
+		MINIMAl_SPEED_SLIDER.addAction((observable, oldValue, newValue) -> {
+			if (MAXIMAL_SPEED_SLIDER.getIntValue() < newValue.intValue()) {
+				MAXIMAL_SPEED_SLIDER.setValue(newValue.intValue());
 			}
 		});
-		maximalSpeed.addAction((observable, oldValue, newValue) -> {
-			if (minimalSpeed.getIntValue() > newValue.intValue()) {
-				minimalSpeed.setValue(newValue.intValue());
+		MAXIMAL_SPEED_SLIDER.addAction((observable, oldValue, newValue) -> {
+			if (MINIMAl_SPEED_SLIDER.getIntValue() > newValue.intValue()) {
+				MINIMAl_SPEED_SLIDER.setValue(newValue.intValue());
 			}
 		});
-		speedDeviation.valueProperty().addListener((observable, oldValue, newValue) -> {
+		SPEED_DEVIATION_SLIDER.valueProperty().addListener((observable, oldValue, newValue) -> {
 			speedDeviationLabel.setText(new DecimalFormat("###.##%").format(newValue));
 		});
-		speedDeviation.setBlockIncrement(0.05);
-		speedDeviation.setMajorTickUnit(0.2);
-		speedDeviation.setMinorTickCount(3);
-		speedDeviation.setShowTickLabels(true);
-		speedDeviation.setShowTickMarks(true);
+		SPEED_DEVIATION_SLIDER.setBlockIncrement(0.05);
+		SPEED_DEVIATION_SLIDER.setMajorTickUnit(0.2);
+		SPEED_DEVIATION_SLIDER.setMinorTickCount(3);
+		SPEED_DEVIATION_SLIDER.setShowTickLabels(true);
+		SPEED_DEVIATION_SLIDER.setShowTickMarks(true);
 
 		// TODO odstranit konstanty
 		GridPane grid = (GridPane) Parameters.SPEED.getParameter();
-		grid.addRow(0, new Label("Minimum:"), minimalSpeed);
-		grid.addRow(1, new Label("Maximum:"), maximalSpeed);
-		grid.addRow(2, new Label("Deviation:"), speedDeviation, speedDeviationLabel);
+		grid.addRow(0, new Label("Minimum:"), MINIMAl_SPEED_SLIDER);
+		grid.addRow(1, new Label("Maximum:"), MAXIMAL_SPEED_SLIDER);
+		grid.addRow(2, new Label("Deviation:"), SPEED_DEVIATION_SLIDER, speedDeviationLabel);
 		grid.setHgap(20);
 		grid.setVgap(20);
 	}
@@ -130,50 +130,82 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 	/**
 	 * @return Minimal size length slider
 	 */
-	public static @NotNull DoubleSlider getMinimalSizeLength() {
-		return minimalSizeLength;
+	public static @NotNull DoubleSlider getMinimalLengthSlider() {
+		return MINIMAL_LENGTH_SLIDER;
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	public static double getMinimalLength() {
+		return MINIMAL_LENGTH_SLIDER.getValue();
 	}
 
 	/**
 	 * @return Minimal size width slider
 	 */
-	public static @NotNull DoubleSlider getMinimalSizeWidth() {
-		return minimalSizeWidth;
+	public static @NotNull DoubleSlider getMinimalWidthSlider() {
+		return MINIMAL_WIDTH_SLIDER;
+	}
+
+	public static double getMinimalWidth() {
+		return MINIMAL_WIDTH_SLIDER.getValue();
 	}
 
 	/**
 	 * @return Maximal size length slider
 	 */
-	public static @NotNull DoubleSlider getMaximalSizeLength() {
-		return maximalSizeLength;
+	public static @NotNull DoubleSlider getMaximalLengthSlider() {
+		return MAXIMAL_LENGTH_SLIDER;
+	}
+	
+	public static double getMaximalLength() {
+		return MAXIMAL_LENGTH_SLIDER.getValue();
 	}
 
 	/**
 	 * @return Maximal size width slider
 	 */
-	public static @NotNull DoubleSlider getMaximalSizeWidth() {
-		return maximalSizeWidth;
+	public static @NotNull DoubleSlider getMaximalWidthSlider() {
+		return MAXIMAL_WIDTH_SLIDER;
+	}
+
+	public static double getMaximalWidth() {
+		return MAXIMAL_WIDTH_SLIDER.getValue();
 	}
 
 	/**
 	 * @return Minimal speed slider
 	 */
-	public static @NotNull IntSlider getMinimalSpeed() {
-		return minimalSpeed;
+	public static @NotNull IntSlider getMinimalSpeedSlider() {
+		return MINIMAl_SPEED_SLIDER;
+	}
+
+	public static int getMinimalSpeed() {
+		return MINIMAl_SPEED_SLIDER.getIntValue();
 	}
 
 	/**
 	 * @return Maximal speed slider
 	 */
-	public static @NotNull IntSlider getMaximalSpeed() {
-		return maximalSpeed;
+	public static @NotNull IntSlider getMaximalSpeedSlider() {
+		return MAXIMAL_SPEED_SLIDER;
+	}
+
+	public static int getMaximalSpeed() {
+		return MAXIMAL_SPEED_SLIDER.getIntValue();
 	}
 
 	/**
 	 * @return Speed deviation slider
 	 */
-	public static @NotNull Slider getSpeedDeviation() {
-		return speedDeviation;
+	public static @NotNull Slider getSpeedDeviationSlider() {
+		return SPEED_DEVIATION_SLIDER;
+	}
+
+	public static double getSpeedDeviation() {
+		return SPEED_DEVIATION_SLIDER.getValue();
 	}
 
 	/**

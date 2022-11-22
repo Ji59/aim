@@ -2,6 +2,7 @@ package cz.cuni.mff.kotal.backend.algorithm.simple;
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.backend.algorithm.LinkGraph;
+import cz.cuni.mff.kotal.frontend.menu.tabs.AgentParametersMenuTab4;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.MyNumberOperations;
@@ -9,6 +10,7 @@ import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
+import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -16,9 +18,15 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
+import static cz.cuni.mff.kotal.helpers.MyNumberOperations.distance;
+import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
 
-public class SafeLines implements Algorithm {
+/**
+ * Algorithm implementing simple strategy.
+ * Agent can drive only on predetermined lanes.
+ * Agents are planned one ofter other until all are planned or rejected.
+ */
+public class SafeLanes implements Algorithm {
 	public static final String SAFE_DISTANCE_NAME = "Safe distance";
 	public static final double SAFE_DISTANCE_DEF = 0.;
 	public static final Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF);
@@ -26,11 +34,12 @@ public class SafeLines implements Algorithm {
 	protected final @NotNull SimulationGraph graph;
 	protected final Map<Long, Map<Integer, Agent>> stepOccupiedVertices = new HashMap<>();
 	protected final Map<Integer, PriorityQueue<VertexDistance>> verticesDistances = new HashMap<>();
+	protected final Map<Integer, Map<Integer, List<Integer>>> lanes;
 	private final double safeDistance;
-	protected double largestAgentPerimeter = 0;
+	private final double largestAgentPerimeter = MyNumberOperations.perimeter(AgentParametersMenuTab4.getMaximalLength(), AgentParametersMenuTab4.getMaximalWidth());
 	protected boolean stopped = false;
 
-	public SafeLines(@NotNull SimulationGraph graph) {
+	public SafeLanes(@NotNull SimulationGraph graph) {
 		this.graph = graph;
 
 		@NotNull List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
@@ -60,10 +69,13 @@ public class SafeLines implements Algorithm {
 		});
 
 		safeDistance = AlgorithmMenuTab2.getDoubleParameter(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF) * graph.getCellSize();
+
+		lanes = new HashMap<>(graph.getEntries() * graph.getModel().getDirections().size());
+		createLanes();
 	}
 
 	@TestOnly
-	protected SafeLines(@NotNull SimulationGraph graph, double safeDistance) {
+	protected SafeLanes(@NotNull SimulationGraph graph, double safeDistance) {
 		this.graph = graph;
 
 		@NotNull List<GraphicalVertex> sortedGraphicalVertices = graph.getVerticesSet().stream().map(GraphicalVertex.class::cast).sorted(Comparator.comparingInt(Vertex::getID)).toList();
@@ -93,32 +105,24 @@ public class SafeLines implements Algorithm {
 		});
 
 		this.safeDistance = safeDistance;
+		lanes = new HashMap<>(graph.getEntries() * graph.getModel().getDirections().size());
+		createLanes();
 	}
 
 	@Override
-	public Collection<Agent> planAgents(@NotNull Collection<Agent> agents, long step) {
-		filterStepOccupiedVertices(step);
-		return agents.stream().filter(agent -> !stopped && planAgent(agent, step) != null).toList();
-	}
-
-	@Override
-	public @Nullable Agent planAgent(@NotNull Agent agent, long step) {
+	public @Nullable Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsID, long step) {
+		if (exitsID.isEmpty()) {
+			exitsID = getExits(agent);
+		}
 		@Nullable List<Integer> selectedPath = null;
 		double agentPerimeter = agent.getAgentPerimeter();
-		if (agent.getExit() < 0) {
-			@NotNull List<List<Integer>> directionPaths = directionExits.get(agent.getExitDirection()).stream()
-				.map(exit -> graph.getLines().get(agent.getEntry()).get(exit))
-				.sorted(Comparator.comparingInt(List::size)).toList();
-			for (@NotNull List<Integer> path : directionPaths) {
-				if (validPath(step, path, agentPerimeter)) {
-					selectedPath = path;
-					break;
-				}
-			}
-		} else {
-			List<Integer> path = graph.getLines().get(agent.getEntry()).get(agent.getExit());
+		@NotNull List<List<Integer>> directionPaths = exitsID.stream()
+			.map(exit -> lanes.get(agent.getEntry()).get(exit))
+			.sorted(Comparator.comparingInt(List::size)).toList();
+		for (@NotNull List<Integer> path : directionPaths) {
 			if (validPath(step, path, agentPerimeter)) {
 				selectedPath = path;
+				break;
 			}
 		}
 
@@ -136,12 +140,6 @@ public class SafeLines implements Algorithm {
 	}
 
 	@Override
-	public @Nullable Agent planAgent(Agent agent, int entryID, Set<Integer> exitsID, long step) {
-		// FIXME
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void addPlannedAgent(@NotNull Agent agent) {
 		List<Integer> path = agent.getPath();
 		for (int i = 0; i < path.size(); i++) {
@@ -154,15 +152,6 @@ public class SafeLines implements Algorithm {
 			path = linkGraph.getRealPath(path);
 			agent.setPath(path, agent.getPlannedTime());
 		}
-
-		setLargestAgentPerimeter(agent);
-	}
-
-	protected void setLargestAgentPerimeter(@NotNull Agent agent) {
-		double agentPerimeter = agent.getAgentPerimeter();
-		if (agentPerimeter > largestAgentPerimeter) {
-			largestAgentPerimeter = agentPerimeter;
-		}
 	}
 
 	@Override
@@ -171,8 +160,6 @@ public class SafeLines implements Algorithm {
 			stepOccupiedVertices.putIfAbsent(step + i, new HashMap<>());
 			stepOccupiedVertices.get(step + i).put(path.get(i), agent);
 		}
-
-		setLargestAgentPerimeter(agent);
 	}
 
 	@Override
@@ -203,7 +190,7 @@ public class SafeLines implements Algorithm {
 		return true;
 	}
 
-	protected boolean safeVertex(long step, int vertexID, double agentPerimeter) {
+	protected boolean safeVertex(final long step, final int vertexID, final double agentPerimeter) {
 		if (!stepOccupiedVertices.containsKey(step)) {
 			return true;
 		}
@@ -238,7 +225,7 @@ public class SafeLines implements Algorithm {
 		}
 
 		final double safePerimeter = agentPerimeter + safeDistance;
-		return verticesDistances.get(vertexID).stream()  // FIXME add other agent size to computation
+		return verticesDistances.get(vertexID).stream()
 			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
 			.map(v -> {
 				Agent neighbour = illegalMoveTable.get(step).get(v.vertexID());
@@ -258,7 +245,7 @@ public class SafeLines implements Algorithm {
 		}
 
 		final double safePerimeter = agentPerimeter + safeDistance;
-		return verticesDistances.get(vertexID).stream()  // FIXME add other agent size to computation
+		return verticesDistances.get(vertexID).stream()
 			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
 			.filter(v -> conflictAvoidanceTable.get(step).containsKey(v.vertexID()))
 			.flatMap(v -> {
@@ -387,6 +374,10 @@ public class SafeLines implements Algorithm {
 	}
 
 	protected boolean checkNeighbour(int vertexID, int adjacentVertexID, int neighbourVertexID, double agentPerimeter, double neighbourPerimeter) {
+		if (adjacentVertexID == neighbourVertexID) {
+			return false;
+		}
+
 		GraphicalVertex v = graph.getVertex(vertexID);
 		GraphicalVertex agentAdjacentVertex = graph.getVertex(adjacentVertexID);
 		GraphicalVertex neighbourAdjacentVertex = graph.getVertex(neighbourVertexID);
@@ -400,8 +391,8 @@ public class SafeLines implements Algorithm {
 
 		double x0 = xA + xN - 2 * x;
 		double y0 = yA + yN - 2 * y;
-		double x1 = xA - x;
-		double y1 = yA - y;
+		double x1 = xN - x;
+		double y1 = yN - y;
 
 		double perimetersSquared = neighbourPerimeter + agentPerimeter + safeDistance;
 		perimetersSquared *= perimetersSquared;
@@ -412,10 +403,11 @@ public class SafeLines implements Algorithm {
 
 		double closestTime = (x1 * x0 + y1 * y0) / (x0 * x0 + y0 * y0);
 		double xDiffAtT = closestTime * x0 - x1;
-		assert doubleAlmostEqual(Math.abs(xDiffAtT), Math.abs((closestTime * x + (1 - closestTime) * xA) - (closestTime * xN + (1 - closestTime) * x)), 1e-7);
+		boolean b = doubleAlmostEqual(Math.abs(xDiffAtT), Math.abs((closestTime * xA + (1 - closestTime) * x) - (closestTime * x + (1 - closestTime) * xN)), 1e-7);
+		assert b;
 		xDiffAtT *= xDiffAtT;
 		double yDiffAtT = closestTime * y0 - y1;
-		assert doubleAlmostEqual(Math.abs(yDiffAtT), Math.abs((closestTime * y + (1 - closestTime) * yA) - (closestTime * yN + (1 - closestTime) * y)), 1e-7);
+		assert doubleAlmostEqual(Math.abs(yDiffAtT), Math.abs((closestTime * yA + (1 - closestTime) * y) - (closestTime * y + (1 - closestTime) * yN)), 1e-7);
 		yDiffAtT *= yDiffAtT;
 
 		return xDiffAtT + yDiffAtT > perimetersSquared;
@@ -491,13 +483,17 @@ public class SafeLines implements Algorithm {
 
 		int vertexP0 = itP0.next();
 		int vertexP1 = itP1.next();
-		int vertexP0Last;
-		int vertexP1Last;
 
 		if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
 			return Optional.of(new Pair<>(startStep, true));
 		}
 
+		return collisionPath(agent0Perimeter, agent1Perimeter, startStep, itP0, itP1, vertexP0, vertexP1);
+	}
+
+	private @NotNull Optional<Pair<Long, Boolean>> collisionPath(double agent0Perimeter, double agent1Perimeter, long startStep, @NotNull ListIterator<Integer> itP0, @NotNull ListIterator<Integer> itP1, int vertexP0, int vertexP1) {
+		int vertexP0Last;
+		int vertexP1Last;
 		long step = startStep + 1;
 
 		while (itP0.hasNext() && itP1.hasNext()) {
@@ -507,7 +503,7 @@ public class SafeLines implements Algorithm {
 			vertexP0 = itP0.next();
 			vertexP1 = itP1.next();
 
-			if (conflictVerticesSet(vertexP0, agentsPerimeter).contains(vertexP1)) {
+			if (conflictVerticesSet(vertexP0, agent0Perimeter + agent1Perimeter).contains(vertexP1)) {
 				return Optional.of(new Pair<>(step, true));
 			}
 
@@ -527,8 +523,40 @@ public class SafeLines implements Algorithm {
 
 			step++;
 		}
-
 		return Optional.empty();
+	}
+
+	public void createLanes() {
+		graph.getVerticesSet().parallelStream()
+			.map(GraphicalVertex.class::cast)
+			.forEach(entry -> lanes.put(entry.getID(), ucs(entry)));
+	}
+
+	private @NotNull Map<Integer, List<Integer>> ucs(@NotNull GraphicalVertex startingVertex) {
+		@NotNull Map<Integer, List<Integer>> paths = new HashMap<>(graph.getVertices().length);
+
+		@NotNull PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
+		queue.add(new VertexWithDirectionParent(startingVertex));
+
+		while (!queue.isEmpty()) {
+			final VertexWithDirectionParent vertex = queue.poll();
+			if (!paths.containsKey(vertex.getID())) {
+				if (vertex.getParent() == null) {
+					paths.put(vertex.getID(), Collections.singletonList(vertex.getID()));
+				} else {
+					@NotNull List<Integer> vertexPath = new ArrayList<>(paths.get(vertex.getParent().getID()));
+					vertexPath.add(vertex.getID());
+					paths.put(vertex.getID(), vertexPath);
+				}
+
+				graph.getVerticesDistances().get(vertex.getVertex()).forEach((neighbour, edge) -> {
+					if (!paths.containsKey(neighbour.getID())) {
+						queue.add(new VertexWithDirectionParent(vertex, neighbour, edge, graph.getCellSize()));
+					}
+				});
+			}
+		}
+		return paths;
 	}
 
 	protected record VertexDistance(int vertexID, double distance) implements Comparable<VertexDistance> {

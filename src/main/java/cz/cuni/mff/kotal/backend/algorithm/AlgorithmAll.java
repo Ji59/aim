@@ -1,6 +1,6 @@
 package cz.cuni.mff.kotal.backend.algorithm;
 
-import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLanes;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.Simulation;
@@ -106,7 +106,7 @@ public interface AlgorithmAll {
 		stepOccupiedVertices.computeIfAbsent(step, k -> new HashMap<>());
 	}
 
-	static void addAgentsEntriesExits(final @NotNull SafeLines algorithm, final long step, final @NotNull Collection<Agent> validNotFinishedAgents, final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> allAgents) {
+	static void addAgentsEntriesExits(final @NotNull SafeLanes algorithm, final long step, final @NotNull Collection<Agent> validNotFinishedAgents, final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> allAgents) {
 		for (@NotNull Agent agent : validNotFinishedAgents) {
 			final long plannedTime = agent.getPlannedTime();
 			final int travelTime = (int) (step - plannedTime);

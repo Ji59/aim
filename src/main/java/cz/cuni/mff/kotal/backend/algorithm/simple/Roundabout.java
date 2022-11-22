@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class Roundabout extends SafeLines {
+public class Roundabout extends SafeLanes {
 	protected final @NotNull List<Integer> roundTrip;
 	private final Map<Integer, Integer> exitsNeighboursMapping = new HashMap<>();
 

@@ -11,7 +11,7 @@ import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingle;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingleGrouped;
 import cz.cuni.mff.kotal.backend.algorithm.simple.BidirectionalRoundabout;
 import cz.cuni.mff.kotal.backend.algorithm.simple.Roundabout;
-import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLines;
+import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLanes;
 import cz.cuni.mff.kotal.backend.algorithm.simple.Semaphore;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MyComboBox;
@@ -229,12 +229,12 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		 * All algorithms to be shown in combo box.
 		 */
 		public enum Algorithm {
-			SAFE_LINES("Safe lines", "Every agent follows its line, but checks for collisions.", SafeLines.class),
+			SAFE_LINES("Safe lines", "Every agent follows its line, but checks for collisions.", SafeLanes.class),
 			BFS("Breadth First Search", "Finds the shortest path for every agent.", BreadthFirstSearch.class),
-			LINES("Follow lines", "Every agent follows line from start to end.", Lines.class),
-			SEMAPHORE("Semaphore", "Standard semaphore with direction limit.", Semaphore.class),
-			ROUNDABOUT("Roundabout", "Standard one way one lane roundabout.", Roundabout.class),
-			BI_ROUNDABOUT("Bidirectional Roundabout", "One lane roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
+//			LINES("Follow lines", "Every agent follows line from start to end.", Lanes.class),
+//			SEMAPHORE("Semaphore", "Standard semaphore with direction limit.", Semaphore.class),
+//			ROUNDABOUT("Roundabout", "Standard one way one lane roundabout.", Roundabout.class),
+//			BI_ROUNDABOUT("Bidirectional Roundabout", "One lane roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
 			A_STAR("A* single", "This algorithm computes A star algorithm for each agent in non-collision way.", AStarSingle.class),
 			A_STAR_SINGLE_GROUPED("A*", "TODO", AStarSingleGrouped.class),
 			A_STAR_ALL("A* all", "TODO", AStarAll.class),

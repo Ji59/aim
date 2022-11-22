@@ -1,6 +1,5 @@
 \section{Simulace}\label{sec:simulace}
 
-Simulace se spouští pomocí mnou vytvořeného programu.
 V~každém kroku se pokusí simulace naplánovat agenty použitím vybraného algoritmu.
 Pro~naplánování jsou vybráni agenti z~každého vjezdu, kteří přijeli nejdříve.
 Nemůže se stát, že by agent předjel jiného agenta čekajícího před~ním.
@@ -11,7 +10,7 @@ Tyto statistiky jsou popsány níže.
 \begin{itemize}
 	\item \emph{Zdržení} agentů. \emph{Zdržení} jednoho agenta se~spočte jako součet
 	rozdílu délky cesty od~optimální cesty a doba čekání před vjezdem do~křižovatky.
-	Jinými slovy značí \emph{zdržení} počet kroků o~které agent vyjel z~křižovatky později oproti situaci,
+	Jinými slovy \emph{zdržení} značí počet kroků, o~které agent vyjel z~křižovatky později oproti situaci,
 	kdyby přijel na~prázdnou křižovatku (křižovatku bez~jiných agentů) a ihned by~projel nejkratší možnou cestou.
 	\emph{Zdržení} všech agentů je součet \emph{zdržení} přes~všechny agenty, co se~pokusili křižovatkou projet.
 	\item Počet \emph{zamítnutých} agentů udává množství agentů, kteří čekali na~křižovatce příliš dlouho a
