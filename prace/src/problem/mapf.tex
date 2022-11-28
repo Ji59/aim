@@ -1,70 +1,10 @@
-\section{Problém křižovatky}\label{sec:problem}
+\subsubsection{Offline~MAPF}\label{subsubsec:offline_mapf}
 
-Popis problému křižovatky.
+Definice MAPF a s ním spojených pojmů (Sum of costs, \ldots).
 
-Obecnější řešení (decentralizované plánování, časování semaforů, \ldots)
+Analogie a rozdíly oproti problému práce.
 
-
-%Chytré křižovatky se již objevily v mnohých městech.
-%Jsou to světelné křižovatky, které dokážou poznat, že všechna auta v daném směru už projela.
-%Při~detekci takovéto situace křižovatka nastaví červenou z~příslušného směru a zároveň pustí auta z~jiného směru dříve.
-%Plánování pořadí a délek jednotlivých zelených všech směrů je komplexní záležitost, pokročilejší plánování popsali například \citet*{Goldstein}.
-%\citet*{Liang} ve svém článku popsali trénování světelných křižovatek pomocí zpětnovazebního učení
-%a rozšířili algoritmus i~na~tisíce propojených křižovatek.
-%Na~tento způsob řešení jsem ve~své práci nezaměřil, protože nabízí minimální zlepšení
-%na~jedné křižovatce v~hustých provozech a minimálně využívá autonomie vozidel.
-%
-%Další způsob je decentralizované plánování, které spočívá v~komunikaci mezi auty.
-%Touto technikou se zabývali například \citet*{Wu}.
-%V~jejich článku porovnávají kruhový objezd se světelnou křižovatkou.
-%Jelikož není přítomna centrální řídící jednotka, pro~převedení řešení
-%do~reálného světa stačí přidat určitý protokol do~vozidel v~provozu.
-%Avšak aplikovat komplexnější plánování je při~větším počtu aut obtížné.
-%
-%Já se zaměřím pouze na postupy s~centrální jednotkou.
-
-%Výše popsané algoritmy často používají First Come First Served \labeltext{FCFS}{str:fcfs} strategii pro~určení pořadí plánování.
-%Při~použití \ref{str:fcfs} má nejvyšší prioritu v~plánování auto, které dorazilo ke~křižovatce nejdříve.
-%Tímto způsobem jsou minimalizovány čekací doby jednotlivých aut.
-%
-%Problém plánování lze převézt na~jiné známé problémy.
-%Hlavní cíl této práce jsou následující dva přístupy: \emph{\nameref{subsec:individualni_planovani}} a \emph{\nameref{subsec:hromadne_planovani}}.
-%
-%
-%\subsection{Individuální plánování}\label{subsec:individualni_planovani}
-%
-%Jak název napovídá, agenti jsou naplánováni jeden po druhém.
-%Každý nový plán je rozvržen tak, aby nekolidoval s žádným už naplánovaným agentem.
-%
-%Jako první se problematikou zabývali \citet*{Dresner}.
-%Jejich přístup více odpovídal reálnému provozu.
-%Agenti měli plynulé zatáčení a uměli zrychlovat a zpomalovat.
-%Dále \citet{Dresner} řešili problémy komunikace mezi agenty a křižovatkou, řešení situace při kolizi a podporu pro vozidla s lidským řidičem.
-%Agenti v jejich práci jsou schopni jezdit pouze v předem daných pruzích.
-%V těchto pruzích následně mohou agenti zrychlovat či zpomalovat.
-%Algoritmus nejprve přiřadí agentovi maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
-%Pokud ano, zkusí nižší rychlost před místem kolize.
-%Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
-%Agenti jsou plánováni pomocí \ref{str:fcfs} strategie.
-%Tímto algoritmem jsem se inspiroval u~algoritmu \nameref{sec:safe_lanes}.
-%V mé implementaci jezdí agenti stejnou rychlostí v předem daných pruzích.
-%Pokud by u agenta došlo ke kolizi, je jeho příjezd odložen.
-%
-%Řešení je možné rozšířit pomocí libovolného prohledávacího algoritmu.
-%Tento přístup jsem vyzkoušel použitím známého algoritmu \nameref{sec:a_star},
-%kdy prvního agenta naplánuji nejkratší cestou, poté naplánuji druhého tak, aby nekolidoval s prvním.
-%Takto pokračuji pro všechny přijíždějící agenty.
-%
-%
-%\subsection{Hromadné plánování}\label{subsec:hromadne_planovani}
-%
-%Řešení tohoto typu jsou složitější, avšak teoreticky by měla být schopna tvořit celkově lepší plány.
-%
-%Chytrá křižovatka se dá převézt na online \emph{MAPF} (Multi-Agent Path Finding) problém.
-%
-%\subsection{Offline~MAPF}\label{subsec:offline_mapf}
-%
-%\emph{Offline~MAPF} má na vstupu dvojici $G, A$, kde $G=(V, E)$ je graf a $A = \{a_1, \dots, a_k\}$ je množina agentů.
+%\nameref{subsec:offline_mapf} má na~vstupu dvojici $G, A$, kde $G=(V, E)$ je graf a $A = \{a_1, \dots, a_k\}$ je množina agentů.
 %Každý agent $a_i$ má svojí výchozí pozici $s_i \in V$ a cílovou pozici $g_i \in V$.
 %Čas je rozdělen na diskrétní úseky (kroky).
 %Během jednoho kroku může agent přejet do sousedního vrcholu, nebo počkat v aktuálním.
@@ -82,8 +22,13 @@ Obecnější řešení (decentralizované plánování, časování semaforů, \
 %Plán $\pi$ má cenu $|\pi| = \sum_{i=1}^{k} |\pi_i|$.
 %Alternativní způsob porovnání je objektivní funkcí pro plán $\pi$ funkce $\textrm{makespan}\labeltext{makespan}{str:makespan}(\pi)$,
 %která značí počet kroků, než všichni agenti dorazí do svého cíle.
-%
-%\subsubsection{Řešení~offline~MAPF}\label{subsubsec:reseni_offline_mapf}
+
+\paragraph{Řešení~\nameref{subsubsec:offline_mapf}}\label{par:reseni_offline_mapf}
+
+.
+
+Stručný popis známých algoritmů pro MAPF s citacemi (CBS, A*, SAT).
+
 %
 %Nejjednodušší způsob řešení je využít A* algoritmus, kde následníci stavu jsou kartézským součinem přes všechny možné tahy všech agentů.
 %Toto řešení má často vysoký větvící faktor.
@@ -110,8 +55,13 @@ Obecnější řešení (decentralizované plánování, časování semaforů, \
 %Blíže je toto řešení popsáno v kapitole \nameref{sec:sat-planner}.
 %
 %Další způsob řešení je za použití zpětnovazebního učení \citep*{Zhiyao}.
-%
-%\subsection{Online~MAPF}\label{subsec:online_mapf}
+
+\subsubsection{Online~MAPF}\label{subsubsec:online_mapf}
+
+Popis rozšíření z offline na online, popis způsobů řešení.
+
+Definice optimality (optimal vs snapshot-optimal).
+
 %
 %Rozšíření \emph{offline~MAPF} problému na online variantu zkoumali ve své práci \citet*{Svancara}.
 %\emph{Online~MAPF} má u každého agenta $a_i = (t_i, s_i, g_i)$ kromě místa příjezdu a cíle také čas příjezdu $t_i$.
@@ -143,12 +93,17 @@ Obecnější řešení (decentralizované plánování, časování semaforů, \
 %\citet*{Morag} provedli rozsáhlé experimenty a zjistili, že \emph{snapshot-optimální} plány nejsou o moc horší než optimální.
 %Ve všech typech experimentů byly \emph{snapshot-optimální} ceny plánů alespoň v $80\%$ běhů totožné s optimálním plánem
 %a ve zbylých případech se plány lišily minimálně.
-%
-%\subsubsection{Řešení~online~MAPF}\label{subsubsec:reseni_online_mapf}
+
+\paragraph{Řešení~\nameref{subsubsec:online_mapf}}\label{par:reseni_online_mapf}
+
+
+
+Popis úpravy offline algoritmů pro řešení online MAPF\@.
+
 %
 %V práci \citet{Svancara} jsou návrhy různých postupů řešení \emph{online~MAPF} problémů:
 %\begin{itemize}
-%  \item \textbf{Replan~Single} (RS) - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani}.
+%  \item \textbf{Replan~Single} (RS) - tento přístup je totožný s~přístupem \nameref{sec:individualni_planovani}.
 %  \item \textbf{Replan~Single~Grouped}\label{par:replan-single-grouped} (RSG) - v tomto přístupu se plánují pouze noví agenti.
 %  Plánování probíhá pro všechny agenty najednou.
 %  Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s již naplánovanými trasami.

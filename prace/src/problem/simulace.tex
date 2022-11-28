@@ -1,0 +1,49 @@
+\section{Simulace}\label{sec:simulace}
+
+Popis běhu simulátoru - vygenerování agentů a předání řešiči.
+
+Definice sledovaných parametrů - zdržení, zamítnutí, kolize.
+
+%
+%V~každém kroku se pokusí simulace naplánovat agenty použitím vybraného algoritmu.
+%Pro~naplánování jsou vybráni agenti z~každého vjezdu, kteří přijeli nejdříve.
+%Nemůže se stát, že by agent předjel jiného agenta čekajícího před~ním.
+%
+%Simulace nabízí různé statistiky pomocí nichž je možné jednotlivé algoritmy porovnat.
+%Tyto statistiky jsou popsány níže.
+%
+%\begin{itemize}
+%	\item \emph{Zdržení} agentů. \emph{Zdržení} jednoho agenta se~spočte jako součet
+%	rozdílu délky cesty od~optimální cesty a doba čekání před vjezdem do~křižovatky.
+%	Jinými slovy \emph{zdržení} značí počet kroků, o~které agent vyjel z~křižovatky později oproti situaci,
+%	kdyby přijel na~prázdnou křižovatku (křižovatku bez~jiných agentů) a ihned by~projel nejkratší možnou cestou.
+%	\emph{Zdržení} všech agentů je součet \emph{zdržení} přes~všechny agenty, co se~pokusili křižovatkou projet.
+%	\item Počet \emph{zamítnutých} agentů udává množství agentů, kteří čekali na~křižovatce příliš dlouho a
+%	vzdali~se čekání ve~frontě.
+%	I~když křižovatkou neprojeli, pořád se kroky jejich čekání přičítají do~celkového \emph{zdržení}.
+%	\item Počet \emph{kolizí} udává množství sražených agentů.
+%	\item \emph{Doba běhu} algoritmu udává kolik nanosekund běžel algoritmus v~součtu přes všechny kroky.
+%\end{itemize}
+
+\subsection{Generování agentů}\label{subsec:generovani_agentu}
+
+Popis generování nových agentů - způsob vybírání množství agentů a
+hodnot pro agenta (vjezd, výjezd, rychlost, velikost, \ldots).
+
+%
+%Před~startem simulace je možné navolit~si určité vlastnosti agentů a po~kolik kroků se mají agenti generovat.
+%Uživatel si může určit počet vygenerovaných agentů v~každém kroku simulace nastavením parametrů $na_{\min}$ a~$na_{\max}$.
+%Simulace vygeneruje nový počet agentů uniformně náhodně mezi $na_{\min}$ a~$na_{\max}$.
+%
+%Dále je možné určit preference \emph{směrů} odkud agenti budou přijíždět a~kam budou směřovat.
+%Pro~každý \emph{směr} je možné určit pravděpodobnost, s~jakou se zde agent objeví, či tam bude směřovat.
+%Tyto pravděpodobnosti se musí sečíst na~$1$.
+%
+%Poté je možné měnit samotné parametry agentů.
+%Z~těchto parametrů budu používat pouze \emph{odchylku}.
+%\emph{Odchylka} určuje o~kolik procent jsou parametry agenta odlišné vůči sděleným parametrům křižovatce,
+%a~nabývá hodnot mezi nulou a~sto procenty.
+%Ovlivněné parametry jsou šířka, délka a~rychlost agenta.
+%Kromě těchto parametrů ovlivňuje odchylka i~příjezd agenta.
+%Příjezd je možné zpozdit až~o~\emph{odchylku} kroku.
+%Tímto způsobem se snažím simulovat reálnější křižovatky, kde došlo k~určité chybě v~měření.

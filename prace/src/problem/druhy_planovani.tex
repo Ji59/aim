@@ -1,0 +1,48 @@
+\section{Individuální a hromadné plánování}\label{sec:individualni_a_hromadne_planovani}
+
+Stručný popis rozdílu mezi ind. a hrom. plánováním.
+
+\subsection{Individuální plánování}\label{subsec:individualni_planovani}
+
+Přesnější definice.
+
+Popsání práce \citet{Dresner}.
+
+Stručný popis BFS, A*.
+
+%
+%Jak název napovídá, agenti jsou naplánováni jeden po druhém.
+%Každý nový plán je rozvržen tak, aby nekolidoval s žádným už naplánovaným agentem.
+%
+%Jako první se problematikou zabývali \citet*{Dresner}.
+%Jejich přístup více odpovídal reálnému provozu.
+%Agenti měli plynulé zatáčení a uměli zrychlovat a zpomalovat.
+%Dále \citet{Dresner} řešili problémy komunikace mezi agenty a křižovatkou, řešení situace při kolizi a podporu pro vozidla s lidským řidičem.
+%Agenti v jejich práci jsou schopni jezdit pouze v předem daných pruzích.
+%V těchto pruzích následně mohou agenti zrychlovat či zpomalovat.
+%Algoritmus nejprve přiřadí agentovi maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
+%Pokud ano, zkusí nižší rychlost před místem kolize.
+%Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
+%Agenti jsou plánováni pomocí \ref{str:fcfs} strategie.
+%Tímto algoritmem jsem se inspiroval u~algoritmu \nameref{sec:safe_lanes}.
+%V mé implementaci jezdí agenti stejnou rychlostí v předem daných pruzích.
+%Pokud by u agenta došlo ke kolizi, je jeho příjezd odložen.
+%
+%Řešení je možné rozšířit pomocí libovolného prohledávacího algoritmu.
+%Tento přístup jsem vyzkoušel použitím známého algoritmu \nameref{sec:a_star},
+%kdy prvního agenta naplánuji nejkratší cestou, poté naplánuji druhého tak, aby nekolidoval s prvním.
+%Takto pokračuji pro všechny přijíždějící agenty.
+%
+%
+\subsection{Hromadné plánování}\label{subsec:hromadne_planovani}
+
+Popis plánovače, výhody a nevýhody oproti individuálnímu plánování
+(optimalita řešení, porovnání velikosti prohledávaných prostorů).
+
+%
+%Řešení tohoto typu jsou složitější, avšak teoreticky by měla být schopna tvořit celkově lepší plány.
+%
+%Chytrá křižovatka se dá převézt na online \emph{MAPF} (Multi-Agent Path Finding) problém.
+%
+
+\input{problem/mapf}
