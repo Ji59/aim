@@ -1,27 +1,28 @@
 \section{Problém křižovatky}\label{sec:problem}
 
-Popis problému křižovatky.
-
-Obecnější řešení (decentralizované plánování, časování semaforů, \ldots)
-
-
-%Chytré křižovatky se již objevily v mnohých městech.
-%Jsou to světelné křižovatky, které dokážou poznat, že všechna auta v daném směru už projela.
-%Při~detekci takovéto situace křižovatka nastaví červenou z~příslušného směru a zároveň pustí auta z~jiného směru dříve.
-%Plánování pořadí a délek jednotlivých zelených všech směrů je komplexní záležitost, pokročilejší plánování popsali například \citet*{Goldstein}.
-%\citet*{Liang} ve svém článku popsali trénování světelných křižovatek pomocí zpětnovazebního učení
-%a rozšířili algoritmus i~na~tisíce propojených křižovatek.
-%Na~tento způsob řešení jsem ve~své práci nezaměřil, protože nabízí minimální zlepšení
-%na~jedné křižovatce v~hustých provozech a minimálně využívá autonomie vozidel.
+%Popis problému křižovatky.
 %
-%Další způsob je decentralizované plánování, které spočívá v~komunikaci mezi auty.
-%Touto technikou se zabývali například \citet*{Wu}.
-%V~jejich článku porovnávají kruhový objezd se světelnou křižovatkou.
-%Jelikož není přítomna centrální řídící jednotka, pro~převedení řešení
-%do~reálného světa stačí přidat určitý protokol do~vozidel v~provozu.
-%Avšak aplikovat komplexnější plánování je při~větším počtu aut obtížné.
-%
-%Já se zaměřím pouze na postupy s~centrální jednotkou.
+%Obecnější řešení (decentralizované plánování, časování semaforů, \ldots)
+
+
+Chytré křižovatky se již objevily v mnohých městech.
+Jsou to světelné křižovatky, které dokážou poznat, že všechna auta v daném směru už projela.
+Při~detekci takovéto situace křižovatka nastaví červenou z~příslušného směru a zároveň pustí auta z~jiného směru dříve.
+Plánování pořadí a délek jednotlivých zelených všech směrů je komplexní záležitost, pokročilejší plánování popsali například \citet*{Goldstein}.
+\citet*{Liang} ve svém článku popsali trénování světelných křižovatek pomocí zpětnovazebního učení
+a rozšířili algoritmus i~na~tisíce propojených křižovatek.
+Na~tento způsob řešení jsem ve~své práci nezaměřil, protože nabízí minimální zlepšení
+na~jedné křižovatce v~hustých provozech a minimálně využívá autonomie vozidel.
+
+Další způsob je decentralizované plánování, které spočívá v~komunikaci mezi auty.
+Touto technikou se zabývali například \citet*{Wu}.
+V~jejich článku porovnávají kruhový objezd se světelnou křižovatkou.
+Jelikož není přítomna centrální řídící jednotka, pro~převedení řešení
+do~reálného světa stačí přidat určitý protokol do~vozidel v~provozu.
+Avšak aplikovat komplexnější plánování je při~větším počtu aut obtížné.
+
+Já se zaměřím pouze na postupy s~centrální jednotkou.
+
 
 %Výše popsané algoritmy často používají First Come First Served \labeltext{FCFS}{str:fcfs} strategii pro~určení pořadí plánování.
 %Při~použití \ref{str:fcfs} má nejvyšší prioritu v~plánování auto, které dorazilo ke~křižovatce nejdříve.

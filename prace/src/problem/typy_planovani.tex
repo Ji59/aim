@@ -1,0 +1,87 @@
+\section{Typy plánování}\label{sec:typy_planovani}
+
+%Stručný popis rozdílu mezi ind. a hrom. plánováním.
+
+Rozlišuji dva případy centrálního plánování.
+\nameref{subsec:individualni_planovani} plánuje trasu pro každé auto zvlášť.
+Každé následné plánování potom hledá trasu pro nového agenta takovým způsobem, aby nedošlo ke kolizi s už naplánovanými auty.
+
+S tímto přístupem by se mohlo stát, že naplánovaná trasa auta přerušuje kratší trasy následných aut.
+Mohlo by být výhodnější nenaplánovat nejkratší trasu předchozímu autu a celkově dojít lepšímu řešení.
+Tento problém se snaží vyřešit \nameref{subsec:hromadne_planovani}.
+
+\nameref{subsec:hromadne_planovani} shlukuje auta do skupin a hledá trasy pro auta společně.
+Díky tomuto přístupu je možné najít trasy, ve kterých jsou celkově auta nejvíce spokojení.
+
+\subsection{Individuální plánování}\label{subsec:individualni_planovani}
+
+%Přesnější definice.
+%
+%Popsání práce \citet{Dresner}.
+%
+%Stručný popis BFS, A*.
+
+
+
+
+Jak bylo popsáno výše, agenti jsou naplánováni jeden po druhém a
+každý nový plán je rozvržen tak, aby nekolidoval s žádným už naplánovaným agentem.
+
+Při plánování se používá \emph{First Come First Served} \labeltext{FCFS}{str:fcfs} strategie pro~určení pořadí plánování.
+\ref{str:fcfs} strategie přiřazuje nejvyšší prioritu v~plánování autu, které dorazilo ke~křižovatce nejdříve.
+Tímto způsobem jsou minimalizovány čekací doby jednotlivých aut a maximalizována spokojenost aut díky férovému přístupu.
+
+Model chytré křižovatky s touto strategií už nasimulovali \citet*{Dresner}.
+Jejich přístup odpovídal reálnému provozu.
+Agenti v jejich práci jsou schopni jezdit pouze v předem daných pruzích.
+V těchto pruzích následně mohou agenti zrychlovat či zpomalovat.
+Algoritmus nejprve přiřadí agentovi maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
+Pokud ano, zkusí nižší rychlost před místem kolize.
+Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
+Agenti jsou plánováni pomocí \ref{str:fcfs} strategie.
+Tímto algoritmem jsem se inspiroval u~algoritmu \nameref{sec:safe_lanes}.
+
+U řešení \citet{Dresner} se mi nelíbilo omezení na pruhy pro auta.
+\nameref{sec:a_star} je známý algoritmus na hledání nejkratší trasy.
+Algoritmus byl vytvořen \citet*{Hart1968} pro robotické účely.
+Pro použití \nameref{sec:a_star} je avšak nejdříve nutné diskretizovat křižovatku a čas, a upravit model aut.
+Tato úprava je popsána v samostatných sekcích (\ref{sec:krizovatka}, \ref{sec:agent}).
+\nameref{sec:a_star} dovoluje autům plně využít celou plochu křižovatky a algoritmus nám zaručuje optimální cestu pro každé auto při zafixování ostatních aut.
+\nameref{sec:a_star} je založen na algoritmu \emph{Breath First Search} s chytřejším procházením stavů.
+Podrobný popis algoritmu je popsán v samostatné kapitole (\ref{sec:a_star}).
+
+%Jako první se problematikou zabývali \citet*{Dresner}.
+%Jejich přístup více odpovídal reálnému provozu.
+%Agenti měli plynulé zatáčení a uměli zrychlovat a zpomalovat.
+%Dále \citet{Dresner} řešili problémy komunikace mezi agenty a křižovatkou, řešení situace při kolizi a podporu pro vozidla s lidským řidičem.
+%Agenti v jejich práci jsou schopni jezdit pouze v předem daných pruzích.
+%V těchto pruzích následně mohou agenti zrychlovat či zpomalovat.
+%Algoritmus nejprve přiřadí agentovi maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
+%Pokud ano, zkusí nižší rychlost před místem kolize.
+%Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
+%Agenti jsou plánováni pomocí \ref{str:fcfs} strategie.
+%Tímto algoritmem jsem se inspiroval u~algoritmu \nameref{sec:safe_lanes}.
+%V mé implementaci jezdí agenti stejnou rychlostí v předem daných pruzích.
+%Pokud by u agenta došlo ke kolizi, je jeho příjezd odložen.
+%
+%Řešení je možné rozšířit pomocí libovolného prohledávacího algoritmu.
+%Tento přístup jsem vyzkoušel použitím známého algoritmu \nameref{sec:a_star},
+%kdy prvního agenta naplánuji nejkratší cestou, poté naplánuji druhého tak, aby nekolidoval s prvním.
+%Takto pokračuji pro všechny přijíždějící agenty.
+\subsection{Hromadné plánování}\label{subsec:hromadne_planovani}
+
+%Popis plánovače, výhody a nevýhody oproti individuálnímu plánování
+%(optimalita řešení, porovnání velikosti prohledávaných prostorů).
+
+Výše popsaná situace, kdy auto blokuje výhodnější trasy ostatních, ukazuje nevýhodu postupného plánování.
+Může být výhodné rozdělit si auta do časových intervalů, kdy přijedou na křižovatku.
+Následně lze použít algoritmus pro naplánování co nejlepší trasy pro všechna auta najednou.
+Pokud auta informují křižovatku o svém příjezdu s předstihem, můžeme i přeplánovat trasu podle nově nahlášených aut.
+
+%
+%Řešení tohoto typu jsou složitější, avšak teoreticky by měla být schopna tvořit celkově lepší plány.
+%
+%Chytrá křižovatka se dá převézt na online \emph{MAPF} (Multi-Agent Path Finding) problém.
+%
+
+\input{problem/mapf}

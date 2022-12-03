@@ -1,68 +1,114 @@
 \subsubsection{Offline~MAPF}\label{subsubsec:offline_mapf}
 
-Definice MAPF a s ním spojených pojmů (Sum of costs, \ldots).
-
-Analogie a rozdíly oproti problému práce.
-
-%\nameref{subsec:offline_mapf} má na~vstupu dvojici $G, A$, kde $G=(V, E)$ je graf a $A = \{a_1, \dots, a_k\}$ je množina agentů.
-%Každý agent $a_i$ má svojí výchozí pozici $s_i \in V$ a cílovou pozici $g_i \in V$.
-%Čas je rozdělen na diskrétní úseky (kroky).
-%Během jednoho kroku může agent přejet do sousedního vrcholu, nebo počkat v aktuálním.
-%Plán pro agenta $a_i$ je sled $\pi_i = s_i, v_2, \dots, v_{n-1}, g_i$ na grafu $G$, čili $v_2, \dots, v_{n-1} \in V$ a
-%$(s_i, v_2) \in E, (v_{n-1}, g_i) \in E, \forall_{i \in 2, \dots, n-2} (v_i, v_{i+1}) \in E$.
-%Délka plánu je $|\pi_i| = n$, pozice agenta $a_i$ v kroku $c$ je $\pi_i[c]$.
+%Definice MAPF a s ním spojených pojmů (Sum of costs, \ldots).
 %
-%Agenti $a_i$ a $a_j$, $i \neq j$ jsou v \emph{kolizi} v kroku $c$ právě tehdy když $\pi_i[c] = \pi_j[c]$ nebo
-%$\pi_i[c] = \pi_j[c + 1] \land \pi_i[c + 1] = \pi_j[c]$.
-%Slovy řečeno, agenti jsou v \emph{kolizi}, pokud jsou na stejném místě, nebo projíždí stejnou hranou.
-%
-%Cílem \emph{offline MAPF} je nalezení plánu $\pi = \cup_{i=1}^{k} \pi_i$, který nemá žádné kolize.
-%Takovýto plán nazýváme validní.
-%Pro problém mohou existovat různé plány, tyto plány bývají často porovnány pomocí \emph{SOC} (Sum Of Costs).
-%Plán $\pi$ má cenu $|\pi| = \sum_{i=1}^{k} |\pi_i|$.
-%Alternativní způsob porovnání je objektivní funkcí pro plán $\pi$ funkce $\textrm{makespan}\labeltext{makespan}{str:makespan}(\pi)$,
-%která značí počet kroků, než všichni agenti dorazí do svého cíle.
+%Analogie a rozdíly oproti problému práce.
 
-\paragraph{Řešení~\nameref{subsubsec:offline_mapf}}\label{par:reseni_offline_mapf}
+Pro hromadné hledání cest v diskrétním prostoru existuje hromada řešení.
+Problém, které hromadné plánování řeší je označován \emph{Multi-Agent Path Finding} \labeltext{MAPF}{str:mapf}
+a podrobnou definici a varianty popsali například \citet*{osti_10114869}.
+\ref{str:mapf} má na~vstupu dvojici $G, A$, kde $G=(V, E)$ je graf a $A = \{a_1, \dots, a_k\}$ je množina agentů.
+Opět stejně jako u~\nameref{sec:a_star} je možné diskretizovat křižovatku a převést na graf (\ref{sec:krizovatka}).
+Každý agent $a_i$ má svojí výchozí pozici $s_i \in V$ a cílovou pozici $g_i \in V$.
+Popis převodu auta na agenta je popsán v sekci \nameref{sec:agent}.
+Stejně jako u \nameref{sec:a_star} pracuje \ref{str:mapf} s diskrétními časovými úseky (kroky).
+Během jednoho kroku může agent přejet do sousedního vrcholu, nebo počkat v aktuálním.
+Plán pro agenta $a_i$ je sled $\pi_i = s_i, v_2, \dots, v_{n-1}, g_i$ na grafu $G$, čili $v_2, \dots, v_{n-1} \in V$ a
+$(s_i, v_2) \in E, (v_{n-1}, g_i) \in E, \forall_{i \in 2, \dots, n-2} (v_i, v_{i+1}) \in E$.
+Délka plánu je $|\pi_i| = n$, pozici agenta~$a_i$ v~kroku~$c$ značím~$\pi_i[c]$.
 
-.
+Dle definice~\ref{str:mapf} jsou agenti $a_i$ a $a_j$, $i \neq j$ v \emph{kolizi} v kroku $c$ právě tehdy když $\pi_i[c] = \pi_j[c]$ nebo
+$\pi_i[c] = \pi_j[c + 1] \land \pi_i[c + 1] = \pi_j[c]$.
+Slovy řečeno, agenti jsou v \emph{kolizi}, pokud jsou na stejném místě, nebo projíždí stejnou hranou.
+Pro problém křižovatky je nutné kontrolu kolize rozšířit, jelikož agenti mají svojí velikost (\ref{sec:kolize}).
 
-Stručný popis známých algoritmů pro MAPF s citacemi (CBS, A*, SAT).
+\ref{str:mapf} se snaží o nalezení plánu $\pi = \cup_{i=1}^{k} \pi_i$, který nemá žádné kolize.
+Takovýto plán je nazýván validní.
+Pro problém mohou existovat různé plány, tyto plány bývají často porovnány pomocí \emph{Sum Of Costs} \labeltext{SoC}{str:soc} metriky.
+Plán $\pi$ má cenu podle metriky \ref{str:soc}: $soc(\pi) = |\pi| = \sum_{i=1}^{k} |\pi_i|$.
+Alternativní způsob porovnání je objektivní funkcí $\textrm{makespan}\labeltext{makespan}{str:makespan}(\pi)$ pro plán $\pi$,
+která vrací počet kroků, než všichni agenti dorazí do svého cíle.
+Vzorcem $\textrm{makespan}(\pi)=\max_{i\in A} |\pi_i|$.
 
-%
-%Nejjednodušší způsob řešení je využít A* algoritmus, kde následníci stavu jsou kartézským součinem přes všechny možné tahy všech agentů.
-%Toto řešení má často vysoký větvící faktor.
-%Proto se vyvinuly vylepšení, například \emph{Independence Detection}, \emph{Conflict Avoidance Table} nebo
-%\emph{Operator Decomposition} \citep{Standley_2010} a mnoho dalších.
-%
-%\citet*{Sharon} navrhli algoritmus \emph{CBS} (Conflict-Based Search), který nalezne nejkratší cesty pro všechny agenty.
-%Poté hledá konflikty mezi jednotlivými plány.
-%Pokud nalezne konflikt, vznikne omezující podmínka pro jednoho agenta v kolizi.
-%Tato podmínka znemožní agentovi být na konfliktním vrcholu.
-%Poté se s novou podmínkou spustí nové prohledávání pro tohoto agenta.
-%Zároveň vznikne druhá větev výpočtu, ve které má tuto podmínku druhý agent z kolize.
-%Takto postupně vzniká binární strom, kde synové vrcholu mají vždy podmínky z rodiče plus pro prvního / druhého agenta novou podmínku.
-%Pokud je nalezena nekolizní cesta pro všechny vrcholy, algoritmus skončí.
-%Pořadí prohledávání listů ve stromu je určeno podle SOC listů.
-%Toto pořadí zaručuje optimální řešení \citep{Sharon}.
-%Algoritmus byl nadále rozšířen a vylepšen \citep{Boyarski}.
-%
-%\emph{MAPF} problém je možné převést na SAT problém.
-%Nejprve se vytvoří výrokové proměnné pro každého agenta, každý vrchol a každý čas.
-%Následně přidáme podmínky, aby agenti nebyli v kolizi.
-%Tento způsob řešení je spíše vhodný pro optimalizování \ref{str:makespan} funkce,
-%avšak je možné vytvořit varianty cílené na SOC \citep{bartak}.
-%Blíže je toto řešení popsáno v kapitole \nameref{sec:sat-planner}.
-%
-%Další způsob řešení je za použití zpětnovazebního učení \citep*{Zhiyao}.
+\subsubsection{Řešení~\nameref{subsubsec:offline_mapf}}\label{subsubsec:reseni_offline_mapf}
+
+%Stručný popis známých algoritmů pro MAPF s citacemi (CBS, A*, SAT).
+
+
+Nejjednodušší způsob řešení je využít A* algoritmus, kde stav je kartézským součinem stavů všech plánovaných agentů.
+Toto řešení má často vysoký větvící faktor.
+Proto se vyvinuly vylepšení, například \emph{Independence Detection}, \emph{Conflict Avoidance Table} nebo
+\emph{Operator Decomposition} \citep{Standley_2010} a mnoho dalších.
+Bližší popis těchto vylepšení je v sekci \nameref{sec:a_star}. % TODO hromadny A*
+
+\citet*{Sharon} navrhli algoritmus \nameref{subsec:conflict_based_search},
+který nalezne nejkratší cesty pro všechny agenty nezávisle na ostatních.
+Poté hledá konflikty mezi jednotlivými plány.
+Pokud algoritmus nalezne konflikt, hledání se rozdělí na dva podpřípady.
+První větev výpočtu najde alternativní cestu pro prvního agenta, druhá větev pro druhého.
+Takto postupně vzniká binární strom.
+Pokud je nalezena nekolizní cesta pro všechny vrcholy, algoritmus skončí.
+Pořadí prohledávání vrcholů ve stromu je určeno podle SOC metriky.
+Toto pořadí zaručuje optimální řešení \citep{Sharon}.
+Algoritmus byl nadále rozšířen a vylepšen \citep{Boyarski}.
+Bližší popis algoritmu je v sekci \nameref{subsec:conflict_based_search}
+
+\emph{MAPF} problém je možné převést na známý \emph{SAT} problém.  % TODO ref to SAT definition
+Nejprve se vytvoří výrokové proměnné pro každého agenta, každý vrchol a každý čas.
+Agent musí splňovat určité podmínky, například agent se nachází v čase příjezdu na vrcholu vjezdu
+nebo agent může být v jeden čas maximálně na jednom vrcholu.
+Následně přidáme podmínky zaručující nekolizní cesty pro agenty.
+Tento způsob řešení je spíše vhodný pro optimalizování \ref{str:makespan} funkce,
+avšak je možné vytvořit varianty cílené na \ref{str:soc} pomocí rozšíření na \emph{MAXSAT} \citep{bartak}.
+Blíže je toto řešení popsáno v sekci \nameref{sec:sat-planner}.
+
+Existují i jiná řešení \ref{str:mapf}, například za použití zpětnovazebního učení \citep*{Zhiyao}.
+Pro svou práci jsem se rozhodl věnovat se pouze základním metodám
+\nameref{sec:a_star}, \nameref{subsec:conflict_based_search} a \emph{SAT}. % TODO ref to SAT
 
 \subsubsection{Online~MAPF}\label{subsubsec:online_mapf}
 
-Popis rozšíření z offline na online, popis způsobů řešení.
-
-Definice optimality (optimal vs snapshot-optimal).
-
+%Popis rozšíření z offline na online, popis způsobů řešení.
 %
+%Definice optimality (optimal vs snapshot-optimal).
+
+\nameref{subsubsec:offline_mapf} hledá řešení pouze jednou, avšak auta přijíždějí na křižovatku neustále.
+Můžeme předpokládat, že většina cestujících auty nezná přesný, často ani přibližný čas svého příjezdu ke křižovatce.
+Proto by křižovatka měla být schopna plánovat nově přijíždějící auta s ohledem na auta na křižovatce.
+Naštěstí existuje rozšíření \emph{offline~MAPF} problému na problém \nameref{subsubsec:online_mapf} \citet*{Svancara}.
+Online varianta \ref{str:mapf} splňuje všechny potřeby naší křižovatky.
+
+\emph{Online~MAPF} má u každého agenta $a_i = (t_i, s_i, g_i)$ kromě místa příjezdu a cíle také čas příjezdu $t_i$.
+Avšak Tento čas není dopředu znám.
+\emph{Online~MAPF} začíná s počátečním \emph{offline~MAPF} plánem pro agenty, kteří přijeli v čase $0$.
+Tento plán budu značit $\pi^0$.
+Pokaždé, když se objeví noví agenti, vytvoří se nový plán $\pi^j$.
+Celkový plán je tedy $\Pi = (\pi^0, \pi^1, \dots, \pi^m)$, kde $m$ je počet unikátních kroků ($t_1, t_2, \dots, t_m$), kdy se objevili agenti.
+Označím si $\pi^j[x:y]$ část plánu $\pi^j$ v krocích $x, x + 1, \dots, y - 1, y$.
+Celkový plán, který budou agenti vykonávat je tedy $Ex[\Pi] = \pi^0[0:t_1] \circ \pi^1[t_1 + 1:t_2] \circ \dots \circ \pi^m[t_m + 1:\infty]$.
+
+\citet{Svancara} zmínili problémy s~\emph{online~MAPF}.
+První problém nastane, pokud agenti zůstanou na svém místě po doražení do cíle.
+Zároveň pokud by se agenti okamžitě objevili v grafu, mohli by ihned způsobit kolizi, kterou algoritmy nemohli predikovat.
+Žádný z těchto problémů u mě nastat nemůže, jelikož auta přijíždějí na vjezdy
+a zároveň mizí z křižovatky po doražení výjezdu.
+
+Opět zavedu cenu plánu jako součet délek plánů pro jednotlivé agenty $|Ex[\Pi]| = \sum_{i=1}^{k} |Ex[\Pi]_i| = \sum_{i=1}^{k} t_{Ex[\Pi]}[g_i] - t_i$,
+kde $t_{Ex[\Pi]}[g_i]$ je krok, kdy agent $a_i = (t_i, s_i, g_i)$ naposledy dorazil do cílového vrcholu $g_i$.
+Z analýzy \citet{Svancara} víme, že cena $|Ex[\Pi]|$ je ekvivalentní objektivní funkci $\sum_{t=1}^{\infty} \textrm{NotAtGoal}(t)$,
+kde $\textrm{NotAtGoal}(t)$ udává počet agentů, kteří ještě nedorazili do svého cíle v čase $t$.
+Také objektivní funkce $\sum_{i=1}^{k} |Ex[\Pi]_i| - o_i$, kde $o_i$ je délka nejkratší cesty mezi $s_i$ a $g_i$,
+je ekvivalentní $|Ex[\Pi]|$.
+
+Každý \emph{online~MAPF} problém je možné převést na \emph{offline~MAPF} pokud dáme dopředu algoritmu vědět, kdy se agenti objeví.
+Díky tomu můžeme porovnat optimalitu online řešičů.
+\citet{Svancara} dokázali, že žádný online algoritmus nemůže zajistit offline optimální řešení.
+\emph{Snapshot-optimální}\labeltext{snapshot-optimální}{str:snapshot_opt} plány jsou optimální plány za předpokladu, že se žádní noví agenti neobjeví.
+\citet*{Morag} provedli rozsáhlé experimenty a zjistili, že \ref{str:snapshot_opt} plány nejsou o moc horší než optimální.
+Ve všech typech experimentů \citet{Morag} byly \ref{str:snapshot_opt} ceny plánů alespoň v $80\%$ běhů totožné s optimálním plánem
+a ve zbylých případech se plány lišily minimálně.
+
+
 %Rozšíření \emph{offline~MAPF} problému na online variantu zkoumali ve své práci \citet*{Svancara}.
 %\emph{Online~MAPF} má u každého agenta $a_i = (t_i, s_i, g_i)$ kromě místa příjezdu a cíle také čas příjezdu $t_i$.
 %Tento čas není dopředu znám.
@@ -94,13 +140,35 @@ Definice optimality (optimal vs snapshot-optimal).
 %Ve všech typech experimentů byly \emph{snapshot-optimální} ceny plánů alespoň v $80\%$ běhů totožné s optimálním plánem
 %a ve zbylých případech se plány lišily minimálně.
 
-\paragraph{Řešení~\nameref{subsubsec:online_mapf}}\label{par:reseni_online_mapf}
+\subsubsection{Řešení~\nameref{subsubsec:online_mapf}}\label{subsubsec:reseni_online_mapf}
 
 
 
-Popis úpravy offline algoritmů pro řešení online MAPF\@.
+%Popis úpravy offline algoritmů pro řešení online MAPF\@.
 
-%
+
+V práci \citet{Svancara} jsou návrhy různých strategií pro řešení \emph{online~MAPF} problémů:
+\begin{itemize}
+  \item \textbf{Replan~Single}\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
+    každý nový agent je naplánován s ohledem na předchozí.
+  \item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped}\labeltext{RSG}{str:rsg} -
+    v tomto přístupu se plánují pouze noví agenti, ale oproti \ref{str:rs} plánování probíhá pro všechny agenty najednou.
+  Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s již naplánovanými trasami.
+  \item \textbf{Replan~All}\labeltext{RA}{str:ra} - za použití této strategie se použije
+    \emph{offline~MAPF} řešič na všechny agenty pokaždé, když dorazí noví agenti.
+    Pokud je řešič optimální, \ref{str:ra} vrací \ref{str:snapshot_opt} řešení pro všechny agenty \citep{Svancara}.
+  \item \textbf{Online~Independence~Detection}\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
+  Nejprve najde cestu pro všechny nové agenty ignorujíce už naplánované.
+  Poté zjistí kolize mezi starými a novými agenty.
+  Pokud byly nalezeny kolize, přeplánují se trasy kolizních agentů.
+  Pro zaručení \ref{str:snapshot_opt} plánu je nutné udělat dodatečné úpravy \citep{Svancara}.
+  \item \textbf{Suboptimal~Independence~Detection}\labeltext{SubID}{str:subid} - pozměňuje \ref{str:oid} dovolováním neoptimálních cest.
+  Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
+  Avšak díky této úpravě by měl být počet přeplánování, a tedy i čas výpočtu, nižší.
+\end{itemize}
+
+
+
 %V práci \citet{Svancara} jsou návrhy různých postupů řešení \emph{online~MAPF} problémů:
 %\begin{itemize}
 %  \item \textbf{Replan~Single} (RS) - tento přístup je totožný s~přístupem \nameref{sec:individualni_planovani}.

@@ -1,27 +1,38 @@
 \section{Agent}\label{sec:agent}
 
-Popis zjednodušení auta na agenta.
-Popis parametrů agenta.
+%Popis zjednodušení auta na agenta.
+%Popis parametrů agenta.
 
-%
-%\emph{Agent} značí chytré auto, které má zájem projet křižovatkou.
-%Při~příjezdu agenta na~křižovatku agent nahlásí křižovatce odkud jede a kam směřuje.
-%Křižovatka poté pomocí vybraného algoritmu vygeneruje \emph{cestu} skrze křižovatku.
-%\emph{Cesta} je tvořena posloupností vrcholů, přes které má agent jet.
-%Pokud algoritmus nenajde žádnou cestu skrze křižovatku, křižovatka zamítne vjezd \emph{agenta}.
-%V~případě kdy agent čeká na~vjezd příliš dlouho, \uv{agentu dojde trpělivost a vydá se jinou cestou}.
-%Znamená to, že je ze~simulace odstraňen.
-%Avšak stále je zaznamenáno, že se agent pokusil křižovatkou projet.
-%
-%\emph{Agent} je reprezentován obdélníkem s~délkou $d=0.6~b$ a~šířkou $w=0.37~b$,
-%kde $b$ značí \emph{velikost bloku} dané křižovatky.
-%Zároveň se agent dokáže otáčet na~místě a okamžitě podle potřeby.
-%Agent se vždy otáčí ve~směru jízdy.
-%Agent se pohybuje rychlostí jedné hrany grafu křižovatky za~jeden krok simulace.
-%
-%Pokud se nějaké dva obdélníky protnou, nastane srážka příslušných dvou agentů.
-%Agenti nemají žádný způsob jak informovat křižovatku o~srážce.
-%Z~toho důvodu po~kolizi sražení agenti zmizí ze~simulace, tudíž už s~nimi nemohou žádní další agenti kolidovat.
-%
-%Simulace podporuje načítání agentů ze~souboru nebo generování agentů za~běhu simulace.
-%
+
+\emph{Agent} značí v~simulátoru chytré auto, které má zájem projet křižovatkou.
+Tvar agenta je zjednodušený na obdélník, který má určitou délku, šířku a naklonění.
+Tento obdélník reprezentuje pohled na auto shora.
+
+Jelikož se agent pohybuje po hranách grafu křižovatky, je jeho cesta složená z úseček.
+Proto jsem umožnil agentovy otáčet se na místě.
+Tato vlastnost by neměla mít na pohyb auta velký vliv pokud je auto dostatečně malé oproti vzdálenostem vrcholů grafu křižovatky.
+
+Prohledávající algoritmy na grafech mají
+
+
+
+Při~příjezdu auta na~křižovatku nahlásí auto křižovatce odkud jede a kam směřuje.
+Křižovatka poté pomocí vybraného algoritmu vygeneruje \emph{cestu} skrze křižovatku.
+\emph{Cesta} je tvořena posloupností vrcholů, přes které má agent jet.
+Pokud algoritmus nenajde žádnou cestu skrze křižovatku, křižovatka zamítne vjezd \emph{agenta}.
+V~případě kdy agent čeká na~vjezd příliš dlouho, \uv{agentu dojde trpělivost a vydá se jinou cestou}.
+Znamená to, že je ze~simulace odstraňen.
+Avšak stále je zaznamenáno, že se agent pokusil křižovatkou projet.
+
+\emph{Agent} je reprezentován obdélníkem s~délkou $d=0.6~b$ a~šířkou $w=0.37~b$,
+kde $b$ značí \emph{velikost bloku} dané křižovatky.
+Zároveň se agent dokáže otáčet na~místě a okamžitě podle potřeby.
+Agent se vždy otáčí ve~směru jízdy.
+Agent se pohybuje rychlostí jedné hrany grafu křižovatky za~jeden krok simulace.
+
+Pokud se nějaké dva obdélníky protnou, nastane srážka příslušných dvou agentů.
+Agenti nemají žádný způsob jak informovat křižovatku o~srážce.
+Z~toho důvodu po~kolizi sražení agenti zmizí ze~simulace, tudíž už s~nimi nemohou žádní další agenti kolidovat.
+
+Simulace podporuje načítání agentů ze~souboru nebo generování agentů za~běhu simulace.
+
