@@ -16,13 +16,13 @@ Níže je zobrazen pseudokód výchozího chování funkce \emph{plan\_agents}.
 
 % @formatter:off
 \begin{code}[xrightmargin=6em]
-// vstup plánovaný krok step, množina agentů agents
-// výstup množina naplánovaných agentů planned_agents
-plan_agents(step, agents)
-    agents_mapped <- empty_set
-    for agent in agents
-      agents_mapped.add([agent, agent.entry, agent.exits])
-    return plan_agents(agents_mapped, step)
+	// vstup plánovaný krok step, množina agentů agents
+	// výstup množina naplánovaných agentů planned_agents
+	plan_agents(step, agents)
+	agents_mapped <- empty_set
+	for agent in agents
+	agents_mapped.add([agent, agent.entry, agent.exits])
+	return plan_agents(agents_mapped, step)
 \end{code}
 % @formatter:on
 
@@ -39,16 +39,16 @@ Funkce vrací agenta pokud byl úspěšně naplánován, jinak $NULL$.
 
 % @formatter:off
 \begin{code}[xrightmargin=14em]
-// vstup plánovaný krok step, agent agent,
-// vjezd entry a výjezdy exits
-// výstup agent nebo NULL
-plan_agent(step, agent, entry, exits)
-  // implementace algoritmu
-  if plánování úspěšné
-    agent.path <- planned_path
-    return agent
-  else
-    return NULL
+	// vstup plánovaný krok step, agent agent,
+	// vjezd entry a výjezdy exits
+	// výstup agent nebo NULL
+	plan_agent(step, agent, entry, exits)
+	// implementace algoritmu
+	if plánování úspěšné
+	agent.path <- planned_path
+	return agent
+	else
+	return NULL
 \end{code}
 % @formatter:on
 
@@ -61,19 +61,19 @@ Funkce opět vrací množinu naplánovaných agentů.
 Pseudokód výchozího chování je následovný.
 % @formatter:off
 \begin{code}[xrightmargin=6em]
-// vstup plánovaný krok step, množina trojic agentů,
-// vjezdů a výjezdů agents_entries_exits
-// výstup množina naplánovaných agentů planned_agents
-plan_agents(step, agents_entries_exits)
-  planned_agents <- empty_set
-  for agent_entry_exits in agents_entries_exits
-    agent = agent_entry_exits[0]
-    entry = agent_entry_exits[1]
-    exists = agent_entry_exits[2]
-    planned_agent <- plan_agent(step, agent, entry, exists)
-    if planned_agent is not NULL
-      planned_agents.add(planned_agent)
-  return planned_agents
+	// vstup plánovaný krok step, množina trojic agentů,
+	// vjezdů a výjezdů agents_entries_exits
+	// výstup množina naplánovaných agentů planned_agents
+	plan_agents(step, agents_entries_exits)
+	planned_agents <- empty_set
+	for agent_entry_exits in agents_entries_exits
+	agent = agent_entry_exits[0]
+	entry = agent_entry_exits[1]
+	exists = agent_entry_exits[2]
+	planned_agent <- plan_agent(step, agent, entry, exists)
+	if planned_agent is not NULL
+	planned_agents.add(planned_agent)
+	return planned_agents
 \end{code}
 % @formatter:on
 

@@ -21,8 +21,8 @@ Délka plánu je $|\pi_i| = n$, pozici agenta~$a_i$ v~kroku~$c$ značím~$\pi_i[
 Dle definice~\ref{str:mapf} jsou agenti $a_i$ a $a_j$, $i \neq j$ v \emph{kolizi} v kroku $c$
 právě tehdy když platí jedna z následujících podmínek.
 \begin{gather}
-  \pi_i[c] = \pi_j[c] \label{eq:mapf_kolize_vrchol}\\
-  \pi_i[c] = \pi_j[c + 1] \land \pi_i[c + 1] = \pi_j[c] \label{eq:mapf_kolize_hrana}
+	\pi_i[c] = \pi_j[c] \label{eq:mapf_kolize_vrchol}\\
+	\pi_i[c] = \pi_j[c + 1] \land \pi_i[c + 1] = \pi_j[c] \label{eq:mapf_kolize_hrana}
 \end{gather}
 Slovy řečeno, agenti jsou v \emph{kolizi}, pokud jsou ve stejný čas na~stejném místě, nebo projíždí stejnou hranou.
 Pro problém křižovatky je nutné kontrolu kolize rozšířit, jelikož agenti mají svojí velikost (\ref{sec:kolize}).
@@ -153,22 +153,22 @@ a ve zbylých případech se plány lišily minimálně.
 
 V práci \citet{Svancara} jsou návrhy různých strategií pro řešení \emph{online~MAPF} problémů:
 \begin{itemize}
-  \item \textbf{Replan~Single}\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
-  každý nový agent je naplánován s ohledem na předchozí.
-  \item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped}\labeltext{RSG}{str:rsg} -
-  v tomto přístupu se plánují pouze noví agenti, ale oproti \ref{str:rs} plánování probíhá pro všechny agenty najednou.
-  Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s již naplánovanými trasami.
-  \item \textbf{Replan~All}\labeltext{RA}{str:ra} - za použití této strategie se použije
-  \emph{offline~MAPF} řešič na všechny agenty pokaždé, když dorazí noví agenti.
-  Pokud je řešič optimální, \ref{str:ra} vrací \ref{str:snapshot_opt} řešení pro všechny agenty \citep{Svancara}.
-  \item \textbf{Online~Independence~Detection}\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
-  Nejprve najde cestu pro všechny nové agenty ignorujíce už naplánované.
-  Poté zjistí kolize mezi starými a novými agenty.
-  Pokud byly nalezeny kolize, přeplánují se trasy kolizních agentů.
-  Pro zaručení \ref{str:snapshot_opt} plánu je nutné udělat dodatečné úpravy \citep{Svancara}.
-  \item \textbf{Suboptimal~Independence~Detection}\labeltext{SubID}{str:subid} - pozměňuje \ref{str:oid} dovolováním neoptimálních cest.
-  Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
-  Avšak díky této úpravě by měl být počet přeplánování, a tedy i čas výpočtu, nižší.
+	\item \textbf{Replan~Single}\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
+	každý nový agent je naplánován s ohledem na předchozí.
+	\item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped}\labeltext{RSG}{str:rsg} -
+	v tomto přístupu se plánují pouze noví agenti, ale oproti \ref{str:rs} plánování probíhá pro všechny agenty najednou.
+	Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s již naplánovanými trasami.
+	\item \textbf{Replan~All}\labeltext{RA}{str:ra} - za použití této strategie se použije
+	\emph{offline~MAPF} řešič na všechny agenty pokaždé, když dorazí noví agenti.
+	Pokud je řešič optimální, \ref{str:ra} vrací \ref{str:snapshot_opt} řešení pro všechny agenty \citep{Svancara}.
+	\item \textbf{Online~Independence~Detection}\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
+	Nejprve najde cestu pro všechny nové agenty ignorujíce už naplánované.
+	Poté zjistí kolize mezi starými a novými agenty.
+	Pokud byly nalezeny kolize, přeplánují se trasy kolizních agentů.
+	Pro zaručení \ref{str:snapshot_opt} plánu je nutné udělat dodatečné úpravy \citep{Svancara}.
+	\item \textbf{Suboptimal~Independence~Detection}\labeltext{SubID}{str:subid} - pozměňuje \ref{str:oid} dovolováním neoptimálních cest.
+	Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
+	Avšak díky této úpravě by měl být počet přeplánování, a tedy i čas výpočtu, nižší.
 \end{itemize}
 
 
