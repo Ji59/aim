@@ -1,73 +1,85 @@
 \chapter{Algoritmy}\label{ch:algoritmy}
 
-Popis společné části algoritmů (vstup, výstup).
-
-Stručný text o parametrech algoritmů.
-
-%Algoritmy plánují cesty pro~všechny agenty přijíždějící v~daném kroku.
-%Každému úspěšně naplánovanému agentovi se přidělí nalezená cesta.
-%Po~skončení algoritmus vrátí množinu naplánovaných agentů.
-%Plánování je prováděno pomocí funkce \emph{plan\_agents}.
-%Níže je zobrazen pseudokód výchozího chování funkce \emph{plan\_agents}.
-%Toto volání využívá pomocné funkce popsané později.
-%% @formatter:off
-%\begin{code}[xrightmargin=6em]
-%// vstup plánovaný krok step, množina agentů agents
-%// výstup množina naplánovaných agentů planned_agents
-%plan_agents(step, agents)
-%    agents_mapped <- empty_set
-%    for agent in agents
-%      agents_mapped.add([agent, agent.entry, agent.exits])
-%    return plan_agents(agents_mapped, step)
-%\end{code}
-%% @formatter:on
+%Popis společné části algoritmů (vstup, výstup).
 %
-%Algoritmy implementují další pomocné funkce pro~zjednodušení a propojení algoritmů.
-%První pomocná funkce se~nazývá \emph{plan\_agent}.
-%Tato funkce dostává na~vstup krok, ve~kterém má být agent naplánován.
-%Další parametry jsou agent, který má být naplánován, vrchol,
-%ze~kterého agent vyjíždí a množina vrcholů, na~kterých může agent skončit.
-%Tato funkce nemá žádnou výchozí implementaci.
-%Funkce vrací agenta pokud byl úspěšně naplánován, jinak $NULL$.
-%% @formatter:off
-%\begin{code}[xrightmargin=14em]
-%// vstup plánovaný krok step, agent agent,
-%// vjezd entry a výjezdy exits
-%// výstup agent nebo NULL
-%plan_agent(step, agent, entry, exits)
-%  // implementace algoritmu
-%  if plánování úspěšné
-%    agent.path <- planned_path
-%    return agent
-%  else
-%    return NULL
-%\end{code}
-%% @formatter:on
-%
-%Další pomocná funkce je přetížení funkce \emph{plan\_agents}, která má na~vstupu krok plánování.
-%Další vstup je množina trojic.
-%První prvek trojice je agent, který má~být naplánován.
-%Další prvek je vrchol ze~kterého agent vyjíždí.
-%Poslední prvek je množina cílových vrcholů, což jsou možné vrcholy, na~kterých má agent skončit.
-%Funkce opět vrací množinu naplánovaných agentů.
-%Pseudokód výchozího chování je následovný.
-%% @formatter:off
-%\begin{code}[xrightmargin=6em]
-%// vstup plánovaný krok step, množina trojic agentů,
-%// vjezdů a výjezdů agents_entries_exits
-%// výstup množina naplánovaných agentů planned_agents
-%plan_agents(step, agents_entries_exits)
-%  planned_agents <- empty_set
-%  for agent_entry_exits in agents_entries_exits
-%    agent = agent_entry_exits[0]
-%    entry = agent_entry_exits[1]
-%    exists = agent_entry_exits[2]
-%    planned_agent <- plan_agent(step, agent, entry, exists)
-%    if planned_agent is not NULL
-%      planned_agents.add(planned_agent)
-%  return planned_agents
-%\end{code}
-%% @formatter:on
+%Stručný text o parametrech algoritmů.
+
+Algoritmy tvoří plánující logiku křižovatky.
+Jak bylo popsáno v sekci \hyperref[sec:simulace]{simulace}, algoritmus hledá trasy pro~všechny agenty.
+Každému úspěšně naplánovanému agentovi se přidělí nalezená trasa.
+
+Všechny algoritmy podporují stejnou funkci \emph{plan\_agents},
+kterou volá simulátor pro nalezení tras agentů v~určitém kroku.
+Vstup této funkce je krok simulace a množina agentů přijíždějících v daném kroku.
+Aby simulátor poznal, kterým agentům přiřadil algoritmus trasu, vrací funkce množinu úspěšně naplánovaných agentů.
+Níže je zobrazen pseudokód výchozího chování funkce \emph{plan\_agents}.
+
+% @formatter:off
+\begin{code}[xrightmargin=6em]
+// vstup plánovaný krok step, množina agentů agents
+// výstup množina naplánovaných agentů planned_agents
+plan_agents(step, agents)
+    agents_mapped <- empty_set
+    for agent in agents
+      agents_mapped.add([agent, agent.entry, agent.exits])
+    return plan_agents(agents_mapped, step)
+\end{code}
+% @formatter:on
+
+Všechny algoritmy podporují další pomocné funkce pro~zjednodušení a propojení algoritmů.
+První pomocná funkce se~nazývá \emph{plan\_agent},
+která má za úkol naplánovat pouze jednoho agenta.
+Tuto funkci využiji při~použití \nameref{str:rs} strategie
+(této strategii odpovídá výchozí implementace \emph{plan\_agents}).
+Funkce \emph{plan\_agent} dostává na~vstup krok, ve~kterém má být agent naplánován.
+Další parametry jsou agent, který má být naplánován, vrchol,
+ze~kterého agent vyjíždí a množina vrcholů, na~kterých může agent skončit.
+Implementace funkce už~není jednotná a závisí na~každém algoritmu.
+Funkce vrací agenta pokud byl úspěšně naplánován, jinak $NULL$.
+
+% @formatter:off
+\begin{code}[xrightmargin=14em]
+// vstup plánovaný krok step, agent agent,
+// vjezd entry a výjezdy exits
+// výstup agent nebo NULL
+plan_agent(step, agent, entry, exits)
+  // implementace algoritmu
+  if plánování úspěšné
+    agent.path <- planned_path
+    return agent
+  else
+    return NULL
+\end{code}
+% @formatter:on
+
+Další pomocná funkce je rozšíření funkce \emph{plan\_agents}, která má na~vstupu krok plánování.
+Další vstup je množina trojic, kde
+první prvek trojice je agent, který má~být naplánován.
+Další prvek je vrchol ze~kterého agent vyjíždí a
+poslední prvek je množina cílových vrcholů, což jsou možné vrcholy, na~kterých má agent skončit.
+Funkce opět vrací množinu naplánovaných agentů.
+Pseudokód výchozího chování je následovný.
+% @formatter:off
+\begin{code}[xrightmargin=6em]
+// vstup plánovaný krok step, množina trojic agentů,
+// vjezdů a výjezdů agents_entries_exits
+// výstup množina naplánovaných agentů planned_agents
+plan_agents(step, agents_entries_exits)
+  planned_agents <- empty_set
+  for agent_entry_exits in agents_entries_exits
+    agent = agent_entry_exits[0]
+    entry = agent_entry_exits[1]
+    exists = agent_entry_exits[2]
+    planned_agent <- plan_agent(step, agent, entry, exists)
+    if planned_agent is not NULL
+      planned_agents.add(planned_agent)
+  return planned_agents
+\end{code}
+% @formatter:on
+
+Implementované algoritmy mají různé nastavitelné parametry, které ovlivňují nalezené trasy, optimalitu či dobu běhu.
+Každý algoritmus má speciální parametry pro něj vhodné.
+Tyto parametry proto budou popsány zvlášť a zároveň zvlášť testovány.
 
 \input{algoritmy/kolize}
 

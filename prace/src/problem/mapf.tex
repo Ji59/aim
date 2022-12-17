@@ -8,7 +8,8 @@ Pro hromadné hledání cest v diskrétním prostoru existuje hromada řešení.
 Problém, které hromadné plánování řeší je označován \emph{Multi-Agent Path Finding} \labeltext{MAPF}{str:mapf}
 a podrobnou definici a varianty popsali například \citet*{osti_10114869}.
 \ref{str:mapf} má na~vstupu dvojici $G, A$, kde $G=(V, E)$ je graf a $A = \{a_1, \dots, a_k\}$ je množina agentů.
-Opět stejně jako u~\nameref{sec:a_star} je možné diskretizovat křižovatku a převést na graf (\ref{sec:krizovatka}).
+Opět stejně jako u~\nameref{sec:a_star} je možné diskretizovat křižovatku
+a převést na~graf (popsáno v sekci \ref{sec:krizovatka}).
 Každý agent $a_i$ má svojí výchozí pozici $s_i \in V$ a cílovou pozici $g_i \in V$.
 Popis převodu auta na agenta je popsán v sekci \nameref{sec:agent}.
 Stejně jako u \nameref{sec:a_star} pracuje \ref{str:mapf} s diskrétními časovými úseky (kroky).
@@ -17,9 +18,13 @@ Plán pro agenta $a_i$ je sled $\pi_i = s_i, v_2, \dots, v_{n-1}, g_i$ na grafu 
 $(s_i, v_2) \in E, (v_{n-1}, g_i) \in E, \forall_{i \in 2, \dots, n-2} (v_i, v_{i+1}) \in E$.
 Délka plánu je $|\pi_i| = n$, pozici agenta~$a_i$ v~kroku~$c$ značím~$\pi_i[c]$.
 
-Dle definice~\ref{str:mapf} jsou agenti $a_i$ a $a_j$, $i \neq j$ v \emph{kolizi} v kroku $c$ právě tehdy když $\pi_i[c] = \pi_j[c]$ nebo
-$\pi_i[c] = \pi_j[c + 1] \land \pi_i[c + 1] = \pi_j[c]$.
-Slovy řečeno, agenti jsou v \emph{kolizi}, pokud jsou na stejném místě, nebo projíždí stejnou hranou.
+Dle definice~\ref{str:mapf} jsou agenti $a_i$ a $a_j$, $i \neq j$ v \emph{kolizi} v kroku $c$
+právě tehdy když platí jedna z následujících podmínek.
+\begin{gather}
+  \pi_i[c] = \pi_j[c] \label{eq:mapf_kolize_vrchol}\\
+  \pi_i[c] = \pi_j[c + 1] \land \pi_i[c + 1] = \pi_j[c] \label{eq:mapf_kolize_hrana}
+\end{gather}
+Slovy řečeno, agenti jsou v \emph{kolizi}, pokud jsou ve stejný čas na~stejném místě, nebo projíždí stejnou hranou.
 Pro problém křižovatky je nutné kontrolu kolize rozšířit, jelikož agenti mají svojí velikost (\ref{sec:kolize}).
 
 \ref{str:mapf} se snaží o nalezení plánu $\pi = \cup_{i=1}^{k} \pi_i$, který nemá žádné kolize.
@@ -143,20 +148,19 @@ a ve zbylých případech se plány lišily minimálně.
 \subsubsection{Řešení~\nameref{subsubsec:online_mapf}}\label{subsubsec:reseni_online_mapf}
 
 
-
 %Popis úpravy offline algoritmů pro řešení online MAPF\@.
 
 
 V práci \citet{Svancara} jsou návrhy různých strategií pro řešení \emph{online~MAPF} problémů:
 \begin{itemize}
   \item \textbf{Replan~Single}\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
-    každý nový agent je naplánován s ohledem na předchozí.
+  každý nový agent je naplánován s ohledem na předchozí.
   \item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped}\labeltext{RSG}{str:rsg} -
-    v tomto přístupu se plánují pouze noví agenti, ale oproti \ref{str:rs} plánování probíhá pro všechny agenty najednou.
+  v tomto přístupu se plánují pouze noví agenti, ale oproti \ref{str:rs} plánování probíhá pro všechny agenty najednou.
   Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s již naplánovanými trasami.
   \item \textbf{Replan~All}\labeltext{RA}{str:ra} - za použití této strategie se použije
-    \emph{offline~MAPF} řešič na všechny agenty pokaždé, když dorazí noví agenti.
-    Pokud je řešič optimální, \ref{str:ra} vrací \ref{str:snapshot_opt} řešení pro všechny agenty \citep{Svancara}.
+  \emph{offline~MAPF} řešič na všechny agenty pokaždé, když dorazí noví agenti.
+  Pokud je řešič optimální, \ref{str:ra} vrací \ref{str:snapshot_opt} řešení pro všechny agenty \citep{Svancara}.
   \item \textbf{Online~Independence~Detection}\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
   Nejprve najde cestu pro všechny nové agenty ignorujíce už naplánované.
   Poté zjistí kolize mezi starými a novými agenty.
@@ -166,7 +170,6 @@ V práci \citet{Svancara} jsou návrhy různých strategií pro řešení \emph{
   Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
   Avšak díky této úpravě by měl být počet přeplánování, a tedy i čas výpočtu, nižší.
 \end{itemize}
-
 
 
 %V práci \citet{Svancara} jsou návrhy různých postupů řešení \emph{online~MAPF} problémů:

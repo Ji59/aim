@@ -1,49 +1,59 @@
 \section{Simulace}\label{sec:simulace}
 
-Popis běhu simulátoru - vygenerování agentů a předání řešiči.
+%Popis běhu simulátoru - vygenerování agentů a předání řešiči.
+%
+%Definice sledovaných parametrů - zdržení, zamítnutí, kolize.
 
-Definice sledovaných parametrů - zdržení, zamítnutí, kolize.
+Pro tuto práci jsem si vytvořil vlastní simulátor křižovatky.
+V simulátoru lze nastavit parametry křižovatky a agenta.
+Po startu simulace se načtou agenti, naleznou se pro ně trasy a odsimuluje se průjezd agentů.
+Čas běhu simulace je rozdělen na diskrétní kroky.
+V~každém kroku se pokusí simulace naplánovat agenty, kteří v daném kroku požádali o vjezd, nebo byl jejich vjezd zamítnut.
+Zároveň se všichni agenti na křižovatce přesunou o jednu hranu dále do následujícího vrcholu daného svou trajektorií.
+Pro~naplánování jsou vybráni agenti z~každého vjezdu, kteří přijeli nejdříve.
+Ostatním agentům je zamítnut vjezd v daném kroku.
+Nemůže se tedy stát, že by agent předjel jiného agenta čekajícího před~ním.
 
-%
-%V~každém kroku se pokusí simulace naplánovat agenty použitím vybraného algoritmu.
-%Pro~naplánování jsou vybráni agenti z~každého vjezdu, kteří přijeli nejdříve.
-%Nemůže se stát, že by agent předjel jiného agenta čekajícího před~ním.
-%
-%Simulace nabízí různé statistiky pomocí nichž je možné jednotlivé algoritmy porovnat.
-%Tyto statistiky jsou popsány níže.
-%
-%\begin{itemize}
-%	\item \emph{Zdržení} agentů. \emph{Zdržení} jednoho agenta se~spočte jako součet
-%	rozdílu délky cesty od~optimální cesty a doba čekání před vjezdem do~křižovatky.
-%	Jinými slovy \emph{zdržení} značí počet kroků, o~které agent vyjel z~křižovatky později oproti situaci,
-%	kdyby přijel na~prázdnou křižovatku (křižovatku bez~jiných agentů) a ihned by~projel nejkratší možnou cestou.
-%	\emph{Zdržení} všech agentů je součet \emph{zdržení} přes~všechny agenty, co se~pokusili křižovatkou projet.
-%	\item Počet \emph{zamítnutých} agentů udává množství agentů, kteří čekali na~křižovatce příliš dlouho a
-%	vzdali~se čekání ve~frontě.
-%	I~když křižovatkou neprojeli, pořád se kroky jejich čekání přičítají do~celkového \emph{zdržení}.
-%	\item Počet \emph{kolizí} udává množství sražených agentů.
-%	\item \emph{Doba běhu} algoritmu udává kolik nanosekund běžel algoritmus v~součtu přes všechny kroky.
-%\end{itemize}
+Simulace nabízí různé statistiky pomocí nichž je možné vygenerované trasy porovnat.
+Tyto statistiky jsou popsány níže.
+
+\paragraph{Zdržení} \label{par:zdrzeni} jednoho agenta se~spočte jako součet
+rozdílu délky cesty od~optimální cesty a doba čekání před vjezdem do~křižovatky.
+Jinými slovy \hyperref[item:zdrzeni]{zdržení} značí počet kroků, o~které agent vyjel z~křižovatky později oproti situaci,
+kdyby přijel na~prázdnou křižovatku (křižovatku bez~jiných agentů) a ihned by~projel nejkratší možnou cestou.
+Celkové \hyperref[item:zdrzeni]{zdržení} všech agentů je součet \hyperref[item:zdrzeni]{zdržení} přes~všechny agenty,
+co se~pokusili křižovatkou projet.
+
+\paragraph{Počet zamítnutých agentů}\label{par:zamitnuti} udává množství agentů, kteří čekali na~křižovatce příliš dlouho a
+vzdali~se čekání ve~frontě.
+I~když křižovatkou neprojeli, pořád se kroky jejich čekání přičítají do~celkového \hyperref[item:zdrzeni]{zdržení}.
+
+\paragraph{Počet kolizí}\label{par:kolize} udává množství sražených agentů.
+
+\paragraph{Doba běhu}\label{par:doba_behu} algoritmu počítá kolik nanosekund běžel algoritmus
+v~součtu přes všechny kroky na~reálném hardware.
 
 \subsection{Generování agentů}\label{subsec:generovani_agentu}
 
-Popis generování nových agentů - způsob vybírání množství agentů a
-hodnot pro agenta (vjezd, výjezd, rychlost, velikost, \ldots).
+%Popis generování nových agentů - způsob vybírání množství agentů a
+%hodnot pro agenta (vjezd, výjezd, rychlost, velikost, \ldots).
 
-%
-%Před~startem simulace je možné navolit~si určité vlastnosti agentů a po~kolik kroků se mají agenti generovat.
-%Uživatel si může určit počet vygenerovaných agentů v~každém kroku simulace nastavením parametrů $na_{\min}$ a~$na_{\max}$.
-%Simulace vygeneruje nový počet agentů uniformně náhodně mezi $na_{\min}$ a~$na_{\max}$.
-%
-%Dále je možné určit preference \emph{směrů} odkud agenti budou přijíždět a~kam budou směřovat.
-%Pro~každý \emph{směr} je možné určit pravděpodobnost, s~jakou se zde agent objeví, či tam bude směřovat.
-%Tyto pravděpodobnosti se musí sečíst na~$1$.
-%
-%Poté je možné měnit samotné parametry agentů.
-%Z~těchto parametrů budu používat pouze \emph{odchylku}.
-%\emph{Odchylka} určuje o~kolik procent jsou parametry agenta odlišné vůči sděleným parametrům křižovatce,
-%a~nabývá hodnot mezi nulou a~sto procenty.
-%Ovlivněné parametry jsou šířka, délka a~rychlost agenta.
-%Kromě těchto parametrů ovlivňuje odchylka i~příjezd agenta.
-%Příjezd je možné zpozdit až~o~\emph{odchylku} kroku.
-%Tímto způsobem se snažím simulovat reálnější křižovatky, kde došlo k~určité chybě v~měření.
+Pokud uživatel nespouští simulaci s~předpřipravenými agenty ze souboru,
+simulátor nabízí možnost generování agentů za~běhu.
+Před~startem simulace je možné navolit~si určité vlastnosti agentů a po~kolik kroků se mají agenti generovat.
+Uživatel si může určit počet vygenerovaných agentů v~každém kroku simulace nastavením parametrů $na_{\min}$ a~$na_{\max}$.
+Simulace vygeneruje nový počet agentů uniformně náhodně mezi $na_{\min}$ a~$na_{\max}$.  % TODO
+
+Dále je možné určit preference směrů odkud agenti budou přijíždět a kam budou směřovat.
+Pro~každý směr je možné určit pravděpodobnost, s~jakou se zde agent objeví, či kam bude směřovat.
+Tyto pravděpodobnosti se~musí sečíst na~$1$.
+
+Poté je možné měnit samotné parametry agentů.
+Hlavními parametry agenta jsou šířka a délka a \hyperref[par:odchylka]{odchylka rychlosti}.
+
+\paragraph{Odchylka}\label{par:odchylka} určuje o~kolik procent je rychlost agenta odlišná
+vůči oznámené rychlosti křižovatce, a~nabývá hodnot mezi nulou až~sto procenty.
+Kromě rychlosti ovlivňuje \hyperref[par:odchylka]{odchylka} i~příjezd agenta.
+Příjezd je možné zpozdit až~o~tolik procent kroku, kolik je \hyperref[par:odchylka]{odchylka}.
+Tímto způsobem se snažím simulovat reálnější křižovatky, kde došlo k~určité chybě v~komunikaci či měření agenta.
+Pomocí \hyperref[par:odchylka]{odchylky} se snažím sledovat odolnost plánování vůči těmto jevům.
