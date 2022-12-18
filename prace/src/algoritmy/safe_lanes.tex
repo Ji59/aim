@@ -1,54 +1,65 @@
 \section{Safe lanes}\label{sec:safe_lanes}
 
-Převedení řešení \citet{Dresner} na graf.
+%Převedení řešení \citet{Dresner} na graf.
 
-Parametry a pseudokód.
+%Parametry a pseudokód.
 
-%
-%Algoritmus~\nameref{sec:safe_lanes} je založen na~principu aktuálních křižovatek a dopravy obecně.
-%Každá křižovatka má uloženou nejkratší cestu z~vjezdů do~výjezdů.
-%Tuto cestu definuji jako \emph{pruh}, který známe z~reálného světa.
-%
-%\nameref{sec:safe_lanes} spoléhá na~obecnou implementaci obou funkcí $plan\_agents$.
-%Implementuje jedinou funkci $plan\_agent$, která už dostává individuální agenty namísto množiny agentů.
-%Tudíž jsou agenti pro~daný krok plánováni jeden po~druhém v~nepředvídatelném pořadí.
-%
-%Algoritmus~\nameref{sec:safe_lanes} se podívá na~pruh, popřípadě pruhy, podle vjezdu a výjezdu či výjezdů daných agentem.
-%Pro~každou cestu algoritmus provede kontrolu popsanou v~předchozí kapitole~\ref{subsec:kolize}.
-%Agentovi je přiřazena první nalezená nekolizní cesta.
-%Pokud taková cesta neexistuje, vjezd agenta je zamítnut.
-%
-%% @formatter:off
-%\begin{code}
-%// konstanty tabulka obsazených pozic t, množina pruhů p,
-%// minimální vzdálenost agentů d
-%
-%plan_agent(step, agent_entries_exits)
-%  agent = agent_entries_exits[0]
-%  entry = agent_entries_exits[1]
-%  exits = agent_entries_exits[2]
-%  r <- diameter(agent)
-%
-%  for exit in sorted(exits, x -> dist(entry, x))
-%    path <- p[agent.entry, exit]
-%    for i in 0, \ldots, path.length - 1
-%      vertex = path[i]
-%      safe_vertex_ = safe_vertex(step + i, vertex, r)
-%      if not safe_vertex_
-%        continue
-%
-%      else if i > 0
-%        safe_to = safe_step_to(step + i, vertex, path[i - 1], r)
-%        if not safe_to
-%          continue
-%
-%      else if i < path.length - 1
-%        safe_from = safe_step_from(step + i,vertex, path[i + 1], r)
-%        if not safe_from
-%          continue
-%
-%    agent.path <- path
-%    return agent
-%  return NULL
-%\end{code}
-%% @formatter:on
+Algoritmus~\nameref{sec:safe_lanes} je založen na~křižovatkách s předem definovanými pruhy pro~auta.
+Tímto způsobem řešení jsem se inspiroval u~práce \citet{Dresner}.
+V~jejich práci používali jednu křižovatku s~danými pruhy.
+Agentům dovolovali pouze měnit rychlost.
+Já použiji jejich koncept jízdy v~pruzích, avšak mojí agenti rychlost měnit nemůžou.
+
+\paragraph{Pruh}\label{par:pruh} mezi určitým vjezdem a výjezdem definuji jako nejkratší cestu mezi těmito vrcholy.
+Délka cesty je určena počtem vrcholů, přes které vede.
+Pokud vedou dvě různé cesty přes stejný počet vrcholů, je upřednostněna ta, na~které musí agent méně zatáčet.  % TODO move to krizovatka.tex
+Čili cesty jsou následně porovnány podle úhlu, o~který se musí agenti během jízdy otočit.
+Pokud je i~tato hodnota stejná, porovnávají se agenti podle počtu vrcholů, kterými agent neprojíždí rovně.
+Při~posledním porovnání je preferována cesta s~více vrcholy.
+Takto jsem se rozhodl, protože díky tomu budou mít agenti méně ostré zatáčky.
+
+\citet{Dresner} plánování spadá pod \nameref{subsec:individualni_planovani}.
+Plánují tedy agenty postupně jednoho po~druhém.
+\nameref{sec:safe_lanes} algoritmus používá stejný přístup.
+Díky tomu může spoléhat na~výchozí implementaci obou funkcí $plan\_agents$.
+Implementuje tedy jedinou funkci $plan\_agent$, která už~dostává individuální agenty namísto množiny agentů.
+
+Algoritmus~\nameref{sec:safe_lanes} se podívá na~pruh, popřípadě pruhy, podle vjezdu a výjezdu či~výjezdů daných agentem.
+Pro~každý vrchol na~cestě dané pruhem provede algoritmus kontrolu popsanou v~předchozí kapitole~\ref{subsec:kolize}.
+Agentovi je přiřazena první nalezená nekolizní cesta.
+Pokud taková cesta neexistuje, vjezd agenta je zamítnut.
+
+% @formatter:off
+\begin{code}
+// konstanty tabulka obsazených pozic t, množina pruhů p,
+// minimální vzdálenost agentů d
+
+plan_agent(step, agent_entries_exits)
+  agent = agent_entries_exits[0]
+  entry = agent_entries_exits[1]
+  exits = agent_entries_exits[2]
+  r <- diameter(agent)
+
+  for exit in sorted(exits, x -> dist(entry, x))
+    path <- p[agent.entry, exit]
+    for i in 0, \ldots, path.length - 1
+      vertex = path[i]
+      safe_vertex_ = safe_vertex(step + i, vertex, r)
+      if not safe_vertex_
+        continue
+
+      else if i > 0
+        safe_to = safe_step_to(step + i, vertex, path[i - 1], r)
+        if not safe_to
+          continue
+
+      else if i < path.length - 1
+        safe_from = safe_step_from(step + i,vertex, path[i + 1], r)
+        if not safe_from
+          continue
+
+    agent.path <- path
+    return agent
+  return NULL
+\end{code}
+% @formatter:on
