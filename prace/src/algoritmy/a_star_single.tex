@@ -1,0 +1,64 @@
+\subsection{Individuální A* (A*RS)}\label{subsec:individualni_a_star}
+
+%Popis úpravy A* algoritmu pro řešený problém, parametry a pseudokód.
+
+\labeltext{A*RS}{str:individualni_a_star} patří do kategorie \ref{str:rs} algoritmů.
+Plánuje totiž stejně jako \nameref{sec:safe_lanes} jednoho agenta po druhém.
+Akorát algoritmus dovoluje agentům \uv{opustit} svoje pruhy.
+
+Cena cesty se počítá podobně jako při hledání \hyperref[par:pruh]{pruhu} v křižovatce.
+Cena mí více kritérií, a to \hyperref[par:ars_vzdalenost]{vzdálenost},
+\hyperref[par:ars_uhel_zataceni]{úhel zatáčení} a \hyperref[par:ars_pocet_zataceni]{počet zatáčení}.
+
+\paragraph{Vzdálenost}\label{par:ars_vzdalenost} je počet hran grafu, přes které cesta vede.
+Duplicitní hrany se započítávají vícekrát.
+
+\paragraph{Úhel zatáčení}\label{par:ars_uhel_zataceni} určuje úhel, o který se musí agent za cesty otočit.
+Pro každý prostřední vrchol na cestě se dopočítá úhel mezi hranami,
+přes kterou se agent na vrchol dostal a kterou odjel.
+\nameref{par:ars_uhel_zataceni} je součet absolutních hodnot těchto úhlů.
+
+\paragraph{Počet zatáčení}\label{par:ars_pocet_zataceni} udává počet
+nenulových \hyperref[par:ars_uhel_zataceni]{úhlů zatáčení}.
+
+Cesty jsou nejprve porovnávány podle \hyperref[par:ars_vzdalenost]{vzdálenosti},
+poté \hyperref[par:ars_uhel_zataceni]{úhlu zatáčení} a nakonec podle \hyperref[par:ars_pocet_zataceni]{počtu zatáček}.
+
+\paragraph{Heuristika}\label{par:ars_heuristika} v tomto případě je minimální délka cesty
+z aktuálního vrcholu do nejbližšího z cílových vrcholů.
+Pokud žádná taková cesta neexistuje, je hodnota \hyperref[par:ars_heuristika]{heuristiky} $\infty$.
+
+Prohledávací prostor jsou rozšířené vrcholy křižovatky.
+Pro jednodušší výpočet si u stavu mimo vrcholu pamatuji též krok, ve kterém by agent na daný vrchol přijel.
+Dále si ukládám předchozí stav, cenu cesty z počátku a odhad ceny zbylé cesty dané heuristikou.
+Datová struktura stavu vypadá následovně:
+% @formatter:off
+\begin{code}[frame=none]
+stav {
+	vrchol
+	krok
+	rodic       // předchozí stav
+	vzdalenost  // vzdálenost z počátečního stavu
+	uhel        // úhel zatáčení na cestě z počátečního stavu
+	zatacky     // počet zatáčení na cestě z počátečního stavu
+	heuristika  // hodnota heuristiky v aktuálním stavu
+}
+\end{code}
+% @formatter:on
+
+Následující stavy daného stavu jsou všechny validní stavy dané sousedy vrcholu aktuálního stavu.
+Formálně pro vrchol $u$ jsou jeho sousedi vrcholy ${v \in V | (u,v)\in E}$, 
+kde $V$ je množina vrcholů a $E$ množina hran.
+
+\subsection{Parametry}\label{subsec:parametry}
+Pro reálnější pohyby agentů po křižovatce je vhodné omezit množinu sousedů vrcholu.
+Avšak určení vhodného omezení je komplikované.
+Proto jsem se rozhodl umožnit omezení měnit následujícími parametry.
+
+MAXIMUM_VERTEX_VISITS_DEF = 2;
+
+ALLOW_AGENT_STOP_DEF = false;
+
+MAXIMUM_PATH_DELAY_DEF = Integer.MAX_VALUE;
+
+ALLOW_AGENT_RETURN_DEF = false;

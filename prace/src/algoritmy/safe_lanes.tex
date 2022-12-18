@@ -10,14 +10,6 @@ V~jejich práci používali jednu křižovatku s~danými pruhy.
 Agentům dovolovali pouze měnit rychlost.
 Já použiji jejich koncept jízdy v~pruzích, avšak mojí agenti rychlost měnit nemůžou.
 
-\paragraph{Pruh}\label{par:pruh} mezi určitým vjezdem a výjezdem definuji jako nejkratší cestu mezi těmito vrcholy.
-Délka cesty je určena počtem vrcholů, přes které vede.
-Pokud vedou dvě různé cesty přes stejný počet vrcholů, je upřednostněna ta, na~které musí agent méně zatáčet.  % TODO move to krizovatka.tex
-Čili cesty jsou následně porovnány podle úhlu, o~který se musí agenti během jízdy otočit.
-Pokud je i~tato hodnota stejná, porovnávají se agenti podle počtu vrcholů, kterými agent neprojíždí rovně.
-Při~posledním porovnání je preferována cesta s~více vrcholy.
-Takto jsem se rozhodl, protože díky tomu budou mít agenti méně ostré zatáčky.
-
 \citet{Dresner} plánování spadá pod \nameref{subsec:individualni_planovani}.
 Plánují tedy agenty postupně jednoho po~druhém.
 \nameref{sec:safe_lanes} algoritmus používá stejný přístup.

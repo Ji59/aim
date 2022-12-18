@@ -55,6 +55,16 @@ Opět kvůli symetričnosti jsem zvolil velikost části \ref{str:mezera_p} co~n
 krajových mezer \ref{str:mezera_l} a \ref{str:mezera_p}.
 Platí tedy $\ref{str:mezera_l}=\ref{str:mezera_p}\wedge(\ref{str:mezera_s}=\ref{str:mezera_l}\vee\ref{str:mezera_s}+1=\ref{str:mezera_l})$.
 
+\hyperref[par:pruh]{Pruhy} jsou známý koncept u křižovatek a v dopravě obecně.
+Rozhodl jsem se proto formálně definovat \hyperref[par:pruh]{pruh}.
+\paragraph{Pruh}\label{par:pruh} mezi určitým vjezdem a výjezdem definuji jako nejkratší cestu mezi těmito vrcholy.
+Délka cesty je určena počtem vrcholů, přes které vede.
+Pokud vedou dvě různé cesty přes stejný počet vrcholů, je upřednostněna ta, na~které musí auto méně zatáčet.
+Čili cesty jsou následně porovnány podle úhlu, o~který se musí auta během jízdy otočit.
+Pokud je i~tato hodnota stejná, porovnávají se auta podle počtu vrcholů, kterými neprojíždí rovně.
+Při~posledním porovnání je preferována cesta s~více vrcholy.
+Takto jsem se rozhodl, protože díky tomu budou mít auta méně ostré zatáčky.
+
 \subsection{Čtvercový typ}\label{subsec:ctvercovy_typ}
 
 \nameref{subsec:ctvercovy_typ} křižovatky rozděluje plochu do~čtvercových bloků.
