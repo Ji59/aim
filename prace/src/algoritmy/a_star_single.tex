@@ -2,7 +2,7 @@
 
 %Popis úpravy A* algoritmu pro řešený problém, parametry a pseudokód.
 
-\labeltext{A*RS}{str:individualni_a_star}\ref{str:individualni_a_star} patří do~kategorie \ref{str:rs} algoritmů.
+\labeltext{A*RS}{str:a_star_ars}\ref{str:a_star_ars} patří do~kategorie \ref{str:rs} algoritmů.
 Plánuje stejně jako \nameref{sec:safe_lanes}, jednoho agenta po~druhém.
 Akorát tentokrát algoritmus dovoluje agentům \uv{opustit} svoje~pruhy.
 
@@ -17,6 +17,7 @@ Pokud má více cest všechny kritéria stejné, mají všechny stejnou cenu.
 
 \paragraph{Vzdálenost}\label{par:ars_vzdalenost} je počet hran grafu, přes~které cesta vede.
 Duplicitní hrany se započítávají vícekrát.
+Pokud agent stojí na místě, vzdálenost se nemění.
 
 \paragraph{Úhel zatáčení}\label{par:ars_uhel_zataceni} určuje úhel, o~který se musí agent při sledování cesty otočit.
 Pro~každý prostřední vrchol se na~cestě dopočítá úhel mezi hranami,
@@ -35,7 +36,7 @@ Pokud žádná taková cesta neexistuje, je hodnota \hyperref[par:ars_heuristika
 Prohledávací prostor jsou vrcholy křižovatky rozšířené o~krok, ve~kterém by agent na~daný vrchol přijel.
 Dále si pro~jednodušší práci se stavy ukládám předchozí stav,
 cenu cesty z~počátku a odhad ceny zbylé cesty dané heuristikou.
-Datová struktura stavu vypadá následovně:
+Datová struktura stavu\labeltext{stav}{str:ars_stav} vypadá následovně:
 % @formatter:off
 \begin{code}[frame=none]
 state {
@@ -261,7 +262,11 @@ neighbour_states(state, da)
   for vertex in neighbours
     neighbour_state <- new
     neighbour_state.krok <- state.krok + 1
-    neighbour_state.distance <- state.distance + 1
+    if current_vertex is vertex
+      neighbour_state.distance <- state.distance
+    else
+      neighbour_state.distance <- state.distance + 1
+
     angle <- 0
     if last_vertex is not NULL
       angle <- angle(last_vertex, current_vertex, vertex)
