@@ -2,63 +2,368 @@
 
 %Popis úpravy A* algoritmu pro řešený problém, parametry a pseudokód.
 
-\labeltext{A*RS}{str:individualni_a_star} patří do kategorie \ref{str:rs} algoritmů.
-Plánuje totiž stejně jako \nameref{sec:safe_lanes} jednoho agenta po druhém.
-Akorát algoritmus dovoluje agentům \uv{opustit} svoje pruhy.
+\labeltext{A*RS}{str:individualni_a_star}\ref{str:individualni_a_star} patří do~kategorie \ref{str:rs} algoritmů.
+Plánuje stejně jako \nameref{sec:safe_lanes}, jednoho agenta po~druhém.
+Akorát tentokrát algoritmus dovoluje agentům \uv{opustit} svoje~pruhy.
 
-Cena cesty se počítá podobně jako při hledání \hyperref[par:pruh]{pruhu} v křižovatce.
-Cena mí více kritérií, a to \hyperref[par:ars_vzdalenost]{vzdálenost},
+Pro~správné fungování \nameref{sec:a_star} je potřeba vhodně vybrat cenu cesty a heuristiku.
+Cena cesty se počítá podobně jako při~hledání \hyperref[par:pruh]{pruhu} v~křižovatce.
+Cena je složena z více kritérií, a to \hyperref[par:ars_vzdalenost]{vzdálenost},
 \hyperref[par:ars_uhel_zataceni]{úhel zatáčení} a \hyperref[par:ars_pocet_zataceni]{počet zatáčení}.
+Priorita kritérií je nejprve podle menší \hyperref[par:ars_vzdalenost]{vzdálenosti},
+poté menšího \hyperref[par:ars_uhel_zataceni]{úhlu zatáčení}
+a nakonec vyšší \hyperref[par:ars_pocet_zataceni]{počtu zatáček}.
+Pokud má více cest všechny kritéria stejné, mají všechny stejnou cenu.
 
-\paragraph{Vzdálenost}\label{par:ars_vzdalenost} je počet hran grafu, přes které cesta vede.
+\paragraph{Vzdálenost}\label{par:ars_vzdalenost} je počet hran grafu, přes~které cesta vede.
 Duplicitní hrany se započítávají vícekrát.
 
-\paragraph{Úhel zatáčení}\label{par:ars_uhel_zataceni} určuje úhel, o který se musí agent za cesty otočit.
-Pro každý prostřední vrchol na cestě se dopočítá úhel mezi hranami,
-přes kterou se agent na vrchol dostal a kterou odjel.
+\paragraph{Úhel zatáčení}\label{par:ars_uhel_zataceni} určuje úhel, o~který se musí agent při sledování cesty otočit.
+Pro~každý prostřední vrchol se na~cestě dopočítá úhel mezi hranami,
+přes~kterou se agent na~vrchol dostal a kterou odjel.
+Tento úhel se dá jednoduše geometricky dopočítat, jelikož známe přesnou pozici vrcholů.
 \nameref{par:ars_uhel_zataceni} je součet absolutních hodnot těchto úhlů.
 
 \paragraph{Počet zatáčení}\label{par:ars_pocet_zataceni} udává počet
 nenulových \hyperref[par:ars_uhel_zataceni]{úhlů zatáčení}.
 
-Cesty jsou nejprve porovnávány podle \hyperref[par:ars_vzdalenost]{vzdálenosti},
-poté \hyperref[par:ars_uhel_zataceni]{úhlu zatáčení} a nakonec podle \hyperref[par:ars_pocet_zataceni]{počtu zatáček}.
-
 \paragraph{Heuristika}\label{par:ars_heuristika} v tomto případě je minimální délka cesty
-z aktuálního vrcholu do nejbližšího z cílových vrcholů.
+z~aktuálního vrcholu do~nejbližšího z~cílových vrcholů.
+Při~tomto výpočtu ignoruji všechny agenty na~křižovatce.
 Pokud žádná taková cesta neexistuje, je hodnota \hyperref[par:ars_heuristika]{heuristiky} $\infty$.
 
-Prohledávací prostor jsou rozšířené vrcholy křižovatky.
-Pro jednodušší výpočet si u stavu mimo vrcholu pamatuji též krok, ve kterém by agent na daný vrchol přijel.
-Dále si ukládám předchozí stav, cenu cesty z počátku a odhad ceny zbylé cesty dané heuristikou.
+Prohledávací prostor jsou vrcholy křižovatky rozšířené o~krok, ve~kterém by agent na~daný vrchol přijel.
+Dále si pro~jednodušší práci se stavy ukládám předchozí stav,
+cenu cesty z~počátku a odhad ceny zbylé cesty dané heuristikou.
 Datová struktura stavu vypadá následovně:
 % @formatter:off
 \begin{code}[frame=none]
-stav {
-	vrchol
-	krok
-	rodic       // předchozí stav
-	vzdalenost  // vzdálenost z počátečního stavu
-	uhel        // úhel zatáčení na cestě z počátečního stavu
-	zatacky     // počet zatáčení na cestě z počátečního stavu
-	heuristika  // hodnota heuristiky v aktuálním stavu
+state {
+  vertex
+  step
+  parent      // předchozí stav
+  distance    // vzdálenost z počátečního stavu
+  angle       // úhel zatáčení na cestě z počátečního stavu
+  turns       // počet zatáčení na cestě z počátečního stavu
+  heuristics  // hodnota heuristiky v aktuálním stavu
 }
 \end{code}
 % @formatter:on
 
 Následující stavy daného stavu jsou všechny validní stavy dané sousedy vrcholu aktuálního stavu.
-Formálně pro vrchol $u$ jsou jeho sousedi vrcholy ${v \in V | (u,v)\in E}$, 
-kde $V$ je množina vrcholů a $E$ množina hran.
+Formálně pro~vrchol $u$ jsou jeho sousedi vrcholy $\{v \in V | (u,v)\in E\}$,
+kde $V$ je množina vrcholů a $E$ je množina hran.
 
-\subsection{Parametry}\label{subsec:parametry}
-Pro reálnější pohyby agentů po křižovatce je vhodné omezit množinu sousedů vrcholu.
+\subsubsection{Parametry}\label{subsubsec:ars_parametry}
+Pro~reálnější pohyby agentů po~křižovatce je vhodné omezit množinu sousedů vrcholu.
 Avšak určení vhodného omezení je komplikované.
-Proto jsem se rozhodl umožnit omezení měnit následujícími parametry.
+Proto jsem se rozhodl umožnit omezení měnit parametry.
+Zároveň parametry napomáhají rychlejšímu prohledávání omezením prohledávaného prostoru.
+Bohužel při~nastavení parametrů algoritmus ztrácí svojí optimalitu.
 
-MAXIMUM_VERTEX_VISITS_DEF = 2;
+\paragraph{Maximum návštěv vrcholu (\ref{par:ars_mnv})}\labeltext{MNV}{par:ars_mnv}
+udává maximální počet výskytů libovolného vrcholu na~cestě.
+Proto jsou validní hodnoty kladná celá čísla.
+Nejreálnější hodnota parametru by byla $1$, není pro~auto moc přirozené jezdit ve~smyčkách.
+Avšak vyšší hodnoty mohou vést k~obecně lepšímu řešení.
 
-ALLOW_AGENT_STOP_DEF = false;
+\paragraph{Povolené zastavování (\ref{par:ars_pz})}\labeltext{PZ}{par:ars_pz}
+určuje, zda-li může agent stát na~místě.
+Formálněji pokud dovolím zastavování, vrchol se stane sám sobě sousedem a může se vyskytovat vícekrát na~cestě za~sebou.
+Jednotlivé stání na~místě se pořád započítávají jako jednotlivé návštěvy,
+tudíž maximální doma stání musí být menší než~hodnota \ref{par:ars_mnv}.
 
-MAXIMUM_PATH_DELAY_DEF = Integer.MAX_VALUE;
+\paragraph{Maximální prodleva při cestě (\ref{par:ars_mpc})}\labeltext{MPC}{par:ars_mpc}
+určuje o~kolik kroků může být nalezená cesta delší než~optimální cesta (doba jízdy v~\hyperref[par:pruh]{pruhu}).
+Hodnota $0$ znamená, že agent může jet pouze cestou stejné \hyperref[par:ars_vzdalenost]{vzdálenosti}
+jako je \hyperref[par:ars_vzdalenost]{vzdálenost} \hyperref[par:pruh]{pruhu}.
+Proto jsou hodnoty tohoto parametru nezáporná celá čísla.
+Tento parametr slouží zároveň pro~omezení prohledávání, jelikož nám zakazuje dlouhé cesty.
 
-ALLOW_AGENT_RETURN_DEF = false;
+\paragraph{Povolené vracení (\ref{par:ars_pv})}\labeltext{PV}{par:ars_pv}
+může agentovi zakázat vracet~se na~vrchol, ze~kterého přijel.
+Tento parametr dovoluje agentovi pouze \uv{jízdu dopředu}, což je přirozené od~jízdy v~autě očekávat.
+Formálně pokud je tento parametr nenastaven, jsou zakázány cesty obsahující $uv+u$,
+kde $u, v \in V$, $u \neq v$ a $v+$ znamená posloupnost vrcholů $v$ délky alespoň jedna.
+
+\subsubsection{Sousední stavy}\label{subsubsec:sousedni_stavy}
+
+Nyní blíže popíšu výběr následujícího stavu.
+Přesněji popíšu funkci \ref{subsubsec:sousedni_stavy}\labeltext{\textrm{neighbour\_states}}{alg:sousedni_stavy},
+která dostává na~vstup stav a vrací následující množinu platných stavů.
+Množina následných stavů je ovlivněna \hyperref[subsubsec:ars_parametry]{parametry}.
+Avšak většinou se jedná o~podmnožinu sousedních vrcholů aktuálního vrcholu, popřípadě ještě aktuální vrchol.
+Tuto~množinu budu nazývat \emph{sousedi}\labeltext{sousedi}{str:ars_sousedi}.
+
+Pro~získání \hyperref[str:ars_sousedi]{sousedů} začnu s~množinou všech vrcholů,
+do~kterých vede hrana z~vrcholu aktuálního stavu.
+Budu předpokládat, že tuto množinu je jednoduše možné získat od~grafu křižovatky.
+Pokud je nastavený \hyperref[subsubsec:ars_parametry]{parametr} \ref{par:ars_pz},
+přidám do~množiny \hyperref[str:ars_sousedi]{sousedů} aktuální vrchol.
+Následuje ukázka kódu provádějící tuto~operaci.
+
+
+\labeltext{\textrm{neighbours}}{alg:ars_neighbours}
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// PZ předem nastavená hodnota parametru povolení zastavení
+// G graf křižovatky s funkcí N vracející sousedy vrcholu
+
+// vstup aktuální stav
+// výstup množina možných sousedů
+neighbours(state)
+  neighbours <- empty
+  neighbours.addAll(G.N(state.vertex))
+  if PZ
+    neighbours.add(state.vertex)
+  return neighbours
+\end{code}
+% @formatter:on
+
+Agent se nesmí srazit s~žádným jiným naplánovaným agentem při~jízdě do~sousedního vrcholu.
+Kolizní trasu můžeme detekovat funkcemi \ref{alg:kol_safe_vertex}, \ref{alg:kol_safe_step_to}
+a \ref{alg:kol_safe_step_from} popsanými v~sekci \nameref{sec:kolize}.
+Skoro všechny potřebné informace jsou obsažené ve~stavu a sousedním vrcholu.
+Avšak kontroly kolizí potřebují ještě znát \nameref{par:polomer_agenta}.
+
+Pseudokód tohoto kroku je následovný.
+
+\labeltext{\textrm{collision\_free\_neighbours}}{alg:ars_collision_free_neighbours}
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// vstup aktuální stav, množina sousedů, poloměr agenta
+// výstup množina nekolizních sousedů
+collision_free_neighbours(state, neighbours, da)
+  for vertex in neighbours:
+    if not (safe_vertex(state.step + 1, vertex, da) and
+      safe_step_to(state.step, state.vertex, vertex, da) and
+      safe_step_from(state.step, state.vertex, vertex, da))
+        sousedi.remove(vertex)
+  return neighbours
+\end{code}
+% @formatter:on
+
+Pro~kontrolu \hyperref[subsubsec:ars_parametry]{parametru} \ref{par:ars_mnv}
+je možné projít všechny předchozí stavy až po~počáteční
+a odebrat všechny vrcholy vyskytující se alespoň \ref{par:ars_mnv} krát během tohoto průchodu.
+Následující pseudokód zobrazuje přesnější postup odstraňování.
+
+\labeltext{\textrm{control\_MNV}}{alg:ars_mnv}
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// MNV předem nastavená hodnota maxima návštěv vrcholu
+
+// vstup aktuální stav, množina sousedních vrcholů
+// výstup množina sousedů navštívená nejvýše MNV - 1
+control_MNV(state, neighbours)
+  occurs <- empty // slovník návštěv vrcholů s implicitní hodnotou 0
+  predecessor <- state
+  while predecessor is not NULL
+    occurs[predecessor.vertex] <- occurs[predecessor.vertex] + 1
+    predecessor <- predecessor.parent
+  for vertex in neighbours
+    if occurs[vertex] >= MNV
+      neighbours.remove(vertex)
+  return neighbours
+\end{code}
+% @formatter:on
+
+Pokud je hodnota \hyperref[subsubsec:ars_parametry]{parametru} \ref{par:ars_mpc} konečná,
+je možné provést filtrování sousedních vrcholů podle nejkratší vzdálenosti ze~souseda do~nejbližšího cíle.
+Tuto vzdálenost víme díky heuristice, která má stejnou hodnotu.
+Nejprve si spočítám maximální krok cesty\labeltext{MKC}{str:ars_mkc} (\ref{str:ars_mkc}) pro~daného agenta.
+Ten můžu spočítat jako součet počátečního kroku, heuristiky počátečního vrcholu a \ref{par:ars_mpc}.
+Jednoduše je vidět, že agent nemůže dorazit do~cíle po~kroku \ref{str:ars_mkc}.
+
+Následně mohu zkontrolovat, jestli se agent může dostat ze~sousedního vrcholu
+do~některého cíle do~kroku \ref{str:ars_mkc}.
+Vzdálenost souseda do~nejbližšího cíle zjistím z~heuristiky.
+Tudíž stačí porovnat součet kroku stavu a heuristiky souseda s~hodnotou \ref{str:ars_mkc}.
+Přesný vzhled filtrace je popsán v následujícím pseudokódu.
+
+\labeltext{\textrm{control\_MPC}}{alg:ars_mpc}
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// MKC předem spočtená hodnota maximálního kroku cesty
+// heuristics množina vzdáleností do nejbližšího cíle indexovaná vrcholy
+
+// vstup aktuální stav, množina sousedních vrcholů
+// výstup množina sousedů dostatečně blízkých cílům
+control_MPC(state, neighbours):
+  for vertex in neighbours
+    if state.step + heuristics[vertex] >= MKC:
+      neighbours.remove(vertex)
+  return neighbours
+\end{code}
+% @formatter:on
+
+Poslední filtrování sousedů probíhá pouze, pokud je nastaven
+\hyperref[subsubsec:ars_parametry]{parametr} \ref{par:ars_pv}.
+Opět lze při~kontrole využít procházení předchozích stavů.
+Přesněji nejprve naleznu nejpozději navštívený vrchol před~aktuálním.
+Pokud takový vrchol neexistuje, mohu skončit.
+Jinak odeberu tento vrchol ze~sousedů.
+Následující pseudokód zobrazuje přesnější průběh.
+
+\labeltext{\textrm{control\_PV}}{alg:ars_pv}
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// PV předem nastavená hodnota parametru povolení vrácení
+
+// vstup aktuální stav, množina sousedních vrcholů
+// výstup množina sousedů s odebraným předchozím vrcholem
+control_PV(state, neighbours)
+  if PV
+    return neighbours
+  predecessor <- state.parent
+  while predecessor is not NULL and predecessor.vertex is state.vertex
+    predecessor <- predecessor.parent
+  if predecessor is not NULL
+    neighbours.remove(predecessor.vertex)
+  return neighbours
+\end{code}
+% @formatter:on
+
+Nyní již můžu definovat funkci \ref{alg:sousedni_stavy} jako funkci, která vygeneruje validní sousední stavy.
+Funkce nejprve pomocí funkce \ref{alg:ars_neighbours} vygeneruje sousední vrcholy.
+Poté~odstraní neplatné sousedy funkcemi \ref{alg:ars_collision_free_neighbours},
+\ref{alg:ars_mnv}, \ref{alg:ars_mpc} a \ref{alg:ars_pv}.
+Nakonec pro~každý zbylý vrchol vytvoří nový stav.
+
+Pro~vytvoření následujícího stavu je potřeba znát
+úhel mezi vrcholy předchozího stavu, aktuálního stavu a dotyčného sousedního vrcholu.
+Přesný výpočet zde vynechám.
+Budu předpokládat, že se mohu zeptat grafu křižovatky na~tento úhel.
+
+Pseudokód celkové funkce na~generování sousedních stavů je níže.
+
+
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// G graf křižovatky s funkcí angle(u, v, w) na výpočet úhlu mezi třemi vrcholy
+// heuristics množina vzdáleností do nejbližšího cíle indexovaná vrcholy
+
+// vstup aktuální stav, poloměr agenta
+// výstup množina sousedních stavů
+neighbour_states(state, da)
+  neighbours <- neighbours(state)
+  neighbours <- nekolizni_neighbours(state, neighbours, da)
+  neighbours <- kontrola_MNV(state, neighbours)
+  neighbours <- kontrola_MPC(state, neighbours)
+  neighbours <- kontrola_PV(state, neighbours)
+
+  current_vertex <- state.vertex
+  last_vertex <- NULL
+  if state.parent is not NULL
+    last_vertex <- state.parent.vertex
+  states <- empty
+
+  for vertex in neighbours
+    neighbour_state <- new
+    neighbour_state.krok <- state.krok + 1
+    neighbour_state.distance <- state.distance + 1
+    angle <- 0
+    if last_vertex is not NULL
+      angle <- angle(last_vertex, current_vertex, vertex)
+    neighbour_state.angle <- state.angle + angle
+    if angle is 0
+      neighbour_state.turns <- state.turns
+    else
+      neighbour_state.turns <- state.turns + 1
+    neighbour_state.heuristics <- heuristics[vertex]
+    states.add(neighbour_state)
+
+  return states
+\end{code}
+% @formatter:on
+
+\subsubsection{Výsledný algoritmus}\label{subsubsec:ars_vysledny_algoritmus}
+
+Nakonec popíšu kompletní upravený \nameref{subsec:individualni_a_star} algoritmus.
+Jelikož je využívána \ref{str:rs} strategie, stačí definovat funkci \ref{alg:plan_agent}.
+
+Nejprve je nutné pro~daného agenta spočítat heuristiku pro~každý vrchol.
+To mohu provést procházením přes~cílové vrcholy.
+Pro~každý cíl spočtu vzdálenost od~každého vrcholu do~tohoto cíle.
+Pokud je tato hodnota menší než zatím nejmenší nalezená vzdálenost, přepíši tuto hodnotu.
+Pro~účely počítání vzdálenosti mezi vrcholy si můžu tyto vzdálenosti uložit předem ke~grafu.
+Tyto hodnoty lze získat například Floyd–Warshallovo algoritmem (\citet*{Floyd-Warshall}).
+
+Poté se spočte hodnota posledního kroku \ref{str:ars_mkc} a uloží se pro~pozdější použití.
+Stejně tak se zjistí poloměr agenta.
+
+Následně algoritmus vygeneruje počáteční stav a přidá ho do~fronty prohledávaných stavů.
+Poté~algoritmus odebere z~fronty nejmenší stav podle součtu ceny cesty do~vrcholu stavu a heuristiky.
+Pokud vrchol odebraného stavu je mezi cílovými, zkonstruuje se cesta a přiřadí se agentovi.
+Plánování agenta je v~tomto případě hotové, už~zbývá jen přidat naplánovanou cestu
+do~\hyperref[par:obsazene_pozice]{tabulky obsazených pozic} pomocí \ref{str:kol_add_planned_agent},
+aby nedošlo ke~kolizi s~pozdějšími agenty.
+Agent je následně vrácen zpět \hyperref[sec:simulace]{simulátoru}.
+Pokud vrchol stavu není mezi cílovými,
+získají se pomocí funkce \ref{str:ars_sousedi} sousední stavy a přidají se do~fronty.
+Takto algoritmus pokračuje, dokud nenajde validní cestu, nebo není fronta prázdná.
+V~tom případě nemůže být agent naplánován, jeho cestování je pozdržené, a simulátoru se vrátí $NULL$.
+
+Konstrukci cesty provedu postupným procházením předků koncového stavu.
+Pro~každý takový stav přidám na~začátek cesty vrchol zmíněného stavu.
+Tento postup budu opakovat, dokud nenarazím na předka s rodičem $NULL$.
+Tento postup umístím do funkce \ref{alg:ars_construct_path}\labeltext{\textrm{construct\_path}}{alg:ars_construct_path}.
+
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// vstup finální stav cesty
+// výstup kompletní cesta z vrcholů
+construct_path(state)
+  path <- empty
+  while state is not NULL
+    path.addFirst(state.vertex)
+    state <- state.parent
+\end{code}
+% @formatter:on
+
+
+Následující pseudokód zachycuje celý \nameref{subsec:individualni_a_star} algoritmus.
+
+% @formatter:off
+\begin{code}[fontsize=\footnotesize]
+// G graf křižovatky se vzdálenostmi mezi vrcholy
+// MPC parametr maximální prodlevy cesty
+
+// vstup plánovaný krok, agent, vjezd a výjezdy
+// výstup agent nebo NULL
+plan_agent(step, agent, entry, exits)
+  heuristics <- compute_heuristics(G)
+  MKC <- step + MPC + heuristics[entry]
+  da <- agent.diameter
+
+  // prioritní fronta porovnávající prvky podle ceny cesty a heuristiky
+  queue <- emptyPriorityQueue
+  initial_state <- empty
+  initial_state.vertex <- entry
+  initial_state.step <- step
+  initial_state.heuristics <- heuristics[entry]
+  queue.push(initial_state)
+
+  while not queue.empty()
+    state <- queue.pop()
+    if exits.contain(state.vertex)
+      agent.path <- construct_path(state)
+      add_planned_agent(step, agent)
+      return agent
+    else
+      queue.addAll(neighbour_states(state, da))
+
+  return NULL
+\end{code}
+% @formatter:on
+
+
+\nameref{sec:a_star} algoritmus je možné zrychlit pamatováním si už~navštívených stavů (stavů odebraných z~fronty).
+Z~množiny sousedních stavů je možné odebrat všechny navštívené stavy.
+K~tomu je potřeba určit, kdy~jsou stavy stejné.
+Obecně jsou zde stavy stejné, pokud mají stejný vrchol, stejný krok a zároveň vrcholy všech předků si odpovídají.
+Pokud je hodnota \ref{alg:ars_mnv} $\infty$ a je povolené vracení, stačí jenom kontrolovat aktuální vrchol a krok.
+Během testování jsem zjistil, že kontrola pouze rovnosti posledního vrcholu a stavu značně zrychluje běh algoritmu,
+aniž by~se výrazně zhoršilo plánování.
+Proto jsem se rozhodl udělat kompromis a určit, že dva stavy jsou si rovné právě tehdy,
+když mají stejný vrchol, krok, a jejich rodiče mají stejný vrchol.

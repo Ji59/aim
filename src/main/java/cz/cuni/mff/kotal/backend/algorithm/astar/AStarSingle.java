@@ -64,6 +64,9 @@ public class AStarSingle extends SafeLanes {
 	@Override
 	@Nullable
 	public Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsIDs, long step) {
+		if (exitsIDs.isEmpty()) {
+			exitsIDs = getExits(agent);
+		}
 		@Nullable LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
 		if (path == null) {
 			return null;

@@ -2,18 +2,20 @@
 
 %Přesný popis A* algoritmu.
 
-\nameref{sec:a_star} je známý prohledávací algoritmus.
+\nameref{sec:a_star} je známý prohledávací algoritmus pro~rychlé hledání nejkratších cest.
 Algoritmus potřebuje znát prohledávací prostor určený možnými stavy.
-Dále je nutné uvést určitou heuristiku, která pro určitý vrchol vrátí
-spodní odhad na cenu zbylé cesty z aktuálního stavu do cílového stavu.
-Algoritmus si zároveň pro každý navštívený stav pamatuje cenu cesty z počátečního stavu do aktuálního.
-\nameref{sec:a_star} postupně prochází navštívené stavy a pro každý stav přidá sousední stavy.
-Pořadí procházených stavů je určené součtem ceny cesty do aktuálního stavu z počátečního a heuristiky v aktuálním stavu.
-Tento součet je spodní odhad na minimální cenu cesty z počátku do cíle vedoucí přes navštívené stavy,
-přes které byl aktuální vrchol dosažen.
-\nameref{sec:a_star} zaručuje při tomto postupu optimalitu nalezené cesty.
+Dále je nutné uvést určitou \emph{heuristiku}, která pro~určitý vrchol vrátí
+spodní odhad na~cenu zbylé cesty z~aktuálního stavu do~cílového stavu.
+Algoritmus si zároveň pamatuje pro~každý navštívený stav cenu cesty z~počátečního stavu do~aktuálního.
+\nameref{sec:a_star} postupně prochází frontu navštívených stavů.
+Při~procházení odebere stav z~fronty a poté pro~daný stav přidá sousední stavy do~fronty.
+Vybraný stav z~fronty je určen nejmenším součtem cenou cesty
+do~aktuálního stavu z~počátečního a heuristiky v~aktuálním stavu.
+Tento součet je spodní odhad na~minimální cenu cesty z~počátku do~cíle vedoucí přes navštívené stavy,
+přes~které byl aktuální vrchol dosažen.
+\nameref{sec:a_star} zaručuje při~tomto postupu optimalitu nalezené cesty.
 
-V následujících kapitolách popíšu dvě různé implementace \nameref{sec:a_star} algoritmu pro řešení problému křižovatky.
+V~následujících kapitolách popíšu dvě různé implementace \nameref{sec:a_star} algoritmu pro~řešení problému křižovatky.
 
 \input{algoritmy/a_star_single}
 

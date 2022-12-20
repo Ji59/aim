@@ -12,6 +12,8 @@ Díky této struktuře můžu jednoduše a rychle zjistit,
 zda~se v~daný krok vyskytuje již naplánovaný agent na~určeném vrcholu, a popřípadě o~kterého agent se~jedná.
 Po~každém naplánování agenta je postupně přidána dvojice do~každého kroku, kdy~se agent vyskytuje na~křižovatce,
 aby byla \nameref{par:obsazene_pozice} aktuální.
+Tento postup přidávání agenta shrnu do funkce
+\textrm{add\_planned\_agent(step, agent)}\labeltext{\textrm{add\_planned\_agent}}{str:kol_add_planned_agent}.
 
 Kontrola kolize probíhá třemi fázemi, kontroluje se~\nameref{subsec:bezpecnost_vrcholu},
 \nameref{subsec:cesta_do_vrcholu} a \nameref{subsec:cesta_z_vrcholu}.
@@ -73,20 +75,24 @@ Pro~vrcholy vzdálené více než~$r + d + m$ uspěje kontrola triviálně,
 neexistuje možnost že by agenti na~těchto vrcholech byly v~kolizi.
 
 Níže je popsaný algoritmus na~kontrolu bezpečnosti vrcholu.
+
+\labeltext{\textrm{safe\_vertex}}{alg:kol_safe_vertex}
 % @formatter:off
-\begin{code}
+\begin{code}[fontsize=\footnotesize]
 // konstanty tabulka obsazených pozic t, minimální vzdálenost agentů d,
 // maximální poloměr agenta m
 
-// vstup krok s, vrchol v, poloměr agenta r
+// vstup krok, vrchol, poloměr agenta
 // výstup true pokud může agent být na v, jinak false
 safe_vertex(s, v, r)
-for u in sorted(V, x -> dist(x, v))
-if dist(u, v) > r + m + d return true
-else
-n <- t[s][v]
-r' <- diameter(n)
-if dist(u, v) <= r + r' + d return false
+  for u in sorted(V, x -> dist(x, v))
+    if dist(u, v) > r + m + d
+      return true
+    else
+      n <- t[s][v]
+      r' <- diameter(n)
+      if dist(u, v) <= r + r' + d
+        return false
 return true
 \end{code}
 % @formatter:on
@@ -224,48 +230,52 @@ Pro~výsledný algoritmus si nejdříve nadefinuji
 pomocnou funkci \textrm{safe\_neighbour}\labeltext{\textrm{safe\_neighbour}}{str:safe_neighbour}.
 Tato~funkce pomocí postupu výše zkontroluje, zda-li dojde ke~kolizi mezi agenty $a$ a $b$,
 pokud už~známe vrcholy $u$, $v$ a $w$.
+
 % @formatter:off
-\begin{code}
+\begin{code}[fontsize=\footnotesize]
 // konstanty bezpečná vzdálenost d
 
 // agent a s poloměrem da cestuje z u do v,
 // agent b s poloměrem db cestuje z v do w
 safe_neighbour(v, u, w, da, db)
-if u is w return false
+  if u is w
+    return false
 
-x0 <- u.x - 2*v.x + w.x
-x1 <- w.x - v.x
-y0 <- y.u - 2*v.y + w.y
-y1 <- w.y - v.y
+  x0 <- u.x - 2*v.x + w.x
+  x1 <- w.x - v.x
+  y0 <- y.u - 2*v.y + w.y
+  y1 <- w.y - v.y
 
-// vzdálenost mezi středy agentů na druhou
-dist <- (da + db + d) ** 2
+  // vzdálenost mezi středy agentů na druhou
+  dist <- (da + db + d) ** 2
 
-if x0 is 0 and y0 is 0
-return x1 ** 2 + y1 ** 2 > dist
-
-else
-t' <- (x0 * x1 + y0 * y1 ) / (x0 ** 2 + y0 ** 2)
-x_diff <- (t' * x0 - x1) ** 2
-y_diff <- (t' * y0 - y1) ** 2
-return x_diff + y_diff > dist
+  if x0 is 0 and y0 is 0
+    return x1 ** 2 + y1 ** 2 > dist
+  else
+    t' <- (x0 * x1 + y0 * y1 ) / (x0 ** 2 + y0 ** 2)
+    x_diff <- (t' * x0 - x1) ** 2
+    y_diff <- (t' * y0 - y1) ** 2
+    return x_diff + y_diff > dist
 \end{code}
 \label{alg:check_neighbour}
 % @formatter:on
 
 Výsledný algoritmus kolize vypadá následovně.
+
+\labeltext{\textrm{safe\_step\_to}}{alg:kol_safe_step_to}
 % @formatter:off
-\begin{code}
+\begin{code}[fontsize=\footnotesize]
 // konstanty tabulka obsazených pozic t
 
 // agent a s poloměrem da cestuje z vrcholu u do v v kroku s
 safe_step_to(s, u, v, da)
-b <- t[s][v]
-if b is Null return true
+  b <- t[s][v]
+  if b is NULL
+    return true
 
-w <- b.path[s + 1]
-db <- diameter(b)
-return safe_neighbour(v, u, w, da, db)
+  w <- b.path[s + 1]
+  db <- diameter(b)
+  return safe_neighbour(v, u, w, da, db)
 \end{code}
 % @formatter:on
 
@@ -296,17 +306,20 @@ Formálně agent~$a$ cestuje z~$v$ do~$w$ v~kroku~$s$ a agent~$b$ cestuje z~$u$ 
 Pokud se na~situaci podívám z~pohledu druhého agenta (prohodím agenta $a$ za $b$), dostanu předchozí případ.
 Z~tohoto důvodu můžu pro~kontrolu opět použít funkci \ref{str:safe_neighbour}, akorát prohodím parametry.
 Výsledný algoritmus je následovný.
+
+\labeltext{\textrm{safe\_step\_from}}{alg:kol_safe_step_from}
 % @formatter:off
-\begin{code}
+\begin{code}[fontsize=\footnotesize]
 // konstanty tabulka obsazených pozic t
 
 // agent a s poloměrem da cestuje z vrcholu v do w v kroku s
 safe_step_from(s, v, w, da)
-b <- t[s + 1][v]
-if b is Null return true
+  b <- t[s + 1][v]
+  if b is NULL
+    return true
 
-u <- b.path[s]
-db <- diameter(b)
-return safe_neighbour(v, u, w, db, da)
+  u <- b.path[s]
+  db <- diameter(b)
+  return safe_neighbour(v, u, w, db, da)
 \end{code}
 % @formatter:on

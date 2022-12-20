@@ -17,14 +17,14 @@ Níže je zobrazen pseudokód výchozího chování funkce
 \textrm{plan\_agents}\labeltext{\textrm{plan\_agents}}{alg:plan_agents}.
 
 % @formatter:off
-\begin{code}[xrightmargin=6em]
-// vstup plánovaný krok step, množina agentů agents
-// výstup množina naplánovaných agentů planned_agents
+\begin{code}[fontsize=\footnotesize]
+// vstup plánovaný krok, množina agentů
+// výstup množina naplánovaných agentů
 plan_agents(step, agents)
-agents_mapped <- empty_set
-for agent in agents
-agents_mapped.add([agent, agent.entry, agent.exits])
-return plan_agents(agents_mapped, step)
+  agents_mapped <- empty_set
+  for agent in agents
+    agents_mapped.add([agent, agent.entry, agent.exits])
+  return plan_agents(agents_mapped, step)
 \end{code}
 % @formatter:on
 
@@ -33,24 +33,24 @@ První pomocná funkce se~nazývá \ref{alg:plan_agent},
 která má za~úkol naplánovat pouze jednoho agenta.
 Tuto funkci využiji při~použití \ref{str:rs} strategie
 (této strategii odpovídá výchozí implementace funkce \ref{alg:plan_agents}).
-Funkce \textrm{plan\_agent}\labeltext{\textrm{plan\_agent}}{alg:plan_agent} dostává na~vstup krok, ve~kterém má~být agent naplánován.
+Funkce \textrm{plan\_agent}\labeltext{\textrm{plan\_agent}}{alg:plan_agent}
+dostává na~vstup krok, ve~kterém má~být agent naplánován.
 Další parametry jsou agent, který má~být naplánován, vrchol,
 ze~kterého agent vyjíždí a množina vrcholů, na~kterých může agent skončit.
 Implementace funkce už~není jednotná a závisí na~každém algoritmu.
 Funkce vrací agenta pokud byl úspěšně naplánován, jinak $NULL$.
 
 % @formatter:off
-\begin{code}[xrightmargin=14em]
-// vstup plánovaný krok step, agent agent,
-// vjezd entry a výjezdy exits
+\begin{code}[fontsize=\footnotesize]
+// vstup plánovaný krok, agent, vjezd a výjezdy
 // výstup agent nebo NULL
 plan_agent(step, agent, entry, exits)
-// implementace algoritmu
-if plánování úspěšné
-agent.path <- planned_path
-return agent
-else
-return NULL
+  // implementace algoritmu
+  if plánování úspěšné
+    agent.path <- planned_path
+    return agent
+  else
+    return NULL
 \end{code}
 % @formatter:on
 
@@ -61,20 +61,19 @@ poslední prvek je množina cílových vrcholů, což jsou možné vrcholy, na~k
 Funkce opět vrací množinu naplánovaných agentů.
 Pseudokód výchozího chování je následovný.
 % @formatter:off
-\begin{code}[xrightmargin=6em]
-// vstup plánovaný krok step, množina trojic agentů,
-// vjezdů a výjezdů agents_entries_exits
-// výstup množina naplánovaných agentů planned_agents
+\begin{code}[fontsize=\footnotesize]
+// vstup plánovaný krok, množina trojic agentů, vjezdů a výjezdů
+// výstup množina naplánovaných agentů
 plan_agents(step, agents_entries_exits)
-planned_agents <- empty_set
-for agent_entry_exits in agents_entries_exits
-agent = agent_entry_exits[0]
-entry = agent_entry_exits[1]
-exists = agent_entry_exits[2]
-planned_agent <- plan_agent(step, agent, entry, exists)
-if planned_agent is not NULL
-planned_agents.add(planned_agent)
-return planned_agents
+  planned_agents <- empty_set
+  for agent_entry_exits in agents_entries_exits
+    agent = agent_entry_exits[0]
+    entry = agent_entry_exits[1]
+    exists = agent_entry_exits[2]
+    planned_agent <- plan_agent(step, agent, entry, exists)
+    if planned_agent is not NULL
+      planned_agents.add(planned_agent)
+  return planned_agents
 \end{code}
 % @formatter:on
 
