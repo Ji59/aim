@@ -1,0 +1,82 @@
+\subsection{Vylepšený A*RSG}\label{subsec:vylepseny_hromadny_a_star}
+
+\citep{Standley_2010} se zabýval zlepšením multiagentního \nameref{sec:a_star} algoritmu.
+Nakonec ve své práci \citet*{Standley_2010} sepsal techniky, které ve většině případů výrazně zrychlily prohledávání.
+Já se zaměřím pouze na \nameref{subsubsec:varsg_independence_detection},
+jelikož dle mého názoru přináší největší zrychlení.
+
+\subsubsection{Independence Detection}\label{subsubsec:varsg_independence_detection}
+
+Tato metoda rozdělí plánované agenty do skupin.
+Poté nalezne cesty pro jednotlivé skupiny zvlášť bez ohledu na ostatní skupiny.
+Když jsou všechny skupiny naplánovány, hledají se kolize mezi jednotlivými skupinami.
+Pokud nejsou žádné kolize nalezeny, všichni agenti mají už naplánovanou validní cestu.
+Jinak existuje kolize mezi agenty dvou skupin.
+Algoritmus tedy zkusí přeplánovat první skupinu v kolizi tak,
+aby už žádný agent z této skupiny neměl kolizní trasu s žádným agentem první i druhé skupiny.
+Pokud se nepodařilo takové trasy najít, algoritmus zkusí najít nové trasy pro agenty druhé skupiny.
+Jestliže se nepodařilo úspěšně přeplánovat ani druhou skupinu, spojí se obě skupiny do jedné.
+Potom se najdou trasy pro tuto novou skupinu.
+Při všech přeplánování se vždy kontrolují kolize s agenty naplánovanými v předešlých krocích.
+
+Při přeplánování by mohlo dojít k zacyklení.
+Například mám $3$ skupiny $g_1, g_2, g_3$ a $g_1$ je v kolizi s $g_2$.
+Povede se mi přeplánovat skupinu $g_1$,avšak nyní je $g_1$ v kolizi s $g_3$.
+Po opětovném přeplánování $g_1$ může oět dojít ke kolizi s $g_2$.
+Proto je nutné udržovat si historii skupin, se kterými byla aktuálně přeplánovaná skupina v kolizi.
+Při hledání nových tras se agenti vyhýbají nejen druhé skupině, ale i všem předešlým skupinám.
+
+\paragraph{Illegal moves table}\label{par:varsg_illegal_moves_table} je datová struktura,
+kterou algoritmus používá při přeplánování k určení kolize s agenty jiné skupiny.
+Struktura této tabulky je shodná se strukturou \hyperref[par:obsazene_pozice]{tabulkou obsazených pozic}.
+Před každým přeplánováním skupiny si algoritmus uloží pro~každý krok množinu dvojic vrcholu a agenta.
+Pro každého agenta ze skupiny z historie nebo kolizní skupiny je do tabulky přidána pro každý krok, kdy agent cestuje,
+dvojice zmíněného agenta a vrcholu z jeho aktuální trasy, kde se vyskytuje ve zmíněný krok.
+Kontrola sousedních vrcholů pro jednoho agenta probíhá podobně jako při kontrole u \ref{str:a_star_ars}.
+Avšak kromě kontroly kolize s naplánovanými agenty pomocí \hyperref[par:obsazene_pozice]{tabulkou obsazených pozic}
+se podobnými kontrolami zaručuje nekolizní přejezd s agenty jiných skupin pomocí
+\hyperref[par:varsg_illegal_moves_table]{Illegal moves table}.
+
+K rychlejšímu naplánování chceme minimalizovat počet přeplánování.
+Proto by bylo vhodné již při plánování skupiny preferovat cesty,
+které mají co nejméně kolizních tras s ostatními skupinami.
+Přesněji je důležitý počet agentů jiných skupin, které kolidují s některým agentem aktuální skupiny.
+Avšak pro zaručení optimality je nutné dodržovat stejné uspořádání jako při \nameref{str:a_star_arsg}.
+Porovnání na počet kolizních agentů tedy budu používat jenom tehdy, mají-li stavy totožnou
+\hyperref[par:ars_vzdalenost]{vzdálenost}, \hyperref[par:ars_uhel_zataceni]{úhlu zatáčení},
+\hyperref[par:ars_pocet_zataceni]{počtu zatáčení} i \hyperref[par:ars_heuristika]{heuristiku}.
+Pokud bude shodný i počet agentů s kolizní trajektorií, budu upřednostňovat stavy s menším počtem celkových kolizí.
+Při tomto součtu už započítávám stejného agenta vícekrát.
+
+\paragraph{Conflict avoidance table}\label{par:varsg_conflict_avoidance_table} je tabulka, pomocí níž
+algoritmus zjišťuje množství těchto kolizí.
+Strukturou je podobná \nameref{par:varsg_illegal_moves_table}.
+Agenti jiných skupin mohou ale být v kolizi, a proto může být naplánováno více agentů na stejném vrcholu ve stejný krok.
+Proto je výhodnější pamatovat si místo dvojice vrchol-agent dvojici vrchol-množina agentů.
+Zjišťování kolizních agentů lze opět provést podobnými způsoby popsanými v sekci \nameref{sec:kolize}.
+Rozdíl je jenom v používané tabulce a namísto kontrolování s jedním agentem
+se musí zkontrolovat kolize se všemi agenty v dané množině.
+
+Algoritmus potřebuje na začátku výpočtu rozdělit agenty do skupin.
+Vhodný způsob rozdělení je přiřazení každému agentovi svojí skupinu,
+protože složitost plánování roste exponenciálně s množstvím agentů ve skupině.
+Všichni agenti jsou naplánováni zvlášť stejným stejně jako u \ref{str:a_star_ars}.
+Pokud nějaký agent nemůže být naplánován, je jeho skupina vyřazena.
+
+Může se stát, že algoritmus nebude moci najít trasy pro všechny agenty po spojení dvou skupin.
+V tom případě je nutné vyřadit určité agenty ze skupiny.
+Pro zachování co nejlepších výsledků jsem se rozhodl, že budu zkoušet všechny podmnožiny agentů dané skupiny,
+dokud algoritmus nenalezne trasy pro danou podmnožinu.
+
+\subsubsection{Parametry}\label{subsubsec:arsg_parametry}
+Algoritmus má opět několik nastavitelných parametrů, kterými je možné ovlivnit chování a složitost výpočtu.
+Jelikož je algoritmus rozšířením \nameref{str:a_star_ars}, ponechávám algoritmu všechny tyto parametry.
+Omezení parametrem platí pro všechny plánované agenty ve skupině.
+
+Počet podmnožin agentů u spojování skupin je exponenciální.
+Při testování jsem zjistil, že algoritmu občas zabere hodně času najít vhodnou podmnožinu.
+Proto jsem se rozhodl dovolit algoritmu použít\ zjednodušený výpočet.
+Zjednodušený výpočet znamená, že algoritmus místo spojování skupin ponechá pouze skupinu větší velikosti.
+
+\paragraph{Zjednodušený výpočet po (\ref{par:arsg_zvp})}\labeltext{ZVP}{par:arsg_zvp} je jediný nový parametr.
+Tento parametr udává, po jak dlouhé prodlevě má algoritmus začít používat zjednodušené počítání.

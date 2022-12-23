@@ -1,0 +1,35 @@
+\subsection{Hromadný A* (\ref{str:a_star_arsg})}\label{subsec:hromadny_a_star}\labeltext{A*RSG}{str:a_star_arsg}
+
+%Rozšíření A* pro více agentů, popis vylepšení.
+%Parametry, pseudokód.
+
+Tento algoritmus plánuje agenty \ref{str:rsg} strategií, čili hledá cesty pro všechny nové agenty najednou.
+Algoritmus je založen na \nameref{sec:a_star} algoritmu.
+
+\subsubsection{Složený hromadný A*}\label{subsubsec:arsg_slozeny_hromadny}
+Předchozí \ref{str:a_star_ars} algoritmus lze poměrně jednoduše rozšířit na variantu pro více agentů.
+Pokud potřebuji naplánovat $n$ agentů, můžu rozšířit strukturu \ref{str:a_star_ars}
+\hyperref[str:ars_stav]{stavu} o vrcholy, na kterých se nacházejí všichni agenti.
+Tedy místo vrcholu by \ref{str:ars_stav} obsahoval $n$-tici vrcholů.
+Koncový \ref{str:ars_stav} nastane, pokud všechny vrcholy jsou v cílových vrcholech odpovídajících agentů.
+
+Dále potřebuji upravit hodnotu \hyperref[par:ars_vzdalenost]{vzdálenosti} ve \hyperref[str:ars_stav]{stavu}
+jako součet vzdáleností jednotlivých agentů.
+Stejným způsobem upravím hodnoty \hyperref[par:ars_uhel_zataceni]{úhlu zatáčení},
+\hyperref[par:ars_pocet_zataceni]{počtu zatáčení} a \hyperref[par:ars_heuristika]{heuristiky} jako součet
+odpovídajících hodnot přes všechny agenty.
+
+Při vytváření následujících stavů určitého stavu je nutné zjistit \hyperref[str:ars_sousedi]{sousedy} vrcholů
+jednotlivých agentů stejným způsobem jako u \ref{str:a_star_ars} (sekce \ref{subsubsec:sousedni_stavy}).
+Každý prvek kartézského součinu těchto množin \hyperref[str:ars_sousedi]{sousedů} tvoří vrcholy následujícího stavu.
+
+Oproti \ref{str:a_star_ars} je navíc nutné kontrolovat kolize mezi jednotlivými plánovanými agenty.
+Pokud je nalezená kolize mezi dvěma agenty, je daný stav zamítnut.
+
+Bohužel prohledávací prostor má velikost $|V|^n$, kde $n$ je počet plánovaných agentů.
+Například pro čtvercovou křižovatku s \hyperref[par:granularita]{granularitou} $4$,
+jedním \hyperref[par:vjezdy]{vjezdem} a jedním \hyperref[par:vyjezdy]{výjezdem} (obrázek \ref{fig:square_type_graph})
+by měl prohledávací prostor pro jednoho agenta velikost $24$, pro dva agenty $576$, pro tři $13824$.
+Proto je plánování pro velký počet agentů je téměř nemožný z paměťových a časových důvodů.
+Naštěstí byly vyvinuty techniky na chytřejší plánování pomocí \nameref{sec:a_star}.
+

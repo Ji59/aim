@@ -42,9 +42,9 @@ Vzorcem $\textrm{makespan}(\pi)=\max_{i\in A} |\pi_i|$.
 
 Nejjednodušší způsob řešení je využít A* algoritmus, kde stav je kartézským součinem stavů všech plánovaných agentů.
 Toto řešení má často vysoký větvící faktor.
-Proto se vyvinuly vylepšení, například \emph{Independence Detection}, \emph{Conflict Avoidance Table} nebo
-\emph{Operator Decomposition} \citep{Standley_2010} a mnoho dalších.
-Bližší popis těchto vylepšení je v sekci \nameref{sec:a_star}. % TODO hromadny A*
+Proto se vyvinuly vylepšení, například \nameref{subsubsec:varsg_independence_detection} nebo
+\emph{Operator Decomposition} (\citep{Standley_2010}) a mnoho dalších.
+Bližší popis těchto vylepšení je popsán později (sekce \ref{subsec:vylepseny_hromadny_a_star}).
 
 \citet*{Sharon} navrhli algoritmus \nameref{subsec:conflict_based_search},
 který nalezne nejkratší cesty pro všechny agenty nezávisle na ostatních.
