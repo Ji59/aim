@@ -1,6 +1,6 @@
-\subsection{Vylepšený A*RSG}\label{subsec:vylepseny_hromadny_a_star}
+\subsection{Vylepšený Hromadný A* (\ref{str:varsg})}\label{subsec:vylepseny_hromadny_a_star}\labeltext{VA*RSG}{str:varsg}
 
-\citep{Standley_2010} se zabýval zlepšením multiagentního \nameref{sec:a_star} algoritmu.
+\citeauthor{Standley_2010} se zabýval zlepšením multiagentního \nameref{sec:a_star} algoritmu.
 Nakonec ve své práci \citet*{Standley_2010} sepsal techniky, které ve většině případů výrazně zrychlily prohledávání.
 Já se zaměřím pouze na \nameref{subsubsec:varsg_independence_detection},
 jelikož dle mého názoru přináší největší zrychlení.
@@ -80,3 +80,40 @@ Zjednodušený výpočet znamená, že algoritmus místo spojování skupin pone
 
 \paragraph{Zjednodušený výpočet po (\ref{par:arsg_zvp})}\labeltext{ZVP}{par:arsg_zvp} je jediný nový parametr.
 Tento parametr udává, po jak dlouhé prodlevě má algoritmus začít používat zjednodušené počítání.
+
+\subsubsection{A*OID}\label{subsubsec:a_star_aoid}
+Další způsob řešení \nameref{subsubsec:online_mapf} problému je pomocí \nameref{str:oid} algoritmu.
+Při tomto způsobu řešení se v novém kroku plánují nejen noví agenti, ale i agenti již naplánovaní.
+Tento způsob by měl dávat lepší výsledky než \nameref{str:a_star_arsg}.
+Ale přirozeně vzroste počet plánovaných agentů, což vede ke zpomalení výpočtu.
+Proto \ref{str:oid} používá strategii \uv{neměnit plány agentů, pokud není potřeba}.
+Znamená to, že naplánovaní agenti se znovu neplánují, jestliže nekolidují s novými.
+
+\nameref{str:varsg} algoritmus lze jednoduše rozšířit na \ref{str:oid} variantu.
+Na začátku každému naplánovanému agentovi přidělíme vlastní skupinu.
+Avšak oproti novým agentům pro ně prvotní cestu nehledáme, jelikož už jsou naplánovaní předchozími kroky.
+Akorát jejich aktuální cesta nezačíná ve vrcholu vjezdu,
+ale obecným vrcholem podle toho, kde se v plánovaný krok nacházejí.
+Množina koncových vrcholů je stejná.
+
+Poté může algoritmus pokračovat stejně jako v \ref{str:a_star_arsg}.
+Jediný rozdíl je u slučování dvou skupin.
+Algoritmus si nemůže dovolit odebrat agenta z výpočtu a zamítnout ho, jelikož už je částečně naplánován.
+Z tohoto důvodu se při slučování skupin neprochází všechny podmnožiny agentů skupin,
+ale jenom podmnožiny obsahující všechny dříve naplánované agenty.
+
+Algoritmus opět podporuje \hyperref[par:arsg_zvp]{zjednudušený výpočet}.
+Avšak tentokrát namísto ponechávání větší skupiny
+algoritmus skupiny spojí do jedné a odebere všechny nově plánované agenty.
+Zbylí agenti již byli naplánovaní v předešlých krocích, tudíž jim zpět přiřadím poslední platné cesty.
+Tyto cesty jsou vzájemně nekolizní.
+
+Abych snížil počet přeplánovaných agentů, rozhodl jsem se přidat algoritmu dva nastavitelné parametry.
+
+\paragraph{Maximální počet agentů} určuje, s kolika agenty může algoritmus nanejvýš počítat.
+Algoritmus přidá k novým agentům tolik naplánovaných, abych jejich součet nepřekročil tuto hodnotu.
+Výběr agentů pro plánování tedy probíhá ještě před započtením výpočtu tras.
+Agenti se berou od nejpozdějšího po nejstarší.
+
+\paragraph{Počet přeplánovaných kroků} omezuje stáří přeplánovaných agentů.
+Z vybraných agentů na přeplánování jsou odebráni takoví, kteří už cestují déle než hodnota tohoto parametru.
