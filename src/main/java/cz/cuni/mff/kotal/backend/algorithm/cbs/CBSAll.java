@@ -38,20 +38,6 @@ public class CBSAll extends CBSSingleGrouped {
 		this.replanSteps = replanSteps;
 	}
 
-	/**
-	 * @param step
-	 * @param queue
-	 * @param node
-	 * @param collision
-	 * @param agent
-	 */
-	@Override
-	protected void applySimpleAlgorithm(long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Quaternion<Agent, Agent, Long, Boolean> collision, Agent agent) {
-		if (!notFinishedAgents.containsKey(agent)) {
-			super.applySimpleAlgorithm(step, queue, node, collision, agent);
-		}
-	}
-
 	@Override
 	public @NotNull Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		final @NotNull Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
@@ -85,44 +71,9 @@ public class CBSAll extends CBSSingleGrouped {
 	}
 
 	/**
-	 * @param state
-	 * @param entryID
-	 * @param vertexID
-	 * @param constraints
-	 * @return
-	 */
-	@Override
-	protected boolean canVisitVertex(@NotNull State state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
-		int maximumVertexVisits = this.maximumVertexVisits;
-		if (agentVerticesVisits.containsKey(entryID)) {
-			final Pair<Agent, Map<Integer, Integer>> agentVertexVisits = agentVerticesVisits.get(entryID);
-			if (!allowAgentReturn) {
-				final int lastVertex;
-				if (state.getParent() == null) {
-					final Agent agent = agentVertexVisits.getVal0();
-					final int lastFixTime = (int) (state.getStep() - agent.getPlannedTime() - 1);
-					lastVertex = agent.getPath().get(lastFixTime);
-				} else {
-					lastVertex = state.getParent().getID();
-				}
-				if (lastVertex == vertexID) {
-					return false;
-				}
-			}
-			final Map<Integer, Integer> vertexVisitsMap = agentVertexVisits.getVal1();
-			if (vertexVisitsMap.containsKey(vertexID)) {
-				maximumVertexVisits -= vertexVisitsMap.get(vertexID);
-			}
-		} else if (state.getParent() != null && state.getParent().getID() == vertexID) {
-			return false;
-		}
-
-		return maximumVertexVisits > 0 && safeConstraints(state, vertexID, constraints) && validVisitCount(state, vertexID, maximumVertexVisits);
-	}
-
-	/**
 	 * @param agent
 	 * @param step
+	 *
 	 * @return
 	 */
 	@Override
@@ -157,6 +108,7 @@ public class CBSAll extends CBSSingleGrouped {
 	 * @param agent
 	 * @param exitsIDs
 	 * @param step
+	 *
 	 * @return
 	 */
 	@Override
@@ -168,6 +120,43 @@ public class CBSAll extends CBSSingleGrouped {
 			startingStep = step;
 		}
 		return startingStep + getMaximumTravelTime(agent, exitsIDs);
+	}
+
+	/**
+	 * @param state
+	 * @param entryID
+	 * @param vertexID
+	 * @param constraints
+	 *
+	 * @return
+	 */
+	@Override
+	protected boolean canVisitVertex(@NotNull State state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+		int maximumVertexVisits = this.maximumVertexVisits;
+		if (agentVerticesVisits.containsKey(entryID)) {
+			final Pair<Agent, Map<Integer, Integer>> agentVertexVisits = agentVerticesVisits.get(entryID);
+			if (!allowAgentReturn) {
+				final int lastVertex;
+				if (state.getParent() == null) {
+					final Agent agent = agentVertexVisits.getVal0();
+					final int lastFixTime = (int) (state.getStep() - agent.getPlannedTime() - 1);
+					lastVertex = agent.getPath().get(lastFixTime);
+				} else {
+					lastVertex = state.getParent().getID();
+				}
+				if (lastVertex == vertexID) {
+					return false;
+				}
+			}
+			final Map<Integer, Integer> vertexVisitsMap = agentVertexVisits.getVal1();
+			if (vertexVisitsMap.containsKey(vertexID)) {
+				maximumVertexVisits -= vertexVisitsMap.get(vertexID);
+			}
+		} else if (state.getParent() != null && state.getParent().getID() == vertexID) {
+			return false;
+		}
+
+		return maximumVertexVisits > 0 && safeConstraints(state, vertexID, constraints) && validVisitCount(state, vertexID, maximumVertexVisits);
 	}
 
 	@Override

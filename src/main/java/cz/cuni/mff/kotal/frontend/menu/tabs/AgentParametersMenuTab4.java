@@ -22,8 +22,8 @@ import java.util.Arrays;
  */
 public class AgentParametersMenuTab4 extends MyTabTemplate {
 
-	public static final double DEFAULT_AGENT_LENGTH = 0.6;
-	public static final double DEFAULT_AGENT_WIDTH = 0.37;
+	public static final double DEFAULT_AGENT_LENGTH = 0.56;
+	public static final double DEFAULT_AGENT_WIDTH = 0.35;
 
 	// TODO don't use static, use Component
 	// TODO rename constants

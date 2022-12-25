@@ -82,9 +82,9 @@ Zjednodušený výpočet znamená, že algoritmus místo spojování skupin pone
 Tento parametr udává, po jak dlouhé prodlevě má algoritmus začít používat zjednodušené počítání.
 
 \subsubsection{A*OID}\label{subsubsec:a_star_aoid}
-Další způsob řešení \nameref{subsubsec:online_mapf} problému je pomocí \nameref{str:oid} algoritmu.
+Další způsob řešení \nameref{subsubsec:online_mapf} problému je pomocí \ref{str:oid} algoritmu.
 Při tomto způsobu řešení se v novém kroku plánují nejen noví agenti, ale i agenti již naplánovaní.
-Tento způsob by měl dávat lepší výsledky než \nameref{str:a_star_arsg}.
+Tento způsob by měl dávat lepší výsledky než \ref{str:varsg}.
 Ale přirozeně vzroste počet plánovaných agentů, což vede ke zpomalení výpočtu.
 Proto \ref{str:oid} používá strategii \uv{neměnit plány agentů, pokud není potřeba}.
 Znamená to, že naplánovaní agenti se znovu neplánují, jestliže nekolidují s novými.
@@ -110,10 +110,10 @@ Tyto cesty jsou vzájemně nekolizní.
 
 Abych snížil počet přeplánovaných agentů, rozhodl jsem se přidat algoritmu dva nastavitelné parametry.
 
-\paragraph{Maximální počet agentů} určuje, s kolika agenty může algoritmus nanejvýš počítat.
+\paragraph{Maximální počet agentů (\ref{par:aoid_mpa})}\labeltext{MPA}{par:aoid_mpa} určuje, s kolika agenty může algoritmus nanejvýš počítat.
 Algoritmus přidá k novým agentům tolik naplánovaných, abych jejich součet nepřekročil tuto hodnotu.
 Výběr agentů pro plánování tedy probíhá ještě před započtením výpočtu tras.
 Agenti se berou od nejpozdějšího po nejstarší.
 
-\paragraph{Počet přeplánovaných kroků} omezuje stáří přeplánovaných agentů.
+\paragraph{Počet přeplánovaných kroků (\ref{par:aoid_ppk})}\labeltext{PPK}{par:aoid_ppk} omezuje stáří přeplánovaných agentů.
 Z vybraných agentů na přeplánování jsou odebráni takoví, kteří už cestují déle než hodnota tohoto parametru.

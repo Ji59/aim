@@ -277,7 +277,7 @@ public class AStarSingle extends SafeLanes {
 					if (parent != null) {
 						VertexWithDirectionParent stateParent = state.getParent();
 						assert stateParent != null;
-						assert (parent.getID() == stateParent.getID()) == (angle == state.angle);
+						assert allowAgentStop || (parent.getID() == stateParent.getID()) == (angle == state.angle);
 						return parent.getID() == stateParent.getID();
 					}
 					assert state.getParent() == null;

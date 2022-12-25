@@ -164,7 +164,7 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 	public int compareTo(@NotNull final VertexWithDirection o) {
 		final int heuristicsComparison = Double.compare(distance.distance + estimate, o.distance.distance + o.estimate);
 		if (heuristicsComparison == 0) {
-			final int distanceComparison = distance.compareTo(o.distance);
+			final int distanceComparison = o.distance.compareTo(distance);
 			if (distanceComparison == 0) {
 				return Integer.compare(vertex.getID(), o.vertex.getID());
 			}
