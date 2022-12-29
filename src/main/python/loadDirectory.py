@@ -25,17 +25,46 @@ def get_subdirectories(directory: str) -> [str]:
 	return subdirectories
 
 
-def get_intersection(directory: str) -> dict[str, Any]:
+class Vertex:
+	def __init__(self, values: {int, Any}):
+		self.__dict__ = values
+
+
+class Graph:
+	def __init__(self, values: {int, Any}):
+		self.__dict__ = values
+		self.vertices = [Vertex(data) for data in values["vertices"]]
+
+
+def get_intersection(directory: str) -> Graph:
 	with open(path.join(directory, "Parameters.json"), 'r') as parameters_file:
 		parameters = json.load(parameters_file)
-		graph = parameters.get("graph")
+		graph = Graph(parameters["graph"])
 	return graph
 
 
-def get_agents(directory: str):
+class Parameters:
+	def __init__(self, values: {int, Any}):
+		self.__dict__ = values
+		self.graph = Graph(values["graph"])
+
+
+def get_parameters(directory: str) -> Parameters:
+	with open(path.join(directory, "Parameters.json"), 'r') as parameters_file:
+		parameters = Parameters(json.load(parameters_file))
+		return parameters
+
+
+class Agent:
+	def __init__(self, values: {int, Any}):
+		self.__dict__ = values
+
+
+def get_agents(directory: str) -> [Agent]:
 	agents_path = path.join(directory, "agents.json")
-	# TODO implement
-	pass
+	with open(agents_path, 'r') as agents_file:
+		json_agents = json.load(agents_file)
+		return [Agent(agent) for agent in json_agents]
 
 
 def get_planning_times(directory: str) -> [int]:

@@ -66,10 +66,12 @@ public class SimulationSaver {
 	}
 
 	private static class PathAgent extends BasicAgent {
+		private final long plannedTime;
 		private final List<Integer> path;
 
 		private PathAgent(@NotNull Agent agent) {
 			super(agent);
+			this.plannedTime = agent.getPlannedTime();
 			this.path = agent.getPath();
 		}
 	}

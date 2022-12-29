@@ -4,24 +4,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from typing import Any
+import loadDirectory
 
 ROAD_COLOR = (0.5, 0.5, 0.5)
 ENTRY_COLOR = (0.5625, 0.4375, 0.4375)
 EXIT_COLOR = (0.4375, 0.4375, 0.5625)
 
 
-def generate_intersection(graph: dict[str, Any]) -> (nx.DiGraph, dict[int, (float, float)], [int], [int]):
+def generate_intersection(graph: loadDirectory.Graph) -> (nx.DiGraph, dict[int, (float, float)], [int], [int]):
 	intersection = nx.DiGraph()
 	locations = {}
 	entries = []
 	exits = []
-	for vertex in graph.get("vertices"):
-		location = (vertex.get('x'), 1 - vertex.get('y'))
-		id_ = vertex.get('id')
+	for vertex in graph.vertices:
+		location = (vertex.x, 1 - vertex.y)
+		id_ = vertex.id
 		locations[id_] = location
 		intersection.add_node(id_)
-		intersection.add_edges_from([(id_, neighbour) for neighbour in vertex.get("neighbourIds")])
-		type_ = vertex.get("type")
+		intersection.add_edges_from([(id_, neighbour) for neighbour in vertex.neighbourIds])
+		type_ = vertex.type
 		if type_.startswith("ENTRY"):
 			entries.append(id_)
 		elif type_.startswith("EXIT"):
@@ -30,10 +31,10 @@ def generate_intersection(graph: dict[str, Any]) -> (nx.DiGraph, dict[int, (floa
 	return intersection, locations, entries, exits
 
 
-def create_graph_plot(graph: dict[str, Any], intersection: nx.DiGraph, locations: dict[int, (float, float)], entries: [int], exits: [int]) -> None:
-	granularity = graph.get("granularity")
+def create_graph_plot(graph: loadDirectory.Graph, intersection: nx.DiGraph, locations: dict[int, (float, float)], entries: [int], exits: [int]) -> None:
+	granularity = graph.granularity
 	fig, ax = plt.subplots(1, 2, figsize=(11, 6))
-	type_ = graph.get("type")
+	type_ = graph.type
 	fig.subplots_adjust(top=0.88)
 	plt.subplots_adjust(wspace=0.02, left=0.01, right=0.99, bottom=0.01, top=0.9)
 	# Set the x and y limits for each axis, leaving a 0.05 margin te ensure
@@ -81,7 +82,6 @@ def create_graph_plot(graph: dict[str, Any], intersection: nx.DiGraph, locations
 
 if __name__ == "__main__":
 	import sys
-	import loadDirectory
 
 	directory = loadDirectory.get_directories(sys.argv)[0]
 	graph = loadDirectory.get_intersection(directory)
