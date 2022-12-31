@@ -1,0 +1,50 @@
+\chapter{Experimenty}\label{ch:experimenty}
+
+%Podrobnější popis sledovaných dat.
+
+Po křižovatce požadujeme, aby zaručovala bezpečnou cestu autům.
+Pokud agenti hlásí správné hodnoty křižovatce, algoritmy zaručují nekolizní cesty.
+Předpoklady na přesnou informaci budu nyní předpokládat.
+V následujících kapitolách počet kolizí neřeším, jelikož je nulový ve všech měřeních.
+
+Následujícím faktorem je zpoždění aut.
+Budu sledovat počet zamítnutých agentů a \hyperref[par:zdrzeni]{zdržení} naplánovaných agentů.
+\hyperref[par:zdrzeni]{Zdržení} budu porovnávat pomocí průměru a směrodatné odchylky vypočítaných ze všech agentů.
+
+Další zajímavý faktor je obsazenost křižovatky,
+který udává v kolika krocích ze všech byl některý agent na určitém bloku křižovatky.
+Budu také sledovat průměrnou délku naplánovaných cest.
+
+Důležitá je také doba běhu algoritmu.
+Budu sledovat pro každý krok, kolik uběhlo času od spuštění plánování.
+
+Nejprve provedu testy pro porovnání parametrů jednotlivých agentů.
+Poté srovnám nejlepší nastavení algoritmů proti sobě.
+V poslední sekci zavedu k agentům určité nepřesnosti, které můžou způsobit kolize.
+Poté budu pozorovat vliv těchto nepřesností na počet kolizí u jednotlivých algoritmů.
+
+
+\input{experimenty/testovaci_data}
+
+
+\section{Parametry algoritmů}\label{sec:parametry_algoritmu}
+
+%Podrobnější výsledky pro každý algoritmus zvlášť, sledování vlivu parametrů algoritmů na výsledky.
+%
+%Vyhodnocení nejlepších parametrů.
+
+V této kapitole budu porovnávat vliv parametrů algoritmů na běh algoritmů.
+
+\input{experimenty/ars_vysledky}
+
+
+\section{Hromadné výsledky}\label{sec:hromadne_vysledky}
+
+Porovnání algoritmů mezi sebou s nejlepšími parametry.
+
+Porovnání čtvercové a oktagonální křižovatky.
+
+
+\section{Neoptimální agenti}\label{sec:neoptimalni_agenti}
+
+Vzájemné porovnání algoritmů při datech, kdy křižovatka má nepřesná data o agentech.

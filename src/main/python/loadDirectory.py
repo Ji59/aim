@@ -33,7 +33,9 @@ class Vertex:
 class Graph:
 	def __init__(self, values: {int, Any}):
 		self.__dict__ = values
-		self.vertices = [Vertex(data) for data in values["vertices"]]
+		vertices = [Vertex(data) for data in values["vertices"]]
+		vertices.sort(key=lambda v: v.id)
+		self.vertices = vertices
 
 
 def get_intersection(directory: str) -> Graph:
