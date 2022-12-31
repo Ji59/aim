@@ -9,7 +9,7 @@ Pro~tyto účely jsem si vytvořil následující pomocnou datovou strukturu, do
 
 \paragraph{Tabulka~obsazených~pozic}\label{par:obsazene_pozice} si pamatuje pro~každý krok množinu dvojic vrcholu a agenta.
 Díky této struktuře můžu jednoduše a rychle zjistit,
-zda~se v~daný krok vyskytuje již naplánovaný agent na~určeném vrcholu, a popřípadě o~kterého agent se~jedná.
+zda~se v~daný krok vyskytuje již naplánovaný agent na~určeném vrcholu, a popřípadě o~kterého agenta se~jedná.
 Po~každém naplánování agenta je postupně přidána dvojice do~každého kroku, kdy~se agent vyskytuje na~křižovatce,
 aby byla \nameref{par:obsazene_pozice} aktuální.
 Tento postup přidávání agenta shrnu do funkce
@@ -48,7 +48,7 @@ Tato kontrola pracuje s~vrcholem~$v$, krokem~$s$ a poloměrem agenta~$r$, pro~kt
 Dále algoritmus zná maximální povolenou velikost agenta.
 Z~maximální délky a šířky je předpočítán maximální poloměr agenta~$m$.
 
-Na~obrázku (Obrázek~\ref{fig:kolize_na_vrcholu}) je ukázka situací, ve~kterých tato kontrola selže.
+Na~obrázku (Obrázek~\ref{fig:kolize_na_vrcholu}) je ukázka situací, které tato kontrola vyhodnotí jako kolizní.
 Vlevo dochází ke~kolizi, jelikož jsou dva agenti na~stejném vrcholu.
 Vpravo nastává situace, kdy~jsou dva vrcholy a agenti na~nich příliš blízko.
 Situace je kontrolou vyhodnocena jako kolizní i~když se agenti nepřekrývají.

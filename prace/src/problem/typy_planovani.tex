@@ -3,15 +3,15 @@
 %Stručný popis rozdílu mezi ind. a hrom. plánováním.
 
 Rozlišuji dva případy centrálního plánování.
-\nameref{subsec:individualni_planovani} plánuje trasu pro každé auto zvlášť.
-Každé následné plánování potom hledá trasu pro nového agenta takovým způsobem, aby nedošlo ke kolizi s už naplánovanými auty.
+\textrm{\nameref{subsec:individualni_planovani}} plánuje trasu pro každé auto zvlášť.
+Každé následné plánování potom hledá trasu pro nové auto takovým způsobem, aby nedošlo ke kolizi s už naplánovanými auty.
 
 S tímto přístupem by se mohlo stát, že naplánovaná trasa auta přerušuje kratší trasy následných aut.
 Mohlo by být výhodnější nenaplánovat nejkratší trasu předchozímu autu a celkově dojít lepšímu řešení.
 Tento problém se snaží vyřešit \nameref{subsec:hromadne_planovani}.
 
-\nameref{subsec:hromadne_planovani} shlukuje auta do skupin a hledá trasy pro auta společně.
-Díky tomuto přístupu je možné najít trasy, ve kterých jsou celkově auta nejvíce spokojení.
+\textrm{\nameref{subsec:hromadne_planovani}} shlukuje auta do skupin a hledá trasy pro auta společně.
+Díky tomuto přístupu je možné najít trasy, ve kterých jsou celkově pasažéři v autech nejvíce spokojení.
 
 \subsection{Individuální plánování}\label{subsec:individualni_planovani}
 
@@ -24,18 +24,19 @@ Díky tomuto přístupu je možné najít trasy, ve kterých jsou celkově auta 
 
 
 
-Jak bylo popsáno výše, agenti jsou naplánováni jeden po druhém a
-každý nový plán je rozvržen tak, aby nekolidoval s žádným už naplánovaným agentem.
+Jak bylo popsáno výše, auta jsou naplánováni jeden po druhém a
+každý nový plán je rozvržen tak, aby nekolidoval s žádným už naplánovaným autem.
 
 Při plánování se používá \emph{First Come First Served} \labeltext{FCFS}{str:fcfs} strategie pro~určení pořadí plánování.
 \ref{str:fcfs} strategie přiřazuje nejvyšší prioritu v~plánování autu, které dorazilo ke~křižovatce nejdříve.
 Tímto způsobem jsou minimalizovány čekací doby jednotlivých aut a maximalizována spokojenost aut díky férovému přístupu.
 
 Model chytré křižovatky s touto strategií už nasimulovali \citet*{Dresner}.
-Jejich přístup odpovídal reálnému provozu.
-Agenti v jejich práci jsou schopni jezdit pouze v předem daných pruzích.
-V těchto pruzích následně mohou agenti zrychlovat či zpomalovat.
-Algoritmus nejprve přiřadí agentovi maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
+Jejich přístup odpovídal reálnému provozu, křižovatka neměla centrální jednotku.
+Auta byla schopná vzájemné komunikace.
+Auta v jejich práci jsou schopna jezdit pouze v předem daných pruzích.
+V těchto pruzích následně mohou auta zrychlovat či zpomalovat.
+Algoritmus nejprve přiřadí autu maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
 Pokud ano, zkusí nižší rychlost před místem kolize.
 Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
 Agenti jsou plánováni pomocí \ref{str:fcfs} strategie.
@@ -55,13 +56,13 @@ Podrobný popis algoritmu je popsán v samostatné kapitole (\ref{sec:a_star}).
 %Agenti měli plynulé zatáčení a uměli zrychlovat a zpomalovat.
 %Dále \citet{Dresner} řešili problémy komunikace mezi agenty a křižovatkou, řešení situace při kolizi a podporu pro vozidla s lidským řidičem.
 %Agenti v jejich práci jsou schopni jezdit pouze v předem daných pruzích.
-%V těchto pruzích následně mohou agenti zrychlovat či zpomalovat.
-%Algoritmus nejprve přiřadí agentovi maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
+%V těchto pruzích následně mohou auta zrychlovat či zpomalovat.
+%Algoritmus nejprve přiřadí autu maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
 %Pokud ano, zkusí nižší rychlost před místem kolize.
 %Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
 %Agenti jsou plánováni pomocí \ref{str:fcfs} strategie.
 %Tímto algoritmem jsem se inspiroval u~algoritmu \nameref{sec:safe_lanes}.
-%V mé implementaci jezdí agenti stejnou rychlostí v předem daných pruzích.
+%V mé implementaci jezdí auta stejnou rychlostí v předem daných pruzích.
 %Pokud by u agenta došlo ke kolizi, je jeho příjezd odložen.
 %
 %Řešení je možné rozšířit pomocí libovolného prohledávacího algoritmu.
@@ -76,7 +77,7 @@ Podrobný popis algoritmu je popsán v samostatné kapitole (\ref{sec:a_star}).
 
 Výše popsaná situace, kdy auto blokuje výhodnější trasy ostatních, ukazuje nevýhodu postupného plánování.
 Může být výhodné rozdělit si auta do časových intervalů, kdy přijedou na křižovatku.
-Následně lze použít algoritmus pro naplánování co nejlepší trasy pro všechna auta najednou.
+Následně lze použít algoritmus pro naplánování co nejlepší trasy pro všechna auta v rámci jednoho intervalu najednou.
 Pokud auta informují křižovatku o svém příjezdu s předstihem, můžeme i přeplánovat trasu podle nově nahlášených aut.
 
 %

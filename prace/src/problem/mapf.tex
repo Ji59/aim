@@ -4,9 +4,9 @@
 %
 %Analogie a rozdíly oproti problému práce.
 
-Pro hromadné hledání cest v diskrétním prostoru existuje hromada řešení.
-Problém, které hromadné plánování řeší je označován \emph{Multi-Agent Path Finding} \labeltext{MAPF}{str:mapf}
-a podrobnou definici a varianty popsali například \citet*{osti_10114869}.
+Pro hromadné hledání cest v diskrétním prostoru existuje celá řada řešení.
+Problém, které hromadné plánování řeší, je označován \emph{Multi-Agent Path Finding} \labeltext{MAPF}{str:mapf}
+a podrobnou definici a varianty popsali například \citet{osti_10114869}.
 \ref{str:mapf} má na~vstupu dvojici $G, A$, kde $G=(V, E)$ je graf a $A = \{a_1, \dots, a_k\}$ je množina agentů.
 Opět stejně jako u~\nameref{sec:a_star} je možné diskretizovat křižovatku
 a převést na~graf (popsáno v sekci \ref{sec:krizovatka}).
@@ -32,8 +32,7 @@ Takovýto plán je nazýván validní.
 Pro problém mohou existovat různé plány, tyto plány bývají často porovnány pomocí \emph{Sum Of Costs} \labeltext{SoC}{str:soc} metriky.
 Plán $\pi$ má cenu podle metriky \ref{str:soc}: $soc(\pi) = |\pi| = \sum_{i=1}^{k} |\pi_i|$.
 Alternativní způsob porovnání je objektivní funkcí $\textrm{makespan}\labeltext{makespan}{str:makespan}(\pi)$ pro plán $\pi$,
-která vrací počet kroků, než všichni agenti dorazí do svého cíle.
-Vzorcem $\textrm{makespan}(\pi)=\max_{i\in A} |\pi_i|$.
+která vrací počet kroků, než všichni agenti dorazí do svého cíle: $\textrm{makespan}(\pi)=\max_{i\in A} |\pi_i|$.
 
 \subsubsection{Řešení~\nameref{subsubsec:offline_mapf}}\label{subsubsec:reseni_offline_mapf}
 
@@ -84,7 +83,7 @@ Naštěstí existuje rozšíření \emph{offline~MAPF} problému na problém \na
 Online varianta \ref{str:mapf} splňuje všechny potřeby naší křižovatky.
 
 \emph{Online~MAPF} má u každého agenta $a_i = (t_i, s_i, g_i)$ kromě místa příjezdu a cíle také čas příjezdu $t_i$.
-Avšak Tento čas není dopředu znám.
+Avšak tento čas není dopředu znám.
 \emph{Online~MAPF} začíná s počátečním \emph{offline~MAPF} plánem pro agenty, kteří přijeli v čase $0$.
 Tento plán budu značit $\pi^0$.
 Pokaždé, když se objeví noví agenti, vytvoří se nový plán $\pi^j$.
@@ -94,9 +93,9 @@ Celkový plán, který budou agenti vykonávat je tedy $Ex[\Pi] = \pi^0[0:t_1] \
 
 \citet{Svancara} zmínili problémy s~\emph{online~MAPF}.
 První problém nastane, pokud agenti zůstanou na svém místě po doražení do cíle.
-Zároveň pokud by se agenti okamžitě objevili v grafu, mohli by ihned způsobit kolizi, kterou algoritmy nemohli predikovat.
+Zároveň pokud by se agenti okamžitě objevili v grafu, mohli by ihned způsobit kolizi, kterou algoritmy nemohly predikovat.
 Žádný z těchto problémů u mě nastat nemůže, jelikož auta přijíždějí na vjezdy
-a zároveň mizí z křižovatky po doražení výjezdu.
+a zároveň mizí z křižovatky po dosažení výjezdu.
 
 Opět zavedu cenu plánu jako součet délek plánů pro jednotlivé agenty $|Ex[\Pi]| = \sum_{i=1}^{k} |Ex[\Pi]_i| = \sum_{i=1}^{k} t_{Ex[\Pi]}[g_i] - t_i$,
 kde $t_{Ex[\Pi]}[g_i]$ je krok, kdy agent $a_i = (t_i, s_i, g_i)$ naposledy dorazil do cílového vrcholu $g_i$.
@@ -166,7 +165,8 @@ V práci \citet{Svancara} jsou návrhy různých strategií pro~řešení \emph{
 	Poté zjistí kolize mezi starými a novými agenty.
 	Pokud byly nalezeny kolize, přeplánují se trasy kolizních agentů.
 	Pro zaručení \ref{str:snapshot_opt} plánu je nutné udělat dodatečné úpravy \citep{Svancara}.
-	\item \textbf{Suboptimal~Independence~Detection}\labeltext{SubID}{str:subid} - pozměňuje \ref{str:oid} dovolováním neoptimálních cest.
+	\item \textbf{Suboptimal~Independence~Detection}\labeltext{SubID}{str:subid} - pozměňuje
+	\ref{str:oid} povolením neoptimálních cest.
 	Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
 	Avšak díky této úpravě by měl být počet přeplánování, a tedy i čas výpočtu, nižší.
 \end{itemize}

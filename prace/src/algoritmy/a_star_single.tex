@@ -75,17 +75,18 @@ Jednotlivé stání na~místě se pořád započítávají jako jednotlivé náv
 tudíž maximální doma stání musí být menší než~hodnota \ref{par:ars_mnv}.
 
 \paragraph{Maximální prodleva při cestě (\ref{par:ars_mpc})}\labeltext{MPC}{par:ars_mpc}
-určuje o~kolik kroků může být nalezená cesta delší než~optimální cesta (doba jízdy v~\hyperref[par:pruh]{pruhu}).
-Hodnota $0$ znamená, že agent může jet pouze cestou stejné \hyperref[par:ars_vzdalenost]{vzdálenosti}
-jako je \hyperref[par:ars_vzdalenost]{vzdálenost} \hyperref[par:pruh]{pruhu}.
+určuje o~kolik kroků může nalezená cesta více trvat než~je počet kroku optimální cesty (doba jízdy v~\hyperref[par:pruh]{pruhu}).
+Hodnota $0$ znamená, že agent může jet pouze cestou stejného počtu kroků
+jako je počet kroků jízdy v \hyperref[par:pruh]{pruhu}.
 Proto jsou hodnoty tohoto parametru nezáporná celá čísla.
 Tento parametr slouží zároveň pro~omezení prohledávání, jelikož nám zakazuje dlouhé cesty.
 
 \paragraph{Povolené vracení (\ref{par:ars_pv})}\labeltext{PV}{par:ars_pv}
 může agentovi zakázat vracet~se na~vrchol, ze~kterého přijel.
 Tento parametr dovoluje agentovi pouze \uv{jízdu dopředu}, což je přirozené od~jízdy v~autě očekávat.
-Formálně pokud je tento parametr nenastaven, jsou zakázány cesty obsahující $uv+u$,
-kde $u, v \in V$, $u \neq v$ a $v+$ znamená posloupnost vrcholů $v$ délky alespoň jedna.
+Formálně pokud je tento parametr nenastaven, jsou zakázány cesty obsahující $u,v,v,\dots,v,u$,
+kde $u, v \in V$ a $u \neq v$.
+Posloupnost vrcholů $v$ musí být dlouhá alespoň jedna, avšak není ze shora omezená.
 
 \subsubsection{Sousední stavy}\label{subsubsec:sousedni_stavy}
 
@@ -98,51 +99,15 @@ Tuto~množinu budu nazývat \emph{sousedi}\labeltext{sousedi}{str:ars_sousedi}.
 
 Pro~získání \hyperref[str:ars_sousedi]{sousedů} začnu s~množinou všech vrcholů,
 do~kterých vede hrana z~vrcholu aktuálního stavu.
-Budu předpokládat, že tuto množinu je jednoduše možné získat od~grafu křižovatky.
+Budu předpokládat, že tuto množinu je jednoduše možné získat z~grafu křižovatky.
 Pokud je nastavený \hyperref[subsubsec:ars_parametry]{parametr} \ref{par:ars_pz},
 přidám do~množiny \hyperref[str:ars_sousedi]{sousedů} aktuální vrchol.
-Následuje ukázka kódu provádějící tuto~operaci.
-
-
-\labeltext{\textrm{neighbours}}{alg:ars_neighbours}
-% @formatter:off
-\begin{code}[fontsize=\footnotesize]
-// PZ předem nastavená hodnota parametru povolení zastavení
-// G graf křižovatky s funkcí N vracející sousedy vrcholu
-
-// vstup aktuální stav
-// výstup množina možných sousedů
-neighbours(state)
-  neighbours <- empty
-  neighbours.addAll(G.N(state.vertex))
-  if PZ
-    neighbours.add(state.vertex)
-  return neighbours
-\end{code}
-% @formatter:on
 
 Agent se nesmí srazit s~žádným jiným naplánovaným agentem při~jízdě do~sousedního vrcholu.
 Kolizní trasu můžeme detekovat funkcemi \ref{alg:kol_safe_vertex}, \ref{alg:kol_safe_step_to}
 a \ref{alg:kol_safe_step_from} popsanými v~sekci \nameref{sec:kolize}.
 Skoro všechny potřebné informace jsou obsažené ve~stavu a sousedním vrcholu.
 Avšak kontroly kolizí potřebují ještě znát \nameref{par:polomer_agenta}.
-
-Pseudokód tohoto kroku je následovný.
-
-\labeltext{\textrm{collision\_free\_neighbours}}{alg:ars_collision_free_neighbours}
-% @formatter:off
-\begin{code}[fontsize=\footnotesize]
-// vstup aktuální stav, množina sousedů, poloměr agenta
-// výstup množina nekolizních sousedů
-collision_free_neighbours(state, neighbours, da)
-  for vertex in neighbours:
-    if not (safe_vertex(state.step + 1, vertex, da) and
-      safe_step_to(state.step, state.vertex, vertex, da) and
-      safe_step_from(state.step, state.vertex, vertex, da))
-        sousedi.remove(vertex)
-  return neighbours
-\end{code}
-% @formatter:on
 
 Pro~kontrolu \hyperref[subsubsec:ars_parametry]{parametru} \ref{par:ars_mnv}
 je možné projít všechny předchozí stavy až po~počáteční
@@ -292,7 +257,7 @@ To mohu provést procházením přes~cílové vrcholy.
 Pro~každý cíl spočtu vzdálenost od~každého vrcholu do~tohoto cíle.
 Pokud je tato hodnota menší než zatím nejmenší nalezená vzdálenost, přepíši tuto hodnotu.
 Pro~účely počítání vzdálenosti mezi vrcholy si můžu tyto vzdálenosti uložit předem ke~grafu.
-Tyto hodnoty lze získat například Floyd–Warshallovo algoritmem (\citet*{Floyd-Warshall}).
+Tyto hodnoty lze získat například Floyd–Warshallovým algoritmem (\citet*{Floyd-Warshall}).
 
 Poté se spočte hodnota posledního kroku \ref{str:ars_mkc} a uloží se pro~pozdější použití.
 Stejně tak se zjistí poloměr agenta.
