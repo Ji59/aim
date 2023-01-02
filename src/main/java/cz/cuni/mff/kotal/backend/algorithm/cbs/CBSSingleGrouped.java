@@ -168,14 +168,12 @@ public class CBSSingleGrouped extends AStarSingle {
 		filterStepOccupiedVertices(step);
 		simple = false;
 
-		System.out.println("Starting computing " + step);
 
 		Thread timer = new Thread(() -> {
 			try {
 				Thread.sleep(simpleStrategyAfter);
 				simpleLock.lock();
 				simple = true;
-				System.out.println("Simple");
 			} catch (InterruptedException ignored) {
 			} finally {
 				if (simpleLock.isHeldByCurrentThread()) {
@@ -187,8 +185,6 @@ public class CBSSingleGrouped extends AStarSingle {
 
 		Collection<Agent> plannedAgents = planAgents(agents.stream().collect(Collectors.toMap(Function.identity(), a -> new Pair<>(a.getEntry(), getExitIDs(a)))), step);
 		timer.interrupt();
-
-		System.out.println("Finished computing " + step);
 
 		return plannedAgents;
 	}
@@ -241,12 +237,7 @@ public class CBSSingleGrouped extends AStarSingle {
 
 			final @NotNull Optional<Quaternion<Agent, Agent, Long, Boolean>> collidingAgentsOptional = collidingAgents(node.getAgents());
 			if (collidingAgentsOptional.isEmpty()) {
-				System.out.println("Step " + step + " nodes count: " + nodes);
 				return node;
-			}
-
-			if (nodes % 4096 == 0) {
-				System.out.println(nodes);
 			}
 
 			final @NotNull Quaternion<Agent, Agent, Long, Boolean> collidingAgents = collidingAgentsOptional.get();

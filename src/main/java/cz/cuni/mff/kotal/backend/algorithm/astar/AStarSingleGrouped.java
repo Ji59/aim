@@ -149,8 +149,6 @@ public class AStarSingleGrouped extends AStarSingle {
 
 		simple = false;
 
-		System.out.println("Starting computing " + step);
-
 		Thread timer = new Thread(() -> {
 			try {
 				Thread.sleep(simpleStrategyAfter);
@@ -167,7 +165,6 @@ public class AStarSingleGrouped extends AStarSingle {
 
 		solveAgentsCollisions(step, agentsGroups);
 		timer.interrupt();
-		System.out.println("Finished computing " + step);
 
 		if (stopped) {
 			return Collections.emptySet();
@@ -231,7 +228,6 @@ public class AStarSingleGrouped extends AStarSingle {
 				resolvedPairs.get(group0Agents).add(group1Agents);
 				resolvedPairs.computeIfAbsent(group1Agents, k -> new HashSet<>());
 				resolvedPairs.get(group1Agents).add(group0Agents);
-				System.out.println("Replan 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")) + "; in collision with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 				continue;
 			}
 
@@ -245,7 +241,6 @@ public class AStarSingleGrouped extends AStarSingle {
 			if (replanGroup(step, agentsGroups, group1CollisionTriplet, group0CollisionTriplet, group1, group1IllegalMovesTable, restGroupsConflictAvoidanceTable)) {
 				resolvedPairs.get(group1Agents).add(group0Agents);
 				resolvedPairs.get(group0Agents).add(group1Agents);
-				System.out.println("Replan 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")) + "; in collision with 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 				continue;
 			}
 
@@ -299,15 +294,11 @@ public class AStarSingleGrouped extends AStarSingle {
 			agentsGroups.remove(group1CollisionTriplet);
 
 			agentsGroups.add(new Triplet<>(combinedAgents, getConflictAvoidanceTable(combinedAgents, step), collisionAgents));
-			System.out.println("Merged 0: " + group0CollisionTriplet.getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
-				+ " with 1: " + group1.keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
-				+ " creating " + combinedAgents.keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 		} else {
 			final @Nullable Set<Agent> group1Collisions = findPaths(group1, step, group1IllegalMovesTable, restGroupsConflictAvoidanceTable);
 			assert group1Collisions != null || stopped;
 			if (group1Collisions != null) {
 				updateAgentsGroup(step, group1CollisionTriplet, group1Collisions);
-				System.out.println("Replan 1: " + group1.keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")) + "; remove 0: " + group0CollisionTriplet.getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 			}
 		}
 	}

@@ -52,7 +52,7 @@ public class GeneratingSimulation extends Simulation {
 	 * @param algorithm         Algorithm used in computation
 	 * @param simulationAgents  Agents simulation pane
 	 */
-	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
+	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, @NotNull Algorithm algorithm, @NotNull SimulationAgents simulationAgents) {
 		super(intersectionGraph, algorithm, simulationAgents);
 		long steps = AgentsMenuTab1.getSteps();
 		if (steps <= 0) {
@@ -96,7 +96,7 @@ public class GeneratingSimulation extends Simulation {
 	 * @param maximalSpeed
 	 * @param maxDeviation
 	 */
-	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, @NotNull List<Long> distribution, boolean generateExit, SimulationAgents simulationAgents, final double minimalLength, final double maximalLength, final double minimalWidth, final double maximalWidth, final long minimalSpeed, final long maximalSpeed, final double maxDeviation) {
+	public GeneratingSimulation(@NotNull SimulationGraph intersectionGraph, @NotNull Algorithm algorithm, long maximumSteps, long newAgentsMinimum, long newAgentsMaximum, @NotNull List<Long> distribution, boolean generateExit, @NotNull SimulationAgents simulationAgents, final double minimalLength, final double maximalLength, final double minimalWidth, final double maximalWidth, final long minimalSpeed, final long maximalSpeed, final double maxDeviation) {
 		super(intersectionGraph, algorithm, simulationAgents);
 
 		this.maximumSteps = maximumSteps;
@@ -169,7 +169,6 @@ public class GeneratingSimulation extends Simulation {
 	 * TODO
 	 *
 	 * @param step
-	 *
 	 * @return
 	 */
 	@Override
@@ -218,7 +217,6 @@ public class GeneratingSimulation extends Simulation {
 	 * Generate new agents with IDs starting from specified ID.
 	 *
 	 * @param id ID of first generated agent; increases with reach generated agent
-	 *
 	 * @return Set of newly generated agents
 	 */
 	protected @NotNull List<Agent> generateAgents(long step, int id) {
@@ -308,7 +306,6 @@ public class GeneratingSimulation extends Simulation {
 	 * @param exitValue  Value used for exit direction selection
 	 * @param entries    Map of entries from different directions
 	 * @param exits      Map of exits from different directions
-	 *
 	 * @return Newly generated agent
 	 */
 	protected @NotNull Agent generateAgent(double step, int id, long entryValue, long exitValue, @NotNull Map<Integer, List<Vertex>> entries, @NotNull Map<Integer, List<Vertex>> exits) {
@@ -401,7 +398,6 @@ public class GeneratingSimulation extends Simulation {
 	 * Get map of entry / exit directions and vertices at the direction.
 	 *
 	 * @param isEntry If wanted entries or exits
-	 *
 	 * @return Map of entry direction numbers and vertices
 	 */
 	@NotNull Map<Integer, List<Vertex>> getEntriesExitsMap(boolean isEntry) {

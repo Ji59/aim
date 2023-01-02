@@ -3,7 +3,7 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
-import cz.cuni.mff.kotal.frontend.menu.tabs.SimulationMenuTab3;
+import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
@@ -35,6 +35,7 @@ public abstract class Simulation {
 	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
 	protected final PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
 	protected final List<Long> planningTime = new LinkedList<>();
+	protected final Lock stateLock = new ReentrantLock();
 	private final Lock loadAgentsLock = new ReentrantLock(false);
 	protected long step = 0;
 	protected long agentsTotal = 0;
@@ -46,11 +47,12 @@ public abstract class Simulation {
 	protected double startingStep = 0;
 	protected long period;
 	protected State state;
-	protected final Lock stateLock = new ReentrantLock();
 	protected long loadedStep = 0;
 	protected long delayedStep = 0;
 	protected boolean ended = false;
 	protected long finalStep = 0;
+	protected long remainingTime = Long.MAX_VALUE;
+	protected Thread timeoutThread = null;
 
 	protected Simulation() {
 		stateLock.lock();
@@ -61,7 +63,7 @@ public abstract class Simulation {
 		stateLock.unlock();
 	}
 
-	protected Simulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents) {
+	protected Simulation(@NotNull SimulationGraph intersectionGraph, @NotNull Algorithm algorithm, @NotNull SimulationAgents simulationAgents) {
 		stateLock.lock();
 		this.intersectionGraph = intersectionGraph;
 		this.algorithm = algorithm;
@@ -76,7 +78,25 @@ public abstract class Simulation {
 				.filter(vertex -> vertex.getType().isEntry())
 				.forEach(entry -> delayedAgents.put(entry.getID(), new ArrayList<>()))
 		);
+
+		long stopAfter = Long.parseLong(IntersectionMenu.getTimeout().getText());
+		if (stopAfter > 0) {
+			remainingTime = stopAfter * 1_000;
+		}
+
 		stateLock.unlock();
+	}
+
+	private Thread createTimeoutThread() {
+		return new Thread(() -> {
+			long start = System.currentTimeMillis();
+			try {
+				Thread.sleep(remainingTime);
+				ended = true;
+			} catch (InterruptedException e) {
+				remainingTime -= System.currentTimeMillis() - start;
+			}
+		});
 	}
 
 	/**
@@ -86,6 +106,7 @@ public abstract class Simulation {
 	 */
 	public final void start(long period) {
 		stateLock.lock();
+		IntersectionMenu.getTimeout().setDisable(true);
 		state = State.RUNNING;
 		this.period = period;
 
@@ -95,6 +116,9 @@ public abstract class Simulation {
 			}
 			simulationAgents.resumeSimulation(this);
 		}).start();
+
+		timeoutThread = createTimeoutThread();
+		timeoutThread.start();
 
 		if (startingStep <= 0) {
 			IntersectionMenu.setAgents(0);
@@ -118,6 +142,9 @@ public abstract class Simulation {
 				loadAgentsLock.lock();
 				try {
 					for (; loadedStep <= step + GENERATED_MAXIMUM_STEP_AHEAD && isRunning(); loadedStep++) {
+						if (ended) {
+							continue;
+						}
 						try {
 							loadAndUpdateAgents(loadedStep);
 						} catch (Exception e) {
@@ -228,6 +255,7 @@ public abstract class Simulation {
 	public final void stop() {
 		stateLock.lock();
 		if (state == State.RUNNING) {
+			timeoutThread.interrupt();
 			state = State.STOPPED;
 			simulationAgents.pauseSimulation();
 			IntersectionMenu.setPlayButtonPlaying(false);
@@ -277,6 +305,8 @@ public abstract class Simulation {
 
 		stateLock.lock();
 		state = State.INVALID;
+		timeoutThread.interrupt();
+		IntersectionMenu.getTimeout().setDisable(false);
 		resetSimulation();
 		synchronized (delayedAgents) {
 			delayedAgents.values().forEach(Collection::clear);
@@ -360,7 +390,6 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param agent
-	 *
 	 * @return
 	 */
 	protected double getAgentsDelay(@NotNull Agent agent) {
@@ -428,7 +457,6 @@ public abstract class Simulation {
 	 * Get generated agent with specified ID.
 	 *
 	 * @param id ID of the agent
-	 *
 	 * @return Found agent
 	 */
 	public Agent getAgent(long id) {
@@ -451,7 +479,6 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param time
-	 *
 	 * @return
 	 */
 	public double getStep(long time) {
@@ -480,7 +507,6 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param step
-	 *
 	 * @return
 	 */
 	@Deprecated

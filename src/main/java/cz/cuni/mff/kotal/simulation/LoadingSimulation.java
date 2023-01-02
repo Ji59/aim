@@ -21,7 +21,7 @@ public class LoadingSimulation extends Simulation {
 	private @Nullable Timer timer;
 	private final @NotNull ListIterator<Agent> sortedAgentsIterator;
 
-	public LoadingSimulation(@NotNull SimulationGraph intersectionGraph, Algorithm algorithm, SimulationAgents simulationAgents, @NotNull String path) throws FileNotFoundException {
+	public LoadingSimulation(@NotNull SimulationGraph intersectionGraph, @NotNull Algorithm algorithm, @NotNull SimulationAgents simulationAgents, @NotNull String path) throws FileNotFoundException {
 		super(intersectionGraph, algorithm, simulationAgents);
 		sortedAgentsIterator = loadAgents(path);
 	}

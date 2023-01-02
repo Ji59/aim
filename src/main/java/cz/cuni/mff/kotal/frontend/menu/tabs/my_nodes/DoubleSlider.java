@@ -86,7 +86,7 @@ public class DoubleSlider extends HBox {
 						mouseReleaseAction.run();
 					}
 				} catch (NumberFormatException e) {
-					new Alert(Alert.AlertType.ERROR, "Cannot parse entered value to integer: " + e.getMessage(), ButtonType.OK).showAndWait();
+					new Alert(Alert.AlertType.ERROR, "Cannot parse entered value to double: " + e.getMessage(), ButtonType.OK).showAndWait();
 					textField.setText(sliderValue);
 				} catch (Exception e) {
 					new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK).showAndWait();

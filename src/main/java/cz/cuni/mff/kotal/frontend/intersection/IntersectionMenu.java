@@ -49,6 +49,8 @@ public class IntersectionMenu extends VBox {
 	private static final Button PLAY_BUTTON = new Button("Play");
 	private static final Button RESTART_BUTTON = new Button("Restart");
 	private static final CheckBox PLAY_IN_BACKGROUND = new CheckBox("Background");
+	private static final Label TIMEOUT_LABEL = new Label("Algorithm timeout");
+	private static final TextField TIMEOUT_TEXTFIELD = new TextField("0");
 	private static final Button SAVE_AGENTS_BUTTON = new Button("Save agents");
 	private static final Button SAVE_STATISTICS_BUTTON = new Button("Save statistics");
 	private static final Label AGENTS_LABEL = new Label("#n");
@@ -147,12 +149,38 @@ public class IntersectionMenu extends VBox {
 		@NotNull Map<Statistics, Label> labels = Map.of(Statistics.AGENTS, AGENTS_LABEL, Statistics.STEPS, STEPS_LABEL, Statistics.DELAY, DELAY_LABEL, Statistics.REJECTIONS, REJECTIONS_LABEL, Statistics.COLLISIONS, COLLISIONS_LABEL /*, Statistics.REMAINS, REMAINING_LABEL*/);
 		SimulationMenuTab3.createStatisticsGrid(statistics, labels);
 
+		TIMEOUT_TEXTFIELD.setPrefWidth(100);
+//		TIMEOUT_LABEL.setPrefWidth(5);
+		@NotNull HBox timeoutHbox = new HBox(20, TIMEOUT_LABEL, TIMEOUT_TEXTFIELD);
+		timeoutHbox.setPrefWidth(this.getPrefWidth());
+		TIMEOUT_TEXTFIELD.focusedProperty().addListener((observable, oldValue, newValue) -> {
+			if (newValue == null || !newValue) {
+				@NotNull String text = TIMEOUT_TEXTFIELD.getText();
+				if (text.isEmpty()) {
+					TIMEOUT_TEXTFIELD.setText("0");
+					return;
+				}
+				try {
+					long val = Long.parseLong(text);
+					if (val < 0) {
+						TIMEOUT_TEXTFIELD.setText("0");
+					}
+				} catch (NumberFormatException e) {
+					new Alert(Alert.AlertType.ERROR, "Cannot parse entered value to long: " + e.getMessage(), ButtonType.OK).showAndWait();
+					TIMEOUT_TEXTFIELD.setText("0");
+				} catch (Exception e) {
+					new Alert(Alert.AlertType.ERROR, e.getMessage(), ButtonType.OK).showAndWait();
+					TIMEOUT_TEXTFIELD.setText("0");
+				}
+			}
+		});
+
 		@NotNull HBox buttons = new HBox(padding, SAVE_AGENTS_BUTTON, SAVE_STATISTICS_BUTTON);
 		buttons.setPrefWidth(Double.MAX_VALUE);
 		SAVE_AGENTS_BUTTON.setPrefWidth(4096);
 		SAVE_STATISTICS_BUTTON.setPrefWidth(SAVE_AGENTS_BUTTON.getPrefWidth());
 
-		getChildren().addAll(sliders, PLAY_BUTTON, RESTART_BUTTON, PLAY_IN_BACKGROUND, buttons, new Label("Statistics"), statistics);
+		getChildren().addAll(sliders, PLAY_BUTTON, RESTART_BUTTON, PLAY_IN_BACKGROUND, timeoutHbox, buttons, new Label("Statistics"), statistics);
 	}
 
 	/**
@@ -560,6 +588,10 @@ public class IntersectionMenu extends VBox {
 
 	public static boolean playSimulationInBackground() {
 		return PLAY_IN_BACKGROUND.isSelected();
+	}
+
+	public static TextField getTimeout() {
+		return TIMEOUT_TEXTFIELD;
 	}
 
 	/**

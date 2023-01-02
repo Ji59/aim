@@ -13,6 +13,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * A* algorithm with online independence detection.
+ */
 public class AStarAll extends AStarSingleGrouped {
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingleGrouped.PARAMETERS);
 
@@ -105,9 +108,6 @@ public class AStarAll extends AStarSingleGrouped {
 		if (groupsMerged) {
 			final @NotNull Set<Agent> group0Agents = group0CollisionTriplet.getVal0().keySet();
 			final @NotNull Set<Agent> group1Agents = group1CollisionTriplet.getVal0().keySet();
-			System.out.println("Merged 0: " + group0Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
-				+ " with 1: " + group1Agents.stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", "))
-				+ " creating " + agentsGroups.stream().filter(g -> !Collections.disjoint(g.getVal0().keySet(), group0Agents) || !Collections.disjoint(g.getVal0().keySet(), group1Agents)).findAny().orElse(new Triplet<>(Collections.emptyMap(), null, null)).getVal0().keySet().stream().map(a -> String.valueOf(a.getId())).collect(Collectors.joining(", ")));
 		}
 		assert groupsMerged || stopped;
 	}
