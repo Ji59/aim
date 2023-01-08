@@ -73,7 +73,6 @@ public class CBSAll extends CBSSingleGrouped {
 	/**
 	 * @param agent
 	 * @param step
-	 *
 	 * @return
 	 */
 	@Override
@@ -85,7 +84,7 @@ public class CBSAll extends CBSSingleGrouped {
 	}
 
 	@Override
-	protected void assignNewPath(long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @Nullable LinkedList<Integer> path) {
+	protected void assignNewPath(long step, @NotNull PriorityQueue<Node> queue, @NotNull Node node, @NotNull Agent agent, Quaternion<Agent, Agent, Long, Boolean> collision, @NotNull Map<Agent, Map<Long, Collection<Pair<Integer, Integer>>>> constraints, @Nullable List<Integer> path) {
 		Collection<Agent> agents;
 
 		if (path != null) {
@@ -108,7 +107,6 @@ public class CBSAll extends CBSSingleGrouped {
 	 * @param agent
 	 * @param exitsIDs
 	 * @param step
-	 *
 	 * @return
 	 */
 	@Override
@@ -127,7 +125,6 @@ public class CBSAll extends CBSSingleGrouped {
 	 * @param entryID
 	 * @param vertexID
 	 * @param constraints
-	 *
 	 * @return
 	 */
 	@Override

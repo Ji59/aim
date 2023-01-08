@@ -86,18 +86,6 @@ public abstract class Simulation {
 		stateLock.unlock();
 	}
 
-	private Thread createTimeoutThread() {
-		return new Thread(() -> {
-			long start = System.currentTimeMillis();
-			try {
-				Thread.sleep(remainingTime);
-				ended = true;
-			} catch (InterruptedException e) {
-				remainingTime -= System.currentTimeMillis() - start;
-			}
-		});
-	}
-
 	/**
 	 * TODO
 	 *
@@ -128,6 +116,18 @@ public abstract class Simulation {
 		stateLock.unlock();
 	}
 
+	private Thread createTimeoutThread() {
+		return new Thread(() -> {
+			long start = System.currentTimeMillis();
+			try {
+				Thread.sleep(remainingTime);
+				ended = true;
+			} catch (InterruptedException e) {
+				remainingTime -= System.currentTimeMillis() - start;
+			}
+		});
+	}
+
 	/**
 	 * TODO
 	 *
@@ -148,6 +148,7 @@ public abstract class Simulation {
 							loadAndUpdateAgents(loadedStep);
 						} catch (Exception e) {
 							stop();
+							e.printStackTrace();
 							Platform.runLater(() -> {
 								final @NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 								alert.setTitle("Algorithm planning failed");
@@ -260,6 +261,13 @@ public abstract class Simulation {
 			IntersectionMenu.setPlayButtonPlaying(false);
 		}
 		stateLock.unlock();
+	}
+
+	/**
+	 * @return If this simulation is running
+	 */
+	public boolean isRunning() {
+		return state == State.RUNNING;
 	}
 
 	/**
@@ -423,13 +431,6 @@ public abstract class Simulation {
 				}
 			}
 		}
-	}
-
-	/**
-	 * @return If this simulation is running
-	 */
-	public boolean isRunning() {
-		return state == State.RUNNING;
 	}
 
 	/**

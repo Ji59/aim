@@ -20,12 +20,12 @@ public class SATSingle extends SATSingleGrouped {
 	public @NotNull Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		return agentsEntriesExits.entrySet().stream()
 			.map(e -> {
-				@Nullable Agent agent = e.getKey();
+				@NotNull Agent agent = e.getKey();
 				final int entry = e.getValue().getVal0();
 				final Set<Integer> exitsID = e.getValue().getVal1();
-				agent = super.planAgent(agent, entry, exitsID, step);
-				assert agent == null || (agent.getPlannedStep() == step && !agent.getPath().isEmpty());
-				return agent;
+				@Nullable Agent plannedAgent = super.planAgent(agent, entry, exitsID, step);
+				assert plannedAgent == null || (plannedAgent.getPlannedStep() == step && !plannedAgent.getPath().isEmpty());
+				return plannedAgent;
 			})
 			.filter(Objects::nonNull)
 			.toList();

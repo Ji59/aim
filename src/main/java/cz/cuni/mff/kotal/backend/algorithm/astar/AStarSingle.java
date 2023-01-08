@@ -68,7 +68,7 @@ public class AStarSingle extends SafeLanes {
 		if (exitsIDs.isEmpty()) {
 			exitsIDs = getExits(agent);
 		}
-		@Nullable LinkedList<Integer> path = getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
+		@Nullable List<Integer> path = getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
 		if (path == null) {
 			return null;
 		}
@@ -78,12 +78,7 @@ public class AStarSingle extends SafeLanes {
 	}
 
 	@Nullable
-	protected LinkedList<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs) {
-		return getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
-	}
-
-	@Nullable
-	protected LinkedList<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
+	protected List<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.containsKey(step) && stepOccupiedVertices.get(step).containsKey(entryID)) || stopped) {
 			return null;
 		}
@@ -174,19 +169,6 @@ public class AStarSingle extends SafeLanes {
 		}
 	}
 
-	@NotNull
-	protected Set<Integer> getExitIDs(@NotNull Agent agent) {
-		if (agent.getExit() >= 0) {
-			return Set.of(agent.getExit());
-		} else {
-			return directionExits.get(agent.getExitDirection());
-		}
-	}
-
-	protected double getHeuristic(@NotNull Set<Integer> exitIDs, int vertexID) {
-		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
-	}
-
 	protected boolean canVisitVertex(final @NotNull State state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		return validParent(state, vertexID) && safeConstraints(state, vertexID, constraints) && validVisitCount(state, vertexID, maximumVertexVisits);
 	}
@@ -229,6 +211,24 @@ public class AStarSingle extends SafeLanes {
 			});
 	}
 
+	protected double getHeuristic(@NotNull Set<Integer> exitIDs, int vertexID) {
+		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
+	}
+
+	@NotNull
+	protected Set<Integer> getExitIDs(@NotNull Agent agent) {
+		if (agent.getExit() >= 0) {
+			return Set.of(agent.getExit());
+		} else {
+			return directionExits.get(agent.getExitDirection());
+		}
+	}
+
+	@Nullable
+	protected List<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs) {
+		return getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
+	}
+
 	protected class State extends VertexWithDirectionParent {
 		private final long step;
 		private final long lastStop;
@@ -245,14 +245,14 @@ public class AStarSingle extends SafeLanes {
 			this.lastStop = step;
 		}
 
+		public long getStep() {
+			return step;
+		}
+
 		public State(@NotNull State previous, GraphicalVertex actual, double distance, double estimate) {
 			super(previous, actual, distance, estimate);
 			this.step = previous.getStep() + 1;
 			this.lastStop = previous.vertex.equals(actual) ? step : previous.lastStop;
-		}
-
-		public long getStep() {
-			return step;
 		}
 
 		@Override

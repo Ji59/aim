@@ -21,7 +21,8 @@ public abstract class SimulationGraph extends Graph {
 	protected final transient Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
 	private final transient Lock verticesDistancesLock = new ReentrantLock(false);
 	protected transient Map<Integer, Map<Integer, Double>[]>[] travelDistances;
-	protected transient @NotNull Map<Integer, List<VertexDistance>>[] sortedVertexVerticesDistances;
+	protected transient @NotNull Map<Integer, List<VertexDistance>>[] sortedVertexVerticesTravelDistances;
+	protected transient @NotNull List<VertexDistance>[] sortedVertexVerticesDistances;
 	protected transient double cellSize;
 
 	/**
@@ -185,9 +186,10 @@ public abstract class SimulationGraph extends Graph {
 	private void createTravelDistances() {
 		assert vertices != null;
 		travelDistances = new Map[getVertices().length];
-		sortedVertexVerticesDistances = new Map[getVertices().length];
+		sortedVertexVerticesTravelDistances = new Map[getVertices().length];
+		sortedVertexVerticesDistances = new List[getVertices().length];
 
-		Arrays.stream(getVertices()).map(GraphicalVertex.class::cast).forEach(u -> {
+		Arrays.stream(getVertices()).parallel().map(GraphicalVertex.class::cast).forEach(u -> {
 			final int vertexID = u.getID();
 			int capacity = u.getNeighbourIDs().size() + 1;
 			final Map<Integer, Map<Integer, Double>[]> uDistances = new HashMap<>(capacity);
@@ -195,15 +197,18 @@ public abstract class SimulationGraph extends Graph {
 				travelDistances[vertexID] = uDistances;
 			}
 			Map<Integer, List<VertexDistance>> sortedUVerticesDistance = new HashMap<>(capacity);
-			synchronized (sortedVertexVerticesDistances) {
-				sortedVertexVerticesDistances[vertexID] = sortedUVerticesDistance;
+			synchronized (sortedVertexVerticesTravelDistances) {
+				sortedVertexVerticesTravelDistances[vertexID] = sortedUVerticesDistance;
 			}
 
 			for (final int vNeighbourID : u.getNeighbourIDs()) {
 				@NotNull final GraphicalVertex v = getVertex(vNeighbourID);
 				createNeighbourTransferDistances(u, v, uDistances, sortedUVerticesDistance);
 			}
-			createNeighbourTransferDistances(u, u, uDistances, sortedUVerticesDistance);
+			List<VertexDistance> verticesDistances = createNeighbourTransferDistances(u, uDistances, sortedUVerticesDistance);
+			synchronized (sortedVertexVerticesDistances) {
+				sortedVertexVerticesDistances[vertexID] = verticesDistances;
+			}
 		});
 	}
 
@@ -234,6 +239,44 @@ public abstract class SimulationGraph extends Graph {
 		});
 
 		sortedUVDistances.sort(VertexDistance::compareTo);
+	}
+
+	private List<VertexDistance> createNeighbourTransferDistances(@NotNull GraphicalVertex u, @NotNull Map<Integer, @NotNull Map<Integer, Double>[]> uDistances, Map<Integer, List<VertexDistance>> sortedUVerticesDistances) {
+		final Map[] uvDistances = new Map[getVertices().length];
+		final List<VertexDistance> verticesDistances = new LinkedList<>();
+
+		uDistances.put(u.getID(), uvDistances);
+		final List<VertexDistance> sortedUVDistances = new LinkedList<>();
+		sortedUVerticesDistances.put(u.getID(), sortedUVDistances);
+
+		Arrays.stream(getVertices()).parallel().map(GraphicalVertex.class::cast).forEach(p -> {
+			final Map<Integer, Double> uvpDistances = new HashMap<>(p.getNeighbourIDs().size() + 1);
+			uvDistances[p.getID()] = uvpDistances;
+
+			double closest = Double.MAX_VALUE;
+			for (final int pNeighbourID : p.getNeighbourIDs()) {
+				@NotNull final GraphicalVertex q = getVertex(pNeighbourID);
+				double distance = getTransferDistance(u, u, p, q);
+				uvpDistances.put(pNeighbourID, distance);
+				closest = Math.min(closest, distance);
+			}
+
+			double distance = getTransferDistance(u, u, p, p);
+			synchronized (verticesDistances) {
+				verticesDistances.add(new VertexDistance(p.getID(), distance));
+			}
+			uvpDistances.put(p.getID(), distance);
+			closest = Math.min(closest, distance);
+			synchronized (sortedUVDistances) {
+				sortedUVDistances.add(new VertexDistance(p.getID(), closest));
+			}
+
+		});
+
+		sortedUVDistances.sort(VertexDistance::compareTo);
+		verticesDistances.sort(VertexDistance::compareTo);
+
+		return verticesDistances;
 	}
 
 	/**
@@ -288,8 +331,12 @@ public abstract class SimulationGraph extends Graph {
 		return travelDistances;
 	}
 
-	public @NotNull Map<Integer, List<VertexDistance>>[] getSortedVertexVerticesDistances() {
-		assert sortedVertexVerticesDistances != null;
+	public @NotNull Map<Integer, List<VertexDistance>>[] getSortedVertexVerticesTravelDistances() {
+		assert sortedVertexVerticesTravelDistances != null;
+		return sortedVertexVerticesTravelDistances;
+	}
+
+	public List<VertexDistance>[] getSortedVertexVerticesDistances() {
 		return sortedVertexVerticesDistances;
 	}
 

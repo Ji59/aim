@@ -229,12 +229,13 @@ public class SATSingleGrouped extends SafeLanes {
 							∀ vertex v_i different from exit in time t if |V| * t + i + 1 (agent is on v_i in t) then agent has to be on any neighbour in next time
 							=> ¬(|V| * t + i + offset) = - (|V| * t + i + offset) ∨ (V_{neighbour j of v_i} |V| * (t + 1) + j + offset)
 						*/
-						@NotNull List<Integer> validNeighbours = graph.getVertex(i).getNeighbourIDs().stream()
-							.filter(id -> safeStepTo(tStep + 1, i, id, agentPerimeter) && safeStepFrom(tStep, i, id, agentPerimeter))
-							.collect(Collectors.toList());
+						@NotNull Set<Integer> validNeighbours = graph.getVertex(i).getNeighbourIDs();
 						if (allowAgentStop && i != startingVertex) {
 							validNeighbours.add(i);
 						}
+						validNeighbours = validNeighbours.stream()
+							.filter(id -> safeStepTo(tStep, i, id, agentPerimeter))
+							.collect(Collectors.toSet());
 						if (validNeighbours.isEmpty()) {
 							/*
 								agent can not be in vertex which he can not get out of
@@ -278,58 +279,62 @@ public class SATSingleGrouped extends SafeLanes {
 
 			final double neighbourPerimeter = offsetTriplet.getVal1().getAgentPerimeter();
 			final boolean[][] neighbourValidTimeVertices = offsetTriplet.getVal2();
-			addAgentsNearVerticesClauses(solver, vertices, agentOffset, agentPerimeter + neighbourPerimeter, validTimeVertices, i, neighbourOffset, neighbourValidTimeVertices);
+			final double safePerimeter = agentPerimeter + neighbourPerimeter + safeDistance;
+			addAgentsNearVerticesClauses(solver, vertices, agentOffset, safePerimeter, validTimeVertices, i, neighbourOffset, neighbourValidTimeVertices);
 
 			for (int neighbourID : graph.getVertex(i).getNeighbourIDs()) {
-				for (int predecessorID : inverseNeighbours[i]) {
-					addLeavingArrivingClauses(solver, vertices, agentOffset, agentPerimeter, validTimeVertices, i, neighbourOffset, neighbourPerimeter, neighbourValidTimeVertices, neighbourID, predecessorID);
-				}
+				addAgentsTravellingClauses(solver, vertices, agentOffset, safePerimeter, validTimeVertices, i, neighbourID, neighbourOffset, neighbourValidTimeVertices);
+			}
+			if (allowAgentStop) {
+				addAgentsTravellingClauses(solver, vertices, agentOffset, safePerimeter, validTimeVertices, i, i, neighbourOffset, neighbourValidTimeVertices);
 			}
 		}
 	}
 
-	private void addAgentsNearVerticesClauses(@NotNull WeightedPartialMaxsat solver, int vertices, int agentOffset, double agentsPerimeter, boolean[][] validTimeVertices, int i, int neighbourOffset, boolean[][] neighbourValidTimeVertices) throws ContradictionException {
-		for (int conflictVertexID : conflictVertices(i, agentsPerimeter)) {
+	private void addAgentsNearVerticesClauses(@NotNull WeightedPartialMaxsat solver, int vertices, int agentOffset, double agentsPerimeter, boolean[][] validTimeVertices, int vertexID, int neighbourOffset, boolean[][] neighbourValidTimeVertices) throws ContradictionException {
+		for (int conflictVertexID : conflictVertices(vertexID, agentsPerimeter)) {
 			for (int t = 0, timeOffset = 0; t <= maximumSteps; t++, timeOffset += vertices) {
-				if (validTimeVertices[t][i] && neighbourValidTimeVertices[t][conflictVertexID]) {
-					solver.addHardClause(new VecInt(new int[]{-(timeOffset + i + agentOffset), -(timeOffset + conflictVertexID + neighbourOffset)}));
+				if (validTimeVertices[t][vertexID] && neighbourValidTimeVertices[t][conflictVertexID]) {
+					solver.addHardClause(new VecInt(new int[]{-(timeOffset + vertexID + agentOffset), -(timeOffset + conflictVertexID + neighbourOffset)}));
 				}
 			}
 		}
 	}
 
-	private void addLeavingArrivingClauses(@NotNull WeightedPartialMaxsat solver, int vertices, int agentOffset, double agentPerimeter, boolean[][] validTimeVertices, int vertexID, int neighbourOffset, double neighbourPerimeter, boolean[][] neighbourValidTimeVertices, int neighbourID, int predecessorID) throws ContradictionException {
-    /*
-			if agent `a` is going into `v_i` from `v_p` at time `t` and planned agent `n` is going from `v_i` to `v_n` at time `t`, and they would collide,
-			agent `a` can not be at `v_p` at `t` or agent `a` can not be at `v_i` at `(t + 1)` or agent `n` can not be at `v_i` at `t` or agent `n` can not be at `v_n` at `(t + 1)`
-			=> ¬(|V| * t + p + offset_a) ∨ ¬(|V| * (t + 1) + i + offset_a) ∨ ¬(|V| * t + i + offset_n) ∨ ¬(|V| * (t + 1) + n + offset_n)
-		*/
-		if (!checkNeighbour(vertexID, predecessorID, neighbourID, agentPerimeter, neighbourPerimeter)) {
-			for (int t = 0, timeOffset = 0, nextTimeOffset = vertices; t < maximumSteps; t++, timeOffset += vertices, nextTimeOffset += vertices) {
-				if (validTimeVertices[t][predecessorID] && validTimeVertices[t + 1][vertexID] && neighbourValidTimeVertices[t][vertexID] && neighbourValidTimeVertices[t + 1][neighbourID]) {
-					solver.addHardClause(VecInt.of(
-						-(timeOffset + predecessorID + agentOffset),
-						-(nextTimeOffset + vertexID + agentOffset),
-						-(timeOffset + vertexID + neighbourOffset),
-						-(nextTimeOffset + neighbourID + neighbourOffset)
-					));
-				}
+	private void addAgentsTravellingClauses(@NotNull WeightedPartialMaxsat solver, int vertices, int agent0Offset, double safePerimeter, boolean[][] validTimeVertices, int vertex0ID, int nextVertex0ID, int agent1Offset, boolean[][] agent1ValidTimeVertices) throws ContradictionException {
+		@NotNull final Map<Integer, Double>[] agent1TravelDistances = graph.getTravelDistances()[vertex0ID].get(nextVertex0ID);
+		for (SimulationGraph.VertexDistance vertexDistance : graph.getSortedVertexVerticesTravelDistances()[vertex0ID].get(nextVertex0ID)) {
+			if (safePerimeter < vertexDistance.distance()) {
+				break;
+			}
+
+			final int vertex1ID = vertexDistance.vertexID();
+			@NotNull final Map<Integer, Double> agent1AgentTravelDistance = agent1TravelDistances[vertex1ID];
+			for (int nextVertex1ID : graph.getVertex(vertex1ID).getNeighbourIDs()) {
+				addAgentsTravellingClause(solver, vertices, safePerimeter, validTimeVertices, vertex0ID, agent0Offset, nextVertex0ID, agent1ValidTimeVertices, agent1Offset, vertex1ID, nextVertex1ID, agent1AgentTravelDistance);
+			}
+			if (allowAgentStop) {
+				addAgentsTravellingClause(solver, vertices, safePerimeter, validTimeVertices, vertex0ID, agent0Offset, nextVertex0ID, agent1ValidTimeVertices, agent1Offset, vertex1ID, vertex1ID, agent1AgentTravelDistance);
 			}
 		}
+	}
 
+	private void addAgentsTravellingClause(@NotNull WeightedPartialMaxsat solver, int vertices, double safePerimeter, boolean[][] validTimeVertices, int vertex0ID, int agent0Offset, int nextVertex0ID, boolean[][] agent1ValidTimeVertices, int agent1Offset, int vertex1ID, int nextVertex1ID, Map<Integer, Double> agent1AgentTravelDistance) throws ContradictionException {
 		/*
-			if agent `a` is going into `v_n` from `v_i` at time `t` and planned agent `n` is going from `v_p` to `v_i` at time `t`, and they would collide,
-			agent `a` can not be at `v_i` at `t` or agent `a` can not be at `v_n` at `(t + 1)` or agent `n` can not be at `v_p` at `t` or agent `n` can not be at `v_i` at `(t + 1)`
-			=> ¬(|V| * t + i + offset_a) ∨ ¬(|V| * (t + 1) + n + offset_a) ∨ ¬(|V| * t + p + offset_n) ∨ ¬(|V| * (t + 1) + i + offset_n)
+			if agent `a` is going from `v_i` to `v_j` at time `t` and previous agent `b` is going from `v_p` to `v_q` at time `t`
+			and they would collide, agent `a` can not be at `v_i` at `t` or agent `a` can not be at `v_j` at `(t + 1)`
+			or agent `b` can not be at `v_p` at `t` or agent `b` can not be at `v_q` at `(t + 1)`
+			=> ¬(|V| * t + i + offset_a) ∨ ¬(|V| * (t + 1) + j + offset_a) ∨ ¬(|V| * t + p + offset_b) ∨ ¬(|V| * (t + 1) + q + offset_b)
 		*/
-		if (!checkNeighbour(vertexID, neighbourID, predecessorID, neighbourPerimeter, agentPerimeter)) {
+		if (safePerimeter >= agent1AgentTravelDistance.get(nextVertex1ID)) {
 			for (int t = 0, timeOffset = 0, nextTimeOffset = vertices; t < maximumSteps; t++, timeOffset += vertices, nextTimeOffset += vertices) {
-				if (validTimeVertices[t][vertexID] && validTimeVertices[t + 1][neighbourID] && neighbourValidTimeVertices[t][predecessorID] && neighbourValidTimeVertices[t + 1][vertexID]) {
+				if (validTimeVertices[t][vertex0ID] && validTimeVertices[t + 1][nextVertex0ID] &&
+					agent1ValidTimeVertices[t][vertex1ID] && agent1ValidTimeVertices[t + 1][nextVertex1ID]) {
 					solver.addHardClause(VecInt.of(
-						-(timeOffset + vertexID + agentOffset),
-						-(nextTimeOffset + neighbourID + agentOffset),
-						-(timeOffset + predecessorID + neighbourOffset),
-						-(nextTimeOffset + vertexID + neighbourOffset)
+						-(timeOffset + vertex0ID + agent0Offset),
+						-(nextTimeOffset + nextVertex0ID + agent0Offset),
+						-(timeOffset + vertex1ID + agent1Offset),
+						-(nextTimeOffset + nextVertex1ID + agent1Offset)
 					));
 				}
 			}
@@ -398,8 +403,8 @@ public class SATSingleGrouped extends SafeLanes {
 			final double startingStep = graph.getDistance(entryID, vertexID);
 			final int finalI = vertexID;
 			final double finalStep = maximumSteps - exitsID.stream().mapToDouble(exit -> graph.getDistance(finalI, exit)).min().orElse(Double.POSITIVE_INFINITY);
-			for (int t = (int) Math.floor(startingStep); t < finalStep; t++) {
-				validTimeVertices[t][vertexID] = stepOccupiedVertices.get(step).containsKey(vertexID); // FIXME replace with better check
+			for (int t = (int) Math.floor(startingStep); t <= finalStep; t++) {
+				validTimeVertices[t][vertexID] = !(stepOccupiedVertices.containsKey(step + t) && stepOccupiedVertices.get(step + t).containsKey(vertexID)); // FIXME replace with better check
 			}
 		}
 		return validTimeVertices;
