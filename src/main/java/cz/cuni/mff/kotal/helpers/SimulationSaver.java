@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2;
 import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
+import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.BasicAgent;
 import cz.cuni.mff.kotal.simulation.Simulation;
@@ -60,6 +61,22 @@ public class SimulationSaver {
 			type = IntersectionMenuTab0.getModel().getText();
 			vertices = graph.getVertices();
 		}
+
+		/**
+		 * @return
+		 */
+		@Override
+		public GraphType getModel() {
+			return null;
+		}
+
+		/**
+		 * @return
+		 */
+		@Override
+		public double getCellSize() {
+			return 0;
+		}
 	}
 
 	private record Parameters(long agents, double steps, double delay, double rejections, double collisions, String algorithm, TypedGraph graph, List<Long> simulatingTime) {
@@ -71,7 +88,7 @@ public class SimulationSaver {
 
 		private PathAgent(@NotNull Agent agent) {
 			super(agent);
-			this.plannedTime = agent.getPlannedTime();
+			this.plannedTime = agent.getPlannedStep();
 			this.path = agent.getPath();
 		}
 	}

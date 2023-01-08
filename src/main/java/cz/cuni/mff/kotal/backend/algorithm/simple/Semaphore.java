@@ -5,6 +5,7 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,7 +19,7 @@ public class Semaphore extends SafeLanes {
 	public Semaphore(@NotNull SimulationGraph graph) {
 		super(graph);
 
-		@NotNull Integer longestPath = lanes.values().stream()
+		@NotNull Integer longestPath = Arrays.stream(lanes)
 			.flatMap(
 				map -> map.values().stream()
 					.map(List::size)

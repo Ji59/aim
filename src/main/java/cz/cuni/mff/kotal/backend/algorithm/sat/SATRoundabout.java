@@ -62,7 +62,7 @@ public class SATRoundabout extends SATSingleGrouped {
 
 	private void transferPath(@NotNull Agent agent) {
 		@NotNull List<Integer> path = agent.getPath().stream().map(id -> ((LinkVertex) graph.getVertex(id)).getRealID()).toList();
-		agent.setPath(path, agent.getPlannedTime());
+		agent.setPath(path, agent.getPlannedStep());
 	}
 
 	@Override

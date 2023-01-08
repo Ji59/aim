@@ -47,7 +47,7 @@ public class CBSAll extends CBSSingleGrouped {
 		agentVerticesVisits.clear();
 		validNotFinishedAgents.forEach(agent -> {
 			final List<Integer> path = agent.getPath();
-			final int travelTime = (int) (step - agent.getPlannedTime());
+			final int travelTime = (int) (step - agent.getPlannedStep());
 			final Map<Integer, Integer> vertexVisitsMap = AlgorithmAll.createVertexVisitsMap(path, travelTime);
 			agentVerticesVisits.put(path.get(travelTime), new Pair<>(agent, vertexVisitsMap));
 		});
@@ -139,7 +139,7 @@ public class CBSAll extends CBSSingleGrouped {
 				final int lastVertex;
 				if (state.getParent() == null) {
 					final Agent agent = agentVertexVisits.getVal0();
-					final int lastFixTime = (int) (state.getStep() - agent.getPlannedTime() - 1);
+					final int lastFixTime = (int) (state.getStep() - agent.getPlannedStep() - 1);
 					lastVertex = agent.getPath().get(lastFixTime);
 				} else {
 					lastVertex = state.getParent().getID();

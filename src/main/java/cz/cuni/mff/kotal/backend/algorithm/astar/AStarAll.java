@@ -58,7 +58,7 @@ public class AStarAll extends AStarSingleGrouped {
 				return Collections.emptySet();
 			}
 
-			final long plannedTime = agent.getPlannedTime();
+			final long plannedTime = agent.getPlannedStep();
 			final int travelTime = (int) (step - plannedTime);
 			final List<Integer> path = agent.getPath();
 			assert travelTime < path.size() - 1;

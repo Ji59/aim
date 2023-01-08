@@ -47,7 +47,7 @@ public class HexagonalGraph extends SimulationGraph {
 		double sin60Shift = shift * Math.sqrt(3) / 2;
 		double halfShift = shift / 2;
 
-		for (int i = 1; i < granularity; i++, id += (i - 1) * 5) {
+		for (int i = 1; i < getGranularity(); i++, id += (i - 1) * 5) {
 			// compute initial positions
 			double x1 = centerX;
 			double y1 = centerY - i * shift;
@@ -62,7 +62,7 @@ public class HexagonalGraph extends SimulationGraph {
 			double x0 = x5;
 			double y0 = y2;
 
-			boolean notLast = i < granularity - 1;
+			boolean notLast = i < getGranularity() - 1;
 
 			for (int j = 0; j < i; j++, id++,
 				x1 += sin60Shift, y1 += halfShift,
@@ -170,17 +170,17 @@ public class HexagonalGraph extends SimulationGraph {
 	 */
 	private void createHexagonalGraphEntriesExits(int entries, int exits, int id, double shift) {
 		// compute outer empty spaces
-		int empty = granularity - entries - exits;
+		int empty = getGranularity() - entries - exits;
 		int padding = empty / 3;
 		int index = empty % 3 == 2 ? ++padding : padding;
 
 		// draw all the entries
-		double e0x = shift * (granularity + Math.sqrt(3) * (index - granularity + 1) / 2);
-		double e0y = (granularity + 2 - index - Math.sqrt(3)) * shift / 2; // top left road center
+		double e0x = shift * (getGranularity() + Math.sqrt(3) * (index - getGranularity() + 1) / 2);
+		double e0y = (getGranularity() + 2 - index - Math.sqrt(3)) * shift / 2; // top left road center
 		double e1x = 1. / 2 + shift * (index * Math.sqrt(3) / 2 + 0.5);
 		double e1y = shift * (index / 2. + 1.5 - Math.sqrt(3) / 2);
-		double e5x = shift * (granularity - Math.sqrt(3) * (granularity - 1) / 2 - 0.5); // top right road center
-		double e2y = ((granularity) / 2. + index + 1) * shift;
+		double e5x = shift * (getGranularity() - Math.sqrt(3) * (getGranularity() - 1) / 2 - 0.5); // top right road center
+		double e2y = ((getGranularity()) / 2. + index + 1) * shift;
 		id = createHexagonalGraphEntries(entries, shift, index, id, e0x, e0y, e1x, e1y, e5x, e2y, true);
 
 		// skip middle empty space
@@ -260,17 +260,17 @@ public class HexagonalGraph extends SimulationGraph {
 	 * @param id    ID of the top left entry
 	 */
 	private void addHexagonalEntriesEdges(int index, int id, boolean entry) {
-		int start = 6 * (granularity - 1) * (granularity - 2) / 2 + 1 + index;
+		int start = 6 * (getGranularity() - 1) * (getGranularity() - 2) / 2 + 1 + index;
 		addHexagonalEntryEdge(id++, start, entry);
-		start += granularity - 1;
+		start += getGranularity() - 1;
 		addHexagonalEntryEdge(id++, start, entry);
-		start += granularity - 1;
+		start += getGranularity() - 1;
 		addHexagonalEntryEdge(id++, start, entry);
-		start += granularity - 1;
+		start += getGranularity() - 1;
 		addHexagonalEntryEdge(id++, start, entry);
-		start += granularity - 1;
+		start += getGranularity() - 1;
 		addHexagonalEntryEdge(id++, start, entry);
-		start += granularity - 1;
+		start += getGranularity() - 1;
 		addHexagonalEntryEdge(id, start, entry);
 	}
 

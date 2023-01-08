@@ -230,7 +230,7 @@ public class SATSingleGrouped extends SafeLanes {
 							=> ¬(|V| * t + i + offset) = - (|V| * t + i + offset) ∨ (V_{neighbour j of v_i} |V| * (t + 1) + j + offset)
 						*/
 						@NotNull List<Integer> validNeighbours = graph.getVertex(i).getNeighbourIDs().stream()
-							.filter(id -> safeStepTo(tStep + 1, id, i, agentPerimeter) && safeStepFrom(tStep, i, id, agentPerimeter))
+							.filter(id -> safeStepTo(tStep + 1, i, id, agentPerimeter) && safeStepFrom(tStep, i, id, agentPerimeter))
 							.collect(Collectors.toList());
 						if (allowAgentStop && i != startingVertex) {
 							validNeighbours.add(i);
@@ -399,7 +399,7 @@ public class SATSingleGrouped extends SafeLanes {
 			final int finalI = vertexID;
 			final double finalStep = maximumSteps - exitsID.stream().mapToDouble(exit -> graph.getDistance(finalI, exit)).min().orElse(Double.POSITIVE_INFINITY);
 			for (int t = (int) Math.floor(startingStep); t < finalStep; t++) {
-				validTimeVertices[t][vertexID] = safeVertex(step + t, vertexID, agentsPerimeter);
+				validTimeVertices[t][vertexID] = stepOccupiedVertices.get(step).containsKey(vertexID); // FIXME replace with better check
 			}
 		}
 		return validTimeVertices;

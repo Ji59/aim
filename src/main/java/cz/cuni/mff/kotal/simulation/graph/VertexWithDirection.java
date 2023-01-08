@@ -67,12 +67,13 @@ public class VertexWithDirection implements Comparable<VertexWithDirection> {
 		GraphicalVertex previousVertex = previous.vertex;
 		double xDiff = previousVertex.getX() - vertex.getX();
 		double yDiff = previousVertex.getY() - vertex.getY();
-		this.angle = computeAngle(xDiff, yDiff);
 
 		double angleDiff;
 		if (previous.getID() == getID()) {
 			angleDiff = 0;
+			this.angle = previous.angle;
 		} else {
+			this.angle = computeAngle(xDiff, yDiff);
 			angleDiff = Math.abs(this.angle - previous.getAngle());
 			if (angleDiff > Math.PI) {
 				angleDiff = 2 * Math.PI - angleDiff;

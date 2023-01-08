@@ -3,7 +3,6 @@ package cz.cuni.mff.kotal.simulation;
 
 import cz.cuni.mff.kotal.backend.algorithm.Algorithm;
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionMenu;
-import cz.cuni.mff.kotal.frontend.intersection.IntersectionScene;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.SquareGraph;
@@ -32,7 +31,7 @@ public abstract class Simulation {
 	protected final @Nullable SimulationAgents simulationAgents;
 	protected final Map<Integer, List<Agent>> delayedAgents = new HashMap<>();
 	protected final PriorityQueue<Agent> createdAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
-	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
+	protected final PriorityQueue<Agent> plannedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedStep));
 	protected final PriorityQueue<Agent> rejectedAgentsQueue = new PriorityQueue<>(Comparator.comparingDouble(Agent::getArrivalTime));
 	protected final List<Long> planningTime = new LinkedList<>();
 	protected final Lock stateLock = new ReentrantLock();
@@ -217,7 +216,7 @@ public abstract class Simulation {
 		planningTime.add(endTime - startTime);
 
 		plannedAgents.forEach(agent -> {
-			assert !agent.getPath().isEmpty() && agent.getPlannedTime() >= 0;
+			assert !agent.getPath().isEmpty() && agent.getPlannedStep() >= 0;
 			assert simulationAgents != null;
 			simulationAgents.addAgent(agent);
 
@@ -372,12 +371,12 @@ public abstract class Simulation {
 		}
 
 		synchronized (plannedAgentsQueue) {
-			agentsDelay += plannedAgentsQueue.stream().filter(agent -> agent.getArrivalTime() <= step).mapToLong(agent -> Math.min(step, agent.getPlannedTime()) - Math.max((long) agent.getArrivalTime(), delayedStep)).sum();
+			agentsDelay += plannedAgentsQueue.stream().filter(agent -> agent.getArrivalTime() <= step).mapToLong(agent -> Math.min(step, agent.getPlannedStep()) - Math.max((long) agent.getArrivalTime(), delayedStep)).sum();
 
 			@NotNull Iterator<Agent> iterator = plannedAgentsQueue.iterator();
 			while (iterator.hasNext()) {
 				Agent agent = iterator.next();
-				if (agent.getPlannedTime() > delayedStep) {
+				if (agent.getPlannedStep() > delayedStep) {
 					return;
 				}
 				agentsDelay += getAgentsDelay(agent);

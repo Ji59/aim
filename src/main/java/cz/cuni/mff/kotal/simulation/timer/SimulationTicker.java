@@ -55,7 +55,7 @@ public interface SimulationTicker {
 						.filter(agentPane -> !agentPane.isDisable())
 						.map(AgentPane::getAgent)
 						.forEach(agent -> {
-							int vertex = agent.getNearestPathVertexId(step - agent.getPlannedTime());
+							int vertex = agent.getNearestPathVertexId(step - agent.getPlannedStep());
 							verticesUsage.set(vertex, verticesUsage.get(vertex) + 1);
 						});
 		verticesUsageLock.unlock();

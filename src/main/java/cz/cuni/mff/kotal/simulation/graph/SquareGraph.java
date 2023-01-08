@@ -51,9 +51,9 @@ public class SquareGraph extends SimulationGraph {
 	 * @return TODO
 	 */
 	protected int createSquareGraphVertices(int id, double shift, boolean withoutCorners) {
-		int g = granularity;
-		for (int i = 0; i < granularity; i++) {
-			for (int j = 0; j < granularity; j++) {
+		int g = getGranularity();
+		for (int i = 0; i < getGranularity(); i++) {
+			for (int j = 0; j < getGranularity(); j++) {
 				// check if in corner
 				if (withoutCorners &&
 					(i == 0 || i == g - 1) &&
@@ -84,10 +84,10 @@ public class SquareGraph extends SimulationGraph {
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
 	private void createSquareGraphAddNeighbours(@NotNull GraphicalVertex vertex, boolean withoutCorners) {
-		int g = granularity;
+		int g = getGranularity();
 		int id = vertex.getID();
-		int i = id / granularity;
-		int j = id % granularity;
+		int i = id / getGranularity();
+		int j = id % getGranularity();
 
 		if (withoutCorners) {
 			int idOffset;
@@ -138,10 +138,10 @@ public class SquareGraph extends SimulationGraph {
 	 * @param withoutCorners Denotes, if The graph is with corner vertices or not
 	 */
 	protected int createSquareGraphEntryVertices(int id, int entries, int exits, double shift, boolean withoutCorners) {
-		assert (entries + exits <= granularity - (withoutCorners ? 2 : 0));
+		assert (entries + exits <= getGranularity() - (withoutCorners ? 2 : 0));
 
 		// compute outer empty spaces
-		int empty = granularity - entries - exits;
+		int empty = getGranularity() - entries - exits;
 		int padding = empty / 3;
 		int index = empty % 3 == 2 ? ++padding + 1 : padding + 1;
 
@@ -170,8 +170,8 @@ public class SquareGraph extends SimulationGraph {
 	private int createSquareGraphEntries(int id, int entries, double shift, int index, boolean withoutCorners, boolean entry) {
 		double topX = (index + 0.5) * shift;
 		double topY = shift * 0.5;
-		double botX = (granularity - index + 1.5) * shift;
-		double botY = (granularity + 1 + 0.5) * shift;
+		double botX = (getGranularity() - index + 1.5) * shift;
+		double botY = (getGranularity() + 1 + 0.5) * shift;
 
 		for (int i = 0; i < entries; i++) {
 
@@ -194,10 +194,10 @@ public class SquareGraph extends SimulationGraph {
 
 
 			// create edges
-			Vertex topN = vertices[(index - 1) * granularity - (withoutCorners ? 2 : 0)];
-			Vertex bottomN = vertices[(granularity + 1 - index) * granularity - (withoutCorners ? 3 : 1)];
-			Vertex leftN = vertices[granularity - index - (withoutCorners ? 1 : 0)];
-			Vertex rightN = vertices[(granularity - 1) * granularity + index - (withoutCorners ? 4 : 1)];
+			Vertex topN = vertices[(index - 1) * getGranularity() - (withoutCorners ? 2 : 0)];
+			Vertex bottomN = vertices[(getGranularity() + 1 - index) * getGranularity() - (withoutCorners ? 3 : 1)];
+			Vertex leftN = vertices[getGranularity() - index - (withoutCorners ? 1 : 0)];
+			Vertex rightN = vertices[(getGranularity() - 1) * getGranularity() + index - (withoutCorners ? 4 : 1)];
 			assert (topN != null && bottomN != null && leftN != null && rightN != null);
 			if (entry) {
 				topE.getNeighbourIDs().add(topN.getID());

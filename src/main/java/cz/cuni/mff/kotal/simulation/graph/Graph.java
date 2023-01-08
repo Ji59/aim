@@ -2,11 +2,11 @@ package cz.cuni.mff.kotal.simulation.graph;
 
 
 import cz.cuni.mff.kotal.frontend.intersection.IntersectionModel;
+import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0.Parameters.GraphType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -17,18 +17,18 @@ import java.util.stream.Stream;
 /**
  * Graph of vertices and edges.
  */
-public class 	Graph {
+public abstract class Graph {
 	private static final Lock DISTANCES_CACHING_LOCK = new ReentrantLock(false);
 
 	protected transient final boolean oriented;
 	protected final int granularity;
 	protected final int entries;
 	protected final int exits;
+	private transient final Lock distancesLock = new ReentrantLock(false);
 	protected transient Vertex @Nullable [] vertices;
 	protected transient Map<Integer, List<Vertex>> entryExitVertices;
 	protected transient Set<Edge> edges;
 	protected transient double[][] distances;
-	private transient final Lock distancesLock = new ReentrantLock(false);
 
 	/**
 	 * Create graph with provided vertices and edges. If not oriented, add edges with reversed orientation too.
@@ -240,7 +240,7 @@ public class 	Graph {
 		System.out.println("Computing distances finished after " + (System.nanoTime() - time) + " ns.");
 	}
 
-	private void initializeDistances() {
+	protected void initializeDistances() {
 		int verticesSize = vertices.length;
 		distances = new double[verticesSize][verticesSize];
 		for (int i = 0; i < verticesSize; i++) {
@@ -291,4 +291,34 @@ public class 	Graph {
 		return edges;
 	}
 
+	/**
+	 * @return Granularity of the graph
+	 */
+	public int getGranularity() {
+		return granularity;
+	}
+
+	/**
+	 * @return Entries to this graph
+	 */
+	public int getEntries() {
+		return entries;
+	}
+
+	/**
+	 * @return Exits to this graph
+	 */
+	public int getExits() {
+		return exits;
+	}
+
+	/**
+	 * @return Model Type of the graph
+	 */
+	public abstract GraphType getModel();
+
+	/**
+	 * @return @return Column / row shift based on granularity
+	 */
+	public abstract double getCellSize();
 }

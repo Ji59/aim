@@ -28,9 +28,9 @@ public interface AlgorithmAll {
 		for (@NotNull Iterator<Map.Entry<Agent, Pair<Agent, Long>>> iterator = notFinishedAgents.entrySet().iterator(); iterator.hasNext(); ) {
 			final Map.Entry<Agent, Pair<Agent, Long>> entry = iterator.next();
 			final Agent agent = entry.getKey();
-			if (step >= agent.getPlannedTime() + agent.getPath().size() - 1) {
+			if (step >= agent.getPlannedStep() + agent.getPath().size() - 1) {
 				iterator.remove();
-			} else if (step - agent.getPlannedTime() <= replanSteps) {
+			} else if (step - agent.getPlannedStep() <= replanSteps) {
 				validNotFinishedAgents.add(agent);
 			} else {
 				addAgentToStepOccupiedVertices(stepOccupiedVertices, agent, step);
@@ -42,11 +42,11 @@ public interface AlgorithmAll {
 		}
 
 		assert validNotFinishedAgents.size() <= maximumPlannedAgents;
-		return validNotFinishedAgents.stream().map(a -> new Agent(a).setPath(a.getPath(), a.getPlannedTime())).collect(Collectors.toSet());
+		return validNotFinishedAgents.stream().map(a -> new Agent(a).setPath(a.getPath(), a.getPlannedStep())).collect(Collectors.toSet());
 	}
 
 	private static void removeEarliestAgents(@NotNull Map<Long, Map<Integer, Agent>> stepOccupiedVertices, long step, int maximumPlannedAgents, @NotNull List<Agent> validNotFinishedAgents) {
-		validNotFinishedAgents.sort((a0, a1) -> Long.compare(a1.getPlannedTime(), a0.getPlannedTime()));
+		validNotFinishedAgents.sort((a0, a1) -> Long.compare(a1.getPlannedStep(), a0.getPlannedStep()));
 
 		for (@NotNull Iterator<Agent> it = validNotFinishedAgents.listIterator(maximumPlannedAgents); it.hasNext(); ) {
 			final Agent agent = it.next();
@@ -57,7 +57,7 @@ public interface AlgorithmAll {
 
 	private static void addAgentToStepOccupiedVertices(final @NotNull Map<Long, Map<Integer, Agent>> stepOccupiedVertices, final @NotNull Agent agent, final long step) {
 		long pathStep = step;
-		for (final @NotNull Iterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedTime())); it.hasNext(); pathStep++) {
+		for (final @NotNull Iterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedStep())); it.hasNext(); pathStep++) {
 			final int vertex = it.next();
 			final @NotNull Map<Integer, Agent> verticesMap = stepOccupiedVertices.computeIfAbsent(pathStep, k -> new HashMap<>());
 			verticesMap.put(vertex, agent);
@@ -77,7 +77,7 @@ public interface AlgorithmAll {
 				final Agent originalAgent = plannedPathPair.getVal0();
 				final long plannedTime = plannedPathPair.getVal1();
 
-				if (agent.getPlannedTime() == plannedTime) {
+				if (agent.getPlannedStep() == plannedTime) {
 					continue;
 				}
 
@@ -87,7 +87,7 @@ public interface AlgorithmAll {
 				}
 				originalAgent.setPath(pathEnd);
 			} else {
-				notFinishedAgents.put(agent, new Pair<>(agent, agent.getPlannedTime()));
+				notFinishedAgents.put(agent, new Pair<>(agent, agent.getPlannedStep()));
 			}
 		}
 	}
@@ -108,7 +108,7 @@ public interface AlgorithmAll {
 
 	static void addAgentsEntriesExits(final @NotNull SafeLanes algorithm, final long step, final @NotNull Collection<Agent> validNotFinishedAgents, final @NotNull Map<Agent, Pair<Integer, Set<Integer>>> allAgents) {
 		for (@NotNull Agent agent : validNotFinishedAgents) {
-			final long plannedTime = agent.getPlannedTime();
+			final long plannedTime = agent.getPlannedStep();
 			final int travelTime = (int) (step - plannedTime);
 			assert travelTime < agent.getPath().size() - 1;
 			final int startingVertexID = agent.getPath().get(travelTime);

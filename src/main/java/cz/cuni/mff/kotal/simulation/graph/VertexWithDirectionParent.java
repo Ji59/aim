@@ -44,4 +44,22 @@ public class VertexWithDirectionParent extends VertexWithDirection {
 		return parent;
 	}
 
+	/**
+	 * @param o the object to be compared.
+	 * @return
+	 */
+	@Override
+	public int compareTo(@NotNull VertexWithDirection o) {
+		final int superComparison = super.compareTo(o);
+		if (superComparison == 0 && o instanceof VertexWithDirectionParent op) {
+			assert op.parent != null;
+			assert parent != null;
+			boolean parentEquals = parent.getID() == getID();
+			boolean oParentEquals = op.parent.getID() == op.getID();
+			if (parentEquals ^ oParentEquals) {
+				return parentEquals ? -1 : 1;
+			}
+		}
+		return superComparison;
+	}
 }

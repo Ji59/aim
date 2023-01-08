@@ -70,7 +70,7 @@ public class CBSSingleGrouped extends AStarSingle {
 		final long collisionStep = collision.getVal2();
 		final boolean collisionOnTravel = collision.getVal3();
 
-		final int collisionRelativeTime = (int) (collisionStep - agent.getPlannedTime());
+		final int collisionRelativeTime = (int) (collisionStep - agent.getPlannedStep());
 		final List<Integer> agentPath = agent.getPath();
 		final int collisionStepVertex = agentPath.get(collisionRelativeTime);
 
@@ -305,7 +305,7 @@ public class CBSSingleGrouped extends AStarSingle {
 		for (final Agent agent1 : agents) {
 			final double agent1Perimeter = agent1.getAgentPerimeter();
 			final double agentsPerimeter = agentPerimeter + agent1Perimeter;
-			long agentStep = agent1.getPlannedTime();
+			long agentStep = agent1.getPlannedStep();
 			int lastVertex = -1;
 			for (Iterator<Integer> it = agent1.getPath().iterator(); it.hasNext(); agentStep++) {
 				final int vertexID = it.next();

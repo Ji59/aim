@@ -9,7 +9,7 @@ Proto budu testovat různé kombinace parametrů namísto měnění pouze jednoh
 Zároveň budu měnit hodnoty v závislosti na křižovatce.
 
 \subsubsection{\nameref{par:data_mala} \hyperref[subsec:ctvercovy_typ]{čtvercová} křižovatka}
-\label{subsubsec:exp_ars_mala_ctvercovakrizovatka}
+\label{subsubsec:exp_ars_mala_ctvercova_krizovatka}
 
 Nejprve budu testovat algoritmus s nastavením \hyperref[par:ars_mnv]{maximuma návštěv vrcholu (\ref{par:ars_mnv})} na $1, 2, 4$.
 Nepředpokládám ale, že na této malé křižovatce bude mít hodnota parametru velký vliv na výsledky.
@@ -401,7 +401,7 @@ Výsledky opět ukazují, že více omezená křižovatka plánuje agenty rychle
 \end{table}
 
 \subsubsection{\nameref{par:data_stredni} \hyperref[subsec:ctvercovy_typ]{čtvercová} křižovatka s výjezdy}
-\label{subsubsec:exp_ars_stredni_ctvercovakrizovatka}
+\label{subsubsec:exp_ars_stredni_ctvercova_krizovatka_ex}
 
 V této části budu testovat běhy, na středně velké křižovatce.
 Agenti budou mít přesně zadaný výjezd.
@@ -478,3 +478,97 @@ Měření napovídají, že není žádný rozdíl mezi neomezenou prodlevou ces
 	\end{tabular}
 	\caption{Porovnání testů se zastavováním u \ref{str:a_star_ars} na \hyperref[par:data_stredni]{středním} čtv. typu.}\label{tab:ars_exp_stredni_ctvercova_z}
 \end{table}
+
+\subsubsection{\nameref{par:data_stredni} \hyperref[subsec:oktagonalni_typ]{oktagonální} křižovatka}
+\label{subsubsec:exp_ars_stredni_oktagonalni_krizovatka_ex}
+
+\begin{table}[b!]
+	\centering
+	\begin{tabular}{c c r D{.}{,}{2.2}D{.}{,}{1.2} r D{.}{,}{2.2}}
+		\toprule \\
+		\pulrad{\textbf{\ref{par:ars_mnv}}} & \pulrad{\textbf{\ref{par:ars_mpc}}} &t
+		\pulrad{\textbf{Zam}} & \mc{\pulrad{\textbf{pAgen}}} & \mc{\pulrad{\textbf{sAgen}}} &
+		\pulrad{\textbf{Zpož}} & \mc{\pulrad{\textbf{pZpož}}} \\
+		\midrule
+		1 & 0    & 56\,718          & \multicolumn{1}{B{.}{,}{2.2}}{42.24} & 3.30 & \textbf{3\,676\,058} & 26.48                                \\
+		1 & 8    & 43\,764          & 58.65                                & 3.21 & 3\,895\,377          & \multicolumn{1}{B{.}{,}{2.2}}{25.67} \\
+		1 & 16   & 44\,996          & 58.70                                & 3.27 & 3\,876\,707          & 25.75                                \\
+		1 & 32   & 44\,847          & 58.74                                & 3.19 & 3\,874\,030          & 25.71                                \\
+		1 & neom & 44\,847          & 58.74                                & 3.19 & 3\,874\,030          & 25.71                                \\
+		2 & 8    & 42\,445          & 59.28                                & 3.27 & 4\,147\,171          & 27.09                                \\
+		2 & 16   & 42\,938          & 59.35                                & 3.24 & 4\,152\,804          & 27.21                                \\
+		2 & 32   & 42\,938          & 59.35                                & 3.25 & 4\,152\,804          & 27.21                                \\
+		2 & neom & 42\,938          & 59.35                                & 3.25 & 4\,152\,804          & 27.21                                \\
+		4 & 8    & \textbf{42\,364} & 59.34                                & 3.22 & 4\,182\,190          & 27.30                                \\
+		4 & 16   & 43\,000          & 59.35                                & 3.24 & 4\,165\,331          & 27.31                                \\
+		4 & 32   & 43\,000          & 59.35                                & 3.24 & 4\,165\,331          & 27.31                                \\
+		4 & neom & 43\,000          & 59.35                                & 3.24 & 4\,165\,331          & 27.31                                \\
+		\bottomrule
+%		\multicolumn{6}{l}{\footnotesize \textit{Pozn:}
+%		\textrm{Zam} - počet zamítnutí, \textrm{pAgen} - průměrný počet agentů v jeden krok na křižovatce, \\
+%		\textrm{sAgen} - směrodatná odchylka počtu agentů na křižovatce, \\
+%		\textrm{Zpož} - součet spoždění přes všechny agenty, \textrm{pZpož} - průměrné zpoždění agentů
+%		}  TODO
+	\end{tabular}
+	\caption{Porovnání testů se zastavováním u \ref{str:a_star_ars} na \hyperref[par:data_stredni]{středním} okt. typu.}\label{tab:ars_exp_stredni_oktagonalni}
+\end{table}
+
+\begin{table}[b!]
+	\centering
+	\begin{tabular}{c c r D{.}{,}{2.2}D{.}{,}{1.2} r D{.}{,}{2.2}}
+		\toprule \\
+		\pulrad{\textbf{\ref{par:ars_mnv}}} & \pulrad{\textbf{\ref{par:ars_mpc}}} &
+		\pulrad{\textbf{Zam}} & \mc{\pulrad{\textbf{pAgen}}} & \mc{\pulrad{\textbf{sAgen}}} &
+		\pulrad{\textbf{Zpož}} & \mc{\pulrad{\textbf{pZpož}}} \\
+		\midrule
+%		2 & 4    & \textbf{46\,431} & 52.32                                & 3.13 & 3\,783\,326          & \multicolumn{1}{B{.}{,}{2.2}}{25.39} \\
+		2  & 8    & \textbf{35\,048} & \multicolumn{1}{B{.}{,}{2.2}}{62.26} & 3.21 & 4\,341\,239          & 27.05                                \\
+		2  & 16   & 35\,418          & 62.34                                & 3.25 & 4\,340\,047          & 27.11                                \\
+		2  & 32   & 35\,418          & 62.34                                & 3.25 & 4\,340\,047          & 27.11                                \\
+		2  & neom & 35\,418          & 62.34                                & 3.25 & 4\,340\,047          & 27.11                                \\
+		4  & 8    & 35\,482          & 61.91                                & 3.23 & 4\,326\,442          & 27.03                                \\
+		4  & 16   & 35\,240          & 62.03                                & 3.28 & \textbf{4\,326\,349} & \multicolumn{1}{B{.}{,}{2.2}}{26.99} \\
+		4  & 32   & 35\,240          & 62.03                                & 3.28 & \textbf{4\,326\,349} & \multicolumn{1}{B{.}{,}{2.2}}{26.99} \\
+		4  & neom & 35\,240          & 62.03                                & 3.28 & \textbf{4\,326\,349} & \multicolumn{1}{B{.}{,}{2.2}}{26.99} \\
+		\bottomrule
+%		\multicolumn{6}{l}{\footnotesize \textit{Pozn:}
+%		\textrm{Zam} - počet zamítnutí, \textrm{pAgen} - průměrný počet agentů v jeden krok na křižovatce, \\
+%		\textrm{sAgen} - směrodatná odchylka počtu agentů na křižovatce, \\
+%		\textrm{Zpož} - součet spoždění přes všechny agenty, \textrm{pZpož} - průměrné zpoždění agentů
+%		}  TODO
+	\end{tabular}
+	\caption{Porovnání testů se zastavováním u \ref{str:a_star_ars} na \hyperref[par:data_stredni]{středním} okt. typu.}\label{tab:ars_exp_stredni_oktagonalni_z}
+\end{table}
+
+\subsubsection{\nameref{par:data_stredni} \hyperref[subsec:hexagonalni_typ]{hexagonální} křižovatka s výjezdy}
+\label{subsubsec:exp_ars_stredni_hexagoalni_krizovatka_ex}
+
+
+\subsubsection{\nameref{par:data_stredni} \hyperref[subsec:ctvercovy_typ]{čtvercová} křižovatka bez výjezdů}
+\label{subsubsec:exp_ars_stredni_ctvercova_krizovatka_noex}
+
+\subsubsection{\nameref{par:data_stredni} \hyperref[subsec:oktagonalni_typ]{oktagonální} křižovatka bez výjezdů}
+\label{subsubsec:exp_ars_stredni_oktagonalni_krizovatka_noex}
+
+\subsubsection{\nameref{par:data_stredni} \hyperref[subsec:hexagonalni_typ]{hexagonální} křižovatka bez výjezdů}
+\label{subsubsec:exp_ars_stredni_hexagoalni_krizovatka_noex}
+
+
+\subsubsection{\nameref{par:data_velka} \hyperref[subsec:ctvercovy_typ]{čtvercová} křižovatka s výjezdy}
+\label{subsubsec:exp_ars_velka_ctvercova_krizovatka_ex}
+
+\subsubsection{\nameref{par:data_velka} \hyperref[subsec:oktagonalni_typ]{oktagonální} křižovatka s výjezdy}
+\label{subsubsec:exp_ars_velka_oktagonalni_krizovatka_ex}
+
+\subsubsection{\nameref{par:data_velka} \hyperref[subsec:hexagonalni_typ]{hexagonální} křižovatka s výjezdy}
+\label{subsubsec:exp_ars_velka_hexagoalni_krizovatka_ex}
+
+
+\subsubsection{\nameref{par:data_velka} \hyperref[subsec:ctvercovy_typ]{čtvercová} křižovatka bez výjezdů}
+\label{subsubsec:exp_ars_velka_ctvercova_krizovatka_noex}
+
+\subsubsection{\nameref{par:data_velka} \hyperref[subsec:oktagonalni_typ]{oktagonální} křižovatka bez výjezdů}
+\label{subsubsec:exp_ars_velka_oktagonalni_krizovatka_noex}
+
+\subsubsection{\nameref{par:data_velka} \hyperref[subsec:hexagonalni_typ]{hexagonální} křižovatka bez výjezdů}
+\label{subsubsec:exp_ars_velka_hexagoalni_krizovatka_noex}

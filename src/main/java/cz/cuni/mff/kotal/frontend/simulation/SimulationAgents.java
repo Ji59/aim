@@ -39,7 +39,7 @@ import java.util.*;
 public class SimulationAgents extends Pane {
 	public static final int LABEL_MOUSE_OFFSET = 12;
 	private static final Map<Long, AgentPane> activeAgents = new HashMap<>();
-	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedTime));
+	private final PriorityQueue<Agent> arrivingAgents = new PriorityQueue<>(Comparator.comparingDouble(Agent::getPlannedStep));
 	private final Label vertexLabel = new Label();
 	private final Label agentLabel = new Label();
 	@TestOnly
@@ -194,7 +194,7 @@ public class SimulationAgents extends Pane {
 	 */
 	public void setAgentLabelText(@NotNull Agent agent) {
 		int exit = agent.getPath().get(agent.getPath().size() - 1);
-		agentLabel.setText(String.format("ID: %d%nArrival: %,.2f%nPlanned: %d%nEntry: %d%nExit: %d", agent.getId(), agent.getArrivalTime(), agent.getPlannedTime(), agent.getEntry(), exit));
+		agentLabel.setText(String.format("ID: %d%nArrival: %,.2f%nPlanned: %d%nEntry: %d%nExit: %d", agent.getId(), agent.getArrivalTime(), agent.getPlannedStep(), agent.getEntry(), exit));
 	}
 
 	/**
@@ -249,7 +249,7 @@ public class SimulationAgents extends Pane {
 	public void addAgent(@NotNull Agent agent, double period) {
 		long agentID = agent.getId();
 		double cellSize = simulation.getIntersectionGraph().getCellSize() * IntersectionModel.getPreferredHeight(); // FIXME refactor
-		long startTime = simulation.getTime(agent.getPlannedTime());
+		long startTime = simulation.getTime(agent.getPlannedStep());
 		@NotNull AgentPane agentPane = new AgentPane(startTime, 0, agent, period, simulation.getIntersectionGraph().getVertices(), cellSize);
 
 		synchronized (activeAgents) {
@@ -479,10 +479,10 @@ public class SimulationAgents extends Pane {
 			@NotNull Iterator<Agent> iterator = arrivingAgents.iterator();
 			while (iterator.hasNext()) {
 				Agent agent = iterator.next();
-				if (agent.getPlannedTime() > step) {
+				if (agent.getPlannedStep() > step) {
 					return;
 				}
-				if (agent.getPlannedTime() + agent.getPath().size() > step + 1) {
+				if (agent.getPlannedStep() + agent.getPath().size() > step + 1) {
 					@Nullable AgentPane agentPane = initAgentPane(agent, step);
 					if (agentPane != null && showAgent) {
 						addPaneToChildren(agentPane);

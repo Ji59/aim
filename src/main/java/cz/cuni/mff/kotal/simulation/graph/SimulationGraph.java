@@ -20,7 +20,8 @@ public abstract class SimulationGraph extends Graph {
 	public static final double EPSILON = 0.0625;  // 2 ^ -4
 	protected final transient Map<GraphicalVertex, Map<GraphicalVertex, Edge>> verticesDistances = new HashMap<>();
 	private final transient Lock verticesDistancesLock = new ReentrantLock(false);
-
+	protected transient Map<Integer, Map<Integer, Double>[]>[] travelDistances;
+	protected transient @NotNull Map<Integer, List<VertexDistance>>[] sortedVertexVerticesDistances;
 	protected transient double cellSize;
 
 	/**
@@ -59,6 +60,42 @@ public abstract class SimulationGraph extends Graph {
 		super(oriented, graph);
 	}
 
+	protected static double getTransferDistance(GraphicalVertex u, GraphicalVertex v, GraphicalVertex p, GraphicalVertex q) {
+		if (u.equals(p) || v.equals(q)) {
+			return 0;
+		}
+
+		final double cx = p.getX() - u.getX();
+		final double cy = p.getY() - u.getY();
+		final double dx = v.getX() - q.getX() + cx;
+		final double dy = v.getY() - q.getY() + cy;
+
+		double t = 0;
+		if (dx != 0 || dy != 0) {
+			t = (cx * dx + cy * dy) / (dx * dx + dy * dy);
+			t = Math.min(1, Math.max(0, t));
+		}
+
+		double closestX;
+		double closestY;
+		if (t == 0) {
+			closestX = u.getX() - p.getX();
+			closestY = u.getY() - p.getY();
+		} else if (t == 1) {
+			closestX = v.getX() - q.getX();
+			closestY = v.getY() - q.getY();
+		} else {
+			closestX = t * dx - cx;
+			closestY = t * dy - cy;
+		}
+		closestX *= closestX;
+		closestY *= closestY;
+		final double distanceSquared = closestX + closestY;
+		return Math.sqrt(distanceSquared);
+	}
+
+
+	// TODO
 
 	/**
 	 * Add vertices and edges from other graph.
@@ -81,8 +118,6 @@ public abstract class SimulationGraph extends Graph {
 	public List<Integer> shortestPath(GraphicalVertex from, @NotNull GraphicalVertex to) {
 		return shortestPath(from, to, 0);
 	}
-
-	// TODO
 
 	public @NotNull List<Integer> shortestPath(GraphicalVertex from, @NotNull GraphicalVertex to, double startingAngle) {
 		@NotNull PriorityQueue<VertexWithDirectionParent> queue = new PriorityQueue<>();
@@ -133,6 +168,75 @@ public abstract class SimulationGraph extends Graph {
 	}
 
 	/**
+	 *
+	 */
+	@Override
+	protected void initializeDistances() {
+		@NotNull final Thread thread = new Thread(this::createTravelDistances);
+		thread.start();
+		super.initializeDistances();
+		try {
+			thread.join();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void createTravelDistances() {
+		assert vertices != null;
+		travelDistances = new Map[getVertices().length];
+		sortedVertexVerticesDistances = new Map[getVertices().length];
+
+		Arrays.stream(getVertices()).map(GraphicalVertex.class::cast).forEach(u -> {
+			final int vertexID = u.getID();
+			int capacity = u.getNeighbourIDs().size() + 1;
+			final Map<Integer, Map<Integer, Double>[]> uDistances = new HashMap<>(capacity);
+			synchronized (travelDistances) {
+				travelDistances[vertexID] = uDistances;
+			}
+			Map<Integer, List<VertexDistance>> sortedUVerticesDistance = new HashMap<>(capacity);
+			synchronized (sortedVertexVerticesDistances) {
+				sortedVertexVerticesDistances[vertexID] = sortedUVerticesDistance;
+			}
+
+			for (final int vNeighbourID : u.getNeighbourIDs()) {
+				@NotNull final GraphicalVertex v = getVertex(vNeighbourID);
+				createNeighbourTransferDistances(u, v, uDistances, sortedUVerticesDistance);
+			}
+			createNeighbourTransferDistances(u, u, uDistances, sortedUVerticesDistance);
+		});
+	}
+
+	private void createNeighbourTransferDistances(@NotNull GraphicalVertex u, @NotNull GraphicalVertex v, @NotNull Map<Integer, @NotNull Map<Integer, Double>[]> uDistances, Map<Integer, List<VertexDistance>> sortedUVerticesDistances) {
+		final Map[] uvDistances = new Map[getVertices().length];
+		uDistances.put(v.getID(), uvDistances);
+		final List<VertexDistance> sortedUVDistances = new LinkedList<>();
+		sortedUVerticesDistances.put(v.getID(), sortedUVDistances);
+
+		Arrays.stream(getVertices()).map(GraphicalVertex.class::cast).forEach(p -> {
+			final Map<Integer, Double> uvpDistances = new HashMap<>(p.getNeighbourIDs().size() + 1);
+			uvDistances[p.getID()] = uvpDistances;
+
+			double closest = Double.MAX_VALUE;
+			for (final int pNeighbourID : p.getNeighbourIDs()) {
+				@NotNull final GraphicalVertex q = getVertex(pNeighbourID);
+				double distance = getTransferDistance(u, v, p, q);
+				uvpDistances.put(pNeighbourID, distance);
+				closest = Math.min(closest, distance);
+			}
+
+			double distance = getTransferDistance(u, v, p, p);
+			uvpDistances.put(p.getID(), distance);
+			closest = Math.min(closest, distance);
+			synchronized (sortedUVDistances) {
+				sortedUVDistances.add(new VertexDistance(p.getID(), closest));
+			}
+		});
+
+		sortedUVDistances.sort(VertexDistance::compareTo);
+	}
+
+	/**
 	 * Check if the graph is same as another graph.
 	 * That means they are same model, have same granularity, size and orientation and same number of entries and exits.
 	 *
@@ -143,12 +247,12 @@ public abstract class SimulationGraph extends Graph {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof SimulationGraph graph)) return false;
-		return oriented == graph.oriented && granularity == graph.granularity && entries == graph.entries && exits == graph.exits && getModel() == graph.getModel();
+		return oriented == graph.oriented && getGranularity() == graph.getGranularity() && getEntries() == graph.getEntries() && getExits() == graph.getExits() && getModel() == graph.getModel();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(oriented, granularity, entries, exits, getModel());
+		return Objects.hash(oriented, getGranularity(), getEntries(), getExits(), getModel());
 	}
 
 	/**
@@ -165,41 +269,10 @@ public abstract class SimulationGraph extends Graph {
 	 * @return
 	 */
 	@Override
-	public GraphicalVertex getVertex(int id) {
+	public @NotNull GraphicalVertex getVertex(int id) {
 		return (GraphicalVertex) vertices[id];
 	}
 
-	/**
-	 * @return Granularity of the graph
-	 */
-	public int getGranularity() {
-		return granularity;
-	}
-
-	/**
-	 * @return Entries to this graph
-	 */
-	public int getEntries() {
-		return entries;
-	}
-
-	/**
-	 * @return Exits to this graph
-	 */
-	public int getExits() {
-		return exits;
-	}
-
-
-	/**
-	 * @return Model Type of the graph
-	 */
-	public abstract Parameters.GraphType getModel();
-
-	/**
-	 * @return @return Column / row shift based on granularity
-	 */
-	public abstract double getCellSize();
 
 	public @NotNull Map<GraphicalVertex, Map<GraphicalVertex, Edge>> getVerticesDistances() {
 		verticesDistancesLock.lock();
@@ -208,6 +281,16 @@ public abstract class SimulationGraph extends Graph {
 		}
 		verticesDistancesLock.unlock();
 		return verticesDistances;
+	}
+
+	public @NotNull Map<Integer, Map<Integer, Double>[]>[] getTravelDistances() {
+		assert travelDistances != null;
+		return travelDistances;
+	}
+
+	public @NotNull Map<Integer, List<VertexDistance>>[] getSortedVertexVerticesDistances() {
+		assert sortedVertexVerticesDistances != null;
+		return sortedVertexVerticesDistances;
 	}
 
 	protected void initializeVerticesDistances() {
@@ -232,4 +315,11 @@ public abstract class SimulationGraph extends Graph {
 		return getVerticesDistances().get(v0).get(v1);
 	}
 
+	public record VertexDistance(int vertexID, double distance) implements Comparable<VertexDistance> {
+
+		@Override
+		public int compareTo(@NotNull VertexDistance o) {
+			return Double.compare(distance, o.distance);
+		}
+	}
 }

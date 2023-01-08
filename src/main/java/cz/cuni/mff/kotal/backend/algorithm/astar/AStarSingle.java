@@ -6,6 +6,7 @@ import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.helpers.Pair;
 import cz.cuni.mff.kotal.simulation.Agent;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
+import cz.cuni.mff.kotal.simulation.graph.VertexWithDirection;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +84,7 @@ public class AStarSingle extends SafeLanes {
 
 	@Nullable
 	protected LinkedList<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
-		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.putIfAbsent(step, new HashMap<>()) != null && !safeVertex(step, entryID, agent.getAgentPerimeter())) || stopped) {
+		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.containsKey(step) && stepOccupiedVertices.get(step).containsKey(entryID)) || stopped) {
 			return null;
 		}
 
@@ -159,31 +160,16 @@ public class AStarSingle extends SafeLanes {
 			double estimate = heuristic.get(neighbourID);
 
 			if (Double.isFinite(estimate) && neighbourStep + estimate <= lastStep &&
-				canVisitVertex(state, entryID, neighbourID, constraints) &&
-				(
-					stepOccupiedVertices.putIfAbsent(neighbourStep, new HashMap<>()) == null
-						|| (
-						safeVertex(neighbourStep, neighbourID, agentPerimeter) &&
-							safeStepTo(neighbourStep, neighbourID, state.getID(), agentPerimeter)
-					)
-				) &&
-				safeStepFrom(stateStep, state.getID(), neighbourID, agentPerimeter)
+				canVisitVertex(state, entryID, neighbourID, constraints) && safeStepTo(stateStep, state.getID(), neighbourID, agentPerimeter)
 			) {
 				double distance = graph.getDistance(vertexID, neighbourID);
-//				estimate -= 0.015625 * (distance + state.getDistance()) + 0.00390625 * (neighbourStep - step);  // FIXME
 				final @NotNull State neighbourState = new State(state, graph.getVertex(neighbourID), distance, estimate);
 				queue.add(neighbourState);
 
 			}
 		}
 
-		if (
-			allowAgentStop &&
-				canVisitVertex(state, entryID, vertexID, constraints) &&
-				(
-					stepOccupiedVertices.putIfAbsent(stateStep + 1, new HashMap<>()) == null || safeVertex(stateStep + 1, vertexID, agentPerimeter)
-				)
-		) {
+		if (allowAgentStop && canVisitVertex(state, entryID, vertexID, constraints) && safeStepTo(stateStep, vertexID, vertexID, agentPerimeter)) {
 			queue.add(new State(state));
 		}
 	}
@@ -245,20 +231,24 @@ public class AStarSingle extends SafeLanes {
 
 	protected class State extends VertexWithDirectionParent {
 		private final long step;
+		private final long lastStop;
 
 		public State(GraphicalVertex vertex, double estimate, long step) {
 			super(vertex, 0, estimate);
 			this.step = step;
+			this.lastStop = Long.MAX_VALUE;
 		}
 
 		public State(@NotNull State state) {
-			super(state, state.getVertex(), 1, state.getEstimate() - 0.00390625);
-			step = state.getStep() + 1;
+			super(state, state.getVertex(), 1, state.getEstimate());
+			this.step = state.getStep() + 1;
+			this.lastStop = step;
 		}
 
 		public State(@NotNull State previous, GraphicalVertex actual, double distance, double estimate) {
 			super(previous, actual, distance, estimate);
 			this.step = previous.getStep() + 1;
+			this.lastStop = previous.vertex.equals(actual) ? step : previous.lastStop;
 		}
 
 		public long getStep() {
@@ -294,6 +284,19 @@ public class AStarSingle extends SafeLanes {
 			int result = super.hashCode();
 			result = 31 * result + (int) (step ^ (step >>> 32));
 			return result;
+		}
+
+		/**
+		 * @param o the object to be compared.
+		 * @return
+		 */
+		@Override
+		public int compareTo(@NotNull VertexWithDirection o) {
+			final int superComparison = super.compareTo(o);
+			if (superComparison == 0 && o instanceof State s) {
+				return Long.compare(s.lastStop, lastStop);
+			}
+			return superComparison;
 		}
 	}
 }

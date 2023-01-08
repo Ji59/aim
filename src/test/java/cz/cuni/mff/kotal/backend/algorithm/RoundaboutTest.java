@@ -34,7 +34,7 @@ class RoundaboutTest {
 	@Test
 	void planAgent() {
 		roundabout.planAgent(previousAgent, 0);
-		previousAgent.setPlannedTime(0);
+		previousAgent.setPlannedStep(0);
 
 //		assertThat(previousAgent.getPath(), contains(19, 2, 3, 7, 11, 15, 14, 13, 12, 8, 20));
 		assertThat(previousAgent.getPath()).contains(19, 2, 3, 7, 11, 15, 14, 13, 12, 8, 20);

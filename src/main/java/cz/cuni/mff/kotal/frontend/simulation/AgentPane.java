@@ -213,7 +213,7 @@ public class AgentPane extends StackPane {
 	 * @return
 	 */
 	public boolean handleTick(double step) {
-		double time = step - agent.getPlannedTime();
+		double time = step - agent.getPlannedStep();
 		boolean finished = agent.computeNextXY(time, simulationVertices);
 		if (finished) {
 			return true;
@@ -229,7 +229,7 @@ public class AgentPane extends StackPane {
 	 * @return
 	 */
 	public boolean handleSimulatedTick(double step) {
-		double time = step - agent.getPlannedTime();
+		double time = step - agent.getPlannedStep();
 		boolean finished = agent.computeNextXY(time, simulationVertices);
 		if (finished) {
 			return true;

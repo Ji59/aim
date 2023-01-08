@@ -30,13 +30,13 @@ class SafeLanesTest {
 		for (int i = 0; i < path0.size(); i++) {
 			@NotNull Map<Integer, Agent> stepMap = new HashMap<>();
 			stepMap.put(path0.get(i), agent0);
-			safeLanes.getStepOccupiedVertices().put(i + agent0.getPlannedTime(), stepMap);
+			safeLanes.getStepOccupiedVertices().put(i + agent0.getPlannedStep(), stepMap);
 		}
 	}
 
 	@Test
 	void validPath() {
 		double agentPerimeter = agent1.getAgentPerimeter();
-		assertThat(safeLanes.validPath(agent1.getPlannedTime(), agent1.getPath(), agentPerimeter)).isFalse();
+		assertThat(safeLanes.validPath(agent1.getPlannedStep(), agent1.getPath(), agentPerimeter)).isFalse();
 	}
 }

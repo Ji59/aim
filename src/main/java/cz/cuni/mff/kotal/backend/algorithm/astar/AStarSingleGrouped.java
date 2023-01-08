@@ -100,7 +100,7 @@ public class AStarSingleGrouped extends AStarSingle {
 	protected static @NotNull Map<Long, Map<Integer, Agent>> getConflictAvoidanceTable(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agents, long step) {
 		@NotNull Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = new HashMap<>();
 		for (@NotNull Agent agent : agents.keySet()) {
-			@NotNull ListIterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedTime()));
+			@NotNull ListIterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedStep()));
 			for (long i = step; it.hasNext(); i++) {
 				int vertexID = it.next();
 				conflictAvoidanceTable.computeIfAbsent(i, k -> new HashMap<>());
@@ -353,7 +353,7 @@ public class AStarSingleGrouped extends AStarSingle {
 			final Entry<Agent, Pair<Integer, Set<Integer>>> agentEntryExitsEntry = it.next();
 			final Agent agent = agentEntryExitsEntry.getKey();
 			final int agentEntry = agentEntryExitsEntry.getValue().getVal0();
-			if (!safeVertex(step, agentEntry, agent.getAgentPerimeter())) {
+			if (stepOccupiedVertices.get(step).containsKey(agentEntry)) {
 				it.remove();
 				continue;
 			}
@@ -378,7 +378,7 @@ public class AStarSingleGrouped extends AStarSingle {
 			final Entry<Agent, Pair<Integer, Set<Integer>>> entry = it.next();
 			final Agent agent = entry.getKey();
 			final int agentEntry = entry.getValue().getVal0();
-			if (!safeVertex(step, agentEntry, agent.getAgentPerimeter())) {
+			if (stepOccupiedVertices.get(step).containsKey(agentEntry)) {
 				it.remove();
 			}
 		}
@@ -531,14 +531,14 @@ public class AStarSingleGrouped extends AStarSingle {
 			for (final @NotNull Iterator<Integer> iterator = neighbours[i].iterator(); iterator.hasNext(); ) {
 				final int neighbourID = iterator.next();
 				final double agentPerimeter = agents[i].getAgentPerimeter();
-				if (safeVertex(illegalMovesTable, nextStep, neighbourID, agentPerimeter) &&
+				if (!stepOccupiedVertices.get(nextStep).containsKey(neighbourID) &&
 					safeStepTo(illegalMovesTable, nextStep, neighbourID, stateID, agentPerimeter) &&
 					safeStepFrom(illegalMovesTable, stateStep, stateID, neighbourID, agentPerimeter)
 				) {
 					assert !agentNeighboursCollisions.containsKey(neighbourID);
 					agentNeighboursCollisions.put(neighbourID, new HashSet<>());
 					agentNeighboursCollisions.get(neighbourID).addAll(collisionAgentsAtVertex(conflictAvoidanceTable, nextStep, neighbourID, agentPerimeter));
-					agentNeighboursCollisions.get(neighbourID).addAll(collisionsOnWayTo(conflictAvoidanceTable, nextStep, neighbourID, stateID, agentPerimeter));
+					agentNeighboursCollisions.get(neighbourID).addAll(collisionsOnWayTo(conflictAvoidanceTable, stateStep, stateID, neighbourID, agentPerimeter));
 					agentNeighboursCollisions.get(neighbourID).addAll(collisionsOnWayFrom(conflictAvoidanceTable, stateStep, stateID, neighbourID, agentPerimeter));
 				} else {
 					iterator.remove();
@@ -547,6 +547,109 @@ public class AStarSingleGrouped extends AStarSingle {
 		}
 
 		return neighboursCollisions;
+	}
+
+	@NotNull
+	protected Set<Agent> collisionAgentsAtVertex(@NotNull Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, long step, int vertexID, double agentPerimeter) {
+		if (!conflictAvoidanceTable.containsKey(step)) {
+			return Collections.emptySet();
+		}
+
+		final double safePerimeter = agentPerimeter + safeDistance;
+		return verticesDistances.get(vertexID).stream()
+			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
+			.filter(v -> conflictAvoidanceTable.get(step).containsKey(v.vertexID()))
+			.flatMap(v -> {
+				Set<Agent> neighbours = conflictAvoidanceTable.get(step).get(v.vertexID());
+				return neighbours.stream().filter(n -> n.getAgentPerimeter() + safePerimeter >= v.distance);
+			})
+			.collect(Collectors.toSet());
+	}
+
+	@NotNull
+	public Set<Agent> collisionsOnWayTo(@NotNull Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, long step, int vertexID, int nextVertexID, double agentPerimeter) {
+		if (!(conflictAvoidanceTable.containsKey(step) && conflictAvoidanceTable.containsKey(step + 1)) ||
+			conflictAvoidanceTable.get(step).isEmpty() || conflictAvoidanceTable.get(step + 1).isEmpty()
+		) {
+			return Collections.emptySet();
+		}
+
+		final Set<Agent> neighbours = conflictAvoidanceTable.get(step - 1).get(nextVertexID);
+
+		final Map<Integer, Set<Agent>> conflictVertices = conflictAvoidanceTable.get(step);
+		@NotNull final Map<Integer, Double>[] transferMap = graph.getTravelDistances()[nextVertexID].get(nextVertexID);
+		final double agentSafeDistance = agentPerimeter + safeDistance;
+		final double largestSafePerimeter = agentSafeDistance + largestAgentPerimeter;
+		for (SimulationGraph.VertexDistance vertexDistance : graph.getSortedVertexVerticesDistances()[nextVertexID].get(nextVertexID)) {
+			if (vertexDistance.distance() > largestSafePerimeter) {
+				break;
+			}
+
+			final int agentVertex = vertexDistance.vertexID();
+			if (!conflictVertices.containsKey(agentVertex)) {
+				continue;
+			}
+			if (agentVertex == vertexID) {
+				neighbours.addAll(conflictVertices.get(agentVertex));
+				continue;
+			}
+
+			for (@NotNull final Agent plannedAgent : conflictVertices.get(agentVertex)) {
+
+			}
+			final int plannedAgentTime = (int) (step - plannedAgent.getPlannedStep() + 1);
+			@NotNull List<Integer> path = plannedAgent.getPath();
+			if (plannedAgentTime >= path.size()) {
+				continue;
+			}
+
+			final int agentNextVertex = path.get(plannedAgentTime);
+			final double perimeters = agentSafeDistance + plannedAgent.getAgentPerimeter();
+			if (transferMap[agentVertex].get(agentNextVertex) <= perimeters) {
+				return false;
+			}
+		}
+
+			return neighbours.stream()
+			.filter(neighbour -> {
+				final int neighbourVertexID = getNeighbourVertexID(step, neighbour);
+				if (neighbourVertexID < 0) {
+					return false;
+				}
+				return !checkNeighbour(nextVertexID, vertexID, neighbourVertexID, agentPerimeter, neighbour.getAgentPerimeter());
+			})
+			.collect(Collectors.toSet());
+
+
+		@NotNull final Map<Integer, Agent> occupiedVertices = stepOccupiedVertices.get(step);
+		@NotNull final Map<Integer, Double>[] transferMap = graph.getTravelDistances()[nextVertexID].get(nextVertexID);
+		final double agentSafeDistance = agentPerimeter + safeDistance;
+		final double largestSafePerimeter = agentSafeDistance + largestAgentPerimeter;
+		for (SimulationGraph.VertexDistance vertexDistance : graph.getSortedVertexVerticesDistances()[nextVertexID].get(nextVertexID)) {
+			if (vertexDistance.distance() > largestSafePerimeter) {
+				return true;
+			}
+
+			final int agentVertex = vertexDistance.vertexID();
+			if (!occupiedVertices.containsKey(agentVertex)) {
+				continue;
+			}
+
+			@NotNull final Agent plannedAgent = occupiedVertices.get(agentVertex);
+			final int plannedAgentTime = (int) (step - plannedAgent.getPlannedStep() + 1);
+			@NotNull List<Integer> path = plannedAgent.getPath();
+			if (plannedAgentTime >= path.size()) {
+				continue;
+			}
+
+			final int agentNextVertex = path.get(plannedAgentTime);
+			final double perimeters = agentSafeDistance + plannedAgent.getAgentPerimeter();
+			if (transferMap[agentVertex].get(agentNextVertex) <= perimeters) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	protected void filterVisitedNeighbours(Agent @NotNull [] agents, CompositeState state, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited) {

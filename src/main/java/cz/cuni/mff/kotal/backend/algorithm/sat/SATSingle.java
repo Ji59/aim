@@ -24,7 +24,7 @@ public class SATSingle extends SATSingleGrouped {
 				final int entry = e.getValue().getVal0();
 				final Set<Integer> exitsID = e.getValue().getVal1();
 				agent = super.planAgent(agent, entry, exitsID, step);
-				assert agent == null || (agent.getPlannedTime() == step && !agent.getPath().isEmpty());
+				assert agent == null || (agent.getPlannedStep() == step && !agent.getPath().isEmpty());
 				return agent;
 			})
 			.filter(Objects::nonNull)

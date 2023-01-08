@@ -20,8 +20,8 @@ import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
  */
 public class Agent extends BasicAgent {
 
-	private long plannedTime = -1;
-	private List<Integer> path = new ArrayList<>();
+	private long plannedStep = -1;
+	private @NotNull List<Integer> path = new ArrayList<>();
 	private double collisionStep = Double.POSITIVE_INFINITY;
 	private transient double x; // location
 	private transient double y;
@@ -60,9 +60,9 @@ public class Agent extends BasicAgent {
 	}
 
 	@TestOnly
-	public Agent(long id, double arrivalTime, long plannedTime, int entry) {
+	public Agent(long id, double arrivalTime, long plannedStep, int entry) {
 		super(id, arrivalTime, entry);
-		this.plannedTime = plannedTime;
+		this.plannedStep = plannedStep;
 	}
 
 	@TestOnly
@@ -176,13 +176,13 @@ public class Agent extends BasicAgent {
 
 	// TODO
 
-	public @NotNull Agent setPlannedTime(long plannedTime) {
-		this.plannedTime = plannedTime;
+	public @NotNull Agent setPlannedStep(long plannedStep) {
+		this.plannedStep = plannedStep;
 		return this;
 	}
 
-	public long getPlannedTime() {
-		return plannedTime;
+	public long getPlannedStep() {
+		return plannedStep;
 	}
 
 	public void setEntry(@NotNull GraphicalVertex vertex) {
@@ -195,7 +195,7 @@ public class Agent extends BasicAgent {
 	/**
 	 * @return Path of this agent
 	 */
-	public List<Integer> getPath() {
+	public @NotNull List<Integer> getPath() {
 		return path;
 	}
 
@@ -207,9 +207,9 @@ public class Agent extends BasicAgent {
 	 * @param path        New path of this agent
 	 * @param plannedTime
 	 */
-	public @NotNull Agent setPath(List<Integer> path, long plannedTime) {
+	public @NotNull Agent setPath(@NotNull List<Integer> path, long plannedTime) {
 		this.path = path;
-		this.plannedTime = plannedTime;
+		this.plannedStep = plannedTime;
 		return this;
 	}
 
@@ -219,7 +219,7 @@ public class Agent extends BasicAgent {
 	 *
 	 * @param path New path of this agent
 	 */
-	public @NotNull Agent setPath(List<Integer> path) {
+	public @NotNull Agent setPath(@NotNull List<Integer> path) {
 		this.path = path;
 		return this;
 	}
