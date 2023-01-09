@@ -12,6 +12,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
@@ -208,10 +209,14 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 		return SPEED_DEVIATION_SLIDER.getValue();
 	}
 
+	public static Parameters.Random getRandomDistribution() {
+		return Parameters.Random.value(((MyComboBox)Parameters.RNG.getParameter()).getValue());
+	}
+
 	/**
 	 * Parameters shown in this tab.
 	 */
-	private enum Parameters {
+	public enum Parameters {
 		SIZE("Size:", new GridPane()),
 		SPEED("Speed:", new GridPane()),
 		RNG("RNG distribution:", new MyComboBox(Arrays.stream(Random.values()).map(Random::getText).toList())),
@@ -236,7 +241,7 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 		/**
 		 * Supported random distributions to show in parameter combo box.
 		 */
-		private enum Random {
+		public enum Random {
 			// TODO pridat funkcni predpis
 			GAUSS("Gauss"),
 			LINEAR("Linear"),
@@ -250,6 +255,15 @@ public class AgentParametersMenuTab4 extends MyTabTemplate {
 
 			public String getText() {
 				return text;
+			}
+
+			public static @Nullable Random value(String name) {
+				for (Random random : Random.values()) {
+					if (random.getText().equals(name)) {
+						return random;
+					}
+				}
+				return null;
 			}
 		}
 	}

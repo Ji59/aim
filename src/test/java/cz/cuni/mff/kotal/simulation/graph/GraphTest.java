@@ -1,5 +1,6 @@
 package cz.cuni.mff.kotal.simulation.graph;
 
+import cz.cuni.mff.kotal.frontend.menu.tabs.IntersectionMenuTab0;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,17 @@ class GraphTest {
 
    @Test
    public void testGraph() {
-      @NotNull Graph g = new Graph(false, Set.of(v0, v1, v2), new HashMap<>(), Set.of(e0, e1, e2), 4, 1, 1);
+      @NotNull Graph g = new Graph(false, Set.of(v0, v1, v2), new HashMap<>(), Set.of(e0, e1, e2), 4, 1, 1) {
+         @Override
+         public IntersectionMenuTab0.Parameters.GraphType getModel() {
+            return null;
+         }
+
+         @Override
+         public double getCellSize() {
+            return 0;
+         }
+      };
 
       // check vertices
       assert g.getVertices().length == 3;

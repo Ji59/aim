@@ -44,6 +44,8 @@ public class GeneratingSimulation extends Simulation {
 	private final long maximalSpeed;
 	private final double maxDeviation;
 
+	private final AgentParametersMenuTab4.Parameters.Random parametersDistribution;
+
 
 	/**
 	 * Create new simulation.
@@ -77,6 +79,7 @@ public class GeneratingSimulation extends Simulation {
 		maximalSpeed = AgentParametersMenuTab4.getMaximalSpeed();
 
 		maxDeviation = AgentParametersMenuTab4.getSpeedDeviation();
+		parametersDistribution = AgentParametersMenuTab4.getRandomDistribution();
 	}
 
 	/**
@@ -112,6 +115,7 @@ public class GeneratingSimulation extends Simulation {
 		this.maxDeviation = maxDeviation;
 
 		this.newAgentsMaximum = Math.min(newAgentsMaximum, distribution.stream().filter(d -> d > 0).count());
+		parametersDistribution = AgentParametersMenuTab4.getRandomDistribution();
 	}
 
 
@@ -221,7 +225,8 @@ public class GeneratingSimulation extends Simulation {
 	 */
 	protected @NotNull List<Agent> generateAgents(long step, int id) {
 		assert (distribution.stream().reduce(0L, Long::sum) == 100);
-		long newAgentsCount = generateRandomLong(newAgentsMinimum, newAgentsMaximum);
+		long newAgentsCount = generateRandomLongGaussian(newAgentsMinimum, newAgentsMaximum);
+		System.out.println(newAgentsCount);
 
 		@NotNull List<Agent> newAgents = new ArrayList<>();
 		@NotNull Map<Integer, List<Vertex>> entries = getEntriesExitsMap(true);
@@ -369,10 +374,20 @@ public class GeneratingSimulation extends Simulation {
 		}
 
 		// TODO extract constants
-		double length = generateRandom(minimalLength, maximalLength);
-		double width = generateRandom(minimalWidth, maximalWidth);
 
-		double speed = generateWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
+		double length;
+		double width;
+		double speed;
+		if (parametersDistribution.equals(AgentParametersMenuTab4.Parameters.Random.GAUSS)) {
+			length = generateRandomGaussian(minimalLength, maximalLength);
+			width = generateRandomGaussian(minimalWidth, maximalWidth);
+			speed = generateRandomGaussianWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
+		} else {
+			length = generateRandom(minimalLength, maximalLength);
+			width = generateRandom(minimalWidth, maximalWidth);
+			speed = generateRandomWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
+		}
+
 
 		List<Vertex> directionEntries = entries.get(entryDirection);
 		GraphicalVertex entry;

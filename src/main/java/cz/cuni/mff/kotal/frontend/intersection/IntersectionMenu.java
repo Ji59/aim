@@ -256,6 +256,7 @@ public class IntersectionMenu extends VBox {
 				try {
 					startSimulation();
 				} catch (Exception ex) {
+					ex.printStackTrace();
 					final @NotNull Alert alert = new Alert(Alert.AlertType.ERROR);
 					alert.setTitle("Starting simulation failed");
 					alert.setHeaderText("Exception occurred during simulation initialization");

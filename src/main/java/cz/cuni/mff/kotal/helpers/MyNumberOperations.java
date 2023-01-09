@@ -224,20 +224,4 @@ public class MyNumberOperations {
 		return num / den;
 
 	}
-
-	// TODO move to test
-	public static void main(String... args) {
-		String @NotNull [] arr = new String[]{"0", "1", "2", "3", "4"};
-		@NotNull String result = combinations(arr).map(l -> String.join(" ", l)).collect(Collectors.joining("\n"));
-		System.out.println(result);
-
-		@NotNull List<String> arr1 = new LinkedList<>(Arrays.asList(arr));
-		for (int i = 0; i <= arr1.size(); i++) {
-			@NotNull Collection<Collection<String>> combinations = combinations(arr1, i);
-			for (@NotNull Collection<String> result1 : combinations) {
-				System.out.println(String.join(" ", result1));
-			}
-			System.out.println(combinationNumber(arr1.size(), i) + ", " + combinations.size() + '\n');
-		}
-	}
 }

@@ -122,7 +122,7 @@ public class Agent extends BasicAgent {
 		} else if (doubleAlmostEqual(time, (path.size() - 1) / getSpeed(), PROXIMITY)) {
 			int exitID = path.get(path.size() - 1);
 			return new Pair<>(exitID, exitID);
-		} else if (time > path.size() - 1) {
+		} else if (time * getSpeed() > path.size() - 1) {
 			return null;
 		}
 		int previousIndex = getLastVisitedVertexIndex(time);
