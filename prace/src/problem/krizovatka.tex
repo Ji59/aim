@@ -24,15 +24,16 @@ Tyto~typy budu nazývat \hyperref[subsec:ctvercovy_typ]{čtvercový}, \hyperref[
 a~\hyperref[subsec:hexagonalni_typ]{hexagonální}.
 
 Rozdělení křižovatky má určité parametry ovlivňující výsledný graf.
-Těmito parametry jsou \hyperref[par:granularita]{granularita},
+Těmito parametry jsou \hyperref[par:velikost_krizovatky]{velikost křižovatky},
 \hyperref[par:vjezdy]{počet vjezdů} a~\hyperref[par:vyjezdy]{počet výjezdů}.
 
-\paragraph{Granularita}\label{par:granularita} značí na~jak velké množství bloků je křižovatka rozdělena.
-Přesný význam granularity se liší u~každého typu a je popsán zvlášť v~jednotlivých kapitolách.
-Na~\hyperref[par:granularita]{granularitě} závisí tzv.~\hyperref[par:velikost_bloku]{velikost bloku}.
+\paragraph{Velikost křižovatky}\label{par:velikost_krizovatky} značí z~kolika bloků se křižovatka skládá.
+Obecně je hodnota \hyperref[par:velikost_krizovatky]{velikosti křižovatky} rovna počtu bloků na jedné hraně křižovatky.
+Přesný význam je popsán zvlášť v~jednotlivých kapitolách.
+Na~\hyperref[par:velikost_krizovatky]{velikosti křižovatky} závisí tzv.~\hyperref[par:velikost_bloku]{velikost bloku}.
 
 \paragraph{Velikost bloku}\label{par:velikost_bloku} značí velikost základních bloků rozdělení
-(rovna vzdálenosti mezi vrcholy), opět se ale u~různých typů liší.
+(odpovídá vzdálenosti mezi vrcholy), opět se ale u~různých typů liší.
 Tuto~veličinu zavádím kvůli jednoduchému porovnání velikosti auta vůči bloku.
 
 Každý typ křižovatky má předurčený počet \emph{směrů} ze~kterých auta přijíždějí.
@@ -57,6 +58,7 @@ Platí tedy $\ref{str:mezera_l}=\ref{str:mezera_p}\wedge(\ref{str:mezera_s}=\ref
 
 \hyperref[par:pruh]{Pruhy} jsou známý koncept u křižovatek a v dopravě obecně.
 Rozhodl jsem se proto formálně definovat \hyperref[par:pruh]{pruh}.
+
 \paragraph{Pruh}\label{par:pruh} mezi určitým vjezdem a výjezdem definuji jako nejkratší cestu mezi těmito vrcholy.
 Délka cesty je určena počtem vrcholů, přes které vede.
 Pokud vedou dvě různé cesty přes stejný počet vrcholů, je upřednostněna ta, na~které musí auto méně zatáčet.
@@ -71,15 +73,17 @@ Takto jsem se rozhodl, protože díky tomu budou mít auta méně ostré zatáč
 Celková hlavní plocha křižovatky (tedy veškerá plocha mimo
 \hyperref[par:vjezdy]{vjezdy} a \hyperref[par:vyjezdy]{výjezdy}) tvoří čtverec.
 
-\nameref{par:granularita} značí počet bloků na~jedné straně plochy křižovatky.
-Celkový počet bloků hlavní plochy křižovatky tudíž činí $g^2$, kde $g$ je \hyperref[par:granularita]{granularita} křižovatky.
+\nameref{par:velikost_krizovatky} značí počet bloků na~jedné straně plochy křižovatky.
+Celkový počet bloků hlavní plochy křižovatky tudíž činí $g^2$,
+kde $g$ je \hyperref[par:velikost_krizovatky]{velikost křižovatky}.
 Pozice vrcholu je přesně uprostřed jemu odpovídajícího bloku.
 Mezi každými bloky, který spolu sdílí stěnu, vede ve~výsledným grafu hrana.
 Tento typ křižovatky má čtyři směry, jeden směr na~každé straně čtverce hlavní plochy.
 Křižovatka je převedena na~graf s~$g^2 + 4i + 4o$ vrcholy,
-kde $g$ značí \hyperref[par:granularita]{granularitu}, $i$~\hyperref[par:vjezdy]{vjezdy} a $o$~\hyperref[par:vyjezdy]{výjezdy}.
+kde $g$ opět značí \hyperref[par:velikost_krizovatky]{velikost},
+$i$~\hyperref[par:vjezdy]{vjezdy} a $o$~\hyperref[par:vyjezdy]{výjezdy}.
 
-Ukázka křižovatky s~\hyperref[par:granularita]{granularitou}~$4$, jedním \hyperref[par:vjezdy]{vjezdem} a
+Ukázka křižovatky s~\hyperref[par:velikost_krizovatky]{velikostí}~$4$, jedním \hyperref[par:vjezdy]{vjezdem} a
 jedním \hyperref[par:vyjezdy]{výjezdem} je vidět na~obrázku~\ref{fig:square_type_graph}.
 Na~obrázku jsou šedou barvou označeny vrcholy značící běžnou plochu křižovatky,
 červeno-šedou barvou označeny vrcholy reprezentující \hyperref[par:vjezdy]{vjezdy} a
@@ -104,16 +108,16 @@ Mezi těmito oktagonálními bloky vzniknou nové bloky reprezentující diagon�
 Nově vytvořené bloky mají nanejvýše $4$~sousedy, a tvoří pomyslný čtverec.
 Z~vizuálních důvodů byly odebrány rohové bloky.
 
-\hyperref[par:granularita]{Granularita}, \hyperref[par:vjezdy]{vjezdy} a \hyperref[par:vyjezdy]{výjezdy}
+\nameref{par:velikost_krizovatky}, \hyperref[par:vjezdy]{vjezdy} a \hyperref[par:vyjezdy]{výjezdy}
 mají stejný význam jako u~\hyperref[subsec:ctvercovy_typ]{čtvercového typu}.
 Počet vrcholů u~této křižovatky činí $g^2 - 4 + (g-1)^2 + 4i + 4o = 2g^2 - 2g - 3 + 4(i + o)$,
-kde $g$ je \hyperref[par:granularita]{granularita},
+kde $g$ je \hyperref[par:velikost_krizovatky]{velikost},
 $i$ počet \hyperref[par:vjezdy]{vjezdů} a $o$ počet \hyperref[par:vyjezdy]{výjezdů}.
 \nameref{par:velikost_bloku} je vzdálenost mezi dvěma sousedními vrcholy reprezentujícími oktagonální blok,
 opět totožná s~velikostí bloku u~čtvercového typu.
 
 Na~obrázku (Obrázek~\ref{fig:octagonal_type_graph}) je znázorněn příklad
-\hyperref[subsec:oktagonali_typ]{oktagonálního typu} křižovatky s~\hyperref[par:granularita]{granularitou}~$4$,
+\hyperref[subsec:oktagonali_typ]{oktagonálního typu} křižovatky s~\hyperref[par:velikost_krizovatky]{velikostí}~$4$,
 jedním \hyperref[par:vjezdy]{vjezdem} a jedním \hyperref[par:vyjezdy]{výjezdem}.
 
 Barvy vrcholů a bloků jsou stejné jako u~\hyperref[subsec:ctvercovy_typ]{čtvercového typu},
@@ -140,15 +144,15 @@ Díky této reprezentaci má křižovatka tohoto typu $6$~směrů odkud mohou au
 Toto rozdělení sebou nese jednu velkou nevýhodu.
 Pokud chce auto jet rovně skrze křižovatku (do~protilehlého směru), křižovatka mu nemůže nabídnout rovnou cestu.
 
-\hyperref[par:granularita]{Granularita} u~tohoto typu značí počet bloků na~jedné straně celkové plochy.
+\nameref{par:velikost_krizovatky} u~tohoto typu opět značí počet bloků na~jedné straně celkové plochy.
 Hodnota je taktéž rovna počtu vrcholů z~kraje křižovatky do~středu.
 Počet vrcholů grafu tedy činí $6 \times g \times (g-1) + 6i + 6o$,
-kde $g$ je \hyperref[par:granularita]{granularita},
+kde $g$ je \hyperref[par:velikost_krizovatky]{velikost},
 $i$ počet \hyperref[par:vjezdy]{vjezdů} a $o$ počet \hyperref[par:vyjezdy]{výjezdů}.
 \nameref{par:velikost_bloku} je opět vzdálenost mezi dvěma sousedními vrcholy.
 
 Na~obrázku (Obrázek~\ref{fig:hexagonal_type_graph}) je znázorněn příklad
-\hyperref[subsec:hexagonalni_typ]{hexagonálního typu} křižovatky s~\hyperref[par:granularita]{granularitou}~$4$,
+\hyperref[subsec:hexagonalni_typ]{hexagonálního typu} křižovatky s~\hyperref[par:velikost_krizovatky]{velikostí}~$4$,
 jedním \hyperref[par:vjezdy]{vjezdem} a jedním \hyperref[par:vyjezdy]{výjezdem}.
 
 Barvy vrcholů a bloků jsou opět stejné.
