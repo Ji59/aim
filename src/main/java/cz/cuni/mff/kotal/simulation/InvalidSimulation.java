@@ -14,19 +14,8 @@ public class InvalidSimulation extends Simulation {
 	}
 
 	@Override
-	protected void start() {
-
-	}
-
-	@Override
-	@Deprecated
-	protected void stopSimulation() {
-
-	}
-
-	@Override
-	protected void resetSimulation() {
-
+	protected @Nullable Collection<Agent> loadAgents(long step) {
+		return null;
 	}
 
 	@Override
@@ -35,7 +24,12 @@ public class InvalidSimulation extends Simulation {
 	}
 
 	@Override
-	protected @Nullable Collection<Agent> loadAgents(long step) {
-		return null;
+	protected void start() {
+
+	}
+
+	@Override
+	protected void resetSimulation() {
+
 	}
 }

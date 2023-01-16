@@ -7,6 +7,7 @@ import cz.cuni.mff.kotal.frontend.menu.tabs.AgentParametersMenuTab4;
 import cz.cuni.mff.kotal.frontend.menu.tabs.AgentsMenuTab1;
 import cz.cuni.mff.kotal.frontend.simulation.GraphicalVertex;
 import cz.cuni.mff.kotal.frontend.simulation.SimulationAgents;
+import cz.cuni.mff.kotal.helpers.MyGenerator;
 import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.Vertex;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
 
 import static cz.cuni.mff.kotal.helpers.MyGenerator.*;
@@ -28,14 +30,11 @@ public class GeneratingSimulation extends Simulation {
 
 	private static final boolean randomEntry = false;
 	private static final boolean generateEntry = true;
-
-	private final long maximumSteps;
 	protected final long newAgentsMinimum;
 	protected final long newAgentsMaximum;
 	protected final List<Long> distribution;
+	private final long maximumSteps;
 	private final boolean generateExit;
-
-	private @Nullable Timer timer;
 	private final double minimalLength;
 	private final double maximalLength;
 	private final double minimalWidth;
@@ -43,8 +42,8 @@ public class GeneratingSimulation extends Simulation {
 	private final long minimalSpeed;
 	private final long maximalSpeed;
 	private final double maxDeviation;
-
 	private final AgentParametersMenuTab4.Parameters.Random parametersDistribution;
+	private @Nullable Timer timer;
 
 
 	/**
@@ -65,7 +64,7 @@ public class GeneratingSimulation extends Simulation {
 		distribution = AgentsMenuTab1.getDirectionDistribution().getChildren().stream().map(node -> ((AgentsMenuTab1.DirectionSlider) node).getValue()).toList();
 		generateExit = AgentsMenuTab1.specificExit();
 
-		final long possibleEntries = intersectionGraph.getEntries() * getDistribution().stream().filter(d -> d > 0).count();
+		final long possibleEntries = intersectionGraph.getEntries() * distribution.stream().filter(d -> d > 0).count();
 		newAgentsMinimum = Math.min(AgentsMenuTab1.getNewAgentsMinimum().getIntValue(), possibleEntries);
 		newAgentsMaximum = Math.min(AgentsMenuTab1.getNewAgentsMaximum().getIntValue(), possibleEntries);
 
@@ -118,6 +117,39 @@ public class GeneratingSimulation extends Simulation {
 		parametersDistribution = AgentParametersMenuTab4.getRandomDistribution();
 	}
 
+	/**
+	 * @return Directions distribution
+	 */
+	public List<Long> getDistribution() {
+		return distribution;
+	}
+
+	/**
+	 * @return Minimum agents to be generated
+	 */
+	public long getNewAgentsMinimum() {
+		return newAgentsMinimum;
+	}
+
+	/**
+	 * @return Maximum agents to be generated
+	 */
+	public long getNewAgentsMaximum() {
+		return newAgentsMaximum;
+	}
+
+	@FunctionalInterface
+	private interface DoubleTriFunction {
+
+		/**
+		 * @param l0
+		 * @param l1
+		 * @param d
+		 *
+		 * @return
+		 */
+		public double apply(final long l0, final long l1, final double d);
+	}
 
 	/**
 	 * Start this simulation.
@@ -146,17 +178,6 @@ public class GeneratingSimulation extends Simulation {
 		}).start();
 	}
 
-	/**
-	 * Stop this simulation.
-	 */
-	@Override
-	@Deprecated
-	public void stopSimulation() {
-		if (timer != null) {
-			timer.cancel();
-			timer = null;
-		}
-	}
 
 	/**
 	 * Reset this simulation.
@@ -173,6 +194,7 @@ public class GeneratingSimulation extends Simulation {
 	 * TODO
 	 *
 	 * @param step
+	 *
 	 * @return
 	 */
 	@Override
@@ -221,12 +243,12 @@ public class GeneratingSimulation extends Simulation {
 	 * Generate new agents with IDs starting from specified ID.
 	 *
 	 * @param id ID of first generated agent; increases with reach generated agent
+	 *
 	 * @return Set of newly generated agents
 	 */
 	protected @NotNull List<Agent> generateAgents(long step, int id) {
 		assert (distribution.stream().reduce(0L, Long::sum) == 100);
 		long newAgentsCount = generateRandomLongGaussian(newAgentsMinimum, newAgentsMaximum);
-		System.out.println(newAgentsCount);
 
 		@NotNull List<Agent> newAgents = new ArrayList<>();
 		@NotNull Map<Integer, List<Vertex>> entries = getEntriesExitsMap(true);
@@ -254,13 +276,6 @@ public class GeneratingSimulation extends Simulation {
 
 			for (int entryDirection = 0; entryDirection < directions; entryDirection++) {
 				PriorityQueue<Agent> directionAgents = directionsAgents.get(entryDirection);
-//				directionAgents.sort((agent0, agent1) -> {
-//					int directionDifference = Long.compare(myModulo(agent0.getEntryDirection(), directions), myModulo(agent1.getExitDirection(), directions));
-//					if (directionDifference == 0) {
-//						return Long.compare(agent0.getEntry(), agent1.getEntry());
-//					}
-//					return directionDifference;
-//				});
 				@NotNull List<Vertex> directionEntries = getIntersectionGraph().getEntryExitVertices().get(entryDirection).stream().filter(vertex -> vertex.getType().isEntry()).toList(); // FIXME parallelStream?
 
 				final int directionAgentsMaxIndex = directionAgents.size() - 1;
@@ -311,6 +326,7 @@ public class GeneratingSimulation extends Simulation {
 	 * @param exitValue  Value used for exit direction selection
 	 * @param entries    Map of entries from different directions
 	 * @param exits      Map of exits from different directions
+	 *
 	 * @return Newly generated agent
 	 */
 	protected @NotNull Agent generateAgent(double step, int id, long entryValue, long exitValue, @NotNull Map<Integer, List<Vertex>> entries, @NotNull Map<Integer, List<Vertex>> exits) {
@@ -373,20 +389,19 @@ public class GeneratingSimulation extends Simulation {
 			}
 		}
 
-		// TODO extract constants
-
-		double length;
-		double width;
-		double speed;
+		ToDoubleBiFunction<Double, Double> random;
+		DoubleTriFunction randomDev;
 		if (parametersDistribution.equals(AgentParametersMenuTab4.Parameters.Random.GAUSS)) {
-			length = generateRandomGaussian(minimalLength, maximalLength);
-			width = generateRandomGaussian(minimalWidth, maximalWidth);
-			speed = generateRandomGaussianWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
+			random = MyGenerator::generateRandomGaussian;
+			randomDev = MyGenerator::generateRandomGaussianWithDeviation;
 		} else {
-			length = generateRandom(minimalLength, maximalLength);
-			width = generateRandom(minimalWidth, maximalWidth);
-			speed = generateRandomWithDeviation(minimalSpeed, maximalSpeed, maxDeviation);
+			random = MyGenerator::generateRandom;
+			randomDev = MyGenerator::generateRandomWithDeviation;
 		}
+		double length = random.applyAsDouble(minimalLength, maximalLength);
+		double width = random.applyAsDouble(minimalWidth, maximalWidth);
+		double speed = randomDev.apply(minimalSpeed, maximalSpeed, maxDeviation);
+		double arrivalTime = random.applyAsDouble(step - maxDeviation, step + maxDeviation);
 
 
 		List<Vertex> directionEntries = entries.get(entryDirection);
@@ -404,8 +419,6 @@ public class GeneratingSimulation extends Simulation {
 			exit = directionExits.get(generateRandomInt(directionExits.size() - 1));
 		}
 
-		double arrivalTime = step + Math.exp(-Math.random()) * maxDeviation;
-
 		return new Agent(id, randomEntry ? entry.getID() : -1, generateExit ? exit.getID() : -1, entryDirection, exitDirection, speed, arrivalTime, length, width, entryX, entryY);
 	}
 
@@ -413,6 +426,7 @@ public class GeneratingSimulation extends Simulation {
 	 * Get map of entry / exit directions and vertices at the direction.
 	 *
 	 * @param isEntry If wanted entries or exits
+	 *
 	 * @return Map of entry direction numbers and vertices
 	 */
 	@NotNull Map<Integer, List<Vertex>> getEntriesExitsMap(boolean isEntry) {
@@ -422,26 +436,4 @@ public class GeneratingSimulation extends Simulation {
 		}
 		return entries;
 	}
-
-	/**
-	 * @return Minimum agents to be generated
-	 */
-	public long getNewAgentsMinimum() {
-		return newAgentsMinimum;
-	}
-
-	/**
-	 * @return Maximum agents to be generated
-	 */
-	public long getNewAgentsMaximum() {
-		return newAgentsMaximum;
-	}
-
-	/**
-	 * @return Directions distribution
-	 */
-	public List<Long> getDistribution() {
-		return distribution;
-	}
-
 }

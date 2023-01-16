@@ -18,12 +18,22 @@ import java.util.stream.Collectors;
 
 public class LoadingSimulation extends Simulation {
 
-	private @Nullable Timer timer;
 	private final @NotNull ListIterator<Agent> sortedAgentsIterator;
+	private @Nullable Timer timer;
 
 	public LoadingSimulation(@NotNull SimulationGraph intersectionGraph, @NotNull Algorithm algorithm, @NotNull SimulationAgents simulationAgents, @NotNull String path) throws FileNotFoundException {
 		super(intersectionGraph, algorithm, simulationAgents);
 		sortedAgentsIterator = loadAgents(path);
+	}
+
+	private @NotNull ListIterator<Agent> loadAgents(@NotNull String path) throws FileNotFoundException {
+		@NotNull FileReader reader = new FileReader(path);
+		@NotNull Gson gson = new Gson();
+		List<BasicAgent> basicAgents = gson.fromJson(reader, new TypeToken<List<BasicAgent>>() {
+		}.getType());
+		@NotNull List<Agent> agents = basicAgents.stream().sorted(Comparator.comparingDouble(BasicAgent::getArrivalTime)).map(Agent::new).toList();
+		allAgents.putAll(agents.stream().collect(Collectors.toMap(BasicAgent::getId, Function.identity())));
+		return agents.listIterator();
 	}
 
 	@Override
@@ -62,24 +72,6 @@ public class LoadingSimulation extends Simulation {
 		return new ArrayList<>(0);
 	}
 
-	private @NotNull ListIterator<Agent> loadAgents(@NotNull String path) throws FileNotFoundException {
-		@NotNull FileReader reader = new FileReader(path);
-		@NotNull Gson gson = new Gson();
-		List<BasicAgent> basicAgents = gson.fromJson(reader, new TypeToken<List<BasicAgent>>() {
-		}.getType());
-		@NotNull List<Agent> agents = basicAgents.stream().sorted(Comparator.comparingDouble(BasicAgent::getArrivalTime)).map(Agent::new).toList();
-		allAgents.putAll(agents.stream().collect(Collectors.toMap(BasicAgent::getId, Function.identity())));
-		return agents.listIterator();
-	}
-
-	@Override
-	@Deprecated
-	protected void stopSimulation() {
-		if (timer != null) {
-			timer.cancel();
-			timer = null;
-		}
-	}
 
 	@Override
 	protected void resetSimulation() {

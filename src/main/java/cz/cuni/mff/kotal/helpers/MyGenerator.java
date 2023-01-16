@@ -88,7 +88,7 @@ public class MyGenerator {
 		double deviation;
 		do {
 			deviation = randomGenerator.nextGaussian(0, maxDeviation / 2);
-		}while (deviation < -maxDeviation || deviation > maxDeviation);
+		} while (deviation < -maxDeviation || deviation > maxDeviation);
 		deviation++;
 		return baseValue * deviation;
 	}
@@ -111,8 +111,8 @@ public class MyGenerator {
 	 *
 	 * @param minimum Minimal generated number
 	 * @param maximum Maximal generated number
-	 * @param mean
-	 * @param stddev
+	 * @param mean    the mean of the Gaussian distribution to be drawn from
+	 * @param stddev  the standard deviation (square root of the variance) of the Gaussian distribution to be drawn from
 	 *
 	 * @return Random number
 	 */

@@ -301,9 +301,6 @@ public abstract class Simulation {
 
 	protected abstract void start();
 
-	@Deprecated
-	protected abstract void stopSimulation();
-
 	public final void reset() {
 		assert simulationAgents != null;
 		simulationAgents.pauseSimulation();
@@ -397,6 +394,7 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param agent
+	 *
 	 * @return
 	 */
 	protected double getAgentsDelay(@NotNull Agent agent) {
@@ -457,6 +455,7 @@ public abstract class Simulation {
 	 * Get generated agent with specified ID.
 	 *
 	 * @param id ID of the agent
+	 *
 	 * @return Found agent
 	 */
 	public Agent getAgent(long id) {
@@ -479,6 +478,7 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param time
+	 *
 	 * @return
 	 */
 	public double getStep(long time) {
@@ -507,6 +507,7 @@ public abstract class Simulation {
 	 * TODO
 	 *
 	 * @param step
+	 *
 	 * @return
 	 */
 	@Deprecated
