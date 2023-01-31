@@ -12,14 +12,27 @@ Díky této struktuře můžu jednoduše a rychle zjistit,
 zda~se v~daný krok vyskytuje již naplánovaný agent na~určeném vrcholu, a popřípadě o~kterého agenta se~jedná.
 Po~každém naplánování agenta je postupně přidána dvojice do~každého kroku, kdy~se agent vyskytuje na~křižovatce,
 aby byla \nameref{par:obsazene_pozice} aktuální.
-Tento postup přidávání agenta shrnu do funkce
-\textrm{add\_planned\_agent(step, agent)}\labeltext{\textrm{add\_planned\_agent}}{str:kol_add_planned_agent}.
 
-Kontrola kolize probíhá třemi fázemi, kontroluje se~\nameref{subsec:bezpecnost_vrcholu},
-\nameref{subsec:cesta_do_vrcholu} a \nameref{subsec:cesta_z_vrcholu}.
+Kontrola kolize probíhá vždy pro~přejezd jednoho agenta $a$ mezi dvěma vrcholy.
+Přejezd definuji jako výskyt agenta na některém vrcholu $u$ v kroku $s$
+a následný výskyt na některém sousedním vrcholu $v \in N(u)$ v kroku $s + 1$.
+Pokud agent zůstává na stejném vrcholu ($u = v$), situace pořád splňuje definici přejezdu.
+Z~definice \ref{str:mapf} mohu předpokládat, že se agent pohybuje pouze z jednoho vrcholu na jeho sousední vrchol a
+agent se nachází na některém vrcholu v každém kroku od kroku příjezdu do kroku odjezdu.
+Zároveň budu předpokládat, že žádný vjezd křižovatky není zároveň výjezdem.
+V těchto případech by se cesta mohla skládat pouze z jednoho vrcholu a neobsahovala by žádný přejezd.
+
+Kontrola zjišťuje bezpečnost přejezdu oproti určité množině agentů $B$.
+Tato množina může být například množina již naplánovaných agentů, nebo množina agentů plánovaných ve stejném kroku.
+Přejezd je vyhodnocen jako nekolizní, pokud se by se agent $a$ během cesty nesrazil s žádným agentem z množiny $B$.
+Avšak kontrola již nekontroluje kolize mezi agenty množiny $B$.
+
+Agenti nejsou body pohybující se po přímkách jako v obecném \ref{str:mapf} problému,
+proto je nutné provádět kontrolu jinak.
+Budu kontrolovat každého agenta z množiny $B$, jestli se během svého přejezdu nesrazí s agentem $a$.
 
 \paragraph{Safe distance}\label{par:safe_distance} (značený~$d$) určuje minimální povolenou vzdálenost mezi dvěma agenty.
-\nameref{par:safe_distance} je společný parametr všech kontrol a lze nastavit před~spuštěním simulace.
+\nameref{par:safe_distance} je parametr kontroly a lze nastavit před~spuštěním simulace.
 Nenulová hodnota \nameref{par:safe_distance} má šanci snížit kolize,
 pokud jsou zavedené nepřesnosti parametrem \nameref{par:odchylka}.
 
@@ -35,292 +48,146 @@ pokud se během cesty středy agentů přiblíží na~vzdálenost menší nebo r
 Toto zjednodušení nemůže způsobit kolizi, jelikož je celý agent umístěn uvnitř \hyperref[par:polomer_agenta]{poloměru agenta}.
 Zároveň počítání s~kruhem značně zrychluje samotný výpočet.
 
-\subsection{Bezpečnost vrcholu}\label{subsec:bezpecnost_vrcholu}
+\subsection{Kontrola přejezdu s jedním agentem}\label{subsec:kontrola_prejezdu_jeden_agent}
 
-%Popis postupu kontroly, pseudokód, náčrtek.
+V této části popíšu, jak se určuje, zda-li nastane kolize mezi dvěma agenty při přejezdu.
+Agenty si označím $a$ a $b$, a jejich pozice jako $\mathbf{a} = (a_x, a_y)$, resp. $\mathbf{b} = (b_x, b_y)$.
+Vzdálenost agentů je rovna $dist = \sqrt{(a_x - b_x)^2 + (a_y - b_y)^2}$.
 
-\hyperref[subsec:bezpecnost_vrcholu]{Kontrola bezpečnosti vrcholu} zjišťuje,
-zda~je bezpečný výskyt agenta v~určitém kroku na~určeném vrcholu.
-Kontrola je rozšíření první \ref{str:mapf} podmínky
-\uv{žádní dva agenti se nesmí nacházet na~stejném vrcholu v~jednom kroku} \eqref{eq:mapf_kolize_vrchol}.
+Vrchol, ze kterého agent $a$ cestuje si označím jako $u$ a cílový vrchol jako $v$.
+Podobně si označím přejezd agenta $b$ jako cestu z $p$ do $q$.
+Agenti se mezi vrcholy pohybují v čase $t \in [0, 1]$ konstantní rychlostí.
+Pozice agenta $a$ je v čase $t$ rovna $a_x = (1-t)u_x + tv_x$, $a_y = (1-t)u_y + tv_y$.
+Podobně je pozice agenta $b$ rovna $(1-t)\mathbf{u} + t\mathbf{v}$.
+Vzdálenost agentů v čase $t$ budu značit $dist_t$.
 
-Tato kontrola pracuje s~vrcholem~$v$, krokem~$s$ a poloměrem agenta~$r$, pro~kterého je kontrola určená.
-Dále algoritmus zná maximální povolenou velikost agenta.
-Z~maximální délky a šířky je předpočítán maximální poloměr agenta~$m$.
+Pokud se agenti přiblíží v nějaký čas blíže než je součet jejich \hyperref[par:polomer_agenta]{poloměrů}
+zvětšený o~\nameref{par:safe_distance}, je přejezd vyhodnocen jako kolizní.
+Matematicky zapsáno přejezd je kolizní pokud $(\exists t\in[0, 1])(d_a + d_b + d \geq dist_t)$,
+kde $d_a$ a $d_b$ značí \hyperref[par:polomer_agent]{poloměr} agenta $a$ a agenta $b$,
+a $d$ je hodnota \nameref{par:safe_distance}.
 
-Na~obrázku (Obrázek~\ref{fig:kolize_na_vrcholu}) je ukázka situací, které tato kontrola vyhodnotí jako kolizní.
-Vlevo dochází ke~kolizi, jelikož jsou dva agenti na~stejném vrcholu.
-Vpravo nastává situace, kdy~jsou dva vrcholy a agenti na~nich příliš blízko.
-Situace je kontrolou vyhodnocena jako kolizní i~když se agenti nepřekrývají.
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{../img/kolize_vrchol}
-	\caption{
-		Ukázka kolizních situací, které jsou detekovány \hyperref[subsec:bezpecnost_vrcholu]{kontrolou bezpečnosti vrcholu}.
-		Na~obrázcích jsou černě zobrazeny vrcholy.
-		Obdélníky reprezentují agenty a kruhy tvoří bezpečnou zónu příslušných agentů.
-	}
-	\label{fig:kolize_na_vrcholu}
-\end{figure}
-
-Kontrola pro~vrchol $v$ začne procházet všechny vrcholy grafu od~nejbližšího $v$ podle eukleidovské vzdálenosti.
-Pro~každý vrchol~$u$, který je blíže než~$r + d + m$, se nejprve zjistí,
-jestli je na~vrcholu~$u$ v~kroku~$s$ nějaký agent.
-Pokud není, pokračuje kontrola dalším vrcholem.
-Jinak se spočítá poloměr agenta~$r'$ nacházejícího se v~kroku~$s$ na~vrcholu~$u$.
-Pokud je eukleidovská vzdálenost vrcholů $u$ a $v$ menší nebo rovna~$r + r' + d$, kontrola selže.
-V~opačném případě přejde kontrola na~další vrchol.
-Pro~vrcholy vzdálené více než~$r + d + m$ uspěje kontrola triviálně,
-neexistuje možnost že by agenti na~těchto vrcholech byly v~kolizi.
-
-Níže je popsaný algoritmus na~kontrolu bezpečnosti vrcholu.
-
-\labeltext{\textrm{safe\_vertex}}{alg:kol_safe_vertex}
-% @formatter:off
-\begin{code}[fontsize=\footnotesize]
-// konstanty tabulka obsazených pozic t, minimální vzdálenost agentů d,
-// maximální poloměr agenta m
-
-// vstup krok, vrchol, poloměr agenta
-// výstup true pokud může agent být na v, jinak false
-safe_vertex(s, v, r)
-  for u in sorted(V, x -> dist(x, v))
-    if dist(u, v) > r + m + d
-      return true
-    else
-      n <- t[s][v]
-      r' <- diameter(n)
-      if dist(u, v) <= r + r' + d
-        return false
-return true
-\end{code}
-% @formatter:on
-
-\subsection{Cesta do~vrcholu}\label{subsec:cesta_do_vrcholu}
-
-%Popis postupu kontroly, pseudokód, náčrtek.
-
-\hyperref[subsec:cesta_do_vrcholu]{Kontrola cesty do~vrcholu} zjišťuje,
-zda~může plánovaný agent bezpečně přejet do~určeného vrcholu v~určitém kroku,
-aniž by došlo ke~kolizi s~nějakým agentem opouštějícím daný vrchol.
-Kontrola zahrnuje druhou \ref{str:mapf} podmínku
-\uv{žádní dva agenti nesmí projíždět stejnou hranou v~jednom kroku} \eqref{eq:mapf_kolize_hrana}.
-Avšak jelikož mají agenti nenulovou velikost, je nutné kontrolovat i~případy, kdy agenti neprojíždí stejnou hranou.
-Tyto situace jsou častější čím menší úhel je mezi sousedy vrcholu.
-Například pro~čtvercový typ, kde je úhel mezi sousedy $90^\circ$, nastává tato kolize pouze pro~velké agenty.
-U~oktagonálního typu křižovatky dochází ke~kolizi mnohem častěji, protože úhel mezi sousedy činí $45^\circ$.
-Ukázka kolizního stavu je zobrazena na~obrázku (Obrázek~\ref{fig:kolize_cesta_do}).
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{../img/kolize_cesta_do}
-	\caption{
-		Ukázka kolizní situace, která je detekována \hyperref[subsec:cesta_do_vrcholu]{kontrolou cesty do~vrcholu}.
-		Na~obrázcích jsou černě zobrazeny vrcholy.
-		Obdélníky reprezentují agenty a kruhy tvoří bezpečnou zónu příslušných agentů.
-		Čárkované prázdné obdélníky značí cílové stavy agentů po~jednom kroku.
-		Zelený agent je již naplánovaný, černevý je aktuálně plánován.
-	}
-	\label{fig:kolize_cesta_do}
-\end{figure}
-
-
-Tato~kontrola probíhá, pokud agent~$a$ opouští vrchol~$u$ v~kroku~$s$ a přijíždí do~vrcholu~$v$ v~následujícím kroku~$s + 1$.
-Algoritmus nejprve zjistí, zda existuje naplánovaný agent~$b$, který je v~kroku~$s$ na~$v$.
-Pokud žádný takový agent neexistuje, kontrola uspěje a agetova cesta z~$u$ do~$v$ v~kroku $s$ je bezpečná.
-Jinak se zjistí vrchol~$w$, na~kterém se nachází agent~$b$ v~následujícím kroku $s + 1$.
-Pokud nastane speciální případ $u=w$, odpovídá stav zmiňované \ref{str:mapf} podmínce \eqref{eq:mapf_kolize_hrana}.
-
-Jelikož kontrola zná pozice vrcholů $u$, $v$ a $w$, je schopna dopočítat si čas, ve~kterém se agenti nejvíce přiblíží.
-Pokud se agenti srazí, musí být v~kolizní poloze i~v~čase, kdy~jsou sobě nejblíže.
-Naopak pokud jsou dostatečně daleko i~když jsou si nejblíže, při~cestě nemůže dojít ke~kolizi.
-Proto stačí zkontrolovat vzdálenost v~čase, kdy~jsou agenti nejblíž.
-
-Označím polohu agenta~$a$ jako $[x_a, y_a]$ a polohu agenta~$b$ jako $[x_b, y_b]$.
-Stejným způsobem si označím pozice vrcholů $u$, $v$ a $w$ jako $[x_u, y_u]$, $[x_v, y_v]$ resp. $[x_w, y_w]$.
-Dále si označím čas mezi kroky~$s$ a $s + 1$ jako~$t\in[0, 1]$.
-Pro~$t = 0$ je poloha agenta~$a$ shodná s~pozicí vrcholu~$u$ a poloha agenta~$b$ shodná s~pozicí vrcholu~$v$.
-Analogicky v~čase $t = 1$ se nachází agent~$a$ na~vrcholu~$v$ a agent~$b$ na~vrcholu~$w$.
-
-Jelikož se agenti pohybují po~úsečce mezi vrcholy,
-pro~$t\in[0, 1]$ se agent $a$ nachází na~$x_a = tx_u + (1 - t)x_v$, $y_a = ty_u + (1 - t)y_v$.
-Poloha agenta~$b$ je analogicky $x_b = tx_v + (1 - t)x_w$ a $y_b = ty_v + (1 - t)y_w$.
-Vzdálenost agentů v~závislosti na~čase~$t$ je $\sqrt{(x_a - x_b)^2 + (y_a - y_b)^2}$.
-Dále upravím vzorec pod~odmocninou.
-\begin{align*}
-	((x_a - x_b)^2 &+ (y_a - y_b)^2) = \\
-	((tx_u + (1 - t)x_v - tx_v - (1 - t)x_w)^2 &+ (ty_u + (1 - t)y_v - ty_v - (1 - t)y_w)^2) = \\
-	((tx_u + x_v - tx_v - tx_v - x_w + tx_w)^2 &+ (ty_u + y_v - ty_v - ty_v - y_w + ty_w)^2) = \\
-	((t(x_u - x_v - x_v + x_w) + x_v - x_w)^2 &+ (t(y_u - y_v - y_v + y_w) + y_v - y_w)^2) = \\
-	(t(x_u - x_v - x_v + x_w) + x_v - x_w)^2 &+ (t(y_u - y_v - y_v + y_w) + y_v - y_w)^2 = \\
-	(t(x_u - 2x_v + x_w) + x_v - x_w)^2 &+ (t(y_u - 2y_v + y_w) + y_v - y_w)^2 \\
-\end{align*}
-
-Pro~zjednodušení si označím
-\begin{align*}
-	x_0 &= x_u - 2x_v + x_w &\qquad
-	x_1 &= x_w - x_v \\
-	y_0 &= y_u - 2y_v + y_w &\qquad
-	y_1 &= y_w - y_v
-\end{align*}
-
-Dosazením do~předchozího vzorce dostávám
-\begin{align*}
-	((x_a - x_b)^2 &+ (y_a - y_b)^2) = \\
-	(t(x_u - 2x_v + x_w) + x_v - x_w)^2 &+ (t(y_u - 2y_v + y_w) + y_v - y_w)^2 = \\
-	(tx_0 - x_1)^2 &+ (ty_0 - y_1)^2
-\end{align*}
-
-Pro~nalezení nejmenší vzdálenosti zjistím čas~$t$, ve~kterém se agenti nacházejí nejblíže.
-K~tomu spočítám derivaci vzdálenosti a zjistím, kdy je rovna nule.
-Nejprve využiji faktu, že $\min\left(\sqrt{x}\right) = \min(x) \Rightarrow \frac{d}{dx} \sqrt {x} = 0 \leftrightarrow \frac{d}{dx} x=0$.
-Následně
-\begin{align}
-	\frac{d}{dt} \sqrt{(x_a - x_b)^2 + (y_a - y_b)^2} &= 0 \nonumber \\
-	\frac{d}{dt} ((x_a - x_b)^2 + (y_a - y_b)^2) &= 0 \nonumber \\
-	\frac{d}{dt} ((tx_0 - x_1)^2 + (ty_0 - y_1)^2) &= 0 \nonumber \\
-	\frac{d}{dt} (tx_0 - x_1)^2 + \frac{d}{dt} (ty_0 - y_1)^2 &= 0 \nonumber \\
-	2(tx_0 - x_1)x_0 + 2(ty_0 - y_1)y_0 &= 0 \nonumber \\
-	tx_0^2 - x_0 x_1 + ty_0 - y_0 y_1 &= 0 \nonumber \\
-	t(x_0^2 + y_0^2) &= x_0 x_1 + y_0 + y_1 \label{eq:kol_d_dt}
-\end{align}
-
-Rozeberu dva případy podle podmínky
-\begin{gather}
-	x_0^2 + y_0^2 = 0\label{kol:nulova_podminka}
-\end{gather}
-
-Pokud je splněna podmínka~\ref{kol:nulova_podminka}, platí $x_0^2 = 0$ a $y_0^2 = 0$.
-Odtud
-\begin{align*}
-	x_u - 2 x_v + x_w &= 0 \\
-	x_u + x_w &= 2 x_v \\
-	\frac{x_u + x_w}{2} &= x_v
-\end{align*}
-Předchozí rovnosti jsou splněné pouze když se~$x_v$ nachází přesně uprostřed $x_u$ a $x_w$.
-Analogicky $y_0^2 = 0 \Leftrightarrow \frac{y_u + y_w}{2} = y_v$, tedy $y_v$ je přesně uprostřed $y_u$ a $y_w$.
-Obě tyto podmínky jsou splněny jenom když se vrchol~$v$ nachází uprostřed úsečky z~$u$ do~$w$.
-
-V~tom případě se agenti nepovoleně přiblíží pokud vzdálenost vrcholů $v$ a $w$ je menší než
-součet poloměru agentů $d_a$ a $d_b$ a dovolené vzdálenosti mezi~agenty \hyperref[par:safe_distance]{safe distance}~$d$.
-Dostávám tedy nerovnost $(x_w - x_v)^2 + (y_w - y_v)^2 = x_1^2 + y_1^2 > (d_a + d_b + d)^2$.
-
-
-Pokud podmínka~\ref{kol:nulova_podminka} neplatí, je možné spočítat čas~$t'$,
-kdy~jsou agenti nejblíže vyjádřením z~\ref{eq:kol_d_dt}.
-\begin{equation}
-	\label{eq:kol_t}
-	t' = \frac{x_0 x_1 + y_0 y_1}{x_0^2 + y_0^2}
-\end{equation}
-
-Po~dopočítání času spočítám vzdálenost agentů $a$ a $b$ v~čase~$t'$.
-Rozdíl $x$-ové souřadnice agentů je roven
+Není nutné ověřovat platnost nerovnosti pro každé $t$, postačuje jediné ověření v čase, kdy jsou si agenti nejblíže.
+Pro vypočítání této hodnoty spočítám derivaci $dist_t$ podle $t$ a zjistím, kdy je rovna nule.
+Derivace $dist_t$ je nulová právě tehdy když je nulový výraz pod odmocninou.
+Proto stačí počítat derivaci pouze pro $dist^2_t = (a_x - b_x)^2 + (a_y - b_y)^2$.
+\[
+	\frac{d}{dt} dist^2_t =
+	\frac{d}{dt} \left(\left(a_x - b_x\right)^2 + \left(a_y - b_y\right)^2\right) =
+	\frac{d}{dt} \left(a_x - b_x\right)^2 + \frac{d}{dt} \left(a_y - b_y\right)^2
+\]
+Nyní zjednoduším $\frac{d}{dt} (a_x - b_x)^2$, pro $y$ je postup stejný.
 \begin{gather*}
-	t' x_u + (1 - t')x_v - (t' x_v + (1 - t')x_w) =
-	t' x_u + x_v - t' x_v - t' x_v - x_w + t' x_w = \\
-	t'(x_u - 2x_v + x_w) + x_v - x_w =
-	t' x_0 - x_1
+	\frac{d}{dt} \left(a_x - b_x\right)^2 =
+	\frac{d}{dt} \left(\left(1-t\right)u_x + tv_x - \left(1-t\right)p_x + tq_x\right)^2 =  \\
+	\frac{d}{dt} \left(t\left(-u_x + v_x -\left(-p_x + q_x\right)\right) + u_x - p_x\right)^2 =  \\
+	\left(t\left(v_x - u_x + p_x - q_x\right) + u_x - p_x\right)\left(v_x - u_x + p_x - q_x\right) =  \\
+	t\left(v_x - u_x + p_x - q_x\right)^2 + \left(u_x - p_x\right)\left(v_x - u_x + p_x - q_x\right)
 \end{gather*}
 
-Obdobně rozdíl $y$-ové souřadnice činí $t' y_0 - y_1$.
-Pro~tento případ kontrola projde jenom pokud $(t' x_0 - x_1)^2 + (t' y_0 - y_1)^2 > (r_a + r_b + d)^2$.
+Pro jednodušší počítání si označím $x_0 = v_x - u_x + p_x - q_x$ a $x_1 = u_x - p_x$.
+Odtud dostávám $\frac{d}{dt} (a_x - b_x)^2 = tx^2_0 + x_0 x_1$.
+Stejně si zavedu $y_0$ a $y_1$.
+Celkově dostávám $\frac{d}{dt} dist^2_t = tx^2_0 + x_0 x_1 + ty^2_0 + y_0 y_1$.
+Nyní určím, kdy je vzdálenost nejmenší dosazením do rovnice.
+\begin{align*}
+	\frac{d}{dt} dist^2_t &= 0 \\
+	tx^2_0 + x_0 x_1 + ty^2_0 + y_0 y_1 &= 0 \\
+	t\left(x^2_0 + y^2_0\right) &= x_0 x_1 + y_0 y_1
+\end{align*}
 
-Pro~výsledný algoritmus si nejdříve nadefinuji
-pomocnou funkci \textrm{safe\_neighbour}\labeltext{\textrm{safe\_neighbour}}{str:safe_neighbour}.
-Tato~funkce pomocí postupu výše zkontroluje, zda-li dojde ke~kolizi mezi agenty $a$ a $b$,
-pokud už~známe vrcholy $u$, $v$ a $w$.
+Nyní rozliším dva případy podle podmínky $x^2_0 = 0 \wedge y^2_0 = 0$.
+Pokud podmínka platí, platí $0 = x_0 = v_x - u_x + p_x - q_x = \left(p_x - u_x\right) + \left(v_x - q_x\right)$.
+Pro $y_0$ platí to samé.
+Odkud dostávám $\mathbf{p} - \mathbf{u} = \mathbf{q} - \mathbf{v}$.
+Tato rovnost nastane pouze pokud je rozdíl počátečních vektorů vrcholů agentů shodný s rozdílem vektorů cílových vrcholů.
+Z toho vyplývá, že agenti mají rovnoběžné trasy o stejné vzdálenosti a jsou si stejně vzdálení v každém okamžiku.
+Proto si jsou nejblíže například pro $t = 0$.
 
-\labeltext{\textrm{safe\_neighbour}}{alg:kol_safe_neighbour}
+Pokud agenti nemají rovnoběžné trasy, $x^2_0 \neq 0 \vee y^2_0 \neq 0$.
+Potom mohu jejich součtem vydělit, jelikož je nenulový.
+Čas, kdy jsou si agenti nejblíže, je tedy možné spočítat pomocí $t' = \frac{x_0 x_1 + y_0 y_1}{x^2_0 + y^2_0}$.
+Může se stát, že výsledný čas bude mimo čas cesty.
+Proto je poslední úprava omezení času $t = \max(\min(t', 1), 0)$.
+
+Vypočtená nejbližší vzdálenost nezáleží na samotných agentech, ale pouze na jejich trasách, čili $u$, $v$, $p$ a $q$.
+Abych se vyhnul opakovanému počítání této hodnoty, můžu si výslednou vzdálenost předpočítat.
+K tomu budu potřebovat čtyřnásobně vnořený cyklus, který bude procházet všechny vrcholy jako $u$.
+Dále se do $v$ dosadí všichni sousedi vrcholu $u$ a $v$ samotný.
+Za $p$ se opět dosadí všechny vrcholy grafu a za $q$ opět sousedi $p$ a opět samotný $p$.
+Výsledky si mohu ukládat do pole \ref{str:kol_vzdalenosti}\labeltext{\textrm{distances}}{str:kol_vzdalenosti}
+o velikosti $O(n^2 deg^2)$, kde $n$ je počet vrcholů grafu a $deg$ maximální stupeň grafu zvětšený o jedna.
+
+Při kontrole kolize mezi dvěma agenty stačí pouze porovnat jejich \hyperref[par:polomer_agent]{poloměry}
+s patřičnou hodnotou ve struktuře \ref{str:kol_vzdalenosti}.
+Algoritmus tedy vypadá následovně.
+\labeltext{\textrm{safe\_transfer}}{alg:kol_prejezd}
 % @formatter:off
 \begin{code}[fontsize=\footnotesize]
-// konstanty bezpečná vzdálenost d
+// tabulka vzdálenosti distances
+// minimální povolená vzdálenost agentů d
 
-// agent a s poloměrem da cestuje z u do v,
-// agent b s poloměrem db cestuje z v do w
-safe_neighbour(v, u, w, da, db)
-  if u is w
-    return false
-
-  x0 <- u.x - 2*v.x + w.x
-  x1 <- w.x - v.x
-  y0 <- y.u - 2*v.y + w.y
-  y1 <- w.y - v.y
-
-  // vzdálenost mezi středy agentů na druhou
-  dist <- (da + db + d) ** 2
-
-  if x0 is 0 and y0 is 0
-    return x1 ** 2 + y1 ** 2 > dist
-  else
-    t' <- (x0 * x1 + y0 * y1 ) / (x0 ** 2 + y0 ** 2)
-    x_diff <- (t' * x0 - x1) ** 2
-    y_diff <- (t' * y0 - y1) ** 2
-    return x_diff + y_diff > dist
-\end{code}
-\label{alg:check_neighbour}
-% @formatter:on
-
-Výsledný algoritmus kolize vypadá následovně.
-
-\labeltext{\textrm{safe\_step\_to}}{alg:kol_safe_step_to}
-% @formatter:off
-\begin{code}[fontsize=\footnotesize]
-// konstanty tabulka obsazených pozic t
-
-// agent a s poloměrem da cestuje z vrcholu u do v v kroku s
-safe_step_to(s, u, v, da)
-  b <- t[s][v]
-  if b is NULL
-    return true
-
-  w <- b.path[s + 1]
-  db <- diameter(b)
-  return safe_neighbour(v, u, w, da, db)
+// agent a s poloměrem d_a cestuje z vrcholu u do v
+// agent b s poloměrem d_b cestuje z vrcholu p do q
+// vrací true pokud je přejezd nekolizní, jinak false
+safe_transfer(u, v, d_a, p, q, d_b)
+	return distances[u][v][p][q] > d_a + d_b + d
 \end{code}
 % @formatter:on
 
-\subsection{Cesta z~vrcholu}\label{subsec:cesta_z_vrcholu}
+\subsection{Kontrola přejezdu s množinou agentů}\label{subsec:kontrola_prejezdu_mnozina_agentu}
 
-%Popis postupu kontroly, pseudokód.
+Zde popíšu kontrolu, zda-li se agent $a$ při přejezdu z $u$ do $v$ nesrazí s některým agentem množiny $B$.
+Nejjednodušší způsob by byl projít celou množinu $B$ a zjistit, jestli není agent $a$ v kolizi s každým agentem v $B$.
 
+V následující části budu předpokládat, že velikost agent je oproti velikosti bloku malá a
+množství agentů na křižovatce se může blížit počtu vrcholů křižovatky.
+Zároveň předpokládám, že množina $B$ bude většinou množina agentů na křižovatce.
 
-Poslední kontrola ověřuje opačný případ předchozí kontroly.
-Zjišťuje se, zda plánovaný agent~$a$ může bezpečně odjet z~vrcholu~$v$
-aniž by~se srazil s~jiným již naplánovaným agentem~$b$ cestujícím do~$v$.
-Ukázka kolizního stavu je zobrazena na~obrázku (Obrázek~\ref{fig:kolize_cesta_z}).
+Abych se vyhnul počítání kolizní trasy se všemi agenty,
+budu uvažovat pouze agenty na vrcholech dostatečně blízkých aktuálnímu agentovi.
+Nejvyšší možná kolizní vzdálenost pro určitého agenta $a$ je $d_{safe} = d_a + d_{\max} + d$, kde $d_a$ je
+\hyperref[par:polomer_agenta]{poloměr agenta} $a$,
+$d_{\max} = \frac{\sqrt{l_{\max}^2 + w_{\max}^2}}{2}$ je maximální možný poloměr agenta a
+$d$ je parametr \nameref{par:safe_distance}.
+Ze struktury \ref{str:kol_vzdalenosti} se omezím na hodnoty $\textrm{distances}_{uv} = \ref{str:kol_vzdalenosti}[u][v]$.
+Následně si vyberu pouze takové vrcholy $p$, pro které platí\\
+$d_{safe} \geq \min_{q\in N(p)} \textrm{distances}_{uv}[p][q]$.
+Pokud vyjíždí nějaký agent z $B$ z vrcholu $p$, může jet i do vrcholu $q$ a
+mít dostatečnou velikost na to, aby způsobil kolizní situaci.
+Naopak pokud agent vyjíždí z některého nevybraného vrcholu, nemůže se srazit s agentem $a$.
 
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=\textwidth]{../img/kolize_cesta_z}
-	\caption{
-		Ukázka kolizní situace, která je detekována \hyperref[subsec:cesta_z_vrcholu]{kontrolou cesty z~vrcholu}.
-		Na~obrázcích jsou černě zobrazeny vrcholy.
-		Obdélníky reprezentují agenty a kruhy tvoří bezpečnou zónu příslušných agentů.
-		Čárkované prázdné obdélníky značí cílové stavy agentů po~jednom kroku.
-		Zelený agent je již naplánovaný, černevý je aktuálně plánován.
-	}
-	\label{fig:kolize_cesta_z}
-\end{figure}
+Výběr dostatečně blízkých vrcholů není opět nutné dělat pokaždé.
+Pro tyto účely si vyrobím podobnou datovou strukturu jako \ref{str:kol_vzdalenosti}.
+Ve struktuře \ref{str:kol_serazene_vzdalenosti}\labeltext{\textrm{sort\_dist}}{str:kol_serazene_vzdalenosti}
+bude pro každou dvojici sousedů $u$ a $v$ uloženo uspořádané pole vrcholu a jeho nejmenší vzdálenosti.
 
-Formálně agent~$a$ cestuje z~$v$ do~$w$ v~kroku~$s$ a agent~$b$ cestuje z~$u$ do~$v$ opět v~kroku~$s$.
-Pokud se na~situaci podívám z~pohledu druhého agenta (prohodím agenta $a$ za $b$), dostanu předchozí případ.
-Z~tohoto důvodu můžu pro~kontrolu opět použít funkci \ref{str:safe_neighbour}, akorát prohodím parametry.
-Výsledný algoritmus je následovný.
+Pro jednoduché vyhledávání, zda-li je některý agent z $B$ na určitém vrcholu budu vyžadovat,
+aby $B$ měla stejnou strukturu jako \nameref{par:obsazene_pozice}.
+Avšak poté je nutné ještě uvést krok přejezdu $s$.
 
-\labeltext{\textrm{safe\_step\_from}}{alg:kol_safe_step_from}
+Algoritmus celkové kontroly vypadá následovně:
+\labeltext{\textrm{safe\_transfer\_set}}{alg:kol_prejezd_mnozina}
 % @formatter:off
 \begin{code}[fontsize=\footnotesize]
-// konstanty tabulka obsazených pozic t
+// tabulka seřazených vzdálenosti sort_dist
+// minimální povolená vzdálenost agentů d
+// maximální velikost agenta d_max
 
-// agent a s poloměrem da cestuje z vrcholu v do w v kroku s
-safe_step_from(s, v, w, da)
-  b <- t[s + 1][v]
-  if b is NULL
-    return true
-
-  u <- b.path[s]
-  db <- diameter(b)
-  return safe_neighbour(v, u, w, db, da)
+// krok začátku přejezdu s
+// agent a s poloměrem d_a cestuje z vrcholu u do v
+// množina agentů B indexovaná kroky a poté vrcholy
+// vrací true pokud je přejezd nekolizní, jinak false
+safe_transfer_set(s, u, v, d_a, B)
+	d_safe = d_a + d_max + d
+	for p, p_dist in sort_dist[u][v]
+		if p_dist > d_safe
+			return true
+		if B[p] is NULL
+			continue
+		b <- B[s][p]
+		if not safe_transfer(u, v, d_a, p, b.path[s + 1], b.diameter)
+			return false
+	return true
 \end{code}
 % @formatter:on
