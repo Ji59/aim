@@ -53,6 +53,8 @@ Tyto pravděpodobnosti se~musí sečíst na~$1$.
 
 Poté je možné měnit samotné parametry agentů.
 Hlavními parametry agenta jsou šířka a délka a \hyperref[par:odchylka]{odchylka rychlosti}.
+Uživatel nastaví nejnižší a nejvyšší možnou hodnotu šířky a délky zvlášť.
+Šířka i délka agenta je poté náhodně vygenerována z~Gaussova rozdělení.
 
 \paragraph{Odchylka}\label{par:odchylka} určuje o~kolik procent je rychlost agenta odlišná
 vůči oznámené rychlosti křižovatce, a~nabývá hodnot mezi nulou až~sto procenty.
@@ -60,4 +62,4 @@ Kromě rychlosti ovlivňuje \hyperref[par:odchylka]{odchylka} i~příjezd agenta
 Příjezd se liší až~o~tolik procent kroku, kolik je \hyperref[par:odchylka]{odchylka}.
 Tímto způsobem se snažím simulovat reálnější křižovatky, kde došlo k~určité chybě v~komunikaci či měření agenta.
 Pomocí \hyperref[par:odchylka]{odchylky} se snažím sledovat odolnost plánování vůči těmto jevům.
-Proto je \hyperref[par:odchylka]{odchylka} brána náhodně z~normálního rozdělení.
+Proto je \hyperref[par:odchylka]{odchylka} brána náhodně z~Gaussova rozdělení.

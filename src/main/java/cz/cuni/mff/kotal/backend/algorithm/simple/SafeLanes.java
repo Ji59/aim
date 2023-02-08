@@ -331,7 +331,6 @@ public class SafeLanes implements Algorithm {
 		for (@NotNull Agent agent0 : agents0) {
 			for (@NotNull Agent agent1 : agents1) {
 				if (agent0 != agent1 && inCollision(agent0, agent1).isPresent()) {
-					System.out.println(agent0.getId() + " collides with " + agent1.getId());  // TODO remove
 					return true;
 				}
 			}
@@ -400,7 +399,6 @@ public class SafeLanes implements Algorithm {
 			for (int j = 0; j < i; j++) {
 				final Agent agent1 = visitedAgents[j];
 				if (agent0 != agent1 && inCollision(agent0, agent1).isPresent()) {
-					System.out.println(agent0.getId() + " collides with " + agent1.getId());  // TODO remove
 					return true;
 				}
 			}

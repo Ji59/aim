@@ -137,15 +137,15 @@ safe_transfer(u, v, d_a, p, q, d_b)
 
 \subsection{Kontrola přejezdu s množinou agentů}\label{subsec:kontrola_prejezdu_mnozina_agentu}
 
-Zde popíšu kontrolu, zda-li se agent $a$ při přejezdu z $u$ do $v$ nesrazí s některým agentem množiny $B$.
-Nejjednodušší způsob by byl projít celou množinu $B$ a zjistit, jestli není agent $a$ v kolizi s každým agentem v $B$.
+Zde popíšu kontrolu, zda-li se agent $a$ při~přejezdu z~$u$ do~$v$ nesrazí s~některým agentem množiny $B$.
+Nejjednodušší způsob by byl projít celou množinu $B$ a zjistit, jestli není agent $a$ v~kolizi s~každým agentem v~$B$.
 
-V následující části budu předpokládat, že velikost agent je oproti velikosti bloku malá a
-množství agentů na křižovatce se může blížit počtu vrcholů křižovatky.
-Zároveň předpokládám, že množina $B$ bude většinou množina agentů na křižovatce.
+V~následující části budu předpokládat, že velikost agenta je oproti velikosti bloku malá a
+množství agentů na~křižovatce se může blížit počtu vrcholů křižovatky.
+Zároveň předpokládám, že množina $B$ bude většinou množina agentů na~křižovatce.
 
 Abych se vyhnul počítání kolizní trasy se všemi agenty,
-budu uvažovat pouze agenty na vrcholech dostatečně blízkých aktuálnímu agentovi.
+budu uvažovat pouze agenty na~vrcholech dostatečně blízkých aktuálnímu agentovi.
 Nejvyšší možná kolizní vzdálenost pro určitého agenta $a$ je $d_{safe} = d_a + d_{\max} + d$, kde $d_a$ je
 \hyperref[par:polomer_agenta]{poloměr agenta} $a$,
 $d_{\max} = \frac{\sqrt{l_{\max}^2 + w_{\max}^2}}{2}$ je maximální možný poloměr agenta a
@@ -183,7 +183,7 @@ safe_transfer_set(s, u, v, d_a, B)
 	for p, p_dist in sort_dist[u][v]
 		if p_dist > d_safe
 			return true
-		if B[p] is NULL
+		if B[s] is NULL
 			continue
 		b <- B[s][p]
 		if not safe_transfer(u, v, d_a, p, b.path[s + 1], b.diameter)

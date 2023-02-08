@@ -3,15 +3,15 @@
 %Stručný popis rozdílu mezi ind. a hrom. plánováním.
 
 Rozlišuji dva případy centrálního plánování.
-\textrm{\nameref{subsec:individualni_planovani}} plánuje trasu pro každé auto zvlášť.
-Každé následné plánování potom hledá trasu pro nové auto takovým způsobem, aby nedošlo ke kolizi s už naplánovanými auty.
+\textrm{\nameref{subsec:individualni_planovani}} plánuje trasu pro~každé auto zvlášť.
+Každé následné plánování potom hledá trasu pro~nové auto takovým způsobem, aby nedošlo ke~kolizi s~už naplánovanými auty.
 
-S tímto přístupem by se mohlo stát, že naplánovaná trasa auta přerušuje kratší trasy následných aut.
+S~tímto přístupem by~se mohlo stát, že naplánovaná trasa auta přerušuje kratší trasy následných aut.
 Mohlo by být výhodnější nenaplánovat nejkratší trasu předchozímu autu a celkově dojít lepšímu řešení.
 Tento problém se snaží vyřešit \nameref{subsec:hromadne_planovani}.
 
-\textrm{\nameref{subsec:hromadne_planovani}} shlukuje auta do skupin a hledá trasy pro auta společně.
-Díky tomuto přístupu je možné najít trasy, ve kterých jsou celkově pasažéři v autech nejvíce spokojení.
+\textrm{\nameref{subsec:hromadne_planovani}} shlukuje auta do~skupin a hledá trasy pro~auta společně.
+Díky tomuto přístupu je možné najít trasy, ve~kterých jsou celkově pasažéři v~autech nejvíce spokojení.
 
 \subsection{Individuální plánování}\label{subsec:individualni_planovani}
 
@@ -24,32 +24,32 @@ Díky tomuto přístupu je možné najít trasy, ve kterých jsou celkově pasa�
 
 
 
-Jak bylo popsáno výše, auta jsou naplánováni jeden po druhém a
-každý nový plán je rozvržen tak, aby nekolidoval s žádným už naplánovaným autem.
+Jak bylo popsáno výše, auta jsou naplánováni jeden po~druhém a
+každý nový plán je rozvržen tak, aby nekolidoval s~žádným už~naplánovaným autem.
 
-Při plánování se používá \emph{First Come First Served} \labeltext{FCFS}{str:fcfs} strategie pro~určení pořadí plánování.
+Při~plánování se používá \emph{First Come First Served} \labeltext{FCFS}{str:fcfs} strategie pro~určení pořadí plánování.
 \ref{str:fcfs} strategie přiřazuje nejvyšší prioritu v~plánování autu, které dorazilo ke~křižovatce nejdříve.
 Tímto způsobem jsou minimalizovány čekací doby jednotlivých aut a maximalizována spokojenost aut díky férovému přístupu.
 
-Model chytré křižovatky s touto strategií už nasimulovali \citet*{Dresner}.
+Model chytré křižovatky s~touto strategií už nasimulovali \citet*{Dresner}.
 Jejich přístup odpovídal reálnému provozu, křižovatka neměla centrální jednotku.
 Auta byla schopná vzájemné komunikace.
-Auta v jejich práci jsou schopna jezdit pouze v předem daných pruzích.
-V těchto pruzích následně mohou auta zrychlovat či zpomalovat.
-Algoritmus nejprve přiřadí autu maximální rychlost a zjistí, zda by na jeho cestě došlo ke kolizi.
-Pokud ano, zkusí nižší rychlost před místem kolize.
-Postup se opakuje, dokud nedojde k nalezení nekolizní cesty skrze křižovatku.
+Auta v~jejich práci jsou schopna jezdit pouze v~předem daných pruzích.
+V~těchto pruzích následně mohou auta zrychlovat či zpomalovat.
+Algoritmus nejprve přiřadí autu maximální rychlost a zjistí, zda by na~jeho cestě došlo ke~kolizi.
+Pokud ano, zkusí nižší rychlost před~místem kolize.
+Postup se opakuje, dokud nedojde k~nalezení nekolizní cesty skrze křižovatku.
 Agenti jsou plánováni pomocí \ref{str:fcfs} strategie.
 Tímto algoritmem jsem se inspiroval u~algoritmu \nameref{sec:safe_lanes}.
 
-U řešení \citet{Dresner} se mi nelíbilo omezení aut na~pruhy.
-\nameref{sec:a_star} je známý algoritmus na hledání nejkratší trasy v obecném prostoru.
-Algoritmus byl vytvořen \citet*{Hart1968} pro robotické účely.
-Pro použití \nameref{sec:a_star} je avšak nejdříve nutné diskretizovat křižovatku a čas, a upravit model aut.
-Tato úprava je popsána v samostatných sekcích (\ref{sec:krizovatka}, \ref{sec:agent}).
-\nameref{sec:a_star} dovoluje autům plně využít celou plochu křižovatky a algoritmus nám zaručuje optimální cestu pro každé auto při zafixování ostatních aut.
-\nameref{sec:a_star} je založen na algoritmu \emph{Breath First Search} s chytřejším procházením stavů.
-Podrobný popis algoritmu je popsán v samostatné kapitole (\ref{sec:a_star}).
+U~řešení \citet{Dresner} se mi nelíbilo omezení aut na~pruhy.
+\nameref{sec:a_star} je známý algoritmus na~hledání nejkratší trasy v~obecném prostoru.
+Algoritmus byl vytvořen \citet*{Hart1968} pro~robotické účely.
+Pro~použití \nameref{sec:a_star} je avšak nejdříve nutné diskretizovat křižovatku a čas, a upravit model aut.
+Tato úprava je popsána v~samostatných sekcích (\ref{sec:krizovatka}, \ref{sec:agent}).
+\nameref{sec:a_star} dovoluje autům plně využít celou plochu křižovatky a algoritmus nám zaručuje optimální cestu pro~každé auto při~zafixování ostatních aut.
+\nameref{sec:a_star} je založen na~algoritmu \emph{Breath First Search} s~chytřejším procházením stavů.
+Podrobný popis algoritmu je popsán v~samostatné kapitole (\ref{sec:a_star}).
 
 %Jako první se problematikou zabývali \citet*{Dresner}.
 %Jejich přístup více odpovídal reálnému provozu.
@@ -76,9 +76,9 @@ Podrobný popis algoritmu je popsán v samostatné kapitole (\ref{sec:a_star}).
 %(optimalita řešení, porovnání velikosti prohledávaných prostorů).
 
 Výše popsaná situace, kdy auto blokuje výhodnější trasy ostatních, ukazuje nevýhodu postupného plánování.
-Může být výhodné rozdělit si auta do časových intervalů, kdy přijedou na křižovatku.
-Následně lze použít algoritmus pro naplánování co nejlepší trasy pro všechna auta v rámci jednoho intervalu najednou.
-Pokud auta informují křižovatku o svém příjezdu s předstihem, můžeme i přeplánovat trasu podle nově nahlášených aut.
+Může být výhodné rozdělit si auta do~časových intervalů, kdy přijedou na~křižovatku.
+Následně lze použít algoritmus pro~naplánování co nejlepší trasy pro~všechna auta v~rámci jednoho intervalu najednou.
+Pokud auta informují křižovatku o~svém příjezdu s~předstihem, můžeme i~přeplánovat trasu podle nově nahlášených aut.
 
 %
 %Řešení tohoto typu jsou složitější, avšak teoreticky by měla být schopna tvořit celkově lepší plány.

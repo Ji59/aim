@@ -31,7 +31,7 @@ dependencies {
 }
 
 run {
-	enableAssertions = true
+//	enableAssertions = true
 }
 
 test {
