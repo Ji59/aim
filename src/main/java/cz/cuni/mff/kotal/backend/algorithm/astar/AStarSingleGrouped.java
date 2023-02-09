@@ -446,9 +446,7 @@ public class AStarSingleGrouped extends AStarSingle {
 				if (safeStepTo(illegalMovesTable, stateStep, stateID, neighbourID, agentPerimeter)) {
 					assert !agentNeighboursCollisions.containsKey(neighbourID);
 					agentNeighboursCollisions.put(neighbourID, new HashSet<>());
-//					agentNeighboursCollisions.get(neighbourID).addAll(collisionAgentsAtVertex(conflictAvoidanceTable, nextStep, neighbourID, agentPerimeter));
 					agentNeighboursCollisions.get(neighbourID).addAll(collisionsOnWayTo(conflictAvoidanceTable, stateStep, stateID, neighbourID, agentPerimeter));
-//					agentNeighboursCollisions.get(neighbourID).addAll(collisionsOnWayFrom(conflictAvoidanceTable, stateStep, stateID, neighbourID, agentPerimeter));
 				} else {
 					iterator.remove();
 				}
@@ -578,23 +576,6 @@ public class AStarSingleGrouped extends AStarSingle {
 		return new Pair<>(collisions, collisionAgents);
 	}
 
-//	@NotNull
-//	protected Set<Agent> collisionAgentsAtVertex(@NotNull Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, long step, int vertexID, double agentPerimeter) {
-//		if (!conflictAvoidanceTable.containsKey(step)) {
-//			return Collections.emptySet();
-//		}
-//
-//		final double safePerimeter = agentPerimeter + safeDistance;
-//		return verticesDistances.get(vertexID).stream()
-//			.takeWhile(v -> v.distance() <= safePerimeter + largestAgentPerimeter)
-//			.filter(v -> conflictAvoidanceTable.get(step).containsKey(v.vertexID()))
-//			.flatMap(v -> {
-//				Set<Agent> neighbours = conflictAvoidanceTable.get(step).get(v.vertexID());
-//				return neighbours.stream().filter(n -> n.getAgentPerimeter() + safePerimeter >= v.distance);
-//			})
-//			.collect(Collectors.toSet());
-//	}
-
 	private @NotNull Set<VertexWithDirection[]> cartesianProductWithCheck(final Agent @NotNull [] agents, Set<Integer>[] exitsIDs, final Map<Integer, Set<Integer>>[][] collisionPairs, final @NotNull CompositeState previousState, final VertexWithDirection[] @NotNull [] neighbours) {
 		return cartesianProductWithCheck(agents, exitsIDs, collisionPairs, previousState, neighbours, new VertexWithDirection[agents.length], 0);
 	}
@@ -669,7 +650,11 @@ public class AStarSingleGrouped extends AStarSingle {
 			state = state.getParent();
 		}
 
-		return paths;
+		ArrayList<Integer> @NotNull [] arrays = new ArrayList[agents];
+		for (int i = 0; i < agents; i++) {
+			arrays[i] = new ArrayList<>(paths[i]);
+		}
+		return arrays;
 	}
 
 	private @NotNull CompositeState generateInitialState(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, Set<Integer>[] exitsIDs, Agent @NotNull [] agents, double[][] heuristics, int[] maximumDelays, long step) {

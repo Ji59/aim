@@ -14,22 +14,22 @@ Po~každém naplánování agenta je postupně přidána dvojice do~každého kr
 aby byla \nameref{par:obsazene_pozice} aktuální.
 
 Kontrola kolize probíhá vždy pro~přejezd jednoho agenta $a$ mezi dvěma vrcholy.
-Přejezd definuji jako výskyt agenta na některém vrcholu $u$ v kroku $s$
-a následný výskyt na některém sousedním vrcholu $v \in N(u)$ v kroku $s + 1$.
-Pokud agent zůstává na stejném vrcholu ($u = v$), situace pořád splňuje definici přejezdu.
-Z~definice \ref{str:mapf} mohu předpokládat, že se agent pohybuje pouze z jednoho vrcholu na jeho sousední vrchol a
-agent se nachází na některém vrcholu v každém kroku od kroku příjezdu do kroku odjezdu.
+Přejezd definuji jako výskyt agenta na některém vrcholu $u$ v~kroku $s$
+a následný výskyt na některém sousedním vrcholu $v \in N(u)$ v~kroku $s + 1$.
+Pokud agent zůstává na~stejném vrcholu ($u = v$), situace pořád splňuje definici přejezdu.
+Z~definice \ref{str:mapf} mohu předpokládat, že se agent pohybuje pouze z~jednoho vrcholu na~jeho sousední vrchol a
+agent se nachází na~některém vrcholu v~každém kroku od~kroku příjezdu do~kroku odjezdu.
 Zároveň budu předpokládat, že žádný vjezd křižovatky není zároveň výjezdem.
-V těchto případech by se cesta mohla skládat pouze z jednoho vrcholu a neobsahovala by žádný přejezd.
+V~těchto případech by se cesta mohla skládat pouze z~jednoho vrcholu a neobsahovala by žádný přejezd.
 
 Kontrola zjišťuje bezpečnost přejezdu oproti určité množině agentů $B$.
-Tato množina může být například množina již naplánovaných agentů, nebo množina agentů plánovaných ve stejném kroku.
-Přejezd je vyhodnocen jako nekolizní, pokud se by se agent $a$ během cesty nesrazil s žádným agentem z množiny $B$.
+Tato množina může být například množina již naplánovaných agentů, nebo množina agentů plánovaných ve~stejném kroku.
+Přejezd je vyhodnocen jako nekolizní, pokud se by se agent $a$ během cesty nesrazil s~žádným agentem z~množiny $B$.
 Avšak kontrola již nekontroluje kolize mezi agenty množiny $B$.
 
-Agenti nejsou body pohybující se po přímkách jako v obecném \ref{str:mapf} problému,
+Agenti nejsou body pohybující se po~přímkách jako v~obecném \ref{str:mapf} problému,
 proto je nutné provádět kontrolu jinak.
-Budu kontrolovat každého agenta z množiny $B$, jestli se během svého přejezdu nesrazí s agentem $a$.
+Budu kontrolovat každého agenta z~množiny $B$, jestli se během svého přejezdu nesrazí s~agentem $a$.
 
 \paragraph{Safe distance}\label{par:safe_distance} (značený~$d$) určuje minimální povolenou vzdálenost mezi dvěma agenty.
 \nameref{par:safe_distance} je parametr kontroly a lze nastavit před~spuštěním simulace.
@@ -67,10 +67,10 @@ Matematicky zapsáno přejezd je kolizní pokud $(\exists t\in[0, 1])(d_a + d_b 
 kde $d_a$ a $d_b$ značí \hyperref[par:polomer_agent]{poloměr} agenta $a$ a agenta $b$,
 a $d$ je hodnota \nameref{par:safe_distance}.
 
-Není nutné ověřovat platnost nerovnosti pro každé $t$, postačuje jediné ověření v čase, kdy jsou si agenti nejblíže.
-Pro vypočítání této hodnoty spočítám derivaci $dist_t$ podle $t$ a zjistím, kdy je rovna nule.
-Derivace $dist_t$ je nulová právě tehdy když je nulový výraz pod odmocninou.
-Proto stačí počítat derivaci pouze pro $dist^2_t = (a_x - b_x)^2 + (a_y - b_y)^2$.
+Není nutné ověřovat platnost nerovnosti pro~každé $t$, postačuje jediné ověření v~čase, kdy jsou si agenti nejblíže.
+Pro~vypočítání této hodnoty spočítám derivaci $dist_t$ podle $t$ a zjistím, kdy je rovna nule.
+Derivace $dist_t$ je nulová právě tehdy když je nulový výraz pod~odmocninou.
+Proto stačí počítat derivaci pouze pro~$dist^2_t = (a_x - b_x)^2 + (a_y - b_y)^2$.
 \[
 	\frac{d}{dt} dist^2_t =
 	\frac{d}{dt} \left(\left(a_x - b_x\right)^2 + \left(a_y - b_y\right)^2\right) =
@@ -85,11 +85,11 @@ Nyní zjednoduším $\frac{d}{dt} (a_x - b_x)^2$, pro $y$ je postup stejný.
 	t\left(v_x - u_x + p_x - q_x\right)^2 + \left(u_x - p_x\right)\left(v_x - u_x + p_x - q_x\right)
 \end{gather*}
 
-Pro jednodušší počítání si označím $x_0 = v_x - u_x + p_x - q_x$ a $x_1 = u_x - p_x$.
+Pro~jednodušší počítání si označím $x_0 = v_x - u_x + p_x - q_x$ a $x_1 = u_x - p_x$.
 Odtud dostávám $\frac{d}{dt} (a_x - b_x)^2 = tx^2_0 + x_0 x_1$.
 Stejně si zavedu $y_0$ a $y_1$.
 Celkově dostávám $\frac{d}{dt} dist^2_t = tx^2_0 + x_0 x_1 + ty^2_0 + y_0 y_1$.
-Nyní určím, kdy je vzdálenost nejmenší dosazením do rovnice.
+Nyní určím, kdy je vzdálenost nejmenší dosazením do~rovnice.
 \begin{align*}
 	\frac{d}{dt} dist^2_t &= 0 \\
 	tx^2_0 + x_0 x_1 + ty^2_0 + y_0 y_1 &= 0 \\
@@ -98,11 +98,11 @@ Nyní určím, kdy je vzdálenost nejmenší dosazením do rovnice.
 
 Nyní rozliším dva případy podle podmínky $x^2_0 = 0 \wedge y^2_0 = 0$.
 Pokud podmínka platí, platí $0 = x_0 = v_x - u_x + p_x - q_x = \left(p_x - u_x\right) + \left(v_x - q_x\right)$.
-Pro $y_0$ platí to samé.
+Pro~$y_0$ platí to~samé.
 Odkud dostávám $\mathbf{p} - \mathbf{u} = \mathbf{q} - \mathbf{v}$.
-Tato rovnost nastane pouze pokud je rozdíl počátečních vektorů vrcholů agentů shodný s rozdílem vektorů cílových vrcholů.
-Z toho vyplývá, že agenti mají rovnoběžné trasy o stejné vzdálenosti a jsou si stejně vzdálení v každém okamžiku.
-Proto si jsou nejblíže například pro $t = 0$.
+Tato~rovnost nastane pouze pokud je rozdíl počátečních vektorů vrcholů agentů shodný s~rozdílem vektorů cílových vrcholů.
+Z~toho vyplývá, že agenti mají rovnoběžné trasy o~stejné vzdálenosti a jsou si stejně vzdálení v~každém okamžiku.
+Proto si jsou nejblíže například pro~$t = 0$.
 
 Pokud agenti nemají rovnoběžné trasy, $x^2_0 \neq 0 \vee y^2_0 \neq 0$.
 Potom mohu jejich součtem vydělit, jelikož je nenulový.
@@ -110,16 +110,16 @@ Potom mohu jejich součtem vydělit, jelikož je nenulový.
 Může se stát, že výsledný čas bude mimo čas cesty.
 Proto je poslední úprava omezení času $t = \max(\min(t', 1), 0)$.
 
-Vypočtená nejbližší vzdálenost nezáleží na samotných agentech, ale pouze na jejich trasách, čili $u$, $v$, $p$ a $q$.
+Vypočtená nejbližší vzdálenost nezáleží na~samotných agentech, ale pouze na~jejich trasách, čili $u$, $v$, $p$ a $q$.
 Abych se vyhnul opakovanému počítání této hodnoty, můžu si výslednou vzdálenost předpočítat.
-K tomu budu potřebovat čtyřnásobně vnořený cyklus, který bude procházet všechny vrcholy jako $u$.
-Dále se do $v$ dosadí všichni sousedi vrcholu $u$ a $v$ samotný.
-Za $p$ se opět dosadí všechny vrcholy grafu a za $q$ opět sousedi $p$ a opět samotný $p$.
-Výsledky si mohu ukládat do pole \ref{str:kol_vzdalenosti}\labeltext{\textrm{distances}}{str:kol_vzdalenosti}
-o velikosti $O(n^2 deg^2)$, kde $n$ je počet vrcholů grafu a $deg$ maximální stupeň grafu zvětšený o jedna.
+K~tomu budu potřebovat čtyřnásobně vnořený cyklus, který bude procházet všechny vrcholy jako $u$.
+Dále se do~$v$ dosadí všichni sousedi vrcholu $u$ a $v$ samotný.
+Za~$p$ se opět dosadí všechny vrcholy grafu a za~$q$ opět sousedi $p$ a opět samotný $p$.
+Výsledky si mohu ukládat do~pole \ref{str:kol_vzdalenosti}\labeltext{\textrm{distances}}{str:kol_vzdalenosti}
+o~velikosti $O(n^2 deg^2)$, kde $n$ je počet vrcholů grafu a $deg$ maximální stupeň grafu zvětšený o~jedna.
 
-Při kontrole kolize mezi dvěma agenty stačí pouze porovnat jejich \hyperref[par:polomer_agent]{poloměry}
-s patřičnou hodnotou ve struktuře \ref{str:kol_vzdalenosti}.
+Při~kontrole kolize mezi dvěma agenty stačí pouze porovnat jejich \hyperref[par:polomer_agent]{poloměry}
+s~patřičnou hodnotou ve~struktuře \ref{str:kol_vzdalenosti}.
 Algoritmus tedy vypadá následovně.
 \labeltext{\textrm{safe\_transfer}}{alg:kol_prejezd}
 % @formatter:off
@@ -146,23 +146,53 @@ Zároveň předpokládám, že množina $B$ bude většinou množina agentů na~
 
 Abych se vyhnul počítání kolizní trasy se všemi agenty,
 budu uvažovat pouze agenty na~vrcholech dostatečně blízkých aktuálnímu agentovi.
-Nejvyšší možná kolizní vzdálenost pro určitého agenta $a$ je $d_{safe} = d_a + d_{\max} + d$, kde $d_a$ je
-\hyperref[par:polomer_agenta]{poloměr agenta} $a$,
-$d_{\max} = \frac{\sqrt{l_{\max}^2 + w_{\max}^2}}{2}$ je maximální možný poloměr agenta a
+K~tomu použiji následující tvrzení:
+
+\begin{tvrz}[Kolizní vzdálenost]
+	\label{tvrz:kol_kolizni_vzdalenost}
+	Nechť agent $a$ přejíždí z~$u$ do~$v$ a má poloměr $d_a$.
+	Agent $b$ vyjíždí ve~stejném kroku z~vrcholu $p$ a v~následujícím kroku je taktéž na~některém vrcholu křižovatky.
+	Pokud platí $(\forall q \in N(p))(\ref{str:kol_vzdalenosti}[u][v][p][q] > d_a + d_{\max} + d)$,
+	potom se agenti $a$ a $b$ během přejezdu nepřiblíží na~vzdálenost menší rovnou $d$.
+	Zde $\ref{str:kol_vzdalenosti}[u][v][p][q]$ značí nejmenší vzdálenost při~přejezdu vypočtenou v~předchozí části.
+	$d_{\max} = \frac{\sqrt{l_{\max}^2 + w_{\max}^2}}{2}$ je maximální možný poloměr agenta,
+	$l_{\max} a w_{\max}$ jsou horní meze pro~velikost agenta popsané v~kapitole \nameref{subsec:generovani_agentu}.
+\end{tvrz}
+\begin{dukaz}
+	Délka $l_b$ a šířka $w_b$ agenta $b$ nesmějí být vyšší než nastavené horní meze.
+	Tedy $l_b \leq l_{\max}$ a $w_b \leq w_{\max}$, a pro~poloměr agenta $b$ platí $d_b \leq d_{\max}$.
+	Označím si $q_{\min} \in N(p)$ jako sousední vrchol $p$, který má nejmenší vzdálenost při~přejezdu.
+	Formálně $(\forall q \in N(p))(\ref{str:kol_vzdalenosti}[u][v][p][q_{\min}] \geq \ref{str:kol_vzdalenosti}[u][v][p][q])$.
+	Z~předpokladu vyplývá $\ref{str:kol_vzdalenosti}[u][v][p][q_{\min}] > d_a + d_{\max} + d$.
+	Agent $b$ se musí v~následujícím kroku nacházet na~některém vrcholu $q'$ sousedícím s~$p$.
+	Odtud dostávám $\ref{str:kol_vzdalenosti}[u][v][p][q'] \geq \ref{str:kol_vzdalenosti}[u][v][p][q_{\min}] >
+	d_a + d_{\max} + d \geq d_a + d_b + d$.
+	Z~definice $\ref{str:kol_vzdalenosti}$ vyplývá, že se agenti $a$ a $b$ během přejezdu nepřiblíží na~vzdálenost $d$.
+\end{dukaz}
+
+
+Z~tvrzení vyplývá, že nejvyšší možná kolizní vzdálenost pro~určitého agenta $a$ je $d_{safe} = d_a + d_{\max} + d$,
+kde $d_a$ je \hyperref[par:polomer_agenta]{poloměr agenta} $a$, $d_{\max}$ je maximální možný poloměr agenta a
 $d$ je parametr \nameref{par:safe_distance}.
-Ze struktury \ref{str:kol_vzdalenosti} se omezím na hodnoty $\textrm{distances}_{uv} = \ref{str:kol_vzdalenosti}[u][v]$.
-Následně si vyberu pouze takové vrcholy $p$, pro které platí\\
-$d_{safe} \geq \min_{q\in N(p)} \textrm{distances}_{uv}[p][q]$.
-Pokud vyjíždí nějaký agent z $B$ z vrcholu $p$, může jet i do vrcholu $q$ a
-mít dostatečnou velikost na to, aby způsobil kolizní situaci.
-Naopak pokud agent vyjíždí z některého nevybraného vrcholu, nemůže se srazit s agentem $a$.
+Ze~struktury \ref{str:kol_vzdalenosti} se omezím na~hodnoty $\textrm{distances}_{uv} = \ref{str:kol_vzdalenosti}[u][v]$.
+Následně si vyberu pouze takové vrcholy $p$, pro~které platí
+$d_{safe} \geq \min_{q\in N(p)} \ref{str:kol_vzdalenosti}_{uv}[p][q]$.
+Ostatní agenti $B$ se dle tvrzení nemohou s~agentem $a$ srazit.
 
 Výběr dostatečně blízkých vrcholů není opět nutné dělat pokaždé.
-Pro tyto účely si vyrobím podobnou datovou strukturu jako \ref{str:kol_vzdalenosti}.
-Ve struktuře \ref{str:kol_serazene_vzdalenosti}\labeltext{\textrm{sort\_dist}}{str:kol_serazene_vzdalenosti}
-bude pro každou dvojici sousedů $u$ a $v$ uloženo uspořádané pole vrcholu a jeho nejmenší vzdálenosti.
+Pro~tyto účely si vyrobím podobnou datovou strukturu jako \ref{str:kol_vzdalenosti}.
+Ve~struktuře \ref{str:kol_serazene_vzdalenosti}\labeltext{\textrm{sort\_dist}}{str:kol_serazene_vzdalenosti}
+bude pro~každou dvojici sousedů $u$ a $v$ uloženo uspořádané pole dvojic vrcholu a jeho nejmenší vzdálenosti.
+Platí tedy
+\begin{gather*}
+(\forall u, v \in V)(\forall i \in {1, \dots, |V| - 1})(\ref{str:kol_serazene_vzdalenosti}[u][v][i - 1][1] \leq
+\ref{str:kol_serazene_vzdalenosti}[u][v][i][1])
+	\\
+	(\forall u, v \in V)((p, d) = \ref{str:kol_serazene_vzdalenosti}[u][v][i] \rightarrow
+	d = \min_{q \in N(p)}\ref{str:kol_vzdalenosti}[u][v][p][q])
+\end{gather*}
 
-Pro jednoduché vyhledávání, zda-li je některý agent z $B$ na určitém vrcholu budu vyžadovat,
+Pro~jednoduché vyhledávání, zda-li je některý agent z~$B$ na~určitém vrcholu budu vyžadovat,
 aby $B$ měla stejnou strukturu jako \nameref{par:obsazene_pozice}.
 Avšak poté je nutné ještě uvést krok přejezdu $s$.
 

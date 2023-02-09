@@ -25,22 +25,21 @@ Pokud taková cesta neexistuje, vjezd agenta je zamítnut.
 Následující kód ukazuje plánování jednoho agenta.
 % @formatter:off
 \begin{code}
-// konstanty tabulka obsazených pozic t, množina pruhů p,
+// konstanty tabulka obsazených pozic t, množina pruhů p
 
 plan_agent(step, agent)
-  agent = agent_entries_exits[0]
   r <- agent.diameter
-
   for exit in sorted(agent.exits, x -> dist(entry, x))
     path <- p[agent.entry, exit]
     last <- path[0]
-    for i in 1, \ldots, path.length - 1
+    for i in 1, ..., path.length - 1
       s <- step + i - 1
       vertex = path[i]
       safe_transfer <- safe_transfer_set(s, last, vertex, r, t)
       if not safe_transfer
         continue
     agent.path <- path
+    add_planned_agent(t, agent, s)  // přidám agenta do t
     return agent
   return NULL
 \end{code}

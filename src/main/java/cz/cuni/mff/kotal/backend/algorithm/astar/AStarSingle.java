@@ -104,7 +104,7 @@ public class AStarSingle extends SafeLanes {
 		return exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + maximumPathDelay)).min().getAsInt();
 	}
 
-	protected @Nullable LinkedList<Integer> searchPath(@NotNull Agent agent, @NotNull Set<Integer> exitIDs, @NotNull Map<Integer, Double> heuristic, int entryID, @NotNull PriorityQueue<State> queue, long lastStep, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
+	protected @Nullable List<Integer> searchPath(@NotNull Agent agent, @NotNull Set<Integer> exitIDs, @NotNull Map<Integer, Double> heuristic, int entryID, @NotNull PriorityQueue<State> queue, long lastStep, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		double agentsPerimeter = agent.getAgentPerimeter();
 
 		@NotNull Set<State> visitedStates = new HashSet<>();
@@ -131,7 +131,7 @@ public class AStarSingle extends SafeLanes {
 	}
 
 	@NotNull
-	private LinkedList<Integer> composePath(@Nullable State state) {
+	private List<Integer> composePath(@Nullable State state) {
 		@NotNull LinkedList<Integer> path = new LinkedList<>();
 		while (state != null) {
 			int id = state.getID();
@@ -140,7 +140,7 @@ public class AStarSingle extends SafeLanes {
 			state = (State) state.getParent();
 		}
 
-		return path;
+		return new ArrayList<>(path);
 	}
 
 	protected void addNeighbours(int vertexID, int entryID, @NotNull Set<Integer> exitIDs, @NotNull State state, @NotNull PriorityQueue<State> queue, @NotNull Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @NotNull Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
