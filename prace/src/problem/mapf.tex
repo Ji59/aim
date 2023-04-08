@@ -42,7 +42,7 @@ která vrací počet kroků, než všichni agenti dorazí do~svého cíle: $\tex
 Nejjednodušší způsob řešení je využít A* algoritmus, kde stav je kartézským součinem stavů všech plánovaných agentů.
 Toto řešení má často vysoký větvící faktor.
 Proto byla vyvinuta vylepšení, například \nameref{subsubsec:varsg_independence_detection} nebo
-\emph{Operator Decomposition} (\citep{Standley_2010}) a mnoho dalších.
+\emph{Operator Decomposition} \citep{Standley_2010} a mnoho dalších.
 Bližší popis těchto vylepšení je popsán později (sekce \ref{subsec:vylepseny_hromadny_a_star}).
 
 \citet*{Sharon} navrhli algoritmus \nameref{subsec:conflict_based_search},
@@ -64,7 +64,7 @@ nebo agent může být v~jeden čas maximálně na~jednom vrcholu.
 Následně přidáme podmínky zaručující nekolizní cesty pro~agenty.
 Tento způsob řešení je spíše vhodný pro~optimalizování \ref{str:makespan} funkce,
 avšak je možné vytvořit varianty cílené na~\ref{str:soc} pomocí rozšíření na~\emph{MAXSAT} \citep{bartak}.
-Blíže je toto řešení popsáno v~sekci \nameref{sec:sat-planner}.
+Blíže je toto řešení popsáno v~sekci \nameref{sec:sat_planner}.
 
 Existují i~jiná řešení \ref{str:mapf}, například za~použití zpětnovazebního učení \citep*{Zhiyao}.
 Pro~svou práci jsem se rozhodl věnovat se pouze základním metodám
@@ -91,10 +91,10 @@ Celkový plán je tedy $\Pi = (\pi^0, \pi^1, \dots, \pi^m)$, kde $m$ je počet u
 Označím si $\pi^j[x:y]$ část plánu $\pi^j$ v~krocích $x, x + 1, \dots, y - 1, y$.
 Celkový plán, který budou agenti vykonávat je tedy $Ex[\Pi] = \pi^0[0:t_1] \circ \pi^1[t_1 + 1:t_2] \circ \dots \circ \pi^m[t_m + 1:\infty]$.
 
-\citet{Svancara} zmínili problémy s~\emph{online~MAPF}.
-První problém nastane, pokud agenti zůstanou na~svém místě po~doražení do~cíle.
+\citet{Svancara} zmínili situace s~\emph{online~MAPF}, které je nutné ošetřit.
+První problémová situace nastane, pokud agenti zůstanou na~svém místě po~doražení do~cíle.
 Zároveň pokud by se agenti okamžitě objevili v~grafu, mohli by ihned způsobit kolizi, kterou algoritmy nemohly predikovat.
-Žádný z~těchto problémů u~mě nastat nemůže, jelikož auta přijíždějí na~vjezdy
+Tyto situace na křižovatce nenastanou, jelikož auta přijíždějí na~vjezdy
 a zároveň mizí z~křižovatky po~dosažení výjezdu.
 
 Opět zavedu cenu plánu jako součet délek plánů pro~jednotlivé agenty $|Ex[\Pi]| = \sum_{i=1}^{k} |Ex[\Pi]_i| = \sum_{i=1}^{k} t_{Ex[\Pi]}[g_i] - t_i$,
@@ -153,20 +153,20 @@ a ve~zbylých případech se plány lišily minimálně.
 
 V~práci \citet{Svancara} jsou návrhy různých strategií pro~řešení \emph{online~MAPF} problémů:
 \begin{itemize}
-	\item \textbf{Replan~Single}\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
+	\item \textbf{Replan~Single}(\ref{str:rs})\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
 	každý nový agent je naplánován s~ohledem na~předchozí.
-	\item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped}\labeltext{RSG}{str:rsg} -
+	\item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped}\ref{str:rsg}\labeltext{RSG}{str:rsg} -
 	v~tomto přístupu se plánují pouze noví agenti, ale oproti \ref{str:rs} plánování probíhá pro~všechny agenty najednou.
 	Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s~již naplánovanými trasami.
-	\item \textbf{Replan~All}\labeltext{RA}{str:ra} - za~použití této strategie se použije
+	\item \textbf{Replan~All}(\ref{str:ra})\labeltext{RA}{str:ra} - za~použití této strategie se použije
 	\emph{offline~MAPF} řešič na~všechny agenty pokaždé, když dorazí noví agenti.
 	Pokud je řešič optimální, \ref{str:ra} vrací \ref{str:snapshot_opt} řešení pro~všechny agenty \citep{Svancara}.
-	\item \textbf{Online~Independence~Detection}\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
+	\item \textbf{Online~Independence~Detection}(\ref{str:oid})\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
 	Nejprve najde cestu pro~všechny nové agenty ignorujíce už naplánované.
 	Poté zjistí kolize mezi starými a novými agenty.
 	Pokud byly nalezeny kolize, přeplánují se trasy kolizních agentů.
 	Pro~zaručení \ref{str:snapshot_opt} plánu je nutné udělat dodatečné úpravy \citep{Svancara}.
-	\item \textbf{Suboptimal~Independence~Detection}\labeltext{SubID}{str:subid} - pozměňuje
+	\item \textbf{Suboptimal~Independence~Detection}(\ref{str:suboid})\labeltext{SubID}{str:suboid} - pozměňuje
 	\ref{str:oid} povolením neoptimálních cest.
 	Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
 	Avšak díky této úpravě by měl být počet přeplánování, a tedy i~čas výpočtu, nižší.

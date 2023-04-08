@@ -7,24 +7,28 @@
 na multiagentní plánování.
 V mém případě budu rozšiřovat \ref{str:a_star_ars}.
 
-\ref{str:cbs} začíná individuálním naplánováním všech agentů nezávisle na sobě.
+\ref{str:cbs} začíná individuálním naplánováním všech agentů nezávisle na~sobě.
+Čili agenti nesmějí mít kolize s~již cestujícími agenty,
+avšak mohou mí kolizní trajektorii s~jinými aktuálně plánovanými agenty.
 Poté se zkontroluje, zda-li nemají nějací agenti kolizní trajektorie.
 Pokud ne, plánování úspěšně končí.
 Jinak se prohledávání rozdělí na dva případy.
 V obou případech je přeplánován jeden agent s podmínkou, že se musí vyhnout koliznímu místu.
 Poté se opakuje opětovné hledání kolizí a rozdělování na případy.
 Aby nedošlo k zacyklení, je nutné při plánování agenta vyhnout se nejen aktuální kolizi, ale také všem předchozím.
-Výpočet postupně vytváří strom, kde každý vrchol obsahuje cesty agentů (mohou být kolizní) a tabulku zakázaných pozic.
-Algoritmus skončí v prvním nalezeném vrcholu neobsahujícím kolizní trasy.
+Výpočet postupně vytváří strom,
+kde každý vrchol obsahuje cesty agentů (mohou být navzájem kolizní) a tabulku zakázaných pozic.
+Algoritmus skončí v~prvním nalezeném vrcholu neobsahujícím kolizní trasy.
 
 Mohlo by se stát, že plánování jednoho agenta selže.
-V tom případě je agent zcela odstraněn z vrcholu a jeho vjezd je zamítnut.
-Následně jsou nalezeni agenti, kteří byli v historii přeplánováni kvůli odstraněnému agentovi.
-Pro tyto agenty jsou nalezeny nové cesty, jelikož pro ně může existovat lepší cesta.
+V~tom případě je agent zcela odstraněn z~vrcholu.
+Následně jsou nalezeni agenti, kteří byli v~historii přeplánováni kvůli odstraněnému agentovi.
+Pro~tyto agenty jsou nalezeny nové cesty, jelikož pro~ně může existovat lepší cesta.
 
 Algoritmus postupně prochází listy stromu výpočtu.
 Pořadí průchodu je určeno počtem agentů.
-Pokud je počet agentů u více listů shodný, vybere se vrchol s nejmenší vzdáleností podobně jako u \ref{str:a_star_arsg}.
+Pokud je počet agentů u~více listů shodný, vybere se vrchol s nejmenší vzdáleností podobně jako u \ref{str:a_star_arsg}.
+Algoritmus naplánuje pouze agenty, kteří mají cesty ve~vybraném listu, vjezd zbylých agentů je zamítnut.
 
 \ref{str:cbs} najde optimální cestu pro všechny agenty \citep{Sharon}.
 Avšak velikost stromu může být obrovská.
@@ -34,8 +38,9 @@ Ve zjednodušeným režimu algoritmus přeplánuje takovým způsobem, aby nemě
 \subsubsection{Parametry}\label{subsubsec:cbs_parametry}
 
 \nameref{subsubsec:cbs_parametry} algoritmu jsou stejné jako u \ref{str:varsg} a mají podobný význam.
-Hodnoty \ref{par:ars_mnv}, \ref{par:ars_pz}, \ref{par:ars_mpc} a \ref{par:ars_pv}
-algoritmus používá při plánování jednoho agenta.
+Hodnoty Maximum návštěv vrcholu (\ref{par:ars_mnv}), Povolené zastavování (\ref{par:ars_pz}),
+Maximální prodleva při~cestě (\ref{par:ars_mpc}) a Povolené vracení (\ref{par:ars_pv})
+algoritmus používá při~plánování jednoho agenta.
 Tyto \hyperref[subsubsec:ars_parametry]{parametry} ovlivňují plánování stejně jako u \ref{str:a_star_ars}.
 Hodnota parametru \ref{par:arsg_zvp} opět určuje po jak dlouhé prodlevě má algoritmus přejít na zjednodušené plánování.
 
@@ -44,8 +49,9 @@ Hodnota parametru \ref{par:arsg_zvp} opět určuje po jak dlouhé prodlevě má 
 \ref{str:cbs} lze podobně jako \ref{str:varsg} rozšířit na \ref{str:oid} variantu.
 K plánovaným agentů se přidají agenti z předchozích kroků.
 Jako počáteční cesty těchto agentů se použijí jejich již naplánované trasy, tudíž se znova nepočítají.
-Výpočet je pro je poté shodný, až na případy, kdy pro ně nebyla nalezena cesta.
-Pokud k takové situaci dojde, namísto odstranění agenta se odstraní celý list ze stromu.
+Výpočet je poté shodný, až na~případy, kdy pro~ně nebyla nalezena cesta.
+Pokud k~takové situaci dojde, namísto odstranění agenta se odstraní celý list ze~stromu výpočtu.
 
-Parametry jsou rozšířené stejně jako u \nameref{subsubsec:a_star_aoid} o \ref{par:aoid_mpa} a \ref{par:aoid_ppk}.
+Parametry jsou rozšířené stejně jako u \nameref{subsubsec:a_star_aoid} o~Maximální počet agentů (\ref{par:aoid_mpa})
+a Počet přeplánovaných kroků (\ref{par:aoid_ppk}).
 Význam těchto parametrů je shodný.

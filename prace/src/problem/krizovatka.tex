@@ -65,7 +65,8 @@ Pokud vedou dvě různé cesty přes stejný počet vrcholů, je upřednostněna
 Čili cesty jsou následně porovnány podle úhlu, o~který se musí auta během jízdy otočit.
 Pokud je i~tato hodnota stejná, porovnávají se auta podle počtu vrcholů, kterými neprojíždí rovně.
 Při~posledním porovnání je preferována cesta s~více vrcholy.
-Takto jsem se rozhodl, protože díky tomu budou mít auta méně ostré zatáčky.
+Takto jsem se rozhodl, protože díky tomu by měly auta mít vyšší počet méně ostrých zatáček,
+což povede k~plynulejší jízdě.
 
 \subsection{Čtvercový typ}\label{subsec:ctvercovy_typ}
 
@@ -74,13 +75,13 @@ Celková hlavní plocha křižovatky (tedy veškerá plocha mimo
 \hyperref[par:vjezdy]{vjezdy} a \hyperref[par:vyjezdy]{výjezdy}) tvoří čtverec.
 
 \nameref{par:velikost_krizovatky} značí počet bloků na~jedné straně plochy křižovatky.
-Celkový počet bloků hlavní plochy křižovatky tudíž činí $g^2$,
-kde $g$ je \hyperref[par:velikost_krizovatky]{velikost křižovatky}.
+Celkový počet bloků hlavní plochy křižovatky tudíž činí $s^2$,
+kde $s$ je \hyperref[par:velikost_krizovatky]{velikost křižovatky}.
 Pozice vrcholu je přesně uprostřed jemu odpovídajícího bloku.
 Mezi každými bloky, který spolu sdílí stěnu, vede ve~výsledným grafu hrana.
 Tento typ křižovatky má čtyři směry, jeden směr na~každé straně čtverce hlavní plochy.
-Křižovatka je převedena na~graf s~$g^2 + 4i + 4o$ vrcholy,
-kde $g$ opět značí \hyperref[par:velikost_krizovatky]{velikost},
+Křižovatka je převedena na~graf s~$s^2 + 4i + 4o$ vrcholy,
+kde $s$ opět značí \hyperref[par:velikost_krizovatky]{velikost},
 $i$~\hyperref[par:vjezdy]{vjezdy} a $o$~\hyperref[par:vyjezdy]{výjezdy}.
 
 Ukázka křižovatky s~\hyperref[par:velikost_krizovatky]{velikostí}~$4$, jedním \hyperref[par:vjezdy]{vjezdem} a
@@ -110,8 +111,8 @@ Z~vizuálních důvodů byly odebrány rohové bloky.
 
 \nameref{par:velikost_krizovatky}, \hyperref[par:vjezdy]{vjezdy} a \hyperref[par:vyjezdy]{výjezdy}
 mají stejný význam jako u~\hyperref[subsec:ctvercovy_typ]{čtvercového typu}.
-Počet vrcholů u~této křižovatky činí $g^2 - 4 + (g-1)^2 + 4i + 4o = 2g^2 - 2g - 3 + 4(i + o)$,
-kde $g$ je \hyperref[par:velikost_krizovatky]{velikost},
+Počet vrcholů u~této křižovatky činí $s^2 - 4 + (s-1)^2 + 4i + 4o = 2s^2 - 2s - 3 + 4(i + o)$,
+kde $s$ je \hyperref[par:velikost_krizovatky]{velikost},
 $i$ počet \hyperref[par:vjezdy]{vjezdů} a $o$ počet \hyperref[par:vyjezdy]{výjezdů}.
 \nameref{par:velikost_bloku} je vzdálenost mezi dvěma sousedními vrcholy reprezentujícími oktagonální blok,
 opět totožná s~velikostí bloku u~čtvercového typu.
@@ -146,8 +147,8 @@ Pokud chce auto jet rovně skrze křižovatku (do~protilehlého směru), křižo
 
 \nameref{par:velikost_krizovatky} u~tohoto typu opět značí počet bloků na~jedné straně celkové plochy.
 Hodnota je taktéž rovna počtu vrcholů z~kraje křižovatky do~středu.
-Počet vrcholů grafu tedy činí $6 \times g \times (g-1) + 6i + 6o$,
-kde $g$ je \hyperref[par:velikost_krizovatky]{velikost},
+Počet vrcholů grafu tedy činí $6 \times s \times (s-1) + 6i + 6o$,
+kde $s$ je \hyperref[par:velikost_krizovatky]{velikost},
 $i$ počet \hyperref[par:vjezdy]{vjezdů} a $o$ počet \hyperref[par:vyjezdy]{výjezdů}.
 \nameref{par:velikost_bloku} je opět vzdálenost mezi dvěma sousedními vrcholy.
 

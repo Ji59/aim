@@ -25,46 +25,49 @@ Například mám $3$ skupiny $g_1, g_2, g_3$, a $g_1$ je v kolizi s~$g_2$.
 Povede se mi přeplánovat skupinu $g_1$,avšak nyní je $g_1$ v~kolizi s~$g_3$.
 Po~opětovném přeplánování $g_1$ může oět dojít ke~kolizi s~$g_2$.
 Proto je nutné udržovat si historii skupin, se kterými byla aktuálně plánovaná skupina v~kolizi.
-Při~hledání nových tras se agenti vyhýbají nejen druhé skupině, ale i všem předešlým skupinám.
+Při~hledání nových tras se agenti vyhýbají nejen druhé skupině, ale i~všem předešlým skupinám.
 
 \paragraph{Illegal moves table}\label{par:varsg_illegal_moves_table} je datová struktura,
 kterou algoritmus používá při~přeplánování k~hledání kolize s~agenty jiné skupiny.
-Struktura této tabulky je shodná se strukturou \hyperref[par:obsazene_pozice]{tabulkou obsazených pozic}.
-Tudíž mohu kontrolovat kolize přejezdu stejným způsobem popsaným v sekci \ref{sec:kolize}.
+Struktura této tabulky je podobná struktuře \hyperref[par:obsazene_pozice]{tabulky obsazených pozic}.
 
-Před~každým přeplánováním skupiny si algoritmus uloží pro~každý krok množinu dvojic vrcholu a agenta.
+Před~každým přeplánováním skupiny si algoritmus uloží pro~každý krok množinu dvojic vrcholu a množinu agentů.
 Pro~každého agenta ze~skupiny z~historie nebo kolizní skupiny je do~tabulky přidána pro~každý krok, kdy agent cestuje,
 dvojice zmíněného agenta a vrcholu z~jeho aktuální trasy, kde~se vyskytuje ve~zmíněný krok.
+\hyperref[par:obsazene_pozice]{Tabulka obsazených pozic} byla rozdílná pouze v~tom,
+že namísto množiny agentů obsahuje pro~daný krok a vrchol nejvýše jednoho agenta.
+Množina agentů u~\ref{par:varsg_illegal_moves_table} je nutná, jelikož se může stát, že jsou kolize mezi
+agenty různých množin.
+Tudíž se mohou agenti z~různých skupin během plánování nacházet ve~stejný krok na~stejném vrcholu.
 
 Kontrola sousedních vrcholů pro~jednoho agenta probíhá podobně jako při~kontrole u~\ref{str:a_star_ars}.
 Avšak kromě kontroly kolize s~naplánovanými agenty pomocí \hyperref[par:obsazene_pozice]{tabulkou obsazených pozic}
 se totožnými kontrolami zaručuje nekolizní přejezd s~agenty jiných skupin pomocí
 \hyperref[par:varsg_illegal_moves_table]{Illegal moves table}.
+Zároveň místo kontroly pro~jednoho agenta je nutné zkontrolovat všechny agenty dané množiny.
 
 K~rychlejšímu naplánování chceme minimalizovat počet přeplánování.
 Proto by bylo vhodné již při~plánování skupiny preferovat cesty,
 které mají co~nejméně kolizních tras s~ostatními skupinami.
 Přesněji je důležitý počet agentů jiných skupin, které kolidují s~některým agentem aktuální skupiny.
-Avšak pro~zaručení optimality je nutné dodržovat stejné uspořádání jako při~\nameref{str:a_star_arsg}.
+Avšak pro~zaručení optimality je nutné dodržovat stejné uspořádání jako při~\ref{str:a_star_arsg}.
 Porovnání na~počet kolizních agentů tedy budu používat jenom tehdy, mají-li stavy totožnou
-\hyperref[par:ars_vzdalenost]{vzdálenost}, \hyperref[par:ars_uhel_zataceni]{úhlu zatáčení},
-\hyperref[par:ars_pocet_zataceni]{počtu zatáčení} i \hyperref[par:ars_heuristika]{heuristiku}.
+\hyperref[par:ars_vzdalenost]{vzdálenost}, \hyperref[par:ars_uhel_zataceni]{úhel zatáčení},
+\hyperref[par:ars_pocet_zataceni]{počet zatáčení} i \hyperref[par:ars_heuristika]{heuristiku}.
 Pokud bude shodný i~počet agentů s~kolizní trajektorií, budu upřednostňovat stavy s~menším počtem celkových kolizí.
 Při~tomto součtu už započítávám stejného agenta vícekrát.
 
 \paragraph{Conflict avoidance table}\label{par:varsg_conflict_avoidance_table} je tabulka, pomocí níž
 algoritmus zjišťuje množství těchto kolizí.
-Strukturou je podobná struktuře \nameref{par:varsg_illegal_moves_table}.
-Agenti jiných skupin mohou ale být v~kolizi, proto může být naplánováno více agentů na~stejném vrcholu ve~stejný krok.
-Proto je výhodnější pamatovat si místo dvojice vrchol-agent dvojici vrchol-množina agentů.
-Zjišťování kolizních agentů lze opět provést podobnými způsoby popsanými v sekci \nameref{sec:kolize}.
-Rozdíl je jenom namísto kontrolování s~jedním agentem
-se musí zkontrolovat kolize se všemi agenty v~dané množině.
+Strukturou je shodná se~strukturou \nameref{par:varsg_illegal_moves_table}.
+Agenti jiných skupin mohou opět být v~kolizi,
+proto je nutné pamatovat si místo dvojice vrchol-agent dvojici vrchol-množina agentů.
+Zjišťování kolizních agentů lze opět provést podobnými způsoby jako u~\nameref{par:varsg_illegal_moves_table}.
 
 Algoritmus potřebuje na~začátku výpočtu rozdělit agenty do~skupin.
 Vhodný způsob rozdělení je přiřazení každému agentovi svojí skupinu,
 protože složitost plánování roste exponenciálně s~množstvím agentů ve~skupině.
-Všichni agenti jsou naplánováni zvlášť stejným stejně jako u~\ref{str:a_star_ars}.
+Všichni agenti jsou naplánováni zvlášť stejně jako u~\ref{str:a_star_ars}.
 Pokud nějaký agent nemůže být naplánován, je jeho skupina vyřazena.
 
 Může se stát, že algoritmus nebude moci najít trasy pro~všechny agenty po~spojení dvou skupin.
@@ -87,23 +90,24 @@ Tento parametr udává, po jak dlouhé prodlevě (ms) má algoritmus začít pou
 
 \subsubsection{A*OID}\label{subsubsec:a_star_aoid}
 Další způsob řešení \nameref{subsubsec:online_mapf} problému je pomocí \ref{str:oid} algoritmu.
-Při~tomto způsobu řešení se v~novém kroku plánují nejen noví agenti, ale i agenti již naplánovaní.
-Tento způsob by měl dávat lepší výsledky než \ref{str:varsg}.
+Při~tomto způsobu řešení se v~novém kroku plánují nejen noví agenti, ale i~agenti již naplánovaní.
+Tento způsob by měl dávat lepší výsledky než~\ref{str:varsg}.
 Ale přirozeně vzroste počet plánovaných agentů, což vede ke~zpomalení výpočtu.
 Proto \ref{str:oid} používá strategii \uv{neměnit plány agentů, pokud není potřeba}.
 Znamená to, že naplánovaní agenti se znovu neplánují, jestliže nekolidují s~novými agenty.
 
-\nameref{str:varsg} algoritmus lze jednoduše rozšířit na~\ref{str:oid} variantu.
-Na~začátku každému naplánovanému agentovi přidělíme vlastní skupinu.
-Avšak oproti novým agentům pro ně prvotní cestu nehledáme, jelikož už jsou naplánovaní předchozími kroky.
+\nameref{str:varsg} algoritmus lze jednoduše rozšířit na~\ref{str:suboid} variantu.
+Na~začátku každému naplánovanému agentovi přidělím vlastní skupinu.
+Avšak oproti novým agentům pro~ně prvotní cestu nehledám, jelikož už jsou naplánovaní předchozími kroky.
 Akorát jejich aktuální cesta nezačíná ve~vrcholu vjezdu,
 ale obecným vrcholem podle toho, kde se v~plánovaný krok nacházejí.
 Množina koncových vrcholů je stejná.
 
 Poté může algoritmus pokračovat stejně jako v~\ref{str:a_star_arsg}.
 Jediný rozdíl je u~slučování dvou skupin.
-Algoritmus si nemůže dovolit odebrat agenta z~výpočtu a zamítnout ho, jelikož už je částečně naplánován.
-Z~tohoto důvodu se při~slučování skupin neprochází všechny podmnožiny agentů skupin,
+Algoritmus si nemůže dovolit odebrat agenta z~výpočtu a zamítnout ho,
+jelikož už je částečně naplánován a už vjel do~křižovatky.
+Z~tohoto důvodu se při~slučování skupin neprochází všechny podmnožiny sjednocení agentů skupin,
 ale jenom podmnožiny obsahující všechny dříve naplánované agenty.
 
 Algoritmus opět podporuje \hyperref[par:arsg_zvp]{zjednudušený výpočet}.
@@ -123,3 +127,4 @@ Agenti se berou od~nejnovějšího po~nejstarší.
 \paragraph{Počet přeplánovaných kroků (\ref{par:aoid_ppk})}\labeltext{PPK}{par:aoid_ppk}
 omezuje stáří přeplánovaných agentů.
 Z~vybraných agentů na~přeplánování jsou odebráni takoví, kteří už cestují déle než hodnota tohoto parametru.
+Tento parametr umožňuje křižovatce plánovat agenty s~určitým předstihem a tím vzít v~potaz i~pozdější agenty.

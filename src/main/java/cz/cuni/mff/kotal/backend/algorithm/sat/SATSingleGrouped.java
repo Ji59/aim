@@ -225,7 +225,7 @@ public class SATSingleGrouped extends SafeLanes {
 
 				for (int i : validVerticesIDs) {
 					if (!exits.contains(i)) {
-						/*
+						/* FIXME it changed :(
 							∀ vertex v_i different from exit in time t if |V| * t + i + 1 (agent is on v_i in t) then agent has to be on any neighbour in next time
 							=> ¬(|V| * t + i + offset) = - (|V| * t + i + offset) ∨ (V_{neighbour j of v_i} |V| * (t + 1) + j + offset)
 						*/
