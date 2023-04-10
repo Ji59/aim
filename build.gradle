@@ -32,6 +32,7 @@ dependencies {
 
 run {
 //	enableAssertions = true
+	maxHeapSize = "42g"
 }
 
 test {

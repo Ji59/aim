@@ -2,33 +2,36 @@
 
 %Popis experimentálních dat - velikost křižovatky, počet agentů a kroků, safe distance.
 
-\subsubsection{Délka simulace}
+\subsection{Délka simulace}\label{subsec:delka_simulace}
 
 Simulace bude přidávat agenty po $32768$ kroků.
 Pokud bude plánování trvat příliš dlouhou dobu, bude simulace předčasně ukončena.
+Maximální dobu běhu simulace jsem omezil na 2 hodiny.
 
 \subsubsection{Křižovatka}
 
-Algoritmy budu testovat na každém typu křižovatky o třech velikosti.
+Algoritmy budu testovat na každém typu křižovatky o dvou velikostech.
 \paragraph{Malá}\label{par:data_mala} křižovatka bude mít \hyperref[par:velikost_krizovatky]{velikost} rovnou~$4$.
 Tato křižovatka bude mít pouze jeden \hyperref[par:vjezdy]{vjezd} a jeden \hyperref[par:vyjezdy]{výjezd}.
-\paragraph{Střední}\label{par:data_stredni} křižovatka bude mít \hyperref[par:velikost_krizovatky]{velikost}~$8$.
-\hyperref[par:vjezdy]{Počet vjezdů} a \hyperref[par:vyjezdy]{výjezdů} bude činit $3$.
+%\paragraph{Střední}\label{par:data_stredni} křižovatka bude mít \hyperref[par:velikost_krizovatky]{velikost}~$8$.
+%\hyperref[par:vjezdy]{Počet vjezdů} a \hyperref[par:vyjezdy]{výjezdů} bude činit $3$.
 \paragraph{Velká}\label{par:data_velka} křižovatka bude mít \hyperref[par:velikost_krizovatky]{velikost}~$16$.
-\hyperref[par:vjezdy]{Počet vjezdů} a \hyperref[par:vyjezdy]{výjezdů} je zvýšen na $5$.
+Počet \hyperref[par:vjezdy]{vjezdů} a \hyperref[par:vyjezdy]{výjezdů} je zvýšen na $4$.
 
 \subsubsection{Agenti}
 
-Agenti budou nejdříve náhodně vygenerováni zvlášť pro každou velikost a typ křižovatky.
-Poté se ti samí agenti použijí k porovnání na jednotlivých křižovatkách.
+Agenti budou nejdříve náhodně vygenerováni zvlášť pro každou velikost.
+Generování proběhne dvakrát pro každou velikost, jednou pro hexagonální typ a jednou společně pro čtvercový a oktagonální typ.
+Poté se ti samí agenti použijí k porovnání jednotlivých algoritmů, abych snížil vliv náhody na výsledky.
 V každý kroku přibude mezi $0 - en$ agentů, kde $en$ je celkový počet vjezdů do křižovatky ze všech stran.
 Přesný počet je uniformě náhodně vygenerován každý krok.
 
 \ref{sec:agent}Délka agentů bude $0.56$ \hyperref[par:velikost_bloku]{velikosti bloku} křižovatky
 a šířka $0.35$ \hyperref[par:velikost_bloku]{velikosti bloku}.
 Tyto hodnoty jsem zvolil, jelikož umožňují nekolizní pozice agentů na sousedních vrcholech.
-Zároveň ale agenti nejsou příliš malí na to, aby jejich velikost nehrála roli.
+Zároveň ale agenti nejsou příliš malí na to, aby jejich velikost nehrála žádnou roli.
 
 Dále budu porovnávat případy, kdy agenti mají daný přesný výjezd, nebo pouze směr výjezdu.
-Tyto případy má cenu porovnávat pouze u \hyperref[par:data_stredni]{střední} a
-\hyperref[par:data_velka]{velké} křižovatky, jelikož obsahují více výjezdů.
+Tyto případy má cenu porovnávat pouze u
+%\hyperref[par:data_stredni]{střední} a
+\hyperref[par:data_velka]{velké} křižovatky, jelikož obsahuje více výjezdů.

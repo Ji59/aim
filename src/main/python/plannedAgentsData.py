@@ -25,8 +25,7 @@ def steps_travelling_agents(last_step: int, agents: [loadDirectory.Agent]) -> [i
 		planned_step = agent.plannedTime
 		traveling_time = len(agent.path)
 		if planned_step >= 0:
-			assert planned_step + traveling_time <= last_step
-			for s in range(planned_step, planned_step + traveling_time):
+			for s in range(planned_step, min(planned_step + traveling_time, last_step)):
 				travelling_agents[s] += 1
 	return travelling_agents
 
@@ -138,11 +137,13 @@ if __name__ == "__main__":
 
 			print(
 				f"{subdir}: "
+				f"{last_step}, "
 				f"{not_planned}, "
 				# f"{np.mean(agents_planned):.2f}, {np.std(agents_planned):.2f}, "
 				f"{np.mean(travelling_agents):.2f}, {np.std(travelling_agents):.2f}, "
 				f"{int(sum(delays))}, {np.mean(delays):.2f}, "
-				# f"{np.mean(planning_times):.2f}, {np.std(planning_times):.2f}"
+				f"{np.mean(planning_times):.2f}, "
+				# f"{np.std(planning_times):.2f}"
 			)
 
 		travelling_data = {}
