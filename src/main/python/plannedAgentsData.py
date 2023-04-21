@@ -3,31 +3,33 @@ from queue import PriorityQueue
 
 import numpy as np
 
-import generateIntersection
 import loadDirectory
+import plotting
 
 
 def steps_planned_agents(last_step: int, agents: [loadDirectory.Agent]) -> (int, [int]):
-	agents_planned = [0] * last_step
+	agents_planned = [0] * (last_step + 1)
 	not_planned = 0
 	for agent in agents:
 		planned_time = agent.plannedTime
-		if planned_time >= 0:
+		if 0 <= planned_time <= last_step:
 			agents_planned[planned_time] += 1
 		else:
 			not_planned += 1
 	return not_planned, agents_planned
 
 
-def steps_travelling_agents(last_step: int, agents: [loadDirectory.Agent]) -> [int]:
+def steps_travelling_agents(last_step: int, agents: [loadDirectory.Agent]) -> ([int], [int]):
 	travelling_agents = [0] * last_step
+	travelling_steps = []
 	for agent in agents:
 		planned_step = agent.plannedTime
 		traveling_time = len(agent.path)
+		travelling_steps.append(traveling_time)
 		if planned_step >= 0:
 			for s in range(planned_step, min(planned_step + traveling_time, last_step)):
 				travelling_agents[s] += 1
-	return travelling_agents
+	return travelling_agents, travelling_steps
 
 
 def find_exits(graph: loadDirectory.Graph, agent: loadDirectory.Agent) -> [int]:
@@ -121,34 +123,41 @@ if __name__ == "__main__":
 
 			not_planned, agents_planned = steps_planned_agents(last_step, agents)
 
-			travelling_agents = steps_travelling_agents(last_step, agents)
-
-			agents_data[subdir] = (not_planned, agents_planned, travelling_agents)
+			travelling_agents, travelling_steps = steps_travelling_agents(last_step, agents)
 
 			graph = parameters.graph
-			vertices_visits_ = vertices_visits(len(graph.vertices), agents)
-			vertices_occupation = [visits / simulation_last_step for visits in vertices_visits_]
-			intersection, locations, entries, exits = generateIntersection.generate_intersection(graph)
+			# vertices_visits_ = vertices_visits(len(graph.vertices), agents)
+			# vertices_occupation = [visits / simulation_last_step for visits in vertices_visits_]
+			# intersection, locations, entries, exits = generateIntersection.generate_intersection(graph)
 			# plotting.plot_vertices_usage(intersection, locations, vertices_occupation)
 
 			delays = agents_delay(agents, graph)
 
 			planning_times = parameters.simulatingTime
 
+			agents_data[subdir] = (not_planned, agents_planned, travelling_agents, planning_times)
+
 			print(
 				f"{subdir}: "
-				f"{last_step}, "
+				f"{int(np.round(simulation_last_step))}, "
 				f"{not_planned}, "
 				# f"{np.mean(agents_planned):.2f}, {np.std(agents_planned):.2f}, "
-				f"{np.mean(travelling_agents):.2f}, {np.std(travelling_agents):.2f}, "
-				f"{int(sum(delays))}, {np.mean(delays):.2f}, "
-				f"{np.mean(planning_times):.2f}, "
+				f"{np.mean(travelling_agents):.2f}, "
+				# f"{np.std(travelling_agents):.2f}, "
+				# f"{np.mean(travelling_steps):.2f}, "
+				# f"{int(sum(delays))}, "
+				f"{np.mean(delays):.2f}, "
+				f"{np.mean(planning_times) / 1000:.2f}, "
 				# f"{np.std(planning_times):.2f}"
 			)
 
-		travelling_data = {}
+		travelling_data_times = {}
+		travelling_data_agents = {}
 		for subdir, data in agents_data.items():
-			travelling_data[subdir] = data[2] + [0] * (last_step - len(data[2]))
-# travelling_data[subdir + "_p"] = data[1] + [0] * (last_step - len(data[1]))
-
-# plotting.plot_ints(travelling_data)
+			travelling_data_times[subdir + "_t"] = plotting.convolute(data[3], len(data[3]) // 2 ** 6)
+			travelling_data_agents[subdir + "_a"] = plotting.convolute(data[2], len(data[2]) // 2 ** 6)
+		# travelling_data[subdir] = data[2] + [0] * (last_step - len(data[2]))
+		# travelling_data[subdir + "_p"] = data[1] + [0] * (last_step - len(data[1]))
+		#
+		plotting.plot_ints(travelling_data_times)
+		plotting.plot_ints(travelling_data_agents)

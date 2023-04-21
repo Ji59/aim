@@ -1,0 +1,54 @@
+\subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_mala]{malé} křižovatce}
+\label{subsubsec:exp_ars_mala_krizovatka}
+
+Pokud bude nastaven \ref{par:ars_mnv} na $1$, omezím \ref{par:ars_mpc}
+pro čtvercový a oktagonální typ na hodnotu $8$, a pro hexagonální převážně na $16$.
+Por běhy s \ref{par:ars_mnv} $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} neomezená, značená hodnotou $inf$.
+Jelikož má křižovatka $16$ vrcholů kromě vjezdů a výjezdů, není rozdíl mezi neomezenými cestami a
+cestami omezenými na $34$ kroků pro výpočet s \ref{par:ars_mnv} nastavené na $2$.
+
+V tabulce (Tabulka \ref{tab:ars_exp_mala}) jsou vidět výsledky na všech typech křižovatky
+velikostí $4$ a jedním vjezdem a výjezdem.
+
+\input{experimenty/ars_small_table}
+
+Z výsledků je znatelné, že více omezený prohledávací prostor vede ke značně horším výsledkům,
+avšak průměrný čas plánování jednoho kroku je nejnižší.
+
+Dovolení či zakázání vracení má různý vliv na výsledky u různých typů křižovatek.
+U čtvercového typu byly rozdíly mezi variantami minimální.
+U oktagonálního si vedla lépe varianta s povoleným vracením, avšak u hexagonálního typu si vedla hůře.
+
+Překvapilo mě, že oktagonální typ měl mnohem více zamítnutí než čtvercový typ.
+Dle mého názoru je tento jev způsoben menším manipulativním prostorem pro auta.
+Oktagonální typ oproti čtvercovému nemá čtyři rohové vrcholy.
+Zároveň pokud stojí auto na čtvercovém vrcholu reprezentující diagonální mezi dvěma oktagonálními vrcholy,
+blokuje jiné přejezdy na těchto sousedních vrcholech. % TODO obrázek
+Toto je dle mého názoru i důvod, proč si varianta s vracením vedla nejlépe na této křižovatce.
+Umožňuje agentovi větší pohyblivost, tudíž i více možností vyhnout se jiným agentům.
+
+Povolené vracení vedlo k nejnižšímu zpoždění ve všech třech typech křižovatky, ačkoliv počet zamítnutí nebyl nejmenší.
+Mohlo by to být způsobeno tím, že do zpoždění se u zamítnutých agentů počítá pouze čekací doba před křižovatkou,
+zatímco pro nezamítnuté agenty čekací doba a zároveň prodleva cesty oproti optimální.
+Pokud tedy mnoho agentů čeká dlouho vev frontě a poté jedou značně delší cestou, mají v součtu vyšší zpoždění,
+než kdyby byli všichni agenti zamítnutí.
+
+Dalším zajímavým rozdílem mezi čtvercovou a oktagonální křižovatkou je rozdíl v průměrném počtu agentů na křižovatce.
+Při nejvíce omezených cestách se přechod z čtvercové na oktagonální křižovatku se tento průměr snížil.
+Ve zbylých dvou případech průměr vzrostl, ačkoliv celkový počet cestujících agentů klesl.
+Z toho lze usoudit, že na čtvercové křižovatce byly naplánované trasy značně kratší.
+
+\subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
+\label{subsubsec:exp_ars_velka_krizovatka_bez_vyjezdu}
+
+\input{experimenty/ars_big_table}
+\input{experimenty/aoid_small_table}
+\input{experimenty/aoid_big_table}
+\input{experimenty/arsg_small_table}
+\input{experimenty/arsg_big_table}
+\input{experimenty/cbssg_small_table}
+\input{experimenty/cbsoid_small_table}
+\input{experimenty/satsg_small_table}
+\input{experimenty/sata_small_table}
+
+

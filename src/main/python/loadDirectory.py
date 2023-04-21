@@ -22,6 +22,11 @@ def get_subdirectories(directory: str) -> [str]:
 		full_path = path.join(directory, filename)
 		if path.isdir(full_path):
 			subdirectories.append(filename)
+		elif full_path.endswith(".lnk"):
+			import win32com.client
+			shell = win32com.client.Dispatch("WScript.Shell")
+			shortcut = shell.CreateShortCut(full_path)
+			subdirectories.append(shortcut.Targetpath)
 	return subdirectories
 
 

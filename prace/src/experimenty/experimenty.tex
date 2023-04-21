@@ -10,15 +10,16 @@ Následujícím faktorem je zpoždění aut.
 Budu sledovat \hyperref[par:zamitnuti]{počet zamítnutých agentů} a \hyperref[par:zdrzeni]{zdržení} naplánovaných agentů.
 V tabulkách budu porovnávat celkový \hyperref[par:zamitnuti]{počet zamítnutých agentů} (Zam).
 U \hyperref[par:zdrzeni]{zdržení} budu počítat celkový součet (Zpož)
-a průměrné \hyperref[par:zdrzeni]{zdržení} na agenta (pZpož) vypočítané ze všech agentů.
+a průměrné \hyperref[par:zdrzeni]{zdržení} na agenta (pZp) vypočítané ze všech agentů.
 
 Další zajímavý faktor je obsazenost křižovatky,
 který udává v kolika krocích ze všech byl některý agent na určitém bloku křižovatky.
-Ve výsledkách budu počítat průměrný počet agentů na křižovatce (pAgen) přes všechny kroky.
-Budu také sledovat průměrnou délku naplánovaných cest.
+Ve výsledkách budu počítat průměrný počet agentů na křižovatce (pAg) přes všechny kroky.
+%Budu také sledovat průměrnou délku naplánovaných cest. TODO
 
 Důležitá je také doba běhu algoritmu.
 Budu sledovat pro každý krok, kolik uběhlo času od spuštění plánování daného kroku.
+Odtud zpočtu průměrný čas na jeden krok v milisekundách (Čas).
 
 Nejprve provedu testy pro porovnání parametrů jednotlivých agentů.
 Poté srovnám nejlepší nastavení algoritmů proti sobě.
@@ -37,6 +38,8 @@ Poté srovnám nejlepší nastavení algoritmů proti sobě.
 
 V této kapitole budu porovnávat vliv parametrů algoritmů na běh algoritmů.
 V obecnosti budu testovat algoritmy s hodně omezenými parametry a s málo omezujícím nastavením parametrů.
+
+\input{experimenty/safe_lanes_table}
 
 \input{experimenty/a_star_vysledky}
 

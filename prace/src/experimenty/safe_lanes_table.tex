@@ -1,0 +1,47 @@
+\begin{table}[b!]
+	\centering
+%	\begin{adjustwidth}{-1.5cm}{}
+	\begin{tabular}{c c c | r r D{.}{,}{3.2} D{.}{,}{2.2} D{.}{,}{4.2}}
+		\toprule \\
+		\pulrad{\B{Typ}} & \pulrad{\B{Vel}} & \pulrad{\B{Výj}} &
+		\pulrad{\B{Krok}} & \pulrad{\B{Zam}} & \mc{\pulrad{\B{pAg}}} &
+		\mc{\pulrad{\B{pZp}}} & \mc{\pulrad{\B{Čas}}} \\
+		\midrule
+		S & m & - & 32782 & \B{4056}   & \multicolumn{1}{B{.}{,}{3.2}}{11.19}  & \multicolumn{1}{B{.}{,}{2.2}}{6.89}  & 16.75   \\
+		O & m & - & 32785 & 13488      & 9.34                                  & 10.36                                & \multicolumn{1}{B{.}{,}{4.2}}{11.30}   \\
+		H & m & - & 32796 & 32273      & 14.15                                 & 18.18                                & 87.44                                  \\
+		\hline
+		S & v & e & 32850 & 111987     & 77.02                                 & 60.70                                & \multicolumn{1}{B{.}{,}{4.2}}{1244.95} \\
+		S & v & n & 32849 & \B{75983}  & \multicolumn{1}{B{.}{,}{3.2}}{86.91}  & \multicolumn{1}{B{.}{,}{2.2}}{44.18} & 1449.67 \\
+		\hline
+		O & v & e & 32849 & 138867     & 61.62                                 & 60.30                                & \multicolumn{1}{B{.}{,}{4.2}}{937.51}  \\
+		O & v & n & 32846 & \B{107830} & \multicolumn{1}{B{.}{,}{3.2}}{71.98}  & \multicolumn{1}{B{.}{,}{2.2}}{58.92} & 1914.34 \\
+		\hline
+		H & v & e & 32893 & 234142     & 99.14                                 & 92.83                                & \multicolumn{1}{B{.}{,}{4.2}}{2399.98} \\
+		H & v & n & 32894 & \B{212628} & \multicolumn{1}{B{.}{,}{3.2}}{109.63} & \multicolumn{1}{B{.}{,}{2.2}}{92.37} & 4221.17 \\
+		\bottomrule
+		\multicolumn{8}{l}{\footnotesize
+		\textrm{Typ} - Typ křižovatky (\textrm{S}~\nameref{subsec:ctvercovy_typ}, \textrm{O}~\nameref{subsec:oktagonalni_typ}, \textrm{H}~\nameref{subsec:hexagonalni_typ})
+		} \\
+		\multicolumn{8}{l}{\footnotesize
+		\textrm{Vel} - velikost křižovatky (\textrm{m}~\nameref{par:data_mala}, \textrm{v}~\nameref{par:data_velka})
+		} \\
+		\multicolumn{8}{l}{\footnotesize
+		\textrm{Výj} - Výjezdy u~velké křižovatky (\textrm{e}~jediný daný výjezd, \textrm{n}~libovolný výjezd)
+		} \\
+		\multicolumn{8}{l}{\footnotesize
+		\textrm{Krok} - počet kroků simulace, \textrm{Zam} - počet zamítnutí
+		} \\
+		\multicolumn{8}{l}{\footnotesize
+		\textrm{pAg} - průměrný počet agentů v jeden krok na křižovatce
+		} \\
+		\multicolumn{8}{l}{\footnotesize
+		\textrm{pZp} - průměrné zpoždění agentů
+		} \\
+		\multicolumn{8}{l}{\footnotesize
+		\textrm{Čas} - průměrný počet mikrosekund na plánování jednoho kroku
+		}
+	\end{tabular}
+	\caption{Porovnání vlivu parametrů u \nameref{sec:safe_lanes} na různých typech křižovatkek.}\label{tab:safe_lanes_exp}
+%	\end{adjustwidth}
+\end{table}

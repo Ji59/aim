@@ -19,7 +19,14 @@
 	\vskip 20\p@
 	}}
 
-\newcolumntype{B}[3]{>{\boldmath\DC@{#1}{#2}{#3}}c<{\DC@end}}
+\DeclareMathVersion{nxbold}
+\SetSymbolFont{operators}{nxbold}{OT1}{cmr} {b}{n}
+\SetSymbolFont{letters}  {nxbold}{OML}{cmm} {b}{it}
+\SetSymbolFont{symbols}  {nxbold}{OMS}{cmsy}{b}{n}
+
+\newcolumntype{B}[3]{>{\mathversion{nxbold}\DC@{#1}{#2}{#3}}c<{\DC@end}}
+
+\newcommand{\B}{\fontseries{b}\selectfont}
 
 % makro pro vytváření label pro obyčejný text.
 \newcommand{\labeltext}[2]{%
