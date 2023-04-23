@@ -2,15 +2,16 @@
 \label{subsubsec:exp_ars_mala_krizovatka}
 
 Pokud bude nastaven \ref{par:ars_mnv} na $1$, omezím \ref{par:ars_mpc}
-pro čtvercový a oktagonální typ na hodnotu $8$, a pro hexagonální převážně na $16$.
+pro čtvercový a oktagonální typ na hodnotu $8$, a pro hexagonální na $16$.
 Por běhy s \ref{par:ars_mnv} $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} neomezená, značená hodnotou $inf$.
 Jelikož má křižovatka $16$ vrcholů kromě vjezdů a výjezdů, není rozdíl mezi neomezenými cestami a
 cestami omezenými na $34$ kroků pro výpočet s \ref{par:ars_mnv} nastavené na $2$.
 
+\input{experimenty/ars_small_table}
+
 V tabulce (Tabulka \ref{tab:ars_exp_mala}) jsou vidět výsledky na všech typech křižovatky
 velikostí $4$ a jedním vjezdem a výjezdem.
 
-\input{experimenty/ars_small_table}
 
 Z výsledků je znatelné, že více omezený prohledávací prostor vede ke značně horším výsledkům,
 avšak průměrný čas plánování jednoho kroku je nejnižší.
@@ -41,14 +42,32 @@ Z toho lze usoudit, že na čtvercové křižovatce byly naplánované trasy zna
 \subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
 \label{subsubsec:exp_ars_velka_krizovatka_bez_vyjezdu}
 
+Pro tyto testy jsem přirozeně zvýšil omezení \ref{par:ars_mpc} pro čtvercový a oktagonální typ na hodnotu $32$,
+a pro hexagonální na $64$, pokud je nastavený \ref{par:ars_mnv} na $1$.
+Por běhy s \ref{par:ars_mnv} $2$ jsou délky cest opět neomezené.
+
 \input{experimenty/ars_big_table}
-\input{experimenty/aoid_small_table}
-\input{experimenty/aoid_big_table}
-\input{experimenty/arsg_small_table}
-\input{experimenty/arsg_big_table}
-\input{experimenty/cbssg_small_table}
-\input{experimenty/cbsoid_small_table}
-\input{experimenty/satsg_small_table}
-\input{experimenty/sata_small_table}
+
+V tabulce (Tabulka \ref{tab:ars_exp_velka_bez_vyjezdu}) jsou vidět výsledky na všech typech křižovatky
+velikostí $16$ se $4$ vjezdy a $4$ výjezdy.
+
+Z výsledků je dobře vidět souvislost mezi nejmenším počtem zamítnutých agentů, nejvyšším počtem agentů na křižovatce a
+nejmenším průměrným zpožděním agenta.
+
+Avšak zbytek výsledků je dosti překvapivý.
+Na čtvercovém a hexagonálním typu křižovatky byl nejlepší nejméně omezený algoritmus,
+zatímco na oktagonální křižovatce vyšla značně lépe varianta s povoleným zastavováním a $2$ návštěvami vrcholu.
+Přidání diagonálních přejezdů tentokrát výrazně pomohlo u všech tří běhů.
+
+Nejpřekvapivější pro mě byly časy plánování.
+Nejrychlejší u čtvercového typu byl nejvíce omezený algoritmus,
+avšak u zbylých dvou typů běžel nejrychleji nejméně omezený běh.
+Běh s povoleným zastavováním byl u všech tří typů nejpomalejší a pro hexagonální křižovatky ani nestihl doběhnout.
+Dle mého názoru je to způsobené vysokým počtem plánování agentů, které nejsou úspěšné.
+Ale aby tento fakt algoritmus zjistil musí vyzkoušet vysoká počet možností.
+Pokud ale povolím vracení agenta, dle mého názoru mnoha těmto agentům umožním jet relativně krátkou trasou.
+
+\subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
+\label{subsubsec:exp_ars_velka_krizovatka_s_vyjezdem}
 
 
