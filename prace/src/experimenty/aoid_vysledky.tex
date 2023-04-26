@@ -1,0 +1,50 @@
+\subsubsection{\nameref{subsubsec:a_star_aoid} na \hyperref[par:data_mala]{malé} křižovatce}
+\label{subsubsec:exp_aoid_mala_krizovatka}
+
+Tento algoritmus rozšiřuje \ref{str:a_star_arsg}, proto jsem se snažil použít stejné nastavení parametrů.
+Bohužel to nebylo vždy možné, jelikož přidaní agenti značně zvýšili časovou náročnost.
+
+Algoritmus má pár parametrů navíc oproti \ref{str:a_star_arsg}.
+Těmi jsou \ref{par:aoid_mpa} udávající maximální počet plánovaných agentů
+a \ref{par:aoid_ppk}, který značí, kolik kroků může být agent na cestě, aby byl zvážen pro přeplánování.
+\ref{par:aoid_ppk} bude vždy nastaveno na $8$ kroků,
+\ref{par:aoid_mpa} je proměnlivé, vybraná hodnota je vidět v tabulce.
+
+Algoritmus opět přejde na zjednodušený výpočet po jedné sekundě.
+
+\input{experimenty/aoid_small_table}
+
+
+V tabulce (Tabulka \ref{tab:aoid_exp_mala}) jsou vidět výsledky na všech typech křižovatky
+velikostí $4$ a jedním vjezdem a výjezdem.
+
+Na čtvercové křižovatce všechny varianty doběhly,
+avšak rozdíl v době plánování je mezi nimi mnohem větší než v předchozích případech.
+Delší časy mohly způsobit častější přechod na zjednodušený režim, což může vést k horším výsledkům.
+Zároveň je vidět zvyšování zamítnutí a průměrného zpoždění se zvyšujícím se zaplněním křižovatky.
+Opět by to nasvědčovalo možnosti, kdy vyšší omezení naplánuje obecně lepší trasu o krok později.
+
+Stejné nastavení parametrů nebylo úspěšné na oktagonální křižovatce, ani jedno nastavení nedoběhlo do konce.
+Nárůst složitosti může být způsoben vyšším počtem vrcholů grafu křižovatky
+nebo faktem, že přidané vrcholy jsou mnohem blíže sebe
+a agenti si tak navzájem omezují pohyb více než na čtvercovém typu.
+
+Na hexagonálním typu křižovatky jsem zkusil stejné nastavení parametrů pro nejvíce omezenou variantu.
+Algoritmus spočítal mnohem méně kroků než na oktagonálním typu, což by nasvědčovalo hypotéze,
+že za přidanou složitost může vyšší počet vrcholů křižovatky.
+Ve zbylých dvou experimentech na této křižovatce jsem snížil maximální počet plánovaných agentů.
+Je vidět, že snížení tohoto počtu z $16$ na $14$ zaručí, že algoritmus bez problémů doběhne do konce.
+Zároveň počet zamítnutých agentů a průměrná prodleva se příliš nemění pro počet plánovaných agentů $12$ a $14$.
+Mohlo by to být způsobeno jiným nastavením nejvyšší prodlevy cesty,
+avšak dle mého názoru povolení přeplánování více agentům nemá na výsledky tak velký vliv.
+
+\subsubsection{\nameref{subsubsec:a_star_aoid} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
+\label{subsubsec:exp_aoid_velka_krizovatka_bez_vyjezdu}
+
+\input{experimenty/aoid_big_table}
+
+Tabulka \ref{subsubsec:exp_aoid_velka_krizovatka_bez_vyjezdu} obsahuje výsledky pouze na čtvercovém typu křižovatky,
+jelikož zbylé varianty zaplnily paměť a selhaly.
+
+Z toho usuzuji, že počet přeplánovaných agentů musí být velice malý pro velké křižovatky.
+To činí tento algoritmus značně nepoužitelný.

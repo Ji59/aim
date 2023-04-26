@@ -4,6 +4,11 @@
 Jelikož se jedná o rozšíření \ref{str:a_star_ars}, použil jsem stejná nastavení parametrů.
 Tedy pro čtvercový a oktagonální typ jsem nastavil \ref{par:ars_mpc} na hodnotu $8$, a pro hexagonální na $16$.
 Při bězích s \ref{par:ars_mnv} nastaveno na $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} opět neomezená.
+
+Algoritmus má jediný parametr navíc, a to \nameref{par:arsg_zvp}, který udává,
+po jak dlouhé prodlevě má výpočet přejít na zjednodušený režim.
+U všech experimentů je tento parametr nastaven na jednu sekundu.
+
 \input{experimenty/arsg_small_table}
 
 V tabulce (Tabulka \ref{tab:arsg_exp_mala}) jsou vidět výsledky na všech typech křižovatky
@@ -33,10 +38,38 @@ velikostí $16$ se $4$ vjezdy a $4$ výjezdy.
 V této tabulce mě většina hodnot překvapila, výsledky mezi jednotlivými typy křižovatek jsou navzájem nesrovnatelné.
 Na čtvercovém typu křižovatky měl nejmenší počet zamítnutých agentů běh s nejméně omezenými agenty.
 Zároveň měl nejvíce agentů na křižovatce.
-Nejméně omezená varianta měla mírně víc zamítnutých agentů a mírně míň počet agentů na křižovatce.
+Nejméně omezená varianta měla mírně víc zamítnutých agentů a mírně menší počet agentů na křižovatce.
 Avšak dosáhla výrazně nižšího průměrného zpoždění.
 Zároveň zvládla plánovat agenty nejrychleji.
+Prostředního běh měl nejhorší výsledky až na dobu plánování.
 
+U oktagonálního typu jednoznačně vyhrála první varianta,
+dosáhla nejmenšího počtu zamítnutí a průměrného zpoždění.
+Ačkoliv se plánovací časy oproti čtvercové křižovatce zpětinásobily, pořád byly prot tento typ nejmenší.
+Nejméně omezený běh měl výrazně horší počet zamítnutých agentů, průměrné zpoždění a plánovací čas.
+Avšak má vyšší počet agentů na křižovatce.
+To by nasvědčovalo mé hypotéze, že se snížením omezení pohybu dokáže algoritmus na plánovat dříve nenaplánované agenty,
+avšak za cenu delších cest a blokování budoucích agentů.
+Dalším překvapením je výsledek prostředního běhu.
+Ačkoliv si oproti čtvercovému typu pomohl, celkově vyšel nejhůře, včetně plánovací doby.
+Je možné, že algoritmus často přechází na zjednodušený režim, ve kterém plánuje méně agentů, než by jinak zvládl.
+Dále je možné, že opět dochází ke vzájemnému překážení agentů, jako u předchozí varianty.
+Je totiž vidět, že i tento běh má vyšší zaplněnost křižovatky než běh první.
+
+Na hexagonální křižovatce žádná varianta nedoběhla do konce, takže data tím mohou být zkreslená.
+Výsledky jsou zde opačné oproti předchozímu případu.
+Prostřední varianta zvládla vypočítat nejvíce kroků a nejspíše díky tomu dosáhnout nejmenšího počtu zamítnutí.
+Zaplněnost křižovatky byla přibližně stejná, avšak průměrné zpoždění měl nejméně omezený běh.
+To může být způsobeno výrazně menším počtem kroků, a tedy i menším počtem naplánovaných agentů.
+Plány agentů ze začátku simulace jsou mnohem kratší,
+jelikož na křižovatce nejsou žádní agenti, kteří by blokovali tyto trasy.
+Intuitivně měl tento běh nejvyšší čas plánování, více než o třetinu vyšší než zbylé dva testy.
+
+Nejsem si jistý, proč ta dříve nejrychlejší varianta byla tak pomalá.
+Dle mého názoru existuje optimální omezení agentů, které se liší pro každý typ a velikost křižovatky.
+Pokud agenta omezím více, rychleji zjistím, že pro něj neexistuje cesta.
+Avšak zároveň můžou nastat situace, ve kterých agentovi chyběl jediný krok do cíle
+a agent by byl úspěšně naplánován.
 
 
 \subsubsection{\ref{str:a_star_arsg} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
