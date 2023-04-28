@@ -1,0 +1,73 @@
+\subsection{\ref{str:cbs} porovnání parametrů}\label{subsec:cbs_porovnani_parametru}
+
+V této kapitole porovnám vliv parametrů u algoritmů \ref{str:cbs} a \nameref{subsec:cbsoid}.
+
+Tyto algoritmy rozšiřují \ref{str:a_star_ars},
+čili budu používat všechny parametry z \ref{str:a_star_ars} se stejnými hodnotami.
+Parametry od algoritmu \ref{str:a_star_ars} jsou \hyperref[par:ars_mnv]{maximum návštěv vrcholu},
+\hyperref[par:ars_pz]{povolené zastavování}, \hyperref[par:ars_mpc]{maximální prodleva při cestě} a
+\hyperref[par:ars_pv]{povolené vracení}.
+Zároveň obsahuje \ref{str:cbs} parametr \ref{par:arsg_zvp} určující,
+po jak dlouhé době má výpočet přejít na zjednodušený režim.
+Tento parametr bude vždy nastaven na jednu sekundu.
+
+\subsubsection{\ref{str:cbs} na \hyperref[par:data_mala]{malé} křižovatce}
+\label{subsubsec:exp_cbssg_mala_krizovatka}
+
+\ref{str:cbs} algoritmus se choval poměrně předvídatelně, jak je možné vidět v tabulce \ref{tab:cbssg_exp_mala}.
+Zároveň všechny experimenty úspěšně stihly doběhnout.
+\input{experimenty/cbssg_small_table}
+
+Na čtvercové křižovatce se se snižujícím omezením pohybu agentů snižoval počet zamítnutých agentů,
+avšak za cenu rostoucí doby výpočtu.
+Varianta s povoleným zastavování ale bez vracení měla mírně vyšší počet zamítnutí, o~12 agentů ($~17,14\%$).
+Průměrné zpoždění měl dokonce o~kousek nižší, přesněji o~$~1,09\%$.
+Čas výpočtu byl přibližně o $12,77\%$ nižší.
+
+Na oktagonální i hexagonální křižovatce vyšla jednoznačně nejlepší nejméně omezená křižovatka.
+Oproti předchozímu případu se se snižujícím omezením výrazně snižuje nejen počet zamítnutých agentů,
+ale i průměrné zpoždění a čas plánování.
+Dle mého názoru to je způsobeno vysokým počtem možností, kde se cesty agentů můžou křížit.
+Pokud tedy některý agent nelze naplánovat, algoritmus musí vyzkoušet všechny možnosti
+a pokaždé tvořit dva podpřípady, kopírovat do každého tabulky kolizí, \dots,
+a nakonec zatřídit nové vrcholy do prioritní fronty.
+Jelikož poslední varianta umožňuje nejvíce tras pro agenta, z počtu zamítnutých agentů usuzuji,
+že v každém kroku dokáže úspěšně naplánovat více agentů, a proto je také nejrychlejší.
+
+\subsubsection{\ref{str:cbs} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
+\label{subsubsec:exp_cbssg_velka_krizovatka_bez_vyjezdu}
+
+Na velké křižovatce úspěšně doběhl algoritmus pouze na čtvercovém typu.
+Pro čtvercovou křižovatku měl nejmenší počet zamítnutí prostřední běh.
+Avšak nejmenší zpoždění měla třetí, nejméně omezená varianta.
+Opět zde platí, že se snižujícím omezením pohybu agentů se snižuje průměrné zpoždění
+a roste zaplnění křižovatky, ale za cenu rostoucího času výpočtu.
+Rozdíl v počtu zamítnutých agentů mezi variantami s povoleným zastavováním byl malý, přibližně $6,93\%$.
+Dle mého názoru není žádný důvod, proč běh bez povoleného vracení měl počet agentů nižší,
+myslím si, že to je způsobeno náhodným generováním agentů, které více \uv{sedlo} této variantě.
+
+Na oktagonálním typu je vidět podobný trend jako na malé křižovatce.
+Se snižujícím omezením agentů se snižuje plánovací čas.
+Z toho důvodu se snižuje i počet zamítnutých agentů.
+Zároveň je ale nižší i průměrný počet zpoždění agentů.
+Překvapivé pro mě je, že přechod ze čtvercové křižovatky na oktagonální zvýší průměrný čas plánování alespoň desetkrát.
+Zvýšení počtu vrcholů křižovatky při tomto přechodu je přibližně $77\%$.
+
+
+
+\input{experimenty/cbssg_big_table_bez_vyjezdu}
+
+\subsubsection{\ref{str:cbs} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
+\label{subsubsec:exp_cbssg_velka_krizovatka_s_vyjezdem}
+
+\subsubsection{\nameref{subsec:cbsoid} na \hyperref[par:data_mala]{malé} křižovatce}
+\label{subsubsec:exp_cbsoid_mala_krizovatka}
+\input{experimenty/cbsoid_small_table}
+
+\subsubsection{\nameref{subsec:cbsoid} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
+\label{subsubsec:exp_cbsoid_velka_krizovatka_bez_vyjezdu}
+\input{experimenty/cbsoid_big_tables}
+
+\subsubsection{\nameref{subsec:cbsoid} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
+\label{subsubsec:exp_cbsoid_velka_krizovatka_s_vyjezdem}
+
