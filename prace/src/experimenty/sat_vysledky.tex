@@ -25,7 +25,6 @@ Jedinou výjimkou je hexagonální křižovatka, kde volnější varianta nespo�
 Je vidět vysoký nárůst složitosti při přechodu na graf s více vrcholy.
 Opět si ale čtvercová křižovatka vedla mnohem lépe než hexagonální.
 
-
 \subsubsection{\nameref{subsec:sat_ra} na \hyperref[par:data_mala]{malé} křižovatce}
 \label{subsubsec:exp_sata_mala_krizovatka}
 
@@ -38,3 +37,49 @@ Nejpřekvapivější jsou výsledky pro oktagonální křižovatku.
 Nejprve mi přišlo zvláštní, že algoritmus, kterému vyšel nejnižší průměrný čas plánování nemá nejméně vypočtených kroků.
 Podle mého je to způsobeno tím, že se \ref{str:sat} řešič na některém kroku zasekne a nepodaří se mu rozhodnout
 určitý krok v čase, než uplynou dvě hodiny od počátku simulace.
+
+\subsubsection{Závislost času plánování na zaplněnosti křižovatky}
+
+Všiml jsem si trochu zvláštního efektu při dělání experimentů se \ref{str:sat} algoritmy.
+Čas plánování prvních pár kroků vždy trval příliš dlouho, ale s přibývajícími kroky se plánování zrychlovalo.
+Potom jsem si uvědomil, že čím více je agentů na křižovatce, tím mají zbylí agenti méně možností, kde se nacházet.
+To vede k vyššímu počtu výrokových proměnných, které musí být před startem řešiče \textrm{false}.
+Tím pádem má řešič snadnější hledání nejlepších cest, jelikož má méně možných ohodnocení.
+
+Abych tuto teorii více prozkoumal, vytvořil jsem dva grafy.
+Oba grafy ukazují časy plánování a počet agentů na křižovatce pro jednotlivé kroky.
+Data jsou zprůměrovaná přes určité sousední kroky, jelikož mají jednotlivé hodnoty,
+obzvláště časy plánování, mají vysoký rozptyl.
+
+První graf (Obrázek \ref{fig:cas_vs_agenti_satrsg}) ukazuje data pro oktagonální typ s použitím \nameref{subsec:sat_rsg}.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=140mm]{../img/CasVsAgentiSATRSG}
+	\caption{}
+	\label{fig:cas_vs_agenti_satrsg}
+\end{figure}
+
+
+Tento běh měl povolené zastavování, \ref{par:ars_mnv} nastavený na $2$ a \ref{par:ars_mpc} na $24$.
+Zvolil jsem tuto variantu, protože měla nejdelší průměrný plánovací čas.
+Ale i přes to zde není výrazně vidět nepřímá úměra mezi časem a počtem agentů.
+
+Dle mého názoru to je způsobeno tím, že pro více naplánovaných agentů se zároveň musí procházet více variant
+při vytváření výrokových proměnných, čímž se zvyšuje čas přípravy před spuštěním řešiče.
+Řešič poté najde ohodnocení relativně rychle, čímž příprava tvoří značnou část doby plánování.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=140mm]{../img/CasVsAgentiSATRA}
+	\caption{}
+	\label{fig:cas_vs_agenti_satra}
+\end{figure}
+
+Vytvořil jsem graf i pro \nameref{subsec:sat_ra} (Obrázek \ref{fig:cas_vs_agenti_satra}).
+Tento běh byl taktéž z oktagonální křižovatky, kde algoritmus měl povolené zastavování,
+\ref{par:ars_mnv} nastavené na $1$, \ref{par:ars_mpc} na $10$ a maximální počet plánovaných agentů byl $8$.
+
+Dle mého názoru má zde mnohem větší vliv na plánování hledání modelu řešičem,
+a proto je zde mnohem jasnější závislost mezi počtem agentů na křižovatce a časy plánování.
+Obzvláště je zde vidět přibližně čtyřnásobná doba plánování v prvních krocích oproti průměrnému času.
