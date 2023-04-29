@@ -51,23 +51,27 @@ Se snižujícím omezením agentů se snižuje plánovací čas.
 Z toho důvodu se snižuje i počet zamítnutých agentů.
 Zároveň je ale nižší i průměrný počet zpoždění agentů.
 Překvapivé pro mě je, že přechod ze čtvercové křižovatky na oktagonální zvýší průměrný čas plánování alespoň desetkrát.
-Zvýšení počtu vrcholů křižovatky při tomto přechodu je přibližně $77\%$.
+Pro porovnání, zvýšení počtu vrcholů křižovatky při tomto přechodu je přibližně $77\%$.
 
-
+Na hexagonálním typu křižovatky byly časy výpočtu opět mnohem vyšší než na oktagonálním typu,
+což vedlo k velkému snížení naplánovaných kroků.
+Tentokrát si nejvíce pohoršil nejméně omezený běh, zvládl spočítat přibližně $35.29\%$ kroků.
+Nejlépe si vedla prostřední varianta.
+Důvod, proč si nejméně omezená varianta tolik pohoršila, je dle mého názoru vysokým nárůstem možných cest.
+Tento nárůst na této křižovatce podle mého předčil výhodu z vyššího počtu naplánovaných agentů,
+která asi způsobovala nejlepší výsledky na předchozích typech křižovatky.
 
 \input{experimenty/cbssg_big_table_bez_vyjezdu}
 
 \subsubsection{\ref{str:cbs} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
 \label{subsubsec:exp_cbssg_velka_krizovatka_s_vyjezdem}
 
-\subsubsection{\nameref{subsec:cbsoid} na \hyperref[par:data_mala]{malé} křižovatce}
-\label{subsubsec:exp_cbsoid_mala_krizovatka}
+\subsubsection{\nameref{subsec:cbsoid}}
+\label{subsubsec:exp_cbsoid}
+
+Zkusil jsem plánování i pomocí \nameref{subsec:cbsoid} algoritmu, avšak nepodařilo se mi najít kombinaci parametrů,
+která by běžela v rozumném čase.
 \input{experimenty/cbsoid_small_table}
-
-\subsubsection{\nameref{subsec:cbsoid} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
-\label{subsubsec:exp_cbsoid_velka_krizovatka_bez_vyjezdu}
 \input{experimenty/cbsoid_big_tables}
-
-\subsubsection{\nameref{subsec:cbsoid} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
-\label{subsubsec:exp_cbsoid_velka_krizovatka_s_vyjezdem}
-
+Na malé, ani velké křižovatce algoritmus ani jednou nedoběhl.
+Výsledky jsou vidět v tabulkách \ref{tab:cbsoid_exp_mala} a \ref{tab:cbsoid_exp_velka_bez_vyjezdu}.

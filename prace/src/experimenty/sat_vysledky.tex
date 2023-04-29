@@ -1,9 +1,40 @@
 \subsection{\ref{str:sat} porovnání parametrů}\label{subsec:sat_porovnani_parametru}
 
+U~\ref{str:sat} algoritmů jsem zkoušel stejné nastavení parametrů až na maximální počet prodlevu cesty (\ref{par:ars_mpc}),
+jelikož musí být vždy nastaven na některou hodnotu.
+Zjistil jsem, že složitost hledání roste velmi rychle se zvyšující \ref{par:ars_mpc},
+proto jsem nastavil tento parametr maximálně na $24$.
+I přes to měl algoritmus problémy.
+
+S žádným nastavením mi algoritmy nedoběhly na velké křižovatce, pokud nepočítám neoptimalizovanou variantu.
+Neoptimalizované běhy měli mnohem nižší čas plánování, avšak algoritmus mnoho agentů zamítal jen proto, že \ref{str:sat}
+řešič vrátil model, který vjezd odmítl, i když by pro něj validní cesta existovala.
+Proto jsem se rozhodl tento parametr nenastavovat, všechny zobrazené běhy jsou vyřešené \textrm{MAX-SAT}em.
+
 \subsubsection{\nameref{subsec:sat_rsg} na \hyperref[par:data_mala]{malé} křižovatce}
 \label{subsubsec:exp_satsg_mala_krizovatka}
+
 \input{experimenty/satsg_small_table}
+
+\ref{subsec:sat_rsg} se choval poměrně smysluplně, snižující omezení výpočtu vedlo k lepším výsledkům
+za cenu vyšší doby plánování.
+Tyto výsledky jsou v tabulce \ref{subsubsec:exp_satsg_mala_krizovatka}.
+
+Jedinou výjimkou je hexagonální křižovatka, kde volnější varianta nespočítala skoro nic.
+
+Je vidět vysoký nárůst složitosti při přechodu na graf s více vrcholy.
+Opět si ale čtvercová křižovatka vedla mnohem lépe než hexagonální.
+
 
 \subsubsection{\nameref{subsec:sat_ra} na \hyperref[par:data_mala]{malé} křižovatce}
 \label{subsubsec:exp_sata_mala_krizovatka}
+
+\ref{subsec:cbsoid} algoritmus ukazuje extrémní nárůst složitosti se zvyšujícím počtem plánovaných agentů.
+Proto jsem značně snížil i \ref{par:ars_mpc}.
+
 \input{experimenty/sata_small_table}
+Výsledky jsou zapsané v tabulce \ref{tab:sata_exp_mala}.
+Nejpřekvapivější jsou výsledky pro oktagonální křižovatku.
+Nejprve mi přišlo zvláštní, že algoritmus, kterému vyšel nejnižší průměrný čas plánování nemá nejméně vypočtených kroků.
+Podle mého je to způsobeno tím, že se \ref{str:sat} řešič na některém kroku zasekne a nepodaří se mu rozhodnout
+určitý krok v čase, než uplynou dvě hodiny od počátku simulace.
