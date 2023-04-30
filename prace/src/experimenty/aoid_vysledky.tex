@@ -12,9 +12,6 @@ a \ref{par:aoid_ppk}, který značí, kolik kroků může být agent na cestě, 
 
 Algoritmus opět přejde na zjednodušený výpočet po jedné sekundě.
 
-\input{experimenty/aoid_small_table}
-
-
 V tabulce (Tabulka \ref{tab:aoid_exp_mala}) jsou vidět výsledky na všech typech křižovatky
 velikostí $4$ a jedním vjezdem a výjezdem.
 
@@ -38,13 +35,16 @@ Zároveň počet zamítnutých agentů a průměrná prodleva se příliš nemě
 Mohlo by to být způsobeno jiným nastavením nejvyšší prodlevy cesty,
 avšak dle mého názoru povolení přeplánování více agentům nemá na výsledky tak velký vliv.
 
+\input{experimenty/aoid_small_table}
+
 \subsubsection{\nameref{subsubsec:a_star_aoid} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
 \label{subsubsec:exp_aoid_velka_krizovatka_bez_vyjezdu}
 
-\input{experimenty/aoid_big_table}
-
-Tabulka \ref{subsubsec:exp_aoid_velka_krizovatka_bez_vyjezdu} obsahuje výsledky pouze na čtvercovém typu křižovatky,
-jelikož zbylé varianty zaplnily paměť a selhaly.
+Tabulky \ref{tab:aoid_exp_velka_bez_vyjezdu} a \ref{tab:aoid_exp_velka_s_vyjezdy} obsahují výsledky
+pouze na čtvercovém typu křižovatky, jelikož zbylé varianty zaplnily paměť a selhaly.
 
 Z toho usuzuji, že počet přeplánovaných agentů musí být velice malý pro velké křižovatky.
 To činí tento algoritmus značně nepoužitelný.
+
+\input{experimenty/aoid_big_table_no_exits}
+\input{experimenty/aoid_big_table_exits}

@@ -9,8 +9,6 @@ Algoritmus má jediný parametr navíc, a to \nameref{par:arsg_zvp}, který udá
 po jak dlouhé prodlevě má výpočet přejít na zjednodušený režim.
 U všech experimentů je tento parametr nastaven na jednu sekundu.
 
-\input{experimenty/arsg_small_table}
-
 V tabulce (Tabulka \ref{tab:arsg_exp_mala}) jsou vidět výsledky na všech typech křižovatky
 velikostí $4$ a jedním vjezdem a výjezdem.
 
@@ -23,14 +21,14 @@ zatímco omezenější běhy by tyto agenty ve stejném kroku zamítly a naplán
 Běhy s povoleným zastavováním si vždy vedly hůře než běhy s povoleným vracením.
 Avšak měly rychlejší plánování srovnatelné s nejvíce omezenou variantou.
 
+\input{experimenty/arsg_small_table}
+
 \subsubsection{\ref{str:a_star_arsg} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
 \label{subsubsec:exp_arsg_velka_krizovatka_bez_vyjezdu}
 
 \ref{par:ars_mpc} je opět nastaveno pro čtvercový a oktagonální typ na hodnotu $32$,
 a pro hexagonální na $64$, pokud je nastavený \ref{par:ars_mnv} na $1$.
 Por běhy s \ref{par:ars_mnv} $2$ jsou délky cest opět neomezené.
-
-\input{experimenty/arsg_big_table}
 
 V tabulce (Tabulka \ref{tab:arsg_exp_velka_bez_vyjezdu}) jsou vidět výsledky na všech typech křižovatky
 velikostí $16$ se $4$ vjezdy a $4$ výjezdy.
@@ -71,6 +69,9 @@ Pokud agenta omezím více, rychleji zjistím, že pro něj neexistuje cesta.
 Avšak zároveň můžou nastat situace, ve kterých agentovi chyběl jediný krok do cíle
 a agent by byl úspěšně naplánován.
 
+\input{experimenty/arsg_big_table_no_exits}
 
 \subsubsection{\ref{str:a_star_arsg} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
 \label{subsubsec:exp_arsg_velka_krizovatka_s_vyjezdem}
+
+\input{experimenty/arsg_big_table_exits}

@@ -7,8 +7,6 @@ Por běhy s \ref{par:ars_mnv} $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} ne
 Jelikož má křižovatka $16$ vrcholů kromě vjezdů a výjezdů, není rozdíl mezi neomezenými cestami a
 cestami omezenými na $34$ kroků pro výpočet s \ref{par:ars_mnv} nastavené na $2$.
 
-\input{experimenty/ars_small_table}
-
 V tabulce (Tabulka \ref{tab:ars_exp_mala}) jsou vidět výsledky na všech typech křižovatky
 velikostí $4$ a jedním vjezdem a výjezdem.
 
@@ -39,14 +37,14 @@ Při nejvíce omezených cestách se přechod z čtvercové na oktagonální kř
 Ve zbylých dvou případech průměr vzrostl, ačkoliv celkový počet cestujících agentů klesl.
 Z toho lze usoudit, že na čtvercové křižovatce byly naplánované trasy značně kratší.
 
+\input{experimenty/ars_small_table}
+
 \subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
 \label{subsubsec:exp_ars_velka_krizovatka_bez_vyjezdu}
 
 Pro tyto testy jsem přirozeně zvýšil omezení \ref{par:ars_mpc} pro čtvercový a oktagonální typ na hodnotu $32$,
 a pro hexagonální na $64$, pokud je nastavený \ref{par:ars_mnv} na $1$.
 Por běhy s \ref{par:ars_mnv} $2$ jsou délky cest opět neomezené.
-
-\input{experimenty/ars_big_table}
 
 V tabulce (Tabulka \ref{tab:ars_exp_velka_bez_vyjezdu}) jsou vidět výsledky na všech typech křižovatky
 velikostí $16$ se $4$ vjezdy a $4$ výjezdy.
@@ -67,7 +65,25 @@ Dle mého názoru je to způsobené vysokým počtem plánování agentů, kter�
 Ale aby tento fakt algoritmus zjistil musí vyzkoušet vysoká počet možností.
 Pokud ale povolím vracení agenta, dle mého názoru mnoha těmto agentům umožním jet relativně krátkou trasou.
 
+\input{experimenty/ars_big_table_no_exits}
+
 \subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
 \label{subsubsec:exp_ars_velka_krizovatka_s_vyjezdem}
 
+Zde jsem použil totožné nastavení parametrů jako u běhů bez specifikovaní výjezdů.
 
+V tabulce \ref{tab:ars_exp_velka_s_vyjezdy} jsou zobrazeny výsledky.
+
+Algoritmus se zde chová většinově podle očekávání.
+Nejméně omezené varianty dávají nejlepší výsledky na všech typech křižovatky.
+Pokud všechny varianty doběhly, největší omezení vede k největšímu počtu zamítnutých agentů a
+největšímu průměrnému zpoždění.
+
+Jediné překvapení je ve sloupci s dobou plánování, avšak pořadí je stejné jako při nespecifikovaných výjezdech.
+Na všech typech křižovatky plánovala prostřední varianta v průměru nejpomaleji.
+Na čtvercové byla nejrychlejší první, nejvíce omezená varianta.
+Na zbylých typech křižovatky nejméně omezené běhy.
+Důvody jsou podle mě stejné jako u situace bez výjezdů.
+
+
+\input{experimenty/ars_big_table_exits}

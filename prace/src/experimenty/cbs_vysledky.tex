@@ -16,7 +16,6 @@ Tento parametr bude vždy nastaven na jednu sekundu.
 
 \ref{str:cbs} algoritmus se choval poměrně předvídatelně, jak je možné vidět v tabulce \ref{tab:cbssg_exp_mala}.
 Zároveň všechny experimenty úspěšně stihly doběhnout.
-\input{experimenty/cbssg_small_table}
 
 Na čtvercové křižovatce se se snižujícím omezením pohybu agentů snižoval počet zamítnutých agentů,
 avšak za cenu rostoucí doby výpočtu.
@@ -33,6 +32,8 @@ a pokaždé tvořit dva podpřípady, kopírovat do každého tabulky kolizí, \
 a nakonec zatřídit nové vrcholy do prioritní fronty.
 Jelikož poslední varianta umožňuje nejvíce tras pro agenta, z počtu zamítnutých agentů usuzuji,
 že v každém kroku dokáže úspěšně naplánovat více agentů, a proto je také nejrychlejší.
+
+\input{experimenty/cbssg_small_table}
 
 \subsubsection{\ref{str:cbs} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
 \label{subsubsec:exp_cbssg_velka_krizovatka_bez_vyjezdu}
@@ -61,17 +62,21 @@ Důvod, proč si nejméně omezená varianta tolik pohoršila, je dle mého náz
 Tento nárůst na této křižovatce podle mého předčil výhodu z vyššího počtu naplánovaných agentů,
 která asi způsobovala nejlepší výsledky na předchozích typech křižovatky.
 
-\input{experimenty/cbssg_big_table_bez_vyjezdu}
+\input{experimenty/cbssg_big_table_no_exits}
 
 \subsubsection{\ref{str:cbs} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
 \label{subsubsec:exp_cbssg_velka_krizovatka_s_vyjezdem}
+
+\input{experimenty/cbssg_big_table_exits}
 
 \subsubsection{\nameref{subsec:cbsoid}}
 \label{subsubsec:exp_cbsoid}
 
 Zkusil jsem plánování i pomocí \nameref{subsec:cbsoid} algoritmu, avšak nepodařilo se mi najít kombinaci parametrů,
 která by běžela v rozumném čase.
+
+Na malé, ani velké křižovatce algoritmus ani jednou nedoběhl.
+Výsledky jsou vidět v tabulkách \ref{tab:cbsoid_exp_mala} a \ref{tab:cbsoid_exp_velka_s_vyjezdy}.
+
 \input{experimenty/cbsoid_small_table}
 \input{experimenty/cbsoid_big_tables}
-Na malé, ani velké křižovatce algoritmus ani jednou nedoběhl.
-Výsledky jsou vidět v tabulkách \ref{tab:cbsoid_exp_mala} a \ref{tab:cbsoid_exp_velka_bez_vyjezdu}.
