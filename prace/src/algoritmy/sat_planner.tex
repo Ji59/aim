@@ -100,11 +100,11 @@ Nadále je nutné vyhnout se cestujícím agentům.
 K tomu opět využiji funkci na kontrolu kolizí.
 Projdu všechny vrcholy a pro každého agenta zjistím,
 na kterých vrcholech se nesmí nacházet pomocí funkce \ref{alg:kol_prejezd_mnozina}:
-\[
-	(\forall a \in A)(\forall t \in {0, \dots, mpk - 1})(\forall u \in V)(\forall v \in N(u))
+\begin{gather*}
+	(\forall a \in A)(\forall t \in {0, \dots, mpk - 1})(\forall u \in V)(\forall v \in N(u)) \\
 	(\neg \ref{alg:kol_prejezd_mnozina}(a_p + t, u, v, a_d, T) \rightarrow \neg p_{t, a, u}),
-\]
-kde $a_p$ je krok příjezdu agenta a $a_d$ je jeho \hyperref[par:polomer_agenta]{poloměr}
+\end{gather*}
+kde $a_p$ je krok příjezdu agenta, $a_d$ je jeho \hyperref[par:polomer_agenta]{poloměr}
 a $T$ je \nameref{par:obsazene_pozice}.
 
 Poslední nutná podmínka je zamezení kolizím mezi plánovanými agenty.

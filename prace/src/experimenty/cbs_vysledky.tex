@@ -67,6 +67,18 @@ která asi způsobovala nejlepší výsledky na předchozích typech křižovatk
 \subsubsection{\ref{str:cbs} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
 \label{subsubsec:exp_cbssg_velka_krizovatka_s_vyjezdem}
 
+Zde jsem zkoušel podobné nastavení parametrů, výsledky jsou v tabulce \ref{tab:cbssg_exp_velka_s_vyjezdy}.
+Na oktagonálním a hexagonálním typu křižovatky měl algoritmus problémy, jeden z experimentů ani nezvládl nic spočítat.
+
+Na čtvercové křižovatce zvládly všechny varianty dopočítat všechny kroky.
+Výsledky zde nejsou překvapivé, se snižujícím omezením cest se snižuje počet zamítnutých agentů
+za cenu vyššího času plánování.
+
+Na oktagonálním i hexagonálním typu si vždy vedla nejlépe varianta, která běžela nejrychleji.
+Zdá se, že snížení omezení cest vede k rychlejšímu plánování.
+Nejlépe si v pro oba typy vedla verze nedovolující vracení, ale povolující zastavování.
+Důvody pro tento jev jsou podle mého stejné jako u předchozích běhů.
+
 \input{experimenty/cbssg_big_table_exits}
 
 \subsubsection{\nameref{subsec:cbsoid}}
