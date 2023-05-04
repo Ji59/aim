@@ -1,0 +1,30 @@
+\begin{table}[h]
+%	\centering
+	\begin{adjustwidth}{-0.5cm}{}
+		\begin{tabular}{c c c c | r r D{.}{,}{2.2} D{.}{,}{2.2} D{.}{,}{7.2}}
+			\toprule \\
+			\pulrad{\B{Alg}} & \pulrad{\B{Omez}} & \pulrad{\B{\ref{par:ars_mnv}}} &
+			\pulrad{\B{\ref{par:ars_mpc}}} & \pulrad{\B{Krok}}  & \pulrad{\B{Zam}} &
+			\mc{\pulrad{\B{pAg}}} & \mc{\pulrad{\B{pZp}}} & \mc{\pulrad{\B{Čas}}} \\
+			\midrule
+			\nameref{sec:safe_lanes}        & -  & 1 & inf & 32785 & 13488    & 9.34                                 & 10.36                               & \multicolumn{1}{B{.}{,}{7.2}}{11.30} \\
+			\hline
+			\ref{str:a_star_ars}            & sr & 2 & inf & 32779 & 1338     & 14.19                                & 6.83                                & 89.03                                \\
+			\ref{str:a_star_arsg}           & -  & 1 & 8   & 32785 & 6276     & 13.14                                & 9.46                                & 237.60                               \\
+			\nameref{subsubsec:a_star_aoid} & -  & 1 & 8   & 16976 & 32774    & \multicolumn{1}{B{.}{,}{2.2}}{18.49} & 17.57 & 424199.33                                                          \\  % 16
+			\hline
+			\ref{str:cbs}                   & sr & 2 & inf & 32780 & \B{1079} & 13.91                                & \multicolumn{1}{B{.}{,}{2.2}}{6.46} & 1761.27                              \\
+			\nameref{subsec:cbsoid}         & s  & 2 & inf & 2889  & 59641    & 11.99                                & 10.23                               & 2497072.06                           \\  % 16
+			\hline
+			\nameref{subsec:sat_rsg}        & s  & 2 & 24  & 32782 & 2868     & 13.81                                & 7.77                                & 133605.81                            \\
+			\nameref{subsec:sat_ra}         & s  & 1 & 10  & 20821 & 25521    & 15.16                                & 8.57                                & 345728.00                            \\  %  8
+			\bottomrule
+%		\multicolumn{6}{l}{\footnotesize \textit{Pozn:}
+%		\textrm{Zam} - počet zamítnutí, \textrm{pAgen} - průměrný počet agentů v jeden krok na křižovatce, \\
+%		\textrm{sAgen} - směrodatná odchylka počtu agentů na křižovatce, \\
+%		\textrm{Zpož} - součet spoždění přes všechny agenty, \textrm{pZpož} - průměrné zpoždění agentů
+%		}  TODO
+		\end{tabular}
+		\caption{Porovnání algoritmů na malé oktagonální křižovatce.}\label{tab:all_exp_mala_oktagonalni}
+	\end{adjustwidth}
+\end{table}

@@ -1,0 +1,26 @@
+\begin{table}[h]
+%	\centering
+	\begin{adjustwidth}{-1cm}{}
+		\begin{tabular}{c c c c | r r D{.}{,}{3.2} D{.}{,}{2.2} D{.}{,}{7.2}}
+			\toprule \\
+			\pulrad{\B{Alg}} & \pulrad{\B{Omez}} & \pulrad{\B{\ref{par:ars_mnv}}} &
+			\pulrad{\B{\ref{par:ars_mpc}}} & \pulrad{\B{Krok}}  & \pulrad{\B{Zam}} &
+			\mc{\pulrad{\B{pAg}}} & \mc{\pulrad{\B{pZp}}} & \mc{\pulrad{\B{Čas}}} \\
+			\midrule
+			\nameref{sec:safe_lanes} & -  & 1 & inf & 32849 & 138867    & 61.62                                 & 60.30                                & \multicolumn{1}{B{.}{,}{7.2}}{937.51} \\
+			\hline
+			\ref{str:a_star_ars}     & sr & 2 & inf & 32844 & \B{24714} & \multicolumn{1}{B{.}{,}{3.2}}{164.83} & \multicolumn{1}{B{.}{,}{2.2}}{34.25} & 72598.43   \\
+			\ref{str:a_star_arsg}    & sr & 2 & inf & 32855 & 36807     & 163.73                                & 52.16                                & 145805.57                             \\
+			\hline
+			\ref{str:cbs}            & s  & 2 & inf & 6774  & 212658    & 159.57                                & 43.74                                & 1065891.74                            \\
+
+			\bottomrule
+%		\multicolumn{6}{l}{\footnotesize \textit{Pozn:}
+%		\textrm{Zam} - počet zamítnutí, \textrm{pAgen} - průměrný počet agentů v jeden krok na křižovatce, \\
+%		\textrm{sAgen} - směrodatná odchylka počtu agentů na křižovatce, \\
+%		\textrm{Zpož} - součet spoždění přes všechny agenty, \textrm{pZpož} - průměrné zpoždění agentů
+%		}  TODO
+		\end{tabular}
+		\caption{Porovnání algoritmů na velké oktagonální křižovatce s výjezdy.}\label{tab:all_exp_velka_oktagonalni_s_vyjezdy}
+	\end{adjustwidth}
+\end{table}

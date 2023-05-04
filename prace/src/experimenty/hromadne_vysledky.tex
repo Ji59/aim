@@ -1,0 +1,78 @@
+\section{Hromadné výsledky}\label{sec:hromadne_vysledky}
+
+%Porovnání algoritmů mezi sebou s nejlepšími parametry.
+%
+%Porovnání čtvercové a oktagonální křižovatky.
+
+Nyní budu porovnávat nejlepší nastavení algoritmů mezi sebou.
+Porovnání by mělo být férové, jelikož všechny algoritmy běžely s podobným nastavením parametrů.
+Nejlepší nastavení většiny parametrů je zobrazeno v prvních sloupcích tabulky hned za názvem algoritmu.
+
+Zároveň je v tabulkách obsažen algoritmus \nameref{sec:safe_lanes}.
+Ten byl doposud vynechán, jelikož nemá žádné nastavitelné parametry.
+
+\subsection{Porovnání algoritmů na malé křižovatce}\label{subsec:porovnani_algoritmu_na_male_krizovatce}
+
+Jediný algoritmus, který nedoběhl ani na jednom typu malé křižovatky je \nameref{subsec:cbsoid}.
+Z toho usuzuji, že \ref{str:cbs} je nejvíce citlivý na přidávání agentů.
+
+
+Nejprve začnu čtvercovou křižovatkou, jejíž výsledky jsou v tabulce \ref{tab:all_exp_mala_ctvercova}.
+V tabulce není zapsána hodnota parametru maximálního počtu přeplánovaných agentů (\ref{par:aoid_mpa}) u~\ref{str:oid} variant.
+Na této křižovatce měli \nameref{subsubsec:a_star_aoid} a \nameref{subsec:cbsoid}
+největší úspěšnost s \ref{par:aoid_mpa} nastaveným na $16$ a \nameref{subsec:sat_ra} na $12$.
+
+Nejlepší algoritmus zde vyšel \ref{str:cbs}, v těsném závěsu za ním je \ref{str:a_star_ars}.
+Tyto algoritmy mají zároveň nejmenší zpoždění agentů a v průměru nejméně agentů na křižovatce.
+Zároveň měli nejnižší dobu plánování po \nameref{sec:safe_lanes}.
+
+Po těchto algoritmech měly nejmenší počet zamítnutí \ref{str:sat} algoritmy a průměrná zpoždění byla srovnatelná.
+Avšak po \nameref{subsec:cbsoid} měly nejvyšší čas plánování.
+
+\nameref{sec:safe_lanes} sice zvládlo plánovat agenty mnohem rychleji než ostatní algoritmy,
+avšak zároveň má mnohem více zamítnutých agentů, než všechny algoritmy, které doběhly.
+
+\nameref{subsubsec:a_star_aoid} měl nejvyšší průměrný počet agentů na křižovatce,
+avšak zároveň měl jednoznačně nejvyšší průměrné zpoždění agentů.
+
+Verze algoritmů plánující menší počet agentů preferovala spíše volnější pohyb pro agenty.
+Naopak všechny \ref{str:oid} varianty, \nameref{subsec:sat_ra} a \ref{str:a_star_arsg} dosáhly nejlepších výsledků s nejvíce omezenými parametry.
+
+\input{experimenty/all_small_table_square}
+
+Na oktagonální křižovatce je chování algoritmů podobné (tabulka \ref{tab:all_exp_mala_oktagonalni}).
+Avšak zde ani jeden z algoritmů přeplánovající naplánované agenty nestihl doběhnout.
+Zde měli \nameref{subsubsec:a_star_aoid} a \nameref{subsec:cbsoid}
+největší úspěšnost opět s \ref{par:aoid_mpa} nastaveným na $16$ a \nameref{subsec:sat_ra} na $12$.
+
+Pořadí algoritmů, které doběhly, s ohledem na počet zamítnutých agentů se nezměnilo,
+stále si nejlépe vedlo \ref{str:cbs}.
+
+\nameref{subsubsec:a_star_aoid} opět mělo v průměru nejvíce agentů na křižovatce, ale opět nejvyšší zpoždění agentů.
+
+\nameref{sec:safe_lanes} sice zvládlo má opět mnohem více zamítnutých agentů, než všechny algoritmy, které doběhly.
+Oproti čtvercové křižovatce se plánovací časy snížily,
+avšak při tak nízkých časech to může být způsobeno zatížením systému jinými procesy.
+
+Běhové časy se u ostatních algoritmů výrazně zvýšily.
+To může být způsobeno výrazným nárůstem počtu zamítnutých agentů.
+Podle mého názoru je tento nárůst způsoben zmenšením celkové plochy křižovatky.
+Diagonální vrcholy size umožňují více možných pozic pro agenty,
+avšak tyto vrcholy jsou blízko svým sousedům, což způsobuje větší vzájemné překážení jednotlivých agentů.
+
+Algoritmy zde více profitovaly z méně omezenéných parametrů, až na \ref{str:a_star_arsg} a \nameref{subsubsec:a_star_aoid}.
+
+\input{experimenty/all_small_table_octa}
+
+
+\input{experimenty/all_small_table_hexa}
+
+Z uvedených výsledků usuzuji, že na této křižovatce se mnohem více vyplatí jednodušší, více omezené algoritmy.
+
+\input{experimenty/all_big_table_no_exits_square}
+\input{experimenty/all_big_table_no_exits_octa}
+\input{experimenty/all_big_table_no_exits_hexa}
+
+\input{experimenty/all_big_table_exits_square}
+\input{experimenty/all_big_table_exits_octa}
+\input{experimenty/all_big_table_exits_hexa}
