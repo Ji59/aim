@@ -168,8 +168,68 @@ Podle mého je toto hlavní důvod, proč není výrazné zvýšení plánovací
 \subsection{Porovnání algoritmů na velké křižovatce s výjezdy}
 \label{subsec:porovnani_algoritmu_na_velke_krizovatce_s_vyjezdy}
 
+Na velkých křižovatkách s výjezdy zvládlo úspěšně spočítat nemalé množství kroků ještě méně algoritmů.
+Omezení z více výjezdů pouze na jeden zesložití hledání cesty, což povede k delším cestám.
+Čím déle jsou agenti na křižovatce, tím více překáží ostatním agentům.
+Toto by se obzvláště mělo projevit u \ref{str:rsg}, \ref{subsec:sat_ra} a \ref{str:oid} strategií,
+protože musí nějakým způsobem hledat a řešit vzájemné kolize agentů.
+Oba tyto jevy by zde měly být těžší už jen kvůli delším cestám.
 
+Výsledky pro čtvercovou křižovatku jsou v tabulce \ref{tab:all_exp_velka_ctvercova_s_vyjezdy}.
+Na této křižovatce byl \nameref{subsec:cbsoid} nejlepší s $24$ nejvýše plánovanými agenty.
+Avšak ani tak nezvládl tento algoritmus naplánovat příliš mnoho kroků.
+
+\ref{str:cbs} zde dosáhl nejmenšího počtu zamítnutí a druhého nejmenšího průměrného zpoždění.
+\ref{str:a_star_ars} bylo mírně horší s ohledem na zamítnuté agenty, ale zato měl mnohem menší plánovací čas.
+\ref{str:a_star_arsg} byl také poměrně rychlý, avšak zamítl mnohem více agentů.
+
+Pokud porovnám výsledky s běhy na~čtvercové křižovatce bez výjezdů,
+všechny algoritmy si zhoršily počet zamítnutých agentů i průměrné zpoždění.
+Zároveň se u všech algoritmů až na~\nameref{sec:safe_lanes} prodloužily plánovací časy.
+Těmto algoritmům se i zvýšilo průměrné zaplnění křižovatky.
+
+Zkrácení času plánování u \ref{sec:safe_lanes} není překvapivé, jelikož algoritmus zkouší méně možných cest.
+
+Pokud algoritmus doběhl, dosáhl nejlepších výsledků s nejméně omezenými parametry.
 
 \input{experimenty/all_big_table_exits_square}
+
+Na oktagonální křižovatce doběhly pro všechny kroky pouze
+\nameref{sec:safe_lanes}, \ref{str:a_star_ars} a \ref{str:a_star_arsg}.
+
+Nejméně zamítnutí a nejmenší zpoždění měl \ref{str:a_star_ars}.
+Myslím si, že i zde nastal dříve popsaný problém u \ref{str:a_star_arsg} s tvorbou velkých skupin.
+
+Oproti běhům, kde agenti neměli specifikovaný výjezd,
+se u všech úspěšných algoritmů opět zvýšil počet zamítnutých agentů a průměrné zpoždění.
+Zároveň u \nameref{sec:a_star} variant se zvýšil průměrný počet agentů na křižovatce.
+U \nameref{sec:safe_lanes} a \ref{str:a_star_ars} plánovací časy značně klesly,
+avšak u \ref{str:a_star_arsg} výrazně stouply.
+
+To napovídá možnosti, že \ref{str:a_star_ars} pro agenty existuje mnohem méně možných cest.
+Avšak jelikož je celkový počet zamítnutých agentů vyšší, domnívám se,
+že\ref{str:a_star_arsg} shlukuje častěji agenty do skupin, což vede k delšímu plánování.
+
+Algoritmy zde opět měly nejlepší výsledky, pokud běžely s nejmenším omezením.
+
 \input{experimenty/all_big_table_exits_octa}
+
+V tabulce \ref{tab:all_exp_velka_hexagonalni_s_vyjezdy} jsou vidět výsledky pro hexagonální křižovatku.
+Zde úspěšně spočetly všechny kroky pouze \nameref{sec:safe_lanes} a \ref{str:a_star_ars}.
+
+Zde opět \ref{str:a_star_ars} nejlépě běžel s nejmenším omezením.
+Oproti variantě bez výjezdů měl algoritmus vyšší zaplněnost křižovatky, průměrné zpoždění agentů i plánovací čas.
+Avšak počet zamítnutých agentů se mírně snížil.
+
+Důvod tohoto snížení neznám, avšak vzhledem k chování na předešlých typech si myslím,
+že je to dáno vzhledem křižovatky.
+Na hexagonální křižovatce nemohou jezdit agenti rovně do protějšího výjezdu a proto musí jet netriviální cestou.
+Pokud specifikujeme výjezd, nejspíše to má minimální vliv na chování agenta.
+
+Tomu napovídá i změna v průměrném zpoždění a obsazenosti křižovatky.
+Na této křižovatce je tato změna mnohem menší než na čtvercové a oktagonální.
+
+\nameref{sec:safe_lanes} se chová pořád stejně, plánovací čas se snížil a
+počet zamítnutých agentů i průměrné zpoždění se zvýšilo.
+
 \input{experimenty/all_big_table_exits_hexa}
