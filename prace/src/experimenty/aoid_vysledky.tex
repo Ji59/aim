@@ -1,19 +1,19 @@
 \subsubsection{\nameref{subsubsec:a_star_aoid} na \hyperref[par:data_mala]{malé} křižovatce}
 \label{subsubsec:exp_aoid_mala_krizovatka}
 
-Tento algoritmus rozšiřuje \ref{str:a_star_arsg}, proto jsem se snažil použít stejné nastavení parametrů.
+Tento algoritmus rozšiřuje \ref{str:varsg}, proto jsem se snažil použít stejné nastavení parametrů.
 Bohužel to nebylo vždy možné, jelikož přidaní agenti značně zvýšili časovou náročnost.
 
-Algoritmus má pár parametrů navíc oproti \ref{str:a_star_arsg}.
-Těmi jsou \ref{par:aoid_mpa} udávající maximální počet plánovaných agentů
-a \ref{par:aoid_ppk}, který značí, kolik kroků může být agent na cestě, aby byl zvážen pro přeplánování.
-\ref{par:aoid_ppk} bude vždy nastaveno na $8$ kroků,
-\ref{par:aoid_mpa} je proměnlivé, vybraná hodnota je vidět v tabulce.
+Algoritmus má pár parametrů navíc oproti \ref{str:varsg}.
+Těmi jsou \ref{str:aoid_mpa} udávající maximální počet plánovaných agentů
+a \ref{str:aoid_ppk}, který značí, kolik kroků může být agent na cestě, aby byl zvážen pro přeplánování.
+\ref{str:aoid_ppk} bude vždy nastaveno na $8$ kroků,
+\ref{str:aoid_mpa} je proměnlivé, vybraná hodnota je vidět v tabulce.
 
 Algoritmus opět přejde na zjednodušený výpočet po jedné sekundě.
 
 V tabulce (Tabulka \ref{tab:aoid_exp_mala}) jsou vidět výsledky na všech typech křižovatky
-velikostí $4$ a jedním vjezdem a výjezdem.
+velikosti 4, jedním vjezdem a výjezdem.
 
 Na čtvercové křižovatce všechny varianty doběhly,
 avšak rozdíl v době plánování je mezi nimi mnohem větší než v předchozích případech.
@@ -29,7 +29,7 @@ a agenti si tak navzájem omezují pohyb více než na čtvercovém typu.
 Na hexagonálním typu křižovatky jsem zkusil stejné nastavení parametrů pro nejvíce omezenou variantu.
 Algoritmus spočítal mnohem méně kroků než na oktagonálním typu, což by nasvědčovalo hypotéze,
 že za přidanou složitost může vyšší počet vrcholů křižovatky.
-Ve zbylých dvou experimentech na této křižovatce jsem snížil maximální počet plánovaných agentů.
+U zbylých dvou experimentů jsem na této křižovatce snížil maximální počet plánovaných agentů.
 Je vidět, že snížení tohoto počtu z $16$ na $14$ zaručí, že algoritmus bez problémů doběhne do konce.
 Zároveň počet zamítnutých agentů a průměrná prodleva se příliš nemění pro počet plánovaných agentů $12$ a $14$.
 Mohlo by to být způsobeno jiným nastavením nejvyšší prodlevy cesty,

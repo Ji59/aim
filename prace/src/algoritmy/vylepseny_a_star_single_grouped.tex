@@ -85,18 +85,18 @@ Při~testování jsem zjistil, že algoritmu občas zabere hodně času najít v
 Proto jsem se rozhodl dovolit algoritmu použít zjednodušený výpočet.
 Zjednodušený výpočet znamená, že algoritmus místo spojování skupin ponechá pouze skupinu větší velikosti.
 
-\paragraph{Zjednodušený výpočet po (\ref{par:arsg_zvp})}\labeltext{ZVP}{par:arsg_zvp} je jediný nový parametr.
+\paragraph{Zjednodušený výpočet po (\ref{str:arsg_zvp})}\labeltext{ZVP}{str:arsg_zvp} je jediný nový parametr.
 Tento parametr udává, po jak dlouhé prodlevě (ms) má algoritmus začít používat zjednodušené počítání.
 
 \subsubsection{A*OID}\label{subsubsec:a_star_aoid}
-Další způsob řešení \nameref{subsubsec:online_mapf} problému je pomocí \ref{str:oid} algoritmu.
+Další způsob řešení \nameref{subsubsec:online_mapf} problému je pomocí \ref{str:suboid} algoritmu.
 Při~tomto způsobu řešení se v~novém kroku plánují nejen noví agenti, ale i~agenti již naplánovaní.
 Tento způsob by měl dávat lepší výsledky než~\ref{str:varsg}.
 Ale přirozeně vzroste počet plánovaných agentů, což vede ke~zpomalení výpočtu.
 Proto \ref{str:oid} používá strategii \uv{neměnit plány agentů, pokud není potřeba}.
 Znamená to, že naplánovaní agenti se znovu neplánují, jestliže nekolidují s~novými agenty.
 
-\nameref{str:varsg} algoritmus lze jednoduše rozšířit na~\ref{str:suboid} variantu.
+\ref{str:varsg} algoritmus lze jednoduše rozšířit na~\ref{str:suboid} variantu.
 Na~začátku každému naplánovanému agentovi přidělím vlastní skupinu.
 Avšak oproti novým agentům pro~ně prvotní cestu nehledám, jelikož už jsou naplánovaní předchozími kroky.
 Akorát jejich aktuální cesta nezačíná ve~vrcholu vjezdu,
@@ -118,13 +118,13 @@ Tyto cesty jsou vzájemně nekolizní, jelikož jsou výsledkem předešlých ú
 
 Abych snížil počet přeplánovaných agentů, rozhodl jsem se přidat algoritmu dva nastavitelné parametry.
 
-\paragraph{Maximální počet agentů (\ref{par:aoid_mpa})}\labeltext{MPA}{par:aoid_mpa} určuje,
+\paragraph{Maximální počet agentů (\ref{str:aoid_mpa})}\labeltext{MPA}{str:aoid_mpa} určuje,
 s~kolika agenty může algoritmus nanejvýš počítat.
 Algoritmus přidá k~novým agentům tolik naplánovaných, abych jejich součet nepřekročil tuto hodnotu.
 Výběr agentů pro~plánování tedy probíhá ještě před započtením výpočtu tras.
 Agenti se berou od~nejnovějšího po~nejstarší.
 
-\paragraph{Počet přeplánovaných kroků (\ref{par:aoid_ppk})}\labeltext{PPK}{par:aoid_ppk}
+\paragraph{Počet přeplánovaných kroků (\ref{str:aoid_ppk})}\labeltext{PPK}{str:aoid_ppk}
 omezuje stáří přeplánovaných agentů.
 Z~vybraných agentů na~přeplánování jsou odebráni takoví, kteří už cestují déle než hodnota tohoto parametru.
 Tento parametr umožňuje křižovatce plánovat agenty s~určitým předstihem a tím vzít v~potaz i~pozdější agenty.

@@ -50,7 +50,7 @@ Proto jsem se rozhodl umožnit omezení měnit parametry.
 Zároveň parametry napomáhají rychlejšímu prohledávání omezením prohledávaného prostoru.
 Bohužel při~nastavení parametrů algoritmus ztrácí svojí optimalitu.
 
-\paragraph{Maximum návštěv vrcholu (\ref{par:ars_mnv})}\labeltext{MNV}{par:ars_mnv}
+\paragraph{Maximum návštěv vrcholu (\ref{str:ars_mnv})}\labeltext{MNV}{str:ars_mnv}
 udává maximální počet výskytů libovolného vrcholu na~cestě.
 Proto jsou validní hodnoty kladná celá čísla.
 Nejreálnější hodnota parametru by byla $1$, není pro~auto moc přirozené jezdit ve~smyčkách.
@@ -68,21 +68,21 @@ a pro~agenta $b$ cesta $C, 4, 3, 2, 5, D$.
 	\label{fig:ars_mnv_example}
 \end{figure}
 
-\paragraph{Povolené zastavování (\ref{par:ars_pz})}\labeltext{PZ}{par:ars_pz}
+\paragraph{Povolené zastavování (\ref{str:ars_pz})}\labeltext{PZ}{str:ars_pz}
 určuje, zda-li může agent stát na~místě.
 Formálněji pokud dovolím zastavování, vrchol se stane sám sobě sousedem a může se vyskytovat vícekrát na~cestě za~sebou.
 Jednotlivé stání na~místě se pořád započítávají jako jednotlivé návštěvy,
-tudíž maximální doma stání musí být menší než~hodnota \ref{par:ars_mnv}.
+tudíž maximální doma stání musí být menší než~hodnota \ref{str:ars_mnv}.
 
-\paragraph{Maximální prodleva při~cestě (\ref{par:ars_mpc})}\labeltext{MPC}{par:ars_mpc}
+\paragraph{Maximální prodleva při~cestě (\ref{str:ars_mpc})}\labeltext{MPC}{str:ars_mpc}
 omezuje počet kroků strávených agentem na~křižovatce.
-Nalezená trasa pro daného agenta musí trvat nejvýše $\ref{par:ars_mpc} + p$ kroků,
+Nalezená trasa pro daného agenta musí trvat nejvýše $\ref{str:ars_mpc} + p$ kroků,
 kde $p$ je počet kroku optimální cesty (doba jízdy v~\hyperref[par:pruh]{pruhu}).
 Hodnota $0$ znamená, že agent může jet pouze cestou stejného počtu kroků
 jako je počet kroků jízdy v \hyperref[par:pruh]{pruhu}.
 Tento parametr slouží jako omezení hloubky prohledávání.
 
-\paragraph{Povolené vracení (\ref{par:ars_pv})}\labeltext{PV}{par:ars_pv}
+\paragraph{Povolené vracení (\ref{str:ars_pv})}\labeltext{PV}{str:ars_pv}
 může agentovi zakázat vracet~se na~vrchol, ze~kterého přijel.
 Tento parametr dovoluje agentovi pouze \uv{jízdu dopředu}, což je přirozené od~jízdy v~autě očekávat.
 Formálně pokud je tento parametr nenastaven, jsou zakázány cesty obsahující $u,v,v,\dots,v,u$,
@@ -101,15 +101,15 @@ Tuto~množinu budu nazývat \emph{sousedi}\labeltext{sousedi}{str:ars_sousedi}.
 Pro~získání \hyperref[str:ars_sousedi]{sousedů} začnu s~množinou všech vrcholů,
 do~kterých vede hrana z~vrcholu aktuálního stavu.
 Budu předpokládat, že tuto množinu je jednoduše možné získat z~grafu křižovatky.
-Pokud je nastavený \hyperref[subsubsec:ars_parametry]{parametr} \ref{par:ars_pz},
+Pokud je nastavený \hyperref[subsubsec:ars_parametry]{parametr} \ref{str:ars_pz},
 přidám do~množiny \hyperref[str:ars_sousedi]{sousedů} aktuální vrchol.
 
 Agent se nesmí srazit s~žádným jiným naplánovaným agentem při~jízdě do~sousedního vrcholu.
 Kolizní přejezdy jsou detekovány způsobem popsaným v~sekci \nameref{sec:kolize}.
 
-Pro~kontrolu \hyperref[subsubsec:ars_parametry]{parametru} \ref{par:ars_mnv}
+Pro~kontrolu \hyperref[subsubsec:ars_parametry]{parametru} \ref{str:ars_mnv}
 je možné projít všechny předchozí stavy až po~počáteční
-a odebrat všechny vrcholy vyskytující se alespoň \ref{par:ars_mnv} krát během tohoto průchodu.
+a odebrat všechny vrcholy vyskytující se alespoň \ref{str:ars_mnv} krát během tohoto průchodu.
 Následující pseudokód zobrazuje přesnější postup odstraňování.
 
 \labeltext{\textrm{control\_MNV}}{alg:ars_mnv}
@@ -132,15 +132,15 @@ control_MNV(state, neighbours)
 \end{code}
 % @formatter:on
 
-Pokud je hodnota \hyperref[subsubsec:ars_parametry]{parametru} \ref{par:ars_mpc} konečná,
+Pokud je hodnota \hyperref[subsubsec:ars_parametry]{parametru} \ref{str:ars_mpc} konečná,
 je možné provést filtrování sousedních vrcholů podle nejkratší vzdálenosti ze~souseda do~nejbližšího cíle.
 Tuto vzdálenost vím díky heuristice, která má stejnou hodnotu.
 Nejprve si spočítám maximální krok cesty\labeltext{MKC}{str:ars_mkc} (\ref{str:ars_mkc}) pro~daného agenta.
 Pokud sečtu aktuální plánovaný krok s~hodnotou heuristiky počátečního vrcholu, dostanu nejmenší krok,
 ve~kterém se může agent dostat do~nejbližšího cíle.
-\ref{str:ars_mkc} přiřadím součet této hodnoty a \ref{MPC}.
+\ref{str:ars_mkc} přiřadím součet této hodnoty a \ref{str:ars_mpc}.
 Jednoduše je vidět, že agent nemůže dorazit do~cíle po~kroku \ref{str:ars_mkc},
-aniž~by porušil podmínku určenou parametrem \ref{alg:ars_mpc}.
+aniž~by porušil podmínku určenou parametrem \ref{str:ars_mpc}.
 
 Následně mohu zkontrolovat, jestli se agent může dostat ze~sousedního vrcholu
 do~některého cíle do~kroku \ref{str:ars_mkc}.
@@ -165,7 +165,7 @@ control_MPC(state, neighbours):
 % @formatter:on
 
 Poslední filtrování sousedů probíhá pouze, pokud je nastaven
-\hyperref[subsubsec:ars_parametry]{parametr} \ref{par:ars_pv}.
+\hyperref[subsubsec:ars_parametry]{parametr} \ref{str:ars_pv}.
 Opět lze při~kontrole využít procházení předchozích stavů.
 Přesněji nejprve naleznu nejpozději navštívený vrchol před~aktuálním.
 Pokud takový vrchol neexistuje, mohu skončit.

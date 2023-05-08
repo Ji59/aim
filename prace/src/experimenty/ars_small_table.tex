@@ -3,8 +3,8 @@
 %	\begin{adjustwidth}{-1.5cm}{}
 	\begin{tabular}{c c c c | r r D{.}{,}{2.2} D{.}{,}{2.2} D{.}{,}{3.2}}
 		\toprule \\
-		\pulrad{\B{Typ}} & \pulrad{\B{Omez}} & \pulrad{\B{\ref{par:ars_mnv}}} &
-		\pulrad{\B{\ref{par:ars_mpc}}} & \pulrad{\B{Krok}}  & \pulrad{\B{Zam}} &
+		\pulrad{\B{Typ}} & \pulrad{\B{Omez}} & \pulrad{\B{\ref{str:ars_mnv}}} &
+		\pulrad{\B{\ref{str:ars_mpc}}} & \pulrad{\B{Krok}}  & \pulrad{\B{Zam}} &
 		\mc{\pulrad{\B{pAg}}} & \mc{\pulrad{\B{pZp}}} & \mc{\pulrad{\B{Čas}}} \\
 		\midrule
 		S & -  & 1 & 8   & 32779 & 785      & \multicolumn{1}{B{.}{,}{2.2}}{14.21} & 5.95                                 & \multicolumn{1}{B{.}{,}{3.2}}{43.19}  \\
@@ -19,11 +19,18 @@
 		H & s  & 2 & inf & 32790 & \B{3021} & \multicolumn{1}{B{.}{,}{2.2}}{26.54} & 11.08                                & 734.08                                \\
 		H & sr & 2 & inf & 32792 & 3312     & 25.99                                & \multicolumn{1}{B{.}{,}{2.2}}{10.95} & 798.29                                \\
 		\bottomrule
-%		\multicolumn{6}{l}{\footnotesize \textit{Pozn:}
-%		\textrm{Zam} - počet zamítnutí, \textrm{pAgen} - průměrný počet agentů v jeden krok na křižovatce, \\
-%		\textrm{sAgen} - směrodatná odchylka počtu agentů na křižovatce, \\
-%		\textrm{Zpož} - součet spoždění přes všechny agenty, \textrm{pZpož} - průměrné zpoždění agentů
-%		}  TODO
+		\multicolumn{4}{l}{\footnotesize \textit{Pozn:}
+		\textrm{Zam} - počet zamítnutých agentů
+		} \\
+		\multicolumn{4}{l}{\footnotesize
+		\textrm{pAg} - průměrný počet agentů na křižovatce v jednom kroku
+		} \\
+		\multicolumn{4}{l}{\footnotesize
+		\textrm{pZp} - průměrné zpoždění agentů
+		} \\
+		\multicolumn{4}{l}{\footnotesize
+		\textrm{Čas} - průměrný čas počítání jednoho kroku v mikrosekundách
+		}
 	\end{tabular}
 	\caption{Porovnání vlivu parametrů u \ref{str:a_star_ars} na různých typech malé křižovatky.}\label{tab:ars_exp_mala}
 %	\end{adjustwidth}

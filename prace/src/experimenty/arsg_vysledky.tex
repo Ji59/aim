@@ -1,16 +1,16 @@
-\subsubsection{\ref{str:a_star_arsg} na \hyperref[par:data_mala]{malé} křižovatce}
+\subsubsection{\ref{str:varsg} na \hyperref[par:data_mala]{malé} křižovatce}
 \label{subsubsec:exp_arsg_mala_krizovatka}
 
 Jelikož se jedná o rozšíření \ref{str:a_star_ars}, použil jsem stejná nastavení parametrů.
-Tedy pro čtvercový a oktagonální typ jsem nastavil \ref{par:ars_mpc} na hodnotu $8$, a pro hexagonální na $16$.
-Při bězích s \ref{par:ars_mnv} nastaveno na $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} opět neomezená.
+Tedy pro čtvercový a oktagonální typ jsem nastavil \ref{str:ars_mpc} na hodnotu $8$, a pro hexagonální na $16$.
+Při bězích s \ref{str:ars_mnv} nastaveno na $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} opět neomezená.
 
-Algoritmus má jediný parametr navíc, a to \nameref{par:arsg_zvp}, který udává,
+Algoritmus má jediný parametr navíc, a to \nameref{str:arsg_zvp}, který udává,
 po jak dlouhé prodlevě má výpočet přejít na zjednodušený režim.
 U všech experimentů je tento parametr nastaven na jednu sekundu.
 
 V tabulce (Tabulka \ref{tab:arsg_exp_mala}) jsou vidět výsledky na všech typech křižovatky
-velikostí $4$ a jedním vjezdem a výjezdem.
+velikosti 4, jedním vjezdem a výjezdem.
 
 Překvapivě si v této simulaci na všech křižovatkách vedla nejlépe nejvíce omezená varianta.
 Měla výrazně menší počet zamítnutých agentů a průměrné zpoždění.
@@ -23,15 +23,15 @@ Avšak měly rychlejší plánování srovnatelné s nejvíce omezenou variantou
 
 \input{experimenty/arsg_small_table}
 
-\subsubsection{\ref{str:a_star_arsg} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
+\subsubsection{\ref{str:varsg} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
 \label{subsubsec:exp_arsg_velka_krizovatka_bez_vyjezdu}
 
-\ref{par:ars_mpc} je opět nastaveno pro čtvercový a oktagonální typ na hodnotu $32$,
-a pro hexagonální na $64$, pokud je nastavený \ref{par:ars_mnv} na $1$.
-Por běhy s \ref{par:ars_mnv} $2$ jsou délky cest opět neomezené.
+\ref{str:ars_mpc} je opět nastaveno pro čtvercový a oktagonální typ na hodnotu $32$,
+a pro hexagonální na $64$, pokud je nastavený \ref{str:ars_mnv} na $1$.
+Por běhy s \ref{str:ars_mnv} $2$ jsou délky cest opět neomezené.
 
 V tabulce (Tabulka \ref{tab:arsg_exp_velka_bez_vyjezdu}) jsou vidět výsledky na všech typech křižovatky
-velikostí $16$ se $4$ vjezdy a $4$ výjezdy.
+velikosti $16$ se $4$ vjezdy a $4$ výjezdy.
 
 V této tabulce mě většina hodnot překvapila, výsledky mezi jednotlivými typy křižovatek jsou navzájem nesrovnatelné.
 Na čtvercovém typu křižovatky měl nejmenší počet zamítnutých agentů běh s nejméně omezenými agenty.
@@ -39,14 +39,14 @@ Zároveň měl nejvíce agentů na křižovatce.
 Nejméně omezená varianta měla mírně víc zamítnutých agentů a mírně menší počet agentů na křižovatce.
 Avšak dosáhla výrazně nižšího průměrného zpoždění.
 Zároveň zvládla plánovat agenty nejrychleji.
-Prostředního běh měl nejhorší výsledky až na dobu plánování.
+Prostřední běh měl nejhorší výsledky až na dobu plánování.
 
 U oktagonálního typu jednoznačně vyhrála první varianta,
 dosáhla nejmenšího počtu zamítnutí a průměrného zpoždění.
-Ačkoliv se plánovací časy oproti čtvercové křižovatce zpětinásobily, pořád byly prot tento typ nejmenší.
+Ačkoliv se plánovací časy oproti čtvercové křižovatce zpětinásobily, pořád byly pro tento typ nejmenší.
 Nejméně omezený běh měl výrazně horší počet zamítnutých agentů, průměrné zpoždění a plánovací čas.
 Avšak má vyšší počet agentů na křižovatce.
-To by nasvědčovalo mé hypotéze, že se snížením omezení pohybu dokáže algoritmus na plánovat dříve nenaplánované agenty,
+To by nasvědčovalo mé hypotéze, že se snížením omezení pohybu dokáže algoritmus naplánovat dříve nenaplánované agenty,
 avšak za cenu delších cest a blokování budoucích agentů.
 Dalším překvapením je výsledek prostředního běhu.
 Ačkoliv si oproti čtvercovému typu pomohl, celkově vyšel nejhůře, včetně plánovací doby.
@@ -71,7 +71,7 @@ a agent by byl úspěšně naplánován.
 
 \input{experimenty/arsg_big_table_no_exits}
 
-\subsubsection{\ref{str:a_star_arsg} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
+\subsubsection{\ref{str:varsg} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
 \label{subsubsec:exp_arsg_velka_krizovatka_s_vyjezdem}
 
 Testoval jsem opět totožné nastavení parametrů, výsledky jsou v tabulce \ref{tab:arsg_exp_velka_s_vyjezdy}.
@@ -88,7 +88,7 @@ jelikož měla nejvyšší časový běh, což vedlo k nejméně naplánovaným 
 Naopak prostřední varianta má nejnižší čas plánování, což jí učinilo favoritem na hexagonálním typu.
 Myslím si, že tato varianta dokáže úspěšně naplánovat vyšší počet agentů i v situacích,
 kdy by je první varianta odmítla.
-V takových případů musí první varianta zkusit pro agenta všechny možné trasy,
+V takových případech musí první varianta zkusit pro agenta všechny možné trasy,
 zatímco druhé variantě může stačit mnohem menší podprostor.
 Vypadá to, že zde opravdu tato situace nastává.
 Avšak rozšíření prohledávaného prostoru už negativně ovlivnilo časové nároky.

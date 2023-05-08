@@ -38,20 +38,20 @@ Ve zjednodušeným režimu algoritmus přeplánuje takovým způsobem, aby nemě
 \subsubsection{Parametry}\label{subsubsec:cbs_parametry}
 
 \nameref{subsubsec:cbs_parametry} algoritmu jsou stejné jako u \ref{str:varsg} a mají podobný význam.
-Hodnoty Maximum návštěv vrcholu (\ref{par:ars_mnv}), Povolené zastavování (\ref{par:ars_pz}),
-Maximální prodleva při~cestě (\ref{par:ars_mpc}) a Povolené vracení (\ref{par:ars_pv})
+Hodnoty Maximum návštěv vrcholu (\ref{str:ars_mnv}), Povolené zastavování (\ref{str:ars_pz}),
+Maximální prodleva při~cestě (\ref{str:ars_mpc}) a Povolené vracení (\ref{str:ars_pv})
 algoritmus používá při~plánování jednoho agenta.
 Tyto \hyperref[subsubsec:ars_parametry]{parametry} ovlivňují plánování stejně jako u \ref{str:a_star_ars}.
-Hodnota parametru \ref{par:arsg_zvp} opět určuje po jak dlouhé prodlevě má algoritmus přejít na zjednodušené plánování.
+Hodnota parametru \ref{str:arsg_zvp} opět určuje po jak dlouhé prodlevě má algoritmus přejít na zjednodušené plánování.
 
 \subsection{CBS-OID}\label{subsec:cbsoid}
 
-\ref{str:cbs} lze podobně jako \ref{str:varsg} rozšířit na \ref{str:oid} variantu.
+\ref{str:cbs} lze podobně jako \ref{str:varsg} rozšířit na \ref{str:suboid} variantu.
 K plánovaným agentů se přidají agenti z předchozích kroků.
 Jako počáteční cesty těchto agentů se použijí jejich již naplánované trasy, tudíž se znova nepočítají.
 Výpočet je poté shodný, až na~případy, kdy pro~ně nebyla nalezena cesta.
 Pokud k~takové situaci dojde, namísto odstranění agenta se odstraní celý list ze~stromu výpočtu.
 
-Parametry jsou rozšířené stejně jako u \nameref{subsubsec:a_star_aoid} o~Maximální počet agentů (\ref{par:aoid_mpa})
-a Počet přeplánovaných kroků (\ref{par:aoid_ppk}).
+Parametry jsou rozšířené stejně jako u \nameref{subsubsec:a_star_aoid} o~Maximální počet agentů (\ref{str:aoid_mpa})
+a Počet přeplánovaných kroků (\ref{str:aoid_ppk}).
 Význam těchto parametrů je shodný.

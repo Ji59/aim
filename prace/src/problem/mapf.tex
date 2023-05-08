@@ -52,7 +52,7 @@ Pokud algoritmus nalezne konflikt, hledání se rozdělí na~dva podpřípady.
 První větev výpočtu najde alternativní cestu pro~prvního agenta, druhá větev pro~druhého.
 Takto postupně vzniká binární strom.
 Pokud je nalezena nekolizní cesta pro~všechny vrcholy, algoritmus skončí.
-Pořadí prohledávání vrcholů ve~stromu je určeno podle SOC metriky.
+Pořadí prohledávání vrcholů ve~stromu je určeno podle \ref{str:soc} metriky.
 Toto pořadí zaručuje optimální řešení \citep{Sharon}.
 Algoritmus byl nadále rozšířen a vylepšen \citep{Boyarski}.
 Bližší popis algoritmu je v~sekci \nameref{subsec:conflict_based_search}
@@ -153,20 +153,20 @@ a ve~zbylých případech se plány lišily minimálně.
 
 V~práci \citet{Svancara} jsou návrhy různých strategií pro~řešení \emph{online~MAPF} problémů:
 \begin{itemize}
-	\item \textbf{Replan~Single}(\ref{str:rs})\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
+	\item \textbf{Replan~Single} (\ref{str:rs})\labeltext{RS}{str:rs} - tento přístup je totožný s~přístupem \nameref{subsec:individualni_planovani},
 	každý nový agent je naplánován s~ohledem na~předchozí.
-	\item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped}\ref{str:rsg}\labeltext{RSG}{str:rsg} -
+	\item \textbf{Replan~Single~Grouped}\label{par:replan_single_grouped} (\ref{str:rsg})\labeltext{RSG}{str:rsg} -
 	v~tomto přístupu se plánují pouze noví agenti, ale oproti \ref{str:rs} plánování probíhá pro~všechny agenty najednou.
 	Zde lze použít \emph{offline~MAPF} řešič, který se musí vyhnout kolizím s~již naplánovanými trasami.
-	\item \textbf{Replan~All}(\ref{str:ra})\labeltext{RA}{str:ra} - za~použití této strategie se použije
+	\item \textbf{Replan~All} (\ref{str:ra})\labeltext{RA}{str:ra} - za~použití této strategie se použije
 	\emph{offline~MAPF} řešič na~všechny agenty pokaždé, když dorazí noví agenti.
 	Pokud je řešič optimální, \ref{str:ra} vrací \ref{str:snapshot_opt} řešení pro~všechny agenty \citep{Svancara}.
-	\item \textbf{Online~Independence~Detection}(\ref{str:oid})\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
+	\item \textbf{Online~Independence~Detection} (\ref{str:oid})\labeltext{OID}{str:oid} - tento přístup se snaží minimalizovat množství přeplánovaných agentů.
 	Nejprve najde cestu pro~všechny nové agenty ignorujíce už naplánované.
 	Poté zjistí kolize mezi starými a novými agenty.
 	Pokud byly nalezeny kolize, přeplánují se trasy kolizních agentů.
 	Pro~zaručení \ref{str:snapshot_opt} plánu je nutné udělat dodatečné úpravy \citep{Svancara}.
-	\item \textbf{Suboptimal~Independence~Detection}(\ref{str:suboid})\labeltext{SubID}{str:suboid} - pozměňuje
+	\item \textbf{Suboptimal~Online~Independence~Detection} (\ref{str:suboid})\labeltext{SubOID}{str:suboid} - pozměňuje
 	\ref{str:oid} povolením neoptimálních cest.
 	Přesněji cena plánu SubID je nejvýše $D$ krát delší než cena \emph{snapshot~optimálního} plánu.
 	Avšak díky této úpravě by měl být počet přeplánování, a tedy i~čas výpočtu, nižší.

@@ -1,14 +1,14 @@
 \subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_mala]{malé} křižovatce}
 \label{subsubsec:exp_ars_mala_krizovatka}
 
-Pokud bude nastaven \ref{par:ars_mnv} na $1$, omezím \ref{par:ars_mpc}
+Pokud bude nastaven \ref{str:ars_mnv} na $1$, omezím \ref{str:ars_mpc}
 pro čtvercový a oktagonální typ na hodnotu $8$, a pro hexagonální na $16$.
-Por běhy s \ref{par:ars_mnv} $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} neomezená, značená hodnotou $inf$.
+Por běhy s \ref{str:ars_mnv} $2$ bude \hyperref[par:ars_mpc]{prodleva cesty} neomezená, značená hodnotou $inf$.
 Jelikož má křižovatka $16$ vrcholů kromě vjezdů a výjezdů, není rozdíl mezi neomezenými cestami a
-cestami omezenými na $34$ kroků pro výpočet s \ref{par:ars_mnv} nastavené na $2$.
+cestami omezenými na $34$ kroků pro výpočet s \ref{str:ars_mnv} nastavené na $2$.
 
 V tabulce (Tabulka \ref{tab:ars_exp_mala}) jsou vidět výsledky na všech typech křižovatky
-velikostí $4$ a jedním vjezdem a výjezdem.
+velikosti 4, jedním vjezdem a výjezdem.
 
 
 Z výsledků je znatelné, že více omezený prohledávací prostor vede ke značně horším výsledkům,
@@ -21,33 +21,35 @@ U oktagonálního si vedla lépe varianta s povoleným vracením, avšak u hexag
 Překvapilo mě, že oktagonální typ měl mnohem více zamítnutí než čtvercový typ.
 Dle mého názoru je tento jev způsoben menším manipulativním prostorem pro auta.
 Oktagonální typ oproti čtvercovému nemá čtyři rohové vrcholy.
-Zároveň pokud stojí auto na čtvercovém vrcholu reprezentující diagonální mezi dvěma oktagonálními vrcholy,
+Zároveň pokud stojí auto na čtvercovém vrcholu reprezentujícím diagonální přejezd mezi dvěma oktagonálními vrcholy,
 blokuje jiné přejezdy na těchto sousedních vrcholech. % TODO obrázek
 Toto je dle mého názoru i důvod, proč si varianta s vracením vedla nejlépe na této křižovatce.
 Umožňuje agentovi větší pohyblivost, tudíž i více možností vyhnout se jiným agentům.
 
-Povolené vracení vedlo k nejnižšímu zpoždění ve všech třech typech křižovatky, ačkoliv počet zamítnutí nebyl nejmenší.
-Mohlo by to být způsobeno tím, že do zpoždění se u zamítnutých agentů počítá pouze čekací doba před křižovatkou,
-zatímco pro nezamítnuté agenty čekací doba a zároveň prodleva cesty oproti optimální.
-Pokud tedy mnoho agentů čeká dlouho vev frontě a poté jedou značně delší cestou, mají v součtu vyšší zpoždění,
-než kdyby byli všichni agenti zamítnutí.
+Povolené vracení vedlo k nejnižšímu zpoždění ve všech třech typech křižovatky,
+ačkoliv počet zamítnutí nebyl vždy nejmenší.
+Mohlo by to být způsobeno tím, že zpoždění je určeno pouze nezamítnutými agenty.
+Jelikož tato varianta mimo oktagonální typ křižovatky naplánovala méně agentů,
+dochází zde k menšímu ovlivňování cesty jinými agenty.
+Zároveň ale tato varianta rozšiřuje množinu možných cest a tyto nové cesty jsou asi kratší,
+než nalezené cesty bez vracení.
 
 Dalším zajímavým rozdílem mezi čtvercovou a oktagonální křižovatkou je rozdíl v průměrném počtu agentů na křižovatce.
-Při nejvíce omezených cestách se přechod z čtvercové na oktagonální křižovatku se tento průměr snížil.
+Při nejvíce omezených cestách přechod z čtvercové na oktagonální křižovatku tento průměr snížil.
 Ve zbylých dvou případech průměr vzrostl, ačkoliv celkový počet cestujících agentů klesl.
-Z toho lze usoudit, že na čtvercové křižovatce byly naplánované trasy značně kratší.
+Z~toho lze usoudit, že na čtvercové křižovatce byly naplánované trasy značně kratší.
 
 \input{experimenty/ars_small_table}
 
 \subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_velka]{velké} křižovatce bez výjezdů}
 \label{subsubsec:exp_ars_velka_krizovatka_bez_vyjezdu}
 
-Pro tyto testy jsem přirozeně zvýšil omezení \ref{par:ars_mpc} pro čtvercový a oktagonální typ na hodnotu $32$,
-a pro hexagonální na $64$, pokud je nastavený \ref{par:ars_mnv} na $1$.
-Por běhy s \ref{par:ars_mnv} $2$ jsou délky cest opět neomezené.
+Pro tyto testy jsem přirozeně zvýšil omezení \ref{str:ars_mpc} pro čtvercový a oktagonální typ na hodnotu $32$,
+a pro hexagonální na $64$, pokud je nastavený \ref{str:ars_mnv} na $1$.
+Pro běhy s \ref{str:ars_mnv} $2$ jsou délky cest opět neomezené.
 
 V tabulce (Tabulka \ref{tab:ars_exp_velka_bez_vyjezdu}) jsou vidět výsledky na všech typech křižovatky
-velikostí $16$ se $4$ vjezdy a $4$ výjezdy.
+velikosti $16$ se $4$ vjezdy a $4$ výjezdy.
 
 Z výsledků je dobře vidět souvislost mezi nejmenším počtem zamítnutých agentů, nejvyšším počtem agentů na křižovatce a
 nejmenším průměrným zpožděním agenta.
@@ -61,8 +63,8 @@ Nejpřekvapivější pro mě byly časy plánování.
 Nejrychlejší u čtvercového typu byl nejvíce omezený algoritmus,
 avšak u zbylých dvou typů běžel nejrychleji nejméně omezený běh.
 Běh s povoleným zastavováním byl u všech tří typů nejpomalejší a pro hexagonální křižovatky ani nestihl doběhnout.
-Dle mého názoru je to způsobené vysokým počtem plánování agentů, které nejsou úspěšné.
-Ale aby tento fakt algoritmus zjistil musí vyzkoušet vysoká počet možností.
+Dle mého názoru je to způsobené vysokým počtem plánování agentů, která nejsou úspěšná.
+Ale aby tento fakt algoritmus zjistil musí vyzkoušet vysoký počet možností.
 Pokud ale povolím vracení agenta, dle mého názoru mnoha těmto agentům umožním jet relativně krátkou trasou.
 
 \input{experimenty/ars_big_table_no_exits}
@@ -70,7 +72,7 @@ Pokud ale povolím vracení agenta, dle mého názoru mnoha těmto agentům umo�
 \subsubsection{\ref{str:a_star_ars} na \hyperref[par:data_velka]{velké} křižovatce s výjezdem}
 \label{subsubsec:exp_ars_velka_krizovatka_s_vyjezdem}
 
-Zde jsem použil totožné nastavení parametrů jako u běhů bez specifikovaní výjezdů.
+Zde jsem použil totožné nastavení parametrů jako u běhů bez specifikovaných výjezdů.
 
 V tabulce \ref{tab:ars_exp_velka_s_vyjezdy} jsou zobrazeny výsledky.
 

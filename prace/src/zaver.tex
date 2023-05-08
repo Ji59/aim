@@ -1,5 +1,46 @@
 \chapter*{Závěr}
 
-Stručné shrnutí výsledků, problémy řešení, nápady na vylepšení.
+%Stručné shrnutí výsledků, problémy řešení, nápady na vylepšení.
+
+Zjistil jsem, vzhled křižovatky a její velikost ovlivňuje chování algoritmů.
+Proto neexistuje jeden nejlepší algoritmus a ani jedno nejlepší nastavení algoritmů.
+
+Pokud není křižovatka rozdělená na mnoho bloků, \ref{str:cbs} se choval velmi dobře.
+\ref{str:a_star_ars} je dost spolehlivý a dává taktéž dobré výsledky.
+
+Naopak varianty přeplánovávající agenty měly vysoké časy plánování, díky čemu často nedoběhly.
+A pokud doběhly, patřily k těm horším algoritmům.
+
+\ref{str:sat} algoritmy byly velmi pomalé.
+Myslím si, že to je způsobeno mým rozhodnutím používat MAX-SAT\@.
+Zároveň mohly být výsledky ovlivněny výběrem \ref{str:sat} řešiče.
+
+\ref{str:varsg} a \ref{subsubsec:a_star_aoid} měly problémy s pamětí díky vysokému počtu možných kombinací
+pozic agentů, pokud se jich plánuje více najednou.
+Zjednodušený režim zaručoval alespoň nějaké řešení v rozumném čase, avšak podle mého způsoboval horší výsledky,
+než měl \ref{str:a_star_ars}.
+
+\ref{str:cbs} vyřešil problém s pamětí u \ref{str:varsg} algoritmu.
+Avšak pro vyšší množství agentů se tvořily velké stromy, které značně zvyšovaly čas plánování.
+Toto bylo obzvláště vidět u \nameref{subsec:cbsoid} algoritmu.
+Podle mého názoru zde značně zapůsobil zjednodušený režim, jelikož pokud některý agent nešel naplánovat,
+bez tohoto režimu musel algoritmus vyzkoušet všechny možné kombinace vrcholů a hran.
+S použitím zjednodušení se větve výpočtu uzavíraly, a museli se nejvýše projít pouze aktuálně existující vrcholy.
+Toto je podle mého názoru hlavní důvod, proč si tento algoritmus vedl tak dobře.
+
+Řekl bych, že na menších křižovatkách se vyplatí agenty více omezovat, jelikož na těchto křižovatkách není tolik
+místa pro manévrování agentů.
+Zdá se mi, že se zde více vyplatí počkat s agentem před křižovatkou a poté projet kratší cestou,
+než naplánovat dlouho cestu po křižovatce v aktuálním kroku.
+Naopak pro větší křižovatky se obecně vyplatilo omezit agenty méně.
+Myslím si, že to je kvůli většímu místu.
+Zároveň menší omezení agentů dovoluje naplánování agenta, který by byl jinak zamítnut.
+Díky tomu se pro tohoto agenta nemusí zdlouhavě procházet všechny možné cesty, což navyšuje časovou náročnost.
+
+Umožnění agentům diagonální jízdy při přechodu ze čtvercové křižovatky na oktagonální na malé křižovatce značně uškodilo.
+Avšak při velké velikosti křižovatky to naopak pomohlo.
+Myslím si, že to má podobný důvod jako u parametrů.
+Na menší křižovatce agenti v nových vrcholech spíše překáží ostatním, což prodlužuje cesty všech.
+Naopak na velké křižovatce umožňují vyšší počet způsobů, jak se navzájem vyhnout.
 
 \addcontentsline{toc}{chapter}{Závěr}

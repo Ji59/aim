@@ -20,15 +20,17 @@ Počet \hyperref[par:vjezdy]{vjezdů} a \hyperref[par:vyjezdy]{výjezdů} je zv�
 
 \subsubsection{Agenti}
 
-Agenti budou nejdříve náhodně vygenerováni zvlášť pro každou velikost.
-Generování proběhne dvakrát pro každou velikost, jednou pro hexagonální typ a jednou společně pro čtvercový a oktagonální typ.
+Agenti budou nejdříve náhodně vygenerovaní zvlášť pro každou velikost.
+Generování proběhne dvakrát pro každou velikost,
+jednou pro hexagonální typ a jednou společně pro čtvercový a oktagonální typ.
 Poté se ti samí agenti použijí k porovnání jednotlivých algoritmů, abych snížil vliv náhody na výsledky.
-V každý kroku přibude mezi $0 - en$ agentů, kde $en$ je celkový počet vjezdů do křižovatky ze všech stran.
-Přesný počet je uniformě náhodně vygenerován každý krok.
+V každém kroku přibude mezi $0 - en$ agentů, kde $en$ je celkový počet vjezdů do křižovatky ze všech stran.
+Přesný počet je náhodně vygenerován každý krok.
+Popis generování agentů je blíže popsán v sekci \ref{subsec:generovani_agentu}.
 
-\ref{sec:agent}Délka agentů bude $0.56$ \hyperref[par:velikost_bloku]{velikosti bloku} křižovatky
+Délka agentů bude $0.56$ \hyperref[par:velikost_bloku]{velikosti bloku} křižovatky
 a šířka $0.35$ \hyperref[par:velikost_bloku]{velikosti bloku}.
-Tyto hodnoty jsem zvolil, jelikož umožňují nekolizní pozice agentů na sousedních vrcholech.
+Tyto hodnoty jsem zvolil, jelikož umožňují nekolizní pozice agentů na sousedních vrcholech u všech typů křižovatek.
 Zároveň ale agenti nejsou příliš malí na to, aby jejich velikost nehrála žádnou roli.
 
 Dále budu porovnávat případy, kdy agenti mají daný přesný výjezd, nebo pouze směr výjezdu.

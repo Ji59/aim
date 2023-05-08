@@ -1,24 +1,24 @@
 \subsection{\nameref{sec:a_star} porovnání parametrů}\label{subsec:a_star_porovnani_parametru}
 
-V této kapitole porovnám vliv parametrů u algoritmů \ref{str:a_star_ars}, \ref{str:a_star_arsg} a \ref{subsubsec:a_star_aoid}.
+V této kapitole porovnám vliv parametrů u algoritmů \ref{str:a_star_ars}, \ref{str:varsg} a \nameref{subsubsec:a_star_aoid}.
 
-Všechny parametry algoritmu \hyperref[par:ars_mnv]{maximum návštěv vrcholu}, \hyperref[par:ars_pz]{povolené zastavování},
-\hyperref[par:ars_mpc]{maximální prodleva při cestě} i \hyperref[par:ars_pv]{povolené vracení} omezují prohledávací
-prostor algoritmu.
+Všechny společné parametry těchto algoritmů (\hyperref[par:ars_mnv]{maximum návštěv vrcholu},
+\hyperref[par:ars_pz]{povolené zastavování},\hyperref[par:ars_mpc]{maximální prodleva při cestě}
+i~\hyperref[par:ars_pv]{povolené vracení}) omezují prohledávací prostor při plánování.
 Proto bych čekal s větším omezením kratší dobu plánování, avšak za cenu horších výsledků.
 
-Pro všechny typy křižovatky vyzkouším omezit \hyperref[par:ars_mnv]{maximum návštěv vrcholu (\ref{par:ars_mnv})}
+Pro všechny typy křižovatky vyzkouším omezit \hyperref[par:ars_mnv]{maximum návštěv vrcholu (\ref{str:ars_mnv})}
 na $1$ či $2$.
-Pokud bude hodnota \ref{par:ars_mnv} nastavena na $1$, omezím
-\hyperref[par:ars_mpc]{maximální prodlevu cesty (\ref{par:ars_mpc})} podle typu a velikosti křižovatky.
+Pokud bude hodnota \ref{str:ars_mnv} nastavena na $1$, omezím
+\hyperref[par:ars_mpc]{maximální prodlevu cesty (\ref{str:ars_mpc})} podle typu a velikosti křižovatky.
 Pro čtvercovou a oktagonální na hodnotu $8$, a pro hexagonální většinou na $16$.
-Zároveň nedovolím agentům \hyperref[par:ars_pz]{zastavování} (\ref{par:ars_pz})
-ani \hyperref[par:ars_pv]{vracení} (\ref{par:ars_pv}).
+Zároveň nedovolím agentům \hyperref[par:ars_pz]{zastavování} (\ref{str:ars_pz})
+ani \hyperref[par:ars_pv]{vracení} (\ref{str:ars_pv}).
 
-Při nastavení \ref{par:ars_mnv} na $2$, \hyperref[par:ars_mpc]{maximální prodlevu cesty}
-neomezím většinou vůbec \nameref{subsubsec:a_star_aoid}.
+Při nastavení \ref{str:ars_mnv} na $2$, \hyperref[par:ars_mpc]{maximální prodlevu cesty}
+neomezím většinou vůbec.
 Vyzkouším možnosti, kdy dovolím agentům pouze \hyperref[par:ars_pz]{zastavování},
-nebo \hyperref[par:ars_pz]{zastavování} a zároveň \hyperref[par:ars_pv]{vracení} (\ref{par:ars_pv}).
+nebo \hyperref[par:ars_pz]{zastavování} a zároveň \hyperref[par:ars_pv]{vracení} (\ref{str:ars_pv}).
 V tabulkách s výsledky bude toto nastavení zobrazeno ve sloupci \textrm{Omez}.
 Pokud bude povolené zastavování, bude sloupec obsahovat hodnotu~$s$.
 Pokud dovolím agentům vracení, bude ve~sloupci napsáno~$r$.

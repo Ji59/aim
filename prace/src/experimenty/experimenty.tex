@@ -4,22 +4,21 @@
 
 Po křižovatce požadujeme, aby zaručovala bezpečnou cestu autům.
 Nyní budu předpokládat, že agenti dávají přesnou informaci křižovatce a plně dodržují plán.
-Za tohoto předpokladu nám algoritmus zaručuje nekolizní trasy.
+Za tohoto předpokladu nám algoritmy zaručuje nekolizní trasy.
 
 Následujícím faktorem je zpoždění aut.
 Budu sledovat \hyperref[par:zamitnuti]{počet zamítnutých agentů} a \hyperref[par:zdrzeni]{zdržení} naplánovaných agentů.
 V tabulkách budu porovnávat celkový \hyperref[par:zamitnuti]{počet zamítnutých agentů} (Zam).
-U \hyperref[par:zdrzeni]{zdržení} budu počítat celkový součet (Zpož)
-a průměrné \hyperref[par:zdrzeni]{zdržení} na agenta (pZp) vypočítané ze všech agentů.
+Dále budu porovnávat průměrné \hyperref[par:zdrzeni]{zdržení} na agenta (pZp) vypočítané ze všech agentů,
+kteří byli úspěšně naplánovaní.
 
 Další zajímavý faktor je obsazenost křižovatky,
 který udává v kolika krocích ze všech byl některý agent na určitém bloku křižovatky.
-Ve výsledkách budu počítat průměrný počet agentů na křižovatce (pAg) přes všechny kroky.
-%Budu také sledovat průměrnou délku naplánovaných cest. TODO
+Ve výsledcích budu počítat průměrný počet agentů na křižovatce (pAg) přes všechny kroky.
 
 Důležitá je také doba běhu algoritmu.
 Budu sledovat pro každý krok, kolik uběhlo času od spuštění plánování daného kroku.
-Odtud zpočtu průměrný čas na jeden krok v milisekundách (Čas).
+Odtud vypočtu průměrný čas na jeden krok v~mikrosekundách (Čas).
 
 Nejprve provedu testy pro porovnání parametrů jednotlivých agentů.
 Poté srovnám nejlepší nastavení algoritmů proti sobě.

@@ -20,9 +20,9 @@ Z toho usuzuji, že \ref{str:cbs} je nejvíce citlivý na přidávání agentů.
 
 
 Nejprve začnu čtvercovou křižovatkou, jejíž výsledky jsou v tabulce \ref{tab:all_exp_mala_ctvercova}.
-V tabulce není zapsána hodnota parametru maximálního počtu přeplánovaných agentů (\ref{par:aoid_mpa}) u~\ref{str:oid} variant.
+V tabulce není zapsána hodnota parametru maximálního počtu přeplánovaných agentů (\ref{str:aoid_mpa}) u~\ref{str:suboid} variant.
 Na této křižovatce měli \nameref{subsubsec:a_star_aoid} a \nameref{subsec:cbsoid}
-největší úspěšnost s \ref{par:aoid_mpa} nastaveným na $16$ a \nameref{subsec:sat_ra} na $12$.
+největší úspěšnost s \ref{str:aoid_mpa} nastaveným na $16$ a \nameref{subsec:sat_ra} na $12$.
 
 Nejlepší algoritmus zde vyšel \ref{str:cbs}, v těsném závěsu za ním je \ref{str:a_star_ars}.
 Tyto algoritmy mají zároveň nejmenší zpoždění agentů a v průměru nejméně agentů na křižovatce.
@@ -38,14 +38,14 @@ avšak zároveň má mnohem více zamítnutých agentů, než všechny algoritmy
 avšak zároveň měl jednoznačně nejvyšší průměrné zpoždění agentů.
 
 Verze algoritmů plánující menší počet agentů preferovala spíše volnější pohyb pro agenty.
-Naopak všechny \ref{str:oid} varianty, \nameref{subsec:sat_ra} a \ref{str:a_star_arsg} dosáhly nejlepších výsledků s nejvíce omezenými parametry.
+Naopak všechny \ref{str:suboid} varianty, \nameref{subsec:sat_ra} a \ref{str:varsg} dosáhly nejlepších výsledků s nejvíce omezenými parametry.
 
 \input{experimenty/all_small_table_square}
 
 Na oktagonální křižovatce je chování algoritmů podobné (tabulka \ref{tab:all_exp_mala_oktagonalni}).
 Avšak zde ani jeden z algoritmů přeplánovající naplánované agenty nestihl doběhnout.
 Zde měli \nameref{subsubsec:a_star_aoid} a \nameref{subsec:cbsoid}
-největší úspěšnost opět s \ref{par:aoid_mpa} nastaveným na $16$ a \nameref{subsec:sat_ra} na $12$.
+největší úspěšnost opět s \ref{str:aoid_mpa} nastaveným na $16$ a \nameref{subsec:sat_ra} na $12$.
 
 Pořadí algoritmů, které doběhly, s ohledem na počet zamítnutých agentů se nezměnilo,
 stále si nejlépe vedlo \ref{str:cbs}.
@@ -63,12 +63,12 @@ Diagonální vrcholy size umožňují více možných pozic pro agenty,
 avšak tyto vrcholy jsou blízko svým sousedům, což způsobuje větší vzájemné překážení jednotlivých agentů.
 
 Obecně bych řekl, že zde algoritmy více profitovaly z méně omezenéných parametrů,
-až na \ref{str:a_star_arsg} a \nameref{subsubsec:a_star_aoid}.
+až na \ref{str:varsg} a \nameref{subsubsec:a_star_aoid}.
 
 \input{experimenty/all_small_table_octa}
 
 Jelikož tato křižovatka obsahuje téměř dvakrát více vrcholů, než oktagonální, $48$ oproti $28$, čekal jsem,
-že běhové časy algoritmů budou značně horší než na oktagonální křižovatce.
+že běhové časy algoritmů budou značně horší než na~oktagonální křižovatce.
 Avšak první pohled na tabulku \ref{tab:all_exp_mala_hexagonalni}, kde jsou zapsaná výsledky, napovídá opaku.
 
 Jediný algoritmus, který nedoběhl, je opět \nameref{subsec:cbsoid}.
@@ -83,12 +83,12 @@ Jak jsem popsal u v kapitole s výsledky pro \ref{str:sat} (Kapitola \ref{subsub
 \ref{str:sat} algoritmy mají menší plánovací čas s více zaplněnou křižovatkou.
 Avšak nemyslím si, že je toto hlavní důvod zrychlení, jelikož i když je zaplněnost křižovatky vyšší,
 celkový počet vrcholů je značně vyšší, čili průměrný počet volných vrcholů se zvýšil.
-Osobně si myslím, že je rozdíl v časech způsobený nižším nastavením parametru \ref{par:ars_mpc}
+Osobně si myslím, že je rozdíl v časech způsobený nižším nastavením parametru \ref{str:ars_mpc}
 u~\nameref{subsec:sat_rsg}, a nižším počtem přeplánovaných agentů u~\nameref{subsec:sat_ra}.
 
 Překvapivě na této křižovatce má nejméně zamítnutých agentů a nejmenší zpoždění zmiňovaný \nameref{subsec:sat_ra}.
 Mimo to je pořadí algoritmů z pohledu na počet zamítnutých agentů totožné s pořadím na čtvercové křižovatce.
-Druhý nejlepší je \ref{cbs}, následuje \ref{str:a_star_ars}, \nameref{subsec:sat_rsg}, \ref{str:a_star_arsg}
+Druhý nejlepší je \ref{str:cbs}, následuje \ref{str:a_star_ars}, \nameref{subsec:sat_rsg}, \ref{str:varsg}
 a \nameref{subsubsec:a_star_aoid}.
 Nejhorším úspěšně doběhnutým algoritmem je opět \nameref{sec:safe_lanes}.
 
@@ -112,10 +112,10 @@ Zde algoritmy \nameref{subsubsec:a_star_aoid} i \nameref{subsec:cbsoid} plánova
 \nameref{subsubsec:a_star_aoid} opět dosáhl největšího zaplnění křižovatky.
 Avšak tentokrát měl i nejnižší počet zamítnutých agentů.
 
-Proto mě překvapuje, že \ref{str:a_star_arsg} měl druhý nejvyšší počet zamítnutí hned po \nameref{sec:safe_lanes}.
+Proto mě překvapuje, že \ref{str:varsg} měl druhý nejvyšší počet zamítnutí hned po \nameref{sec:safe_lanes}.
 Nepočítám tedy \nameref{subsec:cbsoid}, který nespočítal skoro žádné kroky.
 
-Jediný důvod, proč toto nastalo, je podle mě vysoké množství spojování skupin u \ref{str:a_star_arsg},
+Jediný důvod, proč toto nastalo, je podle mě vysoké množství spojování skupin u \ref{str:varsg},
 které vede k dlouhé době plánování.
 To způsobí, že algoritmus přejde do zjednodušeného počítání, ve kterém zamítá agenty místo snahy o přeplánování.
 Ačkoliv \nameref{subsubsec:a_star_aoid} má mnohem vyšší dobu běhu, je možné, že se algoritmus \uv{zasekne}
@@ -130,16 +130,16 @@ Algoritmy, u~kterých nezvítězily nejméně omezené varianty, byly většinou
 
 Pro oktagonální křižovatku jsou výsledky v tabulce \ref{tab:all_exp_velka_oktagonalni_bez_vyjezdu}.
 Zde jediné algoritmy, které úspěšně dopočítaly všechny kroky, byly
-\nameref{sec:safe_lanes}, \ref{str:a_star_ars} a \ref{str:a_star_arsg}, proto se zaměřím převážně na ně.
+\nameref{sec:safe_lanes}, \ref{str:a_star_ars} a \ref{str:varsg}, proto se zaměřím převážně na ně.
 
 \ref{str:a_star_ars} zde dosáhl nejnižšího počtu zamítnutých agentů a zaplněnosti křižovatky.
 
-Jelikož \ref{str:a_star_arsg} měla průměrně méně agentů na křižovatce než \ref{str:a_star_ars}, myslím si,
-že \ref{str:a_star_arsg} často přešel do zjednodušeného režimu, čož asi způsobilo takové velké množství zamítnutí.
+Jelikož \ref{str:varsg} měla průměrně méně agentů na křižovatce než \ref{str:a_star_ars}, myslím si,
+že \ref{str:varsg} často přešel do zjednodušeného režimu, čož asi způsobilo takové velké množství zamítnutí.
 Díky tomu ale nejspíše dosáhl nejnižšího průměrného zpoždění agentů, jelikož křižovatka byla v průměru volnější.
 
 Překvapením jsou plánovací časy algoritmů.
-\ref{str:a_star_arsg} dosáhla výrazně rychlejšího plánování, než \ref{str:a_star_ars}.
+\ref{str:varsg} dosáhla výrazně rychlejšího plánování, než \ref{str:a_star_ars}.
 \ref{str:a_star_ars} měl méně omezené cesty agentů, což mohlo způsobit tento velký rozdíl.
 Množství možných cest pro agenta je díky tomu mnohem vyšší, což vede na mnohem více výpočtů,
 než algoritmus zamítne vjezd agentovi.
@@ -154,7 +154,7 @@ Tabulka neobsahuje moc zajímavých hodnot, jelikož jediné algoritmy, které �
 jsou \nameref{sec:safe_lanes} a \ref{str:a_star_ars}.
 \ref{str:a_star_ars} má vyšší výpočetní dobu, avšak mnohem nižší počet zamítnutí.
 
-Překvapilo mě jenom, že i když \ref{str:a_star_ars} mělo méně omezené agenty než na oktagonální křižovatce,
+Překvapilo mě jenom, že i když \ref{str:a_star_ars} mělo méně omezené agenty než na~oktagonální křižovatce,
 časy plánování zůstaly přibližně stejné.
 Na oktagonální křižovatce tento algoritmus zamítl přibližně $2,3\%$ agentů, avšak na hexagonální celých $13,56\%$.
 Avšak zaplnění křižovatky byl na oktagonální křižovatce $31.07\%$, zatímco na hexagonální $37.4\%$.
@@ -171,7 +171,7 @@ Podle mého je toto hlavní důvod, proč není výrazné zvýšení plánovací
 Na velkých křižovatkách s výjezdy zvládlo úspěšně spočítat nemalé množství kroků ještě méně algoritmů.
 Omezení z více výjezdů pouze na jeden zesložití hledání cesty, což povede k delším cestám.
 Čím déle jsou agenti na křižovatce, tím více překáží ostatním agentům.
-Toto by se obzvláště mělo projevit u \ref{str:rsg}, \ref{subsec:sat_ra} a \ref{str:oid} strategií,
+Toto by se obzvláště mělo projevit u \ref{str:rsg}, \ref{subsec:sat_ra} a \ref{str:suboid} strategií,
 protože musí nějakým způsobem hledat a řešit vzájemné kolize agentů.
 Oba tyto jevy by zde měly být těžší už jen kvůli delším cestám.
 
@@ -181,7 +181,7 @@ Avšak ani tak nezvládl tento algoritmus naplánovat příliš mnoho kroků.
 
 \ref{str:cbs} zde dosáhl nejmenšího počtu zamítnutí a druhého nejmenšího průměrného zpoždění.
 \ref{str:a_star_ars} bylo mírně horší s ohledem na zamítnuté agenty, ale zato měl mnohem menší plánovací čas.
-\ref{str:a_star_arsg} byl také poměrně rychlý, avšak zamítl mnohem více agentů.
+\ref{str:varsg} byl také poměrně rychlý, avšak zamítl mnohem více agentů.
 
 Pokud porovnám výsledky s běhy na~čtvercové křižovatce bez výjezdů,
 všechny algoritmy si zhoršily počet zamítnutých agentů i průměrné zpoždění.
@@ -195,20 +195,20 @@ Pokud algoritmus doběhl, dosáhl nejlepších výsledků s nejméně omezenými
 \input{experimenty/all_big_table_exits_square}
 
 Na oktagonální křižovatce doběhly pro všechny kroky pouze
-\nameref{sec:safe_lanes}, \ref{str:a_star_ars} a \ref{str:a_star_arsg}.
+\nameref{sec:safe_lanes}, \ref{str:a_star_ars} a \ref{str:varsg}.
 
 Nejméně zamítnutí a nejmenší zpoždění měl \ref{str:a_star_ars}.
-Myslím si, že i zde nastal dříve popsaný problém u \ref{str:a_star_arsg} s tvorbou velkých skupin.
+Myslím si, že i zde nastal dříve popsaný problém u \ref{str:varsg} s tvorbou velkých skupin.
 
 Oproti běhům, kde agenti neměli specifikovaný výjezd,
 se u všech úspěšných algoritmů opět zvýšil počet zamítnutých agentů a průměrné zpoždění.
 Zároveň u \nameref{sec:a_star} variant se zvýšil průměrný počet agentů na křižovatce.
 U \nameref{sec:safe_lanes} a \ref{str:a_star_ars} plánovací časy značně klesly,
-avšak u \ref{str:a_star_arsg} výrazně stouply.
+avšak u \ref{str:varsg} výrazně stouply.
 
 To napovídá možnosti, že \ref{str:a_star_ars} pro agenty existuje mnohem méně možných cest.
 Avšak jelikož je celkový počet zamítnutých agentů vyšší, domnívám se,
-že\ref{str:a_star_arsg} shlukuje častěji agenty do skupin, což vede k delšímu plánování.
+že\ref{str:varsg} shlukuje častěji agenty do skupin, což vede k delšímu plánování.
 
 Algoritmy zde opět měly nejlepší výsledky, pokud běžely s nejmenším omezením.
 
@@ -217,7 +217,7 @@ Algoritmy zde opět měly nejlepší výsledky, pokud běžely s nejmenším ome
 V tabulce \ref{tab:all_exp_velka_hexagonalni_s_vyjezdy} jsou vidět výsledky pro hexagonální křižovatku.
 Zde úspěšně spočetly všechny kroky pouze \nameref{sec:safe_lanes} a \ref{str:a_star_ars}.
 
-Zde opět \ref{str:a_star_ars} nejlépě běžel s nejmenším omezením.
+Zde opět \ref{str:a_star_ars} nejlépe běžel s nejmenším omezením.
 Oproti variantě bez výjezdů měl algoritmus vyšší zaplněnost křižovatky, průměrné zpoždění agentů i plánovací čas.
 Avšak počet zamítnutých agentů se mírně snížil.
 
@@ -227,7 +227,7 @@ Na hexagonální křižovatce nemohou jezdit agenti rovně do protějšího výj
 Pokud specifikujeme výjezd, nejspíše to má minimální vliv na chování agenta.
 
 Tomu napovídá i změna v průměrném zpoždění a obsazenosti křižovatky.
-Na této křižovatce je tato změna mnohem menší než na čtvercové a oktagonální.
+Na této křižovatce je tato změna mnohem menší než na~čtvercové a oktagonální.
 
 \nameref{sec:safe_lanes} se chová pořád stejně, plánovací čas se snížil a
 počet zamítnutých agentů i průměrné zpoždění se zvýšilo.

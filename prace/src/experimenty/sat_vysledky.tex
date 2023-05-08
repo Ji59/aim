@@ -1,8 +1,8 @@
 \subsection{\ref{str:sat} porovnání parametrů}\label{subsec:sat_porovnani_parametru}
 
-U~\ref{str:sat} algoritmů jsem zkoušel stejné nastavení parametrů až na maximální počet prodlevu cesty (\ref{par:ars_mpc}),
-jelikož musí být vždy nastaven na některou hodnotu.
-Zjistil jsem, že složitost hledání roste velmi rychle se zvyšující \ref{par:ars_mpc},
+U~\ref{str:sat} algoritmů jsem zkoušel stejné nastavení parametrů až na maximální počet prodlevu cesty (\ref{str:ars_mpc}),
+jelikož musí být vždy nastaven na konečnou hodnotu.
+Zjistil jsem, že složitost hledání roste velmi rychle se zvyšující \ref{str:ars_mpc},
 proto jsem nastavil tento parametr maximálně na $24$.
 I přes to měl algoritmus problémy.
 
@@ -28,8 +28,8 @@ Opět si ale čtvercová křižovatka vedla mnohem lépe než hexagonální.
 \subsubsection{\nameref{subsec:sat_ra} na \hyperref[par:data_mala]{malé} křižovatce}
 \label{subsubsec:exp_sata_mala_krizovatka}
 
-\ref{subsec:cbsoid} algoritmus ukazuje extrémní nárůst složitosti se zvyšujícím počtem plánovaných agentů.
-Proto jsem značně snížil i \ref{par:ars_mpc}.
+\nameref{subsec:cbsoid} algoritmus ukazuje extrémní nárůst složitosti se zvyšujícím počtem plánovaných agentů.
+Proto jsem značně snížil i \ref{str:ars_mpc}.
 
 Výsledky jsou zapsané v tabulce \ref{tab:sata_exp_mala}.
 Nejpřekvapivější jsou výsledky pro oktagonální křižovatku.
@@ -55,7 +55,7 @@ obzvláště časy plánování, mají vysoký rozptyl.
 
 První graf (Obrázek \ref{fig:cas_vs_agenti_satrsg}) ukazuje data pro oktagonální typ s použitím \nameref{subsec:sat_rsg}.
 
-Tento běh měl povolené zastavování, \ref{par:ars_mnv} nastavený na $2$ a \ref{par:ars_mpc} na $24$.
+Tento běh měl povolené zastavování, \ref{str:ars_mnv} nastavený na $2$ a \ref{str:ars_mpc} na $24$.
 Zvolil jsem tuto variantu, protože měla nejdelší průměrný plánovací čas.
 Ale i přes to zde není výrazně vidět nepřímá úměra mezi časem a počtem agentů.
 
@@ -72,7 +72,7 @@ při vytváření výrokových proměnných, čímž se zvyšuje čas přípravy
 
 Vytvořil jsem graf i pro \nameref{subsec:sat_ra} (Obrázek \ref{fig:cas_vs_agenti_satra}).
 Tento běh byl taktéž z oktagonální křižovatky, kde algoritmus měl povolené zastavování,
-\ref{par:ars_mnv} nastavené na $1$, \ref{par:ars_mpc} na $10$ a maximální počet plánovaných agentů byl $8$.
+\ref{str:ars_mnv} nastavené na $1$, \ref{str:ars_mpc} na $10$ a maximální počet plánovaných agentů byl $8$.
 
 Dle mého názoru má zde mnohem větší vliv na plánování hledání modelu řešičem,
 a proto je zde mnohem jasnější závislost mezi počtem agentů na křižovatce a časy plánování.

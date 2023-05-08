@@ -1,6 +1,7 @@
 \section{SAT planner}\label{sec:sat_planner}
 
-%Definice SAT a MAXSAT, popis řešiče.
+%Definice SAT a 
+ef{str:maxsat}, popis řešiče.
 %Rozdíl mezi optimálním ohodnocením a splňujícím ohodnocením.
 %
 %Popis převodu problému na SAT.
@@ -22,17 +23,19 @@ Například formule v \ref{str:sat_cnf} pro proměnné $p_1, \dots, p_{10}$ mů�
 	\bigwedge_{i=1}^{7}(p_i \vee p_{i+1} \vee p_{i + 3}).
 \]
 
-MAXSAT je rozšíření \ref{str:sat}.
+\ref{str:maxsat}\labeltext{MAX-SAT}{str:maxsat} je rozšíření \ref{str:sat}.
 Klauzule jsou rozdělené na dvě skupiny,
 \ref{str:sat_hard}\labeltext{\emph{hard}}{str:sat_hard} a \ref{str:sat_soft}\labeltext{\emph{soft}}{str:sat_soft}.
 Aby bylo ohodnocení splňující, musí být splněny všechny \ref{str:sat_hard} klauzule.
 Úkolem řešiče je nalézt splňující ohodnocení, které maximalizuje počet splněných \ref{str:sat_soft} klauzulí.
 Tento problém je očividně těžší, jelikož nestačí najít libovolné řešení, ale to nejlepší.
 
-Vážený MAXSAT přidává navíc možnost přiřadit \ref{str:sat_soft} klauzulím váhy.
+Vážený 
+ef{str:maxsat} přidává navíc možnost přiřadit \ref{str:sat_soft} klauzulím váhy.
 Řešič se nesnaží maximalizovat počet splněných klauzulí, ale součet jejich vah.
 
-Pokud chceme naplánovat agenty pomocí váženého MAXSAT, stačí převést plánování do \ref{str:sat_cnf}.
+Pokud chceme naplánovat agenty pomocí váženého 
+ef{str:maxsat}, stačí převést plánování do \ref{str:sat_cnf}.
 Převedení \ref{str:mapf} problému na \ref{str:sat_cnf} bylo mnohokrát popsáno \citep{bartak}.
 Z tohoto postupu budu vycházet.
 
@@ -45,7 +48,7 @@ Poté popíšu tvorbu klauzulí.
 
 Vytvořím si výrokové proměnné pro každého agenta, pro každý krok a pro každý vrchol grafu.
 Pokud se agent $a$ vyskytuje v čase $t$ na vrcholu $v$, je výroková proměnná $p_{t,a,v}$ pravdivá, jinak je nepravdivá.
-Avšak abych nedostal nekonečnou \ref{str:sat_cnf}, určím si maximální dobu cesty \ref{par:sat_mpk}.
+Avšak abych nedostal nekonečnou \ref{str:sat_cnf}, určím si maximální dobu cesty \ref{str:sat_mpk}.
 Čas v~proměnné je počet kroků od~plánovaného kroku a má hodnotu ${0, \dots, mpk}$
 Počet výrokových proměnných je celkem $(mpk + 1) * |A| * |V|$, kde $A$ je množina agentů a $V$ množina vrcholů.
 
@@ -162,15 +165,15 @@ klauzuli $p_{0, a, a_e}$ s vahou alespoň $(mpk + 2) * (|A| - 1)$, kde $a_e$ je 
 
 Aby byl algoritmus porovnatelný s ostatními algoritmy, přidal jsem podobné parametry použité v předešlých algoritmech.
 
-\paragraph{Maximální počet kroků (\ref{par:sat_mpk})}\labeltext{MPK}{par:sat_mpk}
+\paragraph{Maximální počet kroků (\ref{str:sat_mpk})}\labeltext{MPK}{str:sat_mpk}
 udává maximální délku plánu pro všechny agenty.
 
-\paragraph{Maximum návštěv vrcholu (\ref{par:ars_mnv})} má stejný význam jako
-parametr \ref{par:ars_mnv} u \hyperref[subsubsec:ars_parametry]{parametrů \ref{str:a_star_ars}}.
+\paragraph{Maximum návštěv vrcholu (\ref{str:ars_mnv})} má stejný význam jako
+parametr \ref{str:ars_mnv} u \hyperref[subsubsec:ars_parametry]{parametrů \ref{str:a_star_ars}}.
 Hodnota udává maximální počet výskytů jednoho vrcholu na cestě.
 Vzorcem $(\forall a \in A)(\forall v \in V)(\sum_{t=0}^{mpk} p_{t, a, v} \leq 1)$.
 
-\paragraph{Povolené zastavování (\ref{par:ars_pz})}\label{par:sat_povolene_zastavovani} je taktéž vzatý
+\paragraph{Povolené zastavování (\ref{str:ars_pz})}\label{par:sat_povolene_zastavovani} je taktéž vzatý
 z \hyperref[subsubsec:ars_parametry]{parametrů \ref{str:a_star_ars}}.
 Pokud je tento parametr nastaven, agent může stát na~místě.
 Znamená to přidání vrcholu do množiny sousedů daného vrcholu.
