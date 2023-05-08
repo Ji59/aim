@@ -9,7 +9,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class SATSingle extends SATSingleGrouped {
-
+	/**
+	 * Parameters names and default values
+	 */
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SATSingleGrouped.PARAMETERS);
 
 	public SATSingle(@NotNull SimulationGraph graph) {

@@ -9,10 +9,7 @@ import cz.cuni.mff.kotal.backend.algorithm.sat.SATAll;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATRoundabout;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingle;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingleGrouped;
-import cz.cuni.mff.kotal.backend.algorithm.simple.BidirectionalRoundabout;
-import cz.cuni.mff.kotal.backend.algorithm.simple.Roundabout;
 import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLanes;
-import cz.cuni.mff.kotal.backend.algorithm.simple.Semaphore;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MenuLabel;
 import cz.cuni.mff.kotal.frontend.menu.tabs.my_nodes.MyComboBox;
 import javafx.geometry.Pos;
@@ -229,7 +226,7 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		 * All algorithms to be shown in combo box.
 		 */
 		public enum Algorithm {
-			SAFE_LINES("Safe lines", "Every agent follows its line, but checks for collisions.", SafeLanes.class),
+			SAFE_LANES("Safe lanes", "Every agent follows its line, but checks for collisions.", SafeLanes.class),
 			BFS("Breadth First Search", "Finds the shortest path for every agent.", BreadthFirstSearch.class),
 //			LINES("Follow lines", "Every agent follows line from start to end.", Lanes.class),
 //			SEMAPHORE("Semaphore", "Standard semaphore with direction limit.", Semaphore.class),

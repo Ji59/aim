@@ -10,6 +10,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public interface AlgorithmAll {
+	/**
+	 * Parameters names and default values
+	 */
 	String MAXIMUM_PLANNED_AGENTS_NAME = "Maximum planned agents";
 	int MAXIMUM_PLANNED_AGENTS_DEF = Integer.MAX_VALUE;
 	String REPLAN_STEPS_NAME = "Replan last steps";

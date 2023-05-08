@@ -13,7 +13,9 @@ import org.sat4j.specs.ContradictionException;
 import java.util.*;
 
 public class SATAll extends SATSingleGrouped {
-
+	/**
+	 * Parameters names and default values
+	 */
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SATSingleGrouped.PARAMETERS);
 
 	static {

@@ -13,8 +13,10 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.*;
 
 public class CBSAll extends CBSSingleGrouped {
+	/**
+	 * Parameters names and default values
+	 */
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(CBSSingleGrouped.PARAMETERS);
-
 
 	static {
 		PARAMETERS.putAll(AlgorithmAll.PARAMETERS);

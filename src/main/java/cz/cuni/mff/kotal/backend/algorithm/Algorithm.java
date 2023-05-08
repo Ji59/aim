@@ -10,9 +10,23 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+/**
+ * Interface with all basic methods.
+ * Some methods are predefined for easier usage.
+ *
+ * <p>Every algorithm should have public static map {@link #PARAMETERS},
+ * which contains for each parameter name and default value.</p>
+ *
+ * <p>{@link #planAgent(Agent, int, Set, long)} is only planning method that needs implementation.
+ * It should try to find path for agent with desired properties.
+ * {@link #planAgents} methods call by default {@link #planAgent(Agent, int, Set, long)} for each agent individually.
+ * Those algorithms should return only successfully planned agents.
+ * </p>
+ */
 public interface Algorithm {
-
+	/**
+	 * Parameters names and default values
+	 */
 	Map<String, Object> PARAMETERS = Collections.emptyMap();  // floating point parameters in form of parameter name, default value
 
 	/**
@@ -28,11 +42,10 @@ public interface Algorithm {
 	}
 
 	/**
-	 * TODO
 	 * Try to plan all provided agents using an algorithm.
-	 * By default, plan agents in sequential order by calling planAgent().
+	 * By default, plan agents in sequential order by calling {@link #planAgent} method.
 	 *
-	 * @param agentsEntriesExits Set of agents to be planned TODO
+	 * @param agentsEntriesExits Map of agents to be planned with their entries and exits
 	 * @param step               Number of step in which agents should be planned
 	 * @return Set of agents which had been successfully planned
 	 */
@@ -56,24 +69,42 @@ public interface Algorithm {
 	}
 
 	/**
-	 * Try to plan agent with an algorithm from specified vertex.
+	 * Try to plan agent with an algorithm from specified vertex to any exit.
 	 *
 	 * @param agent   Agent to be planned
-	 * @param entryID Starting vertex for algorithm
-	 * @param exitsID TODO
+	 * @param entryID ID of starting vertex for algorithm
+	 * @param exitsID Set of IDs of target vertices for algorithm
 	 * @param step    Number of step in which agents should be planned
 	 * @return Agent if planning was successful, otherwise null
 	 */
 	@Nullable Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsID, long step);
 
+	/**
+	 * Inform algorithm about new agent it should avoid while planning.
+	 * Agent should have a valid path.
+	 * <p>By default this method calls {@link #addPlannedPath(Agent, List, long)} with path and planned step taken from agent fields.</p>
+	 *
+	 * @param agent Agent to be avoided by future agents
+	 */
 	default void addPlannedAgent(Agent agent) {
+		addPlannedPath(agent, agent.getPath(), agent.getPlannedStep());
 	}
 
+	/**
+	 * Inform algorithm about new agent it should avoid while planning.
+	 * Similar to {@link #addPlannedAgent(Agent)}, but path details should be used from parameters instead of agent fields.
+	 * <p>By default this method is empty</p>
+	 *
+	 * @param agent Agent to be avoided by future agents
+	 * @param path  Path of the agent
+	 * @param step  Step in which the agent was planned
+	 */
 	default void addPlannedPath(Agent agent, List<Integer> path, long step) {
 	}
 
 	/**
-	 *
+	 * Tell the algorithm it should stop as soon as possible.
+	 * This call does not guarantee immediate termination or invalid path finding result for all agents.
 	 */
 	void stop();
 }

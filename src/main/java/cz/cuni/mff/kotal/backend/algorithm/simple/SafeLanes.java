@@ -26,6 +26,9 @@ import static cz.cuni.mff.kotal.helpers.MyNumberOperations.doubleAlmostEqual;
  * Agents are planned one ofter other until all are planned or rejected.
  */
 public class SafeLanes implements Algorithm {
+	/**
+	 * Parameters names and default values
+	 */
 	public static final @NotNull String SAFE_DISTANCE_NAME = "Safe distance";
 	public static final double SAFE_DISTANCE_DEF = 0.;
 	public static final @NotNull Map<String, Object> PARAMETERS = Map.of(SAFE_DISTANCE_NAME, SAFE_DISTANCE_DEF);
@@ -37,6 +40,12 @@ public class SafeLanes implements Algorithm {
 	protected final double largestAgentPerimeter = MyNumberOperations.perimeter(AgentParametersMenuTab4.getMaximalLength(), AgentParametersMenuTab4.getMaximalWidth());
 	protected boolean stopped = false;
 
+	/**
+	 * Create a new instance finding path in specified graph.
+	 * Also set internal parameters values.
+	 *
+	 * @param graph Graph on which are agents travelling
+	 */
 	public SafeLanes(@NotNull SimulationGraph graph) {
 		this.graph = graph;
 
@@ -53,6 +62,11 @@ public class SafeLanes implements Algorithm {
 		lanes = createLanes();
 	}
 
+	/**
+	 * Find the shortest paths for each pair of vertices (if any path exists).
+	 *
+	 * @return Array of maps containing for each vertex shortest path to all other vertices indexed by their ID
+	 */
 	public Map<Integer, List<Integer>>[] createLanes() {
 		final Map<Integer, List<Integer>>[] lanes = new Map[graph.getVertices().length];
 		Arrays.stream(graph.getVertices()).parallel().map(GraphicalVertex.class::cast)
@@ -61,6 +75,13 @@ public class SafeLanes implements Algorithm {
 		return lanes;
 	}
 
+	/**
+	 * Search all reachable vertices from specified vertex.
+	 * For each reachable vertex, find the shortest path to it from start and save it.
+	 *
+	 * @param startingVertex Vertex from which are paths found
+	 * @return Map from vertex ID to found the shortest path
+	 */
 	private @NotNull Map<Integer, List<Integer>> ucs(@NotNull GraphicalVertex startingVertex) {
 		@NotNull Map<Integer, List<Integer>> paths = new HashMap<>(graph.getVertices().length);
 
@@ -88,6 +109,13 @@ public class SafeLanes implements Algorithm {
 		return paths;
 	}
 
+	/**
+	 * Create a new instance finding path in specified graph.
+	 * Also set internal parameters values.
+	 *
+	 * @param graph        Graph on which are agents travelling
+	 * @param safeDistance Value of {@link #safeDistance} parameter
+	 */
 	@TestOnly
 	protected SafeLanes(@NotNull SimulationGraph graph, double safeDistance) {
 		this.graph = graph;
@@ -104,6 +132,15 @@ public class SafeLanes implements Algorithm {
 		lanes = createLanes();
 	}
 
+	/**
+	 * Try to plan agent in lane from specified vertex to the closest valid target.
+	 *
+	 * @param agent   Agent to be planned
+	 * @param entryID ID of starting vertex for algorithm
+	 * @param exitsID Set of IDs of target vertices for algorithm
+	 * @param step    Step in which agents should be planned
+	 * @return Agent if planning was successful, otherwise null
+	 */
 	@Override
 	public @Nullable Agent planAgent(@NotNull Agent agent, int entryID, @NotNull Set<Integer> exitsID, long step) {
 		if (exitsID.isEmpty()) {
@@ -130,18 +167,25 @@ public class SafeLanes implements Algorithm {
 		return agent;
 	}
 
+	/**
+	 * @param agent Agent, which targets are looked for
+	 * @return Set of agent's targets
+	 */
 	public Set<Integer> getExits(@NotNull Agent agent) {
 		return agent.getExit() < 0 ? directionExits.get(agent.getExitDirection()) : Collections.singleton(agent.getExit());
 	}
 
+	/**
+	 * Inform algorithm about new agent it should avoid while planning.
+	 * Agent should have a valid path.
+	 *
+	 * @param agent Agent to be avoided by future agents
+	 */
 	@Override
 	public void addPlannedAgent(@NotNull Agent agent) {
 		List<Integer> path = agent.getPath();
-		for (int i = 0; i < path.size(); i++) {
-			long step = agent.getPlannedStep() + i;
-			stepOccupiedVertices.putIfAbsent(step, new HashMap<>());
-			stepOccupiedVertices.get(step).put(path.get(i), agent);
-		}
+		long step = agent.getPlannedStep();
+		addPlannedPath(agent, path, step);
 
 		if (graph instanceof LinkGraph linkGraph) {
 			path = linkGraph.getRealPath(path);
@@ -149,6 +193,13 @@ public class SafeLanes implements Algorithm {
 		}
 	}
 
+	/**
+	 * Inform algorithm about new agent it should avoid while planning.
+	 *
+	 * @param agent Agent to be avoided by future agents
+	 * @param path  Path of the agent
+	 * @param step  Step in which the agent was planned
+	 */
 	@Override
 	public void addPlannedPath(@NotNull Agent agent, @NotNull List<Integer> path, long step) {
 		for (int i = 0; i < path.size(); i++) {
@@ -157,11 +208,23 @@ public class SafeLanes implements Algorithm {
 		}
 	}
 
+	/**
+	 * Tell the algorithm it should stop as soon as possible.
+	 * This call does not guarantee immediate termination or invalid path finding result for all agents.
+	 */
 	@Override
 	public void stop() {
 		stopped = true;
 	}
 
+	/**
+	 * Check if a path is valid.
+	 *
+	 * @param step           Starting step of the traver
+	 * @param path           Path containing IDs of vertices
+	 * @param agentPerimeter Perimeter of planned agent
+	 * @return True if the path is valid for agent, otherwise false
+	 */
 	public boolean validPath(long step, @NotNull List<Integer> path, double agentPerimeter) {
 		if (stopped) {
 			return false;
@@ -182,6 +245,15 @@ public class SafeLanes implements Algorithm {
 		return true;
 	}
 
+	/**
+	 * Check if agent can transfer between specified vertices without getting too near any other planned agent.
+	 *
+	 * @param step           Step of start of the transfer
+	 * @param vertexID       ID of starting vertex
+	 * @param nextVertexID   ID of vertex where agent should end up
+	 * @param agentPerimeter Perimeter of the transferring agent
+	 * @return True if the transfer is valid for agent, otherwise false
+	 */
 	public boolean safeStepTo(long step, int vertexID, int nextVertexID, double agentPerimeter) {
 		if (!(stepOccupiedVertices.containsKey(step) && stepOccupiedVertices.containsKey(step + 1)) ||
 			stepOccupiedVertices.get(step).isEmpty() || stepOccupiedVertices.get(step + 1).isEmpty()
@@ -230,6 +302,20 @@ public class SafeLanes implements Algorithm {
 		return true;
 	}
 
+	/**
+	 * Check if agent can transfer between specified vertices without getting too near any other agent.
+	 *
+	 * <p>Similar to {@link #safeStepTo(long, int, int, double)},
+	 * except custom map of planned agents is used instead of {@link #stepOccupiedVertices}.
+	 * </p>
+	 *
+	 * @param illegalMovesTable Map containing steps and for those steps IDs of vertices and agents being at those vertices at step
+	 * @param step              Step of start of the transfer
+	 * @param vertexID          ID of starting vertex
+	 * @param nextVertexID      ID of vertex where agent should end up
+	 * @param agentPerimeter    Perimeter of the transferring agent
+	 * @return True if transfer is valid for agent, otherwise false
+	 */
 	public boolean safeStepTo(@NotNull Map<Long, Map<Integer, Set<Agent>>> illegalMovesTable, long step, int vertexID, int nextVertexID, double agentPerimeter) {
 		if (!(illegalMovesTable.containsKey(step) && illegalMovesTable.containsKey(step + 1)) ||
 			illegalMovesTable.get(step).isEmpty() || illegalMovesTable.get(step + 1).isEmpty()
@@ -279,41 +365,22 @@ public class SafeLanes implements Algorithm {
 		return true;
 	}
 
-	@Deprecated
-	protected boolean noCollisionOnWay(int au, int av, int bu, int bv, double aPerimeter, double bPerimeter) {
-		@NotNull GraphicalVertex u = graph.getVertex(au);
-		@NotNull GraphicalVertex v = graph.getVertex(av);
-		@NotNull GraphicalVertex p = graph.getVertex(bu);
-		@NotNull GraphicalVertex q = graph.getVertex(bv);
-
-		double cx = q.getX() - v.getX();
-		double cy = q.getY() - v.getY();
-		double dx = u.getX() - p.getX() + cx;
-		double dy = u.getY() - p.getY() + cy;
-
-		double t = 0;
-		if (dx != 0 || dy != 0) {
-			t = (cx * dx + cy * dy) / (dx * dx + dy * dy);
-			t = Math.min(1, Math.max(0, t));
-		}
-
-
-		double closestX = t * dx - cx;
-		closestX *= closestX;
-
-		double closestY = t * dy - cy;
-		closestY *= closestY;
-
-		double perimeters = aPerimeter + bPerimeter + safeDistance;
-		double perimetersSquared = perimeters * perimeters;
-
-		return closestX + closestY > perimetersSquared;
-	}
-
+	/**
+	 * {@link #stepOccupiedVertices} is map containing for step map of vertices and agents.
+	 * If agent is in the map under a key {@code id} it means
+	 * the agent is at the step at vertex with that {@code id}.
+	 *
+	 * @return Map containing entries for steps and vertices with agents
+	 */
 	public @NotNull Map<Long, Map<Integer, Agent>> getStepOccupiedVertices() {
 		return stepOccupiedVertices;
 	}
 
+	/**
+	 * Remove all entries from {@link #stepOccupiedVertices} that are older than specified step.
+	 *
+	 * @param step Step to which entries should be removed
+	 */
 	protected void filterStepOccupiedVertices(long step) {
 		@NotNull Iterator<Map.Entry<Long, Map<Integer, Agent>>> it = stepOccupiedVertices.entrySet().iterator();
 		while (it.hasNext()) {
@@ -327,6 +394,13 @@ public class SafeLanes implements Algorithm {
 		stepOccupiedVertices.computeIfAbsent(step, k -> new HashMap<>());
 	}
 
+	/**
+	 * Check if any agent in first collection is in collision with any agent from second collection.
+	 *
+	 * @param agents0 Collection of agents
+	 * @param agents1 Second collection of agents
+	 * @return True if any two agents from different collections end up in collision, otherwise false
+	 */
 	public boolean inCollision(@NotNull Collection<Agent> agents0, @NotNull Collection<Agent> agents1) {
 		for (@NotNull Agent agent0 : agents0) {
 			for (@NotNull Agent agent1 : agents1) {
@@ -339,6 +413,13 @@ public class SafeLanes implements Algorithm {
 		return false;
 	}
 
+	/**
+	 * Check if agents are in collision.
+	 *
+	 * @param agent0 First agent
+	 * @param agent1 Second agent
+	 * @return True if agents end uo in collision, otherwise false
+	 */
 	public @NotNull Optional<Pair<Long, Boolean>> inCollision(@NotNull Agent agent0, @NotNull Agent agent1) {
 		final long agent0PlannedTime = agent0.getPlannedStep();
 		final long agent1PlannedTime = agent1.getPlannedStep();
@@ -360,6 +441,17 @@ public class SafeLanes implements Algorithm {
 		return collisionPath(startStep, itP1, itP0, agent0Perimeter + agent1Perimeter + safeDistance);
 	}
 
+	/**
+	 * Check if two paths lead to agents getting closer then {@code safePerimeter}.
+	 * Paths should have same starting step.
+	 * Agents perimeters should be included in {@code safePerimeter}.
+	 *
+	 * @param step          Step common to start of both paths
+	 * @param itP1          Iterator over IDs of vertices in first path
+	 * @param itP0          Iterator over IDs of vertices in second path
+	 * @param safePerimeter Closest allowed distance between agents
+	 * @return True if agents get too near each other, otherwise false
+	 */
 	private @NotNull Optional<Pair<Long, Boolean>> collisionPath(long step, @NotNull ListIterator<Integer> itP1, @NotNull ListIterator<Integer> itP0, double safePerimeter) {
 		assert itP0.hasNext() && itP1.hasNext();
 		int vertexP0 = itP0.next();
@@ -387,10 +479,23 @@ public class SafeLanes implements Algorithm {
 		return Optional.empty();
 	}
 
+	/**
+	 * Find out the distance between two vertices specified by their IDs.
+	 *
+	 * @param u First vertex ID
+	 * @param v Second vertex ID
+	 * @return Distance between {@code u} and {@code v}
+	 */
 	protected double verticesDistance(int u, int v) {
 		return graph.getTravelDistances()[u].get(u)[v].get(v);
 	}
 
+	/**
+	 * Check if there is at least one pair of agents that are in collision.
+	 *
+	 * @param agents Collection of agents to check
+	 * @return True if any two agents are in collision, otherwise false
+	 */
 	public boolean inCollision(final @NotNull Collection<Agent> agents) {
 		Agent[] visitedAgents = new Agent[agents.size()];
 		int i = 0;
@@ -409,6 +514,13 @@ public class SafeLanes implements Algorithm {
 		return false;
 	}
 
+	/**
+	 * Find all vertices too close to specified vertex.
+	 *
+	 * @param vertexID Vertex, around which to look around
+	 * @param distance Distance how far to look
+	 * @return Array of IDs of vertices that are too close
+	 */
 	protected int @NotNull [] conflictVertices(int vertexID, double distance) {
 		return graph.getSortedVertexVerticesDistances()[vertexID].stream()
 			.takeWhile(v -> v.distance() <= distance)
@@ -416,6 +528,13 @@ public class SafeLanes implements Algorithm {
 			.toArray();
 	}
 
+	/**
+	 * Find all vertices too close to specified vertex.
+	 *
+	 * @param vertexID Vertex, around which to look around
+	 * @param distance Distance how far to look
+	 * @return Set of IDs of vertices that are too close
+	 */
 	protected @NotNull Set<Integer> conflictVerticesSet(int vertexID, double distance) {
 		return graph.getSortedVertexVerticesDistances()[vertexID].stream()
 			.takeWhile(v -> v.distance() <= distance)

@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 import static cz.cuni.mff.kotal.helpers.MyNumberOperations.*;
 
 public class AStarRoundabout extends AStarSingle {
+	/**
+	 * Parameters names and default values
+	 */
 	protected static final String LANES_NAME = "Lanes";
 	protected static final Integer LANES_DEF = 2;
 

@@ -14,7 +14,14 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 
+
+/**
+ * Implementation of A* algorithm planning each agent alone
+ */
 public class AStarSingle extends SafeLanes {
+	/**
+	 * Parameters names and default values
+	 */
 	public static final String MAXIMUM_VERTEX_VISITS_NAME = "Maximum vertex visits";
 	public static final int MAXIMUM_VERTEX_VISITS_DEF = 2;
 	public static final String ALLOW_AGENT_STOP_NAME = "Allow agent stop";
@@ -39,6 +46,10 @@ public class AStarSingle extends SafeLanes {
 	protected final int maximumPathDelay;
 	protected final boolean allowAgentReturn;
 
+	/**
+	 * Create new A* planner and load parameter values.
+	 * @param graph Graph in which paths are searched
+	 */
 	public AStarSingle(@NotNull SimulationGraph graph) {
 		super(graph);
 
@@ -48,6 +59,17 @@ public class AStarSingle extends SafeLanes {
 		allowAgentReturn = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_RETURN_NAME, ALLOW_AGENT_RETURN_DEF);
 	}
 
+	/**
+	 *
+	 * Create new A* planner with specific parameters.
+	 * @param graph Graph in which paths are searched
+	 *
+	 * @param safeDistance value for safe distance parameter
+	 * @param maximumVertexVisits value for maximum vertex visits parameter
+	 * @param allowAgentStop true if agents are allowed to stop on vertices
+	 * @param maximumPathDelay value for maximum path delay parameter
+	 * @param allowAgentReturn true if agents are allowed to return to last visited vertex
+	 */
 	@TestOnly
 	protected AStarSingle(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
 		super(graph, safeDistance);
@@ -57,6 +79,13 @@ public class AStarSingle extends SafeLanes {
 		this.allowAgentReturn = allowAgentReturn;
 	}
 
+	/**
+	 * Try to plan agent.
+	 *
+	 * @param agent Agent to be planned
+	 * @param step  Number of step in which agents should be planned
+	 * @return Agent if planning was successful, otherwise null
+	 */
 	@Override
 	public @Nullable Agent planAgent(@NotNull Agent agent, long step) {
 		return planAgent(agent, agent.getEntry(), getExitIDs(agent), step);

@@ -18,6 +18,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CBSSingleGrouped extends AStarSingle {
+	/**
+	 * Parameters names and default values
+	 */
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingle.PARAMETERS);
 
 	public static final String SIMPLE_STRATEGY_NAME = "Simple strategy after (ms)";

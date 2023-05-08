@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
  * A* algorithm with online independence detection.
  */
 public class AStarAll extends AStarSingleGrouped {
+	/**
+	 * Parameters names and default values
+	 */
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingleGrouped.PARAMETERS);
 
 	static {

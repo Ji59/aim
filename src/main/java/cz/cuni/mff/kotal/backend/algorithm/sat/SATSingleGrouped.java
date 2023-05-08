@@ -26,6 +26,9 @@ import static cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2.getBooleanP
 import static cz.cuni.mff.kotal.frontend.menu.tabs.AlgorithmMenuTab2.getIntegerParameter;
 
 public class SATSingleGrouped extends SafeLanes {
+	/**
+	 * Parameters names and default values
+	 */
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SafeLanes.PARAMETERS);
 	protected static final String MAXIMUM_STEPS_NAME = "Maximum simulation steps";
 	protected static final int MAXIMUM_STEPS_DEF = 64;

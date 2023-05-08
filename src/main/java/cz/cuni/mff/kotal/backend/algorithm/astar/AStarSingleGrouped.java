@@ -21,7 +21,9 @@ import static cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped.SIMPLE_ST
 import static cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped.SIMPLE_STRATEGY_NAME;
 
 public class AStarSingleGrouped extends AStarSingle {
-
+	/**
+	 * Parameters names and default values
+	 */
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(AStarSingle.PARAMETERS);
 
 	static {

@@ -14,6 +14,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class SATRoundabout extends SATSingleGrouped {
+	/**
+	 * Parameters names and default values
+	 */
 	protected static final String LANES_NAME = "Lanes";
 	protected static final Integer LANES_DEF = 2;
 	public static final Map<String, Object> PARAMETERS = new LinkedHashMap<>(SATSingleGrouped.PARAMETERS);
