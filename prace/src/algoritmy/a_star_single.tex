@@ -56,7 +56,7 @@ Proto jsou validní hodnoty kladná celá čísla.
 Nejreálnější hodnota parametru by byla $1$, není pro~auto moc přirozené jezdit ve~smyčkách.
 Avšak vyšší hodnoty mohou vést k~obecně lepšímu řešení.
 Na obrázku (Obrázek \ref{fig:ars_mnv_example}) je vyobrazen příklad takové situace.
-Agent $a$ cestuje z $A$ do $B$, agent $b$ cestuje z $B$ do $C$.
+Agent $a$ cestuje z $A$ do $B$, agent $b$ cestuje z $C$ do $D$.
 Pokud by agenti mohli navštívit každý vrchol nejvýše jednou, neexistují nekolizní trasy pro~oba agenty najednou.
 Avšak pokud povolíme alespoň dvě návštěvy vrcholu, existuje pro~agenta $a$ trasa $A, 1, 2, 1, 2, 3, 4, B$
 a pro~agenta $b$ cesta $C, 4, 3, 2, 5, D$.
@@ -72,7 +72,7 @@ a pro~agenta $b$ cesta $C, 4, 3, 2, 5, D$.
 určuje, zda-li může agent stát na~místě.
 Formálněji pokud dovolím zastavování, vrchol se stane sám sobě sousedem a může se vyskytovat vícekrát na~cestě za~sebou.
 Jednotlivé stání na~místě se pořád započítávají jako jednotlivé návštěvy,
-tudíž maximální doma stání musí být menší než~hodnota \ref{str:ars_mnv}.
+tudíž maximální doba stání musí být menší než~hodnota \ref{str:ars_mnv}.
 
 \paragraph{Maximální prodleva při~cestě (\ref{str:ars_mpc})}\labeltext{MPC}{str:ars_mpc}
 omezuje počet kroků strávených agentem na~křižovatce.

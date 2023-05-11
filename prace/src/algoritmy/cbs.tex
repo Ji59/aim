@@ -20,8 +20,9 @@ Výpočet postupně vytváří strom,
 kde každý vrchol obsahuje cesty agentů (mohou být navzájem kolizní) a tabulku zakázaných pozic.
 Algoritmus skončí v~prvním nalezeném vrcholu neobsahujícím kolizní trasy.
 
-Mohlo by se stát, že plánování jednoho agenta selže.
-V~tom případě je agent zcela odstraněn z~vrcholu.
+Již cestující agenti mohou omezovat trasy natolik, že pro agenta neexistuje žádná nekolizní cesta skrze křižovatku.
+Dále se může stát, že agent nenajde žádnou nekolizní cestu, která by nevedla místo, které bylo dříve označené jako kolizní.
+V obou případech plánování tohoto agenta selže a agent zcela odstraněn z~vrcholu.
 Následně jsou nalezeni agenti, kteří byli v~historii přeplánováni kvůli odstraněnému agentovi.
 Pro~tyto agenty jsou nalezeny nové cesty, jelikož pro~ně může existovat lepší cesta.
 
@@ -32,8 +33,10 @@ Algoritmus naplánuje pouze agenty, kteří mají cesty ve~vybraném listu, vjez
 
 \ref{str:cbs} najde optimální cestu pro všechny agenty \citep{Sharon}.
 Avšak velikost stromu může být obrovská.
-Proto jsem se rozhodl obětovat optimalitu s zjednodušit práci algoritmu.
-Ve zjednodušeným režimu algoritmus přeplánuje takovým způsobem, aby neměl žádné kolize s ostatními plánovanými agenty.
+Proto jsem se rozhodl obětovat optimalitu a zjednodušit práci algoritmu, pokud plánování trvá příliš dlouhou dobu.
+Ve zjednodušeném režimu algoritmus přeplánuje takovým způsobem, aby neměl žádné kolize s ostatními plánovanými agenty.
+To znamená, že v tomto režimu plánuje algoritmus agenty stejně jako \ref{str:a_star_ars}.
+
 
 \subsubsection{Parametry}\label{subsubsec:cbs_parametry}
 

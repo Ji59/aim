@@ -28,8 +28,8 @@ Oproti předchozímu případu se se snižujícím omezením výrazně snižuje 
 ale i průměrné zpoždění a čas plánování.
 Dle mého názoru to je způsobeno vysokým počtem možností, kde se cesty agentů můžou křížit.
 Pokud tedy některý agent nelze naplánovat, algoritmus musí vyzkoušet všechny možnosti
-a pokaždé tvořit dva podpřípady, kopírovat do každého tabulky kolizí, \dots,
-a nakonec zatřídit nové vrcholy do prioritní fronty.
+a pokaždé tvořit dva podpřípady, ve kterých kopíruje tabulky kolizí a další objekty,
+a nakonec musí zatřídit nové vrcholy do prioritní fronty.
 Jelikož poslední varianta umožňuje nejvíce tras pro agenta, z počtu zamítnutých agentů usuzuji,
 že v každém kroku dokáže úspěšně naplánovat více agentů, a proto je také nejrychlejší.
 

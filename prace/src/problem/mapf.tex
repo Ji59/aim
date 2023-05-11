@@ -57,18 +57,18 @@ Toto pořadí zaručuje optimální řešení \citep{Sharon}.
 Algoritmus byl nadále rozšířen a vylepšen \citep{Boyarski}.
 Bližší popis algoritmu je v~sekci \nameref{subsec:conflict_based_search}
 
-\emph{MAPF} problém je možné převést na~známý \emph{SAT} problém.  % TODO ref to SAT definition
+\emph{MAPF} problém je možné převést na~známý \emph{\ref{str:sat}} problém.
 Nejprve se vytvoří výrokové proměnné pro~každého agenta, každý vrchol a každý čas.
 Agent musí splňovat určité podmínky, například agent se nachází v~čase příjezdu na~vrcholu vjezdu
 nebo agent může být v~jeden čas maximálně na~jednom vrcholu.
 Následně přidáme podmínky zaručující nekolizní cesty pro~agenty.
 Tento způsob řešení je spíše vhodný pro~optimalizování \ref{str:makespan} funkce,
-avšak je možné vytvořit varianty cílené na~\ref{str:soc} pomocí rozšíření na~\emph{MAXSAT} \citep{bartak}.
+avšak je možné vytvořit varianty cílené na~\ref{str:soc} pomocí rozšíření na~\emph{\ref{str:maxsat}} \citep{bartak}.
 Blíže je toto řešení popsáno v~sekci \nameref{sec:sat_planner}.
 
 Existují i~jiná řešení \ref{str:mapf}, například za~použití zpětnovazebního učení \citep*{Zhiyao}.
 Pro~svou práci jsem se rozhodl věnovat se pouze základním metodám
-\nameref{sec:a_star}, \nameref{subsec:conflict_based_search} a \emph{SAT}. % TODO ref to SAT
+\nameref{sec:a_star}, \nameref{subsec:conflict_based_search} a \emph{\ref{str:sat}}.
 
 \subsubsection{Online~MAPF}\label{subsubsec:online_mapf}
 
@@ -89,7 +89,7 @@ Tento plán budu značit $\pi^0$.
 Pokaždé, když se objeví noví agenti, vytvoří se nový plán $\pi^j$.
 Celkový plán je tedy $\Pi = (\pi^0, \pi^1, \dots, \pi^m)$, kde $m$ je počet unikátních kroků ($t_1, t_2, \dots, t_m$), kdy se objevili agenti.
 Označím si $\pi^j[x:y]$ část plánu $\pi^j$ v~krocích $x, x + 1, \dots, y - 1, y$.
-Celkový plán, který budou agenti vykonávat je tedy $Ex[\Pi] = \pi^0[0:t_1] \circ \pi^1[t_1 + 1:t_2] \circ \dots \circ \pi^m[t_m + 1:\infty]$.
+Celkový plán, který budou agenti vykonávat, je tedy $Ex[\Pi] = \pi^0[0:t_1] \circ \pi^1[t_1 + 1:t_2] \circ \dots \circ \pi^m[t_m + 1:\infty]$.
 
 \citet{Svancara} zmínili situace s~\emph{online~MAPF}, které je nutné ošetřit.
 První problémová situace nastane, pokud agenti zůstanou na~svém místě po~doražení do~cíle.

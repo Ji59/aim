@@ -1,7 +1,6 @@
 \section{SAT planner}\label{sec:sat_planner}
 
-%Definice SAT a 
-ef{str:maxsat}, popis řešiče.
+%Definice SAT a MAX-SAT, popis řešiče.
 %Rozdíl mezi optimálním ohodnocením a splňujícím ohodnocením.
 %
 %Popis převodu problému na SAT.
@@ -10,11 +9,12 @@ ef{str:maxsat}, popis řešiče.
 %Pseudokód.
 
 SAT je známý a prozkoumaný problém, na který existují vysoce optimalizované řešiče.
-Proto není úplně zcestné pokusit se problém křižovatky převést na SAT problém.
+Proto není divu, že už byly pokusy převést \ref{str:mapf} na \ref{str:sat} problém.
+Já se taktéž pokusím převést problém křižovatky na \ref{str:sat}.
 
-SAT\labeltext{SAT}{str:sat} se zabývá problémem určení,
+\ref{str:sat}\labeltext{SAT}{str:sat} se zabývá problémem určení,
 zda-li existuje splňující ohodnocení výrokových proměnných logické formule.
-Vstupní hodnotou je tedy výroková formule a výstupem ohodnocení proměnných takové,
+Vstupem je tedy výroková formule a ohodnocení proměnných takové,
 že daná formule je splněná, popřípadě oznámení o nesplnitelnosti formule.
 Zadaná formule většinou bývá v konjunktivní normální formě (\ref{str:sat_cnf})\labeltext{CNF}{str:sat_cnf}, což je konjunkce klauzulí.
 Klauzule jsou disjunkce literálů a literál je výroková proměnná, nebo její negace.
@@ -30,12 +30,10 @@ Aby bylo ohodnocení splňující, musí být splněny všechny \ref{str:sat_har
 Úkolem řešiče je nalézt splňující ohodnocení, které maximalizuje počet splněných \ref{str:sat_soft} klauzulí.
 Tento problém je očividně těžší, jelikož nestačí najít libovolné řešení, ale to nejlepší.
 
-Vážený 
-ef{str:maxsat} přidává navíc možnost přiřadit \ref{str:sat_soft} klauzulím váhy.
+Vážený \ref{str:maxsat} přidává navíc možnost přiřadit \ref{str:sat_soft} klauzulím váhy.
 Řešič se nesnaží maximalizovat počet splněných klauzulí, ale součet jejich vah.
 
-Pokud chceme naplánovat agenty pomocí váženého 
-ef{str:maxsat}, stačí převést plánování do \ref{str:sat_cnf}.
+Pokud chceme naplánovat agenty pomocí váženého\ref{str:maxsat}, stačí převést plánování do \ref{str:sat_cnf}.
 Převedení \ref{str:mapf} problému na \ref{str:sat_cnf} bylo mnohokrát popsáno \citep{bartak}.
 Z tohoto postupu budu vycházet.
 
@@ -61,14 +59,20 @@ Převod těchto výrazů do validní \ref{str:sat_cnf} je triviální.
 Pokud formule obsahuje některou funkci, je možné funkci vyhodnotit předem a daný výraz přidat, pokud to má smysl.
 
 Agent přijede na vrchol \hyperref[par:vjezdy]{vjezdu} v kroku příjezdu, pokud bude úspěšně naplánován.
-Zároveň musí být v jednom z časů ~cíli, aby byla cesta kompletní.
+Zároveň musí být v jednom z časů v~cíli, aby byla cesta kompletní.
 Z toho vyplývá první podmínka pro každého agenta, která značí, že daný agent není v počáteční čas na vjezdu,
 nebo je v jenom jeden čas na právě jednom výjezdu.
 Matematicky:
 \[
-	(\forall_{a \in A}) \left(\neg p_{0,a,a_e} + \sum_{t=1}^{mpk} \sum_{f \in a_f} p_{t, a, f} = 1\right),
+	(\forall_{a \in A}) \left(\left(1 - p_{0,a,a_e}\right) + \sum_{t=1}^{mpk} \sum_{f \in a_f} p_{t, a, f} = 1\right),
 \]
 kde $a_e$ je vrchol vjezdu agenta $a$ a $a_f$ jeho výjezdy.
+Hodnota proměnné je $1$, pokud je splněná, a $0$, pokud splněná není.
+
+Podmínka může vypadat na první pohled zvláštně, jelikož dovoluji, aby agent nebyl na~začátku plánování na~vjezdu.
+Avšak pokud bych tuto proměnnou nepřidal a agent by nemohl dorazit do cíle, tato formule by byla nesplnitelná.
+Pokud je tedy výsledné ohodnocení proměnné $p_{0,a,a_e} false$, vjezd agenta je v~aktuálním kroku zamítnut.
+
 
 Agent se nemůže nacházet na více vrcholech najednou.
 Jinými slovy může být pro jednoho agenta a jeden čas maximálně jedna proměnná pravdivá:
@@ -92,7 +96,7 @@ Pokud mezi nimi cesta neexistuje, je hodnota $\infty$.
 Agent nemůže být v čase $t$ na vrcholu vzdáleném více než $t$, jelikož se tam nemá jak dostat.
 Stejně tak nemůže být v čase $t$ na vrcholu, který má vzdálenost k nejbližšímu cíli větší než $mpk - t$,
 protože potom neexistuje způsob, jak se dostat do cíle včas.
-Odtud plynou podmínka
+Odtud plyne podmínka
 \begin{gather*}
 (\forall a \in A)(\forall t \in {0, \dots, mpk})(\forall v \in V)
 	\\
@@ -104,7 +108,8 @@ K tomu opět využiji funkci na kontrolu kolizí.
 Projdu všechny vrcholy a pro každého agenta zjistím,
 na kterých vrcholech se nesmí nacházet pomocí funkce \ref{alg:kol_prejezd_mnozina}:
 \begin{gather*}
-	(\forall a \in A)(\forall t \in {0, \dots, mpk - 1})(\forall u \in V)(\forall v \in N(u)) \\
+(\forall a \in A)(\forall t \in {0, \dots, mpk - 1})(\forall u \in V)
+	(\forall v \in N(u)) \\
 	(\neg \ref{alg:kol_prejezd_mnozina}(a_p + t, u, v, a_d, T) \rightarrow \neg p_{t, a, u}),
 \end{gather*}
 kde $a_p$ je krok příjezdu agenta, $a_d$ je jeho \hyperref[par:polomer_agenta]{poloměr}
@@ -112,12 +117,12 @@ a $T$ je \nameref{par:obsazene_pozice}.
 
 Poslední nutná podmínka je zamezení kolizím mezi plánovanými agenty.
 Je nutné projít všechny dvojice agentů a poté všechny kombinace vrcholů a jejich sousedů.
-Pokud se vrcholy nacházejí moc blízko, nemůžou se agenti vyskytovat na patřičných vrcholech v jeden čas.
+Pokud by se agenti nacházeli příliš blízko při přejezdu mezi vrcholy, zakážu agentům vyskytovat na patřičných vrcholech v jeden čas.
 Pro zjištění vzdáleností mohu využít tabulky \ref{str:kol_vzdalenosti} a \ref{str:kol_serazene_vzdalenosti}.
 Tabulka \ref{str:kol_vzdalenosti} má uložené pro každé možné dva přejezdy nejbližší vzdálenosti mezi trasami
 (\ref{subsec:kontrola_prejezdu_jeden_agent}).
 Tabulka \ref{str:kol_serazene_vzdalenosti} má uložené pro každé dva sousední vrcholy $u$ a $v$
-seřazené dvojice vrchol, vzdálenosti podle nejmenší vzdálenosti (\ref{subsec:kontrola_prejezdu_mnozina_agentu}).
+dvojice vrchol, vzdálenost seřazené podle nejmenší vzdálenosti (\ref{subsec:kontrola_prejezdu_mnozina_agentu}).
 Pseudokód zachycující tvorbu této podmínky:
 
 % @formatter:off
@@ -146,7 +151,7 @@ add_agents_clauses(A)
 % @formatter:on
 
 V kódu výše používám funkci $add\_hard\_clause(not\_near(t, a, u, v, b, p, q))$,
-která přidá do SAT řešiče hard podmínku $(p_{t,b,p} \wedge \_{t+1,b,q}) \rightarrow (\neg p_{t,a,u \vee p_{t+1,a,v}})$.
+která přidá do SAT řešiče hard podmínku $(p_{t,b,p} \wedge p_{t+1,b,q}) \rightarrow (\neg p_{t,a,u} \vee p_{t+1,a,v})$.
 Tato podmínka znamená, že pokud cestuje agent $b$ v čase $t$ z $p$ do $q$,
 potom nesmí agent $a$ cestovat ve stejný čas z $u$ do $v$.
 
@@ -170,8 +175,8 @@ udává maximální délku plánu pro všechny agenty.
 
 \paragraph{Maximum návštěv vrcholu (\ref{str:ars_mnv})} má stejný význam jako
 parametr \ref{str:ars_mnv} u \hyperref[subsubsec:ars_parametry]{parametrů \ref{str:a_star_ars}}.
-Hodnota udává maximální počet výskytů jednoho vrcholu na cestě.
-Vzorcem $(\forall a \in A)(\forall v \in V)(\sum_{t=0}^{mpk} p_{t, a, v} \leq 1)$.
+Hodnota udává maximální počet výskytů jednoho vrcholu na~cestě.
+Vzorcem $(\forall a \in A)(\forall v \in V)\left(\sum_{t=0}^{mpk} p_{t, a, v} \leq mnv\right)$.
 
 \paragraph{Povolené zastavování (\ref{str:ars_pz})}\label{par:sat_povolene_zastavovani} je taktéž vzatý
 z \hyperref[subsubsec:ars_parametry]{parametrů \ref{str:a_star_ars}}.
@@ -194,7 +199,6 @@ Jinak se projdou všechny ostatní proměnné, a vyberou se pravdivé.
 Z těch se podle $t$ sestaví cesta do prvního cíle.
 Mohlo by se stát, že některé proměnné jsou nastaveny na $true$ i po čase příjezdu do cíle.
 Tyto proměnné algoritmus ignoruje.
-
 
 \subsection{SAT-RA}\label{subsec:sat_ra}
 

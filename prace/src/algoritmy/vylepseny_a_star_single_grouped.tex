@@ -23,7 +23,7 @@ Při všech přeplánování se vždy kontrolují kolize s~agenty naplánovaným
 Při~přeplánování by mohlo dojít k~zacyklení.
 Například mám $3$ skupiny $g_1, g_2, g_3$, a $g_1$ je v kolizi s~$g_2$.
 Povede se mi přeplánovat skupinu $g_1$,avšak nyní je $g_1$ v~kolizi s~$g_3$.
-Po~opětovném přeplánování $g_1$ může oět dojít ke~kolizi s~$g_2$.
+Po~opětovném přeplánování $g_1$ může opět dojít ke~kolizi s~$g_2$.
 Proto je nutné udržovat si historii skupin, se kterými byla aktuálně plánovaná skupina v~kolizi.
 Při~hledání nových tras se agenti vyhýbají nejen druhé skupině, ale i~všem předešlým skupinám.
 

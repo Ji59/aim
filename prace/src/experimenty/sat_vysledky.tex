@@ -7,7 +7,7 @@ proto jsem nastavil tento parametr maximálně na $24$.
 I přes to měl algoritmus problémy.
 
 S žádným nastavením mi algoritmy nedoběhly na velké křižovatce, pokud nepočítám neoptimalizovanou variantu.
-Neoptimalizované běhy měli mnohem nižší čas plánování, avšak algoritmus mnoho agentů zamítal jen proto, že \ref{str:sat}
+Neoptimalizované běhy měly mnohem nižší čas plánování, avšak algoritmus mnoho agentů zamítal jen proto, že \ref{str:sat}
 řešič vrátil model, který vjezd odmítl, i když by pro něj validní cesta existovala.
 Proto jsem se rozhodl tento parametr nenastavovat, všechny zobrazené běhy jsou vyřešené \textrm{MAX-SAT}em.
 
@@ -50,7 +50,7 @@ Tím pádem má řešič snadnější hledání nejlepších cest, jelikož má 
 
 Abych tuto teorii více prozkoumal, vytvořil jsem dva grafy.
 Oba grafy ukazují časy plánování a počet agentů na křižovatce pro jednotlivé kroky.
-Data jsou zprůměrovaná přes určité sousední kroky, jelikož mají jednotlivé hodnoty,
+Data jsou zprůměrovaná přes určité sousední kroky, jelikož jednotlivé hodnoty,
 obzvláště časy plánování, mají vysoký rozptyl.
 
 První graf (Obrázek \ref{fig:cas_vs_agenti_satrsg}) ukazuje data pro oktagonální typ s použitím \nameref{subsec:sat_rsg}.

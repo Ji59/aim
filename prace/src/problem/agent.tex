@@ -5,16 +5,17 @@
 
 
 \nameref{sec:agent} je zjednodušení chytrého auta pro snadnější použití v~algoritmech.
-Tvar \hyperref[sec:agent]{agenta} je zjednodušený na~obdélník, který má určitou délku, šířku a naklonění v~rovině.
+Tvar \hyperref[sec:agent]{agenta} je zjednodušený na~obdélník, který má určitou délku, šířku a natočení v~rovině.
 Tento obdélník reprezentuje pohled na~auto shora.
 Šířka a délka \hyperref[sec:agent]{agenta} je určená vůči \hyperref[par:velikost_bloku]{velikosti bloku} dané křižovatky.
 
 Pokud se nějaké dva obdélníky protnou, nastane srážka příslušných dvou \hyperref[sec:agent]{agentů}.
 \hyperref[sec:agent]{Agenti} nemají žádný způsob jak informovat křižovatku o~srážce.
-Z~toho důvodu po~kolizi sražení \hyperref[sec:agent]{agenti} zmizí a žádní jiní \hyperref[sec:agent]{agenti} s~nimi nemohou kolidovat.
+Z~toho důvodu po~kolizi sražení \hyperref[sec:agent]{agenti} zmizí
+a žádní jiní \hyperref[sec:agent]{agenti} s~nimi nemohou kolidovat.
 
 Jelikož se \hyperref[sec:agent]{agent} pohybuje po~hranách grafu křižovatky, je jeho cesta složená z~úseček.
-Proto jsem umožnil \hyperref[sec:agent]{agentovy} otáčet se na~místě a otáčení probíhá okamžitě po~příjezdu do~vrcholu.
+Proto jsem umožnil \hyperref[sec:agent]{agentovi} otáčet se na~místě a otáčení probíhá okamžitě po~příjezdu do~vrcholu.
 \hyperref[sec:agent]{Agent} tedy pořád cestuje a otáčí se vždy ve~směru jízdy.
 Tato vlastnost by neměla mít na~pohyb auta velký vliv, pokud je auto dostatečně malé
 oproti vzdálenostem vrcholů grafu křižovatky (\hyperref[par:velikost_bloku]{velikosti bloku}).

@@ -4,7 +4,10 @@
 
 \subsection{Délka simulace}\label{subsec:delka_simulace}
 
-Simulace bude přidávat agenty po $32768$ kroků.
+Simulace bude přidávat agenty prvních $2^{15} = 32768$ kroků.
+Chtěl jsem vysoký počet kroků, aby se ve většině případů nacházelo
+velké množství agentů na křižovatce a plánování nebylo triviální.
+Zároveň jsem ale chtěl, aby testy doběhly v rozumném čase.
 Pokud bude plánování trvat příliš dlouhou dobu, bude simulace předčasně ukončena.
 Maximální dobu běhu simulace jsem omezil na 2 hodiny.
 

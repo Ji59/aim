@@ -24,7 +24,7 @@ V~těchto případech by se cesta mohla skládat pouze z~jednoho vrcholu a neobs
 
 Kontrola zjišťuje bezpečnost přejezdu oproti určité množině agentů $B$.
 Tato množina může být například množina již naplánovaných agentů, nebo množina agentů plánovaných ve~stejném kroku.
-Přejezd je vyhodnocen jako nekolizní, pokud se by se agent $a$ během cesty nesrazil s~žádným agentem z~množiny $B$.
+Přejezd je vyhodnocen jako nekolizní, pokud se agent $a$ během cesty nesrazí s~žádným agentem z~množiny $B$.
 Avšak kontrola již nekontroluje kolize mezi agenty množiny $B$.
 
 Agenti nejsou body pohybující se po~přímkách jako v~obecném \ref{str:mapf} problému,
@@ -58,7 +58,7 @@ Vrchol, ze kterého agent $a$ cestuje si označím jako $u$ a cílový vrchol ja
 Podobně si označím přejezd agenta $b$ jako cestu z $p$ do $q$.
 Agenti se mezi vrcholy pohybují v čase $t \in [0, 1]$ konstantní rychlostí.
 Pozice agenta $a$ je v čase $t$ rovna $a_x = (1-t)u_x + tv_x$, $a_y = (1-t)u_y + tv_y$.
-Podobně je pozice agenta $b$ rovna $(1-t)\mathbf{u} + t\mathbf{v}$.
+Podobně je pozice agenta $b$ rovna $(1-t)\mathbf{p} + t\mathbf{q}$.
 Vzdálenost agentů v čase $t$ budu značit $dist_t$.
 
 Pokud se agenti přiblíží v nějaký čas blíže než je součet jejich \hyperref[par:polomer_agenta]{poloměrů}
@@ -192,7 +192,7 @@ Platí tedy
 	d = \min_{q \in N(p)}\ref{str:kol_vzdalenosti}[u][v][p][q])
 \end{gather*}
 
-Pro~jednoduché vyhledávání, zda-li je některý agent z~$B$ na~určitém vrcholu budu vyžadovat,
+Pro~jednoduché vyhledávání, zda-li je některý agent z~$B$ na~určitém vrcholu, budu vyžadovat,
 aby $B$ měla stejnou strukturu jako \nameref{par:obsazene_pozice}.
 Avšak poté je nutné ještě uvést krok přejezdu $s$.
 
