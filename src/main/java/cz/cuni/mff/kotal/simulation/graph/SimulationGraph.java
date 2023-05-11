@@ -151,23 +151,6 @@ public abstract class SimulationGraph extends Graph {
 		return new ArrayList<>();
 	}
 
-	@Deprecated
-	private void dfs(@NotNull Map<Integer, VertexWithDirectionParent> vertices, @NotNull VertexWithDirectionParent vertex) {
-		for (Integer neighbourID : vertex.getVertex().getNeighbourIDs()) {
-			GraphicalVertex neighbourVertex;
-			neighbourVertex = (GraphicalVertex) this.vertices[neighbourID];
-			if (vertices.containsKey(neighbourID)) {
-				double distance = VertexWithDirectionParent.getDistance(vertex, neighbourVertex);
-				if (distance >= vertices.get(neighbourID).getDistance()) {
-					continue;
-				}
-			}
-			@NotNull VertexWithDirectionParent neighbourVertexWithDirection = new VertexWithDirectionParent(vertex, neighbourVertex, getCellSize());
-			vertices.put(neighbourID, neighbourVertexWithDirection);
-			dfs(vertices, neighbourVertexWithDirection);
-		}
-	}
-
 	/**
 	 *
 	 */

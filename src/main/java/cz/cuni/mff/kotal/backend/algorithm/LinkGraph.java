@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// TODO move class
 public class LinkGraph extends SimulationGraph {
 	private static SimulationGraph baseGraph;
 	private final Map<Integer, Integer> vertexMapping = new HashMap<>();

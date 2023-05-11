@@ -1,12 +1,12 @@
 package cz.cuni.mff.kotal.frontend.menu.tabs;
 
 
-import cz.cuni.mff.kotal.backend.algorithm.*;
-import cz.cuni.mff.kotal.backend.algorithm.astar.*;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarAll;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingle;
+import cz.cuni.mff.kotal.backend.algorithm.astar.AStarSingleGrouped;
 import cz.cuni.mff.kotal.backend.algorithm.cbs.CBSAll;
 import cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATAll;
-import cz.cuni.mff.kotal.backend.algorithm.sat.SATRoundabout;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingle;
 import cz.cuni.mff.kotal.backend.algorithm.sat.SATSingleGrouped;
 import cz.cuni.mff.kotal.backend.algorithm.simple.SafeLanes;
@@ -29,8 +29,6 @@ import java.util.Map;
  * Tab in menu window for algorithm.
  */
 public class AlgorithmMenuTab2 extends MyTabTemplate {
-
-	// TODO don't use static, use Component
 	private static final MyComboBox ALGORITHM = new MyComboBox(Arrays.stream(Parameters.Algorithm.values()).map(Parameters.Algorithm::getName).toList());
 	private static final GridPane PARAMETERS = new GridPane();
 
@@ -63,6 +61,57 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 
 	}
 
+	/**
+	 * @return Selected algorithm
+	 */
+	public static Parameters.@Nullable Algorithm getAlgorithm() {
+		for (Parameters.@NotNull Algorithm algorithm : Parameters.Algorithm.values()) {
+			if (AlgorithmMenuTab2.ALGORITHM.getValue().equals(algorithm.name)) {
+				return algorithm;
+			}
+		}
+		return null;
+	}
+
+	public static double getDoubleParameter(@NotNull String parameterName, double defaultValue) {
+		return getParameter(parameterName, defaultValue, Double.class);
+	}
+
+	public static int getIntegerParameter(@NotNull String parameterName, int defaultValue) {
+		return getParameter(parameterName, defaultValue, Integer.class);
+	}
+
+	public static long getLongParameter(@NotNull String parameterName, long defaultValue) {
+		return getParameter(parameterName, defaultValue, Long.class);
+	}
+
+	public static boolean getBooleanParameter(@NotNull String parameterName, boolean defaultValue) {
+		return getParameter(parameterName, defaultValue, Boolean.class);
+	}
+
+	public static String getStringParameter(@NotNull String parameterName, String defaultValue) {
+		return getParameter(parameterName, defaultValue, String.class);
+	}
+
+	public static <T> @Nullable T getParameter(@NotNull String parameterName, T defaultValue, @NotNull Class<T> tClass) {
+		for (@NotNull Node child : PARAMETERS.getChildren()) {
+			if (parameterName.equals(child.getId())) {
+				try {
+					if (tClass == Boolean.class) {
+						return (T) Boolean.valueOf(((CheckBox) child).isSelected());
+					} else {
+						return tClass.getConstructor(String.class).newInstance(((TextField) child).getText());
+					}
+				} catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+					// TODO
+					((TextField) child).setText(String.valueOf(defaultValue));
+					return defaultValue;
+				}
+			}
+		}
+		return defaultValue;
+	}
+
 	private void setAlgorithmActions(@NotNull TextField description) {
 		ALGORITHM.valueProperty().addListener((observable, oldValue, newValue) -> {
 			Parameters.@Nullable Algorithm algorithm = Parameters.Algorithm.nameOf(newValue);
@@ -76,7 +125,6 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		try {
 			parameters = (Map<String, Object>) algorithm.getAlgorithmClass().getField("PARAMETERS").get(null);
 		} catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
-			// TODO
 			throw new RuntimeException(e);
 		}
 		PARAMETERS.getChildren().clear();
@@ -100,101 +148,6 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 			valueNode.setId(name);
 			PARAMETERS.addRow(i, nameLabel, valueNode);
 		}
-	}
-
-	/**
-	 * @return Selected algorithm
-	 */
-	public static Parameters.@Nullable Algorithm getAlgorithm() {
-		for (Parameters.@NotNull Algorithm algorithm : Parameters.Algorithm.values()) {
-			if (AlgorithmMenuTab2.ALGORITHM.getValue().equals(algorithm.name)) {
-				return algorithm;
-			}
-		}
-		// TODO throw exception
-		return null;
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param parameterName
-	 * @param defaultValue
-	 * @return
-	 */
-	public static double getDoubleParameter(@NotNull String parameterName, double defaultValue) {
-		return getParameter(parameterName, defaultValue, Double.class);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param parameterName
-	 * @param defaultValue
-	 * @return
-	 */
-	public static int getIntegerParameter(@NotNull String parameterName, int defaultValue) {
-		return getParameter(parameterName, defaultValue, Integer.class);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param parameterName
-	 * @param defaultValue
-	 * @return
-	 */
-	public static long getLongParameter(@NotNull String parameterName, long defaultValue) {
-		return getParameter(parameterName, defaultValue, Long.class);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param parameterName
-	 * @param defaultValue
-	 * @return
-	 */
-	public static boolean getBooleanParameter(@NotNull String parameterName, boolean defaultValue) {
-		return getParameter(parameterName, defaultValue, Boolean.class);
-	}
-
-	/**
-	 * TODO
-	 *
-	 * @param parameterName
-	 * @param defaultValue
-	 * @return
-	 */
-	public static String getStringParameter(@NotNull String parameterName, String defaultValue) {
-		return getParameter(parameterName, defaultValue, String.class);
-	}
-
-
-	/**
-	 * TODO
-	 *
-	 * @param parameterName
-	 * @param defaultValue
-	 * @return
-	 */
-	public static <T> @Nullable T getParameter(@NotNull String parameterName, T defaultValue, @NotNull Class<T> tClass) {
-		for (@NotNull Node child : PARAMETERS.getChildren()) {
-			if (parameterName.equals(child.getId())) {
-				try {
-					if (tClass == Boolean.class) {
-						return (T) Boolean.valueOf(((CheckBox) child).isSelected());
-					} else {
-						return tClass.getConstructor(String.class).newInstance(((TextField) child).getText());
-					}
-				} catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-					// TODO
-					((TextField) child).setText(String.valueOf(defaultValue));
-					return defaultValue;
-				}
-			}
-		}
-		return defaultValue;
 	}
 
 	/**
@@ -227,22 +180,14 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 		 */
 		public enum Algorithm {
 			SAFE_LANES("Safe lanes", "Every agent follows its line, but checks for collisions.", SafeLanes.class),
-			BFS("Breadth First Search", "Finds the shortest path for every agent.", BreadthFirstSearch.class),
-//			LINES("Follow lines", "Every agent follows line from start to end.", Lanes.class),
-//			SEMAPHORE("Semaphore", "Standard semaphore with direction limit.", Semaphore.class),
-//			ROUNDABOUT("Roundabout", "Standard one way one lane roundabout.", Roundabout.class),
-//			BI_ROUNDABOUT("Bidirectional Roundabout", "One lane roundabout where agents can travel both directions.", BidirectionalRoundabout.class),
 			A_STAR("A* single", "This algorithm computes A star algorithm for each agent in non-collision way.", AStarSingle.class),
-			A_STAR_SINGLE_GROUPED("A*", "TODO", AStarSingleGrouped.class),
-			A_STAR_ALL("A* all", "TODO", AStarAll.class),
-			A_STAR_ROUNDABOUT("A* single roundabout", "Roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarRoundabout.class),
-			A_STAR_BI_ROUNDABOUT("A* single bidirectional roundabout", "Bidirectional roundabout supporting multiple lanes. Path is found using A* algorithm.", AStarBidirectionalRoundabout.class),
-			CBS_SINGLE_GROUPED("CBS single grouped", "TODO", CBSSingleGrouped.class),
-			CBS_ALL("CBS all", "TODO", CBSAll.class),
-			SAT_REPLAN_SINGLE_GROUPED("SAT planner", "Planning with SAT solver.", SATSingleGrouped.class),
-			SAT_REPLAN_SINGLE("SAT planner single", "Planning with SAT solver.", SATSingle.class),
-			SAT_REPLAN_ALL("SAT planner all", "Planning with SAT solver.", SATAll.class),
-			SAT_ROUNDABOUT("SAT roundabout", "TODO", SATRoundabout.class),
+			A_STAR_SINGLE_GROUPED("A*", "This algorithm extends simple A* to replan single grouped strategy with independence detection improvement.", AStarSingleGrouped.class),
+			A_STAR_ALL("A* all", "This algorithm extends simple A* to SubOID strategy with independence detection improvement.", AStarAll.class),
+			CBS_SINGLE_GROUPED("CBS single grouped", "Conflict-Based Search extends A* replan single strategy to single grouped strategy.", CBSSingleGrouped.class),
+			CBS_ALL("CBS all", "Conflict-Based Search extends A* replan single strategy to SubOID strategy.", CBSAll.class),
+			SAT_REPLAN_SINGLE_GROUPED("SAT planner", "Planning with SAT solver with replan single grouped strategy.", SATSingleGrouped.class),
+			SAT_REPLAN_SINGLE("SAT planner single", "Planning with SAT solver with replan single strategy.", SATSingle.class),
+			SAT_REPLAN_ALL("SAT planner all", "Planning with SAT solver with replan all strategy.", SATAll.class),
 			;
 
 			private final String name;
@@ -254,18 +199,6 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 				this.name = name;
 				this.description = description;
 				this.algorithmClass = algorithmClass;
-			}
-
-			public String getName() {
-				return name;
-			}
-
-			public String getDescription() {
-				return description;
-			}
-
-			public Class<? extends cz.cuni.mff.kotal.backend.algorithm.Algorithm> getAlgorithmClass() {
-				return algorithmClass;
 			}
 
 			public static @Nullable Algorithm nameOf(String name) {
@@ -284,6 +217,18 @@ public class AlgorithmMenuTab2 extends MyTabTemplate {
 					}
 				}
 				return null;
+			}
+
+			public String getName() {
+				return name;
+			}
+
+			public String getDescription() {
+				return description;
+			}
+
+			public Class<? extends cz.cuni.mff.kotal.backend.algorithm.Algorithm> getAlgorithmClass() {
+				return algorithmClass;
 			}
 		}
 	}

@@ -48,6 +48,7 @@ public class AStarSingle extends SafeLanes {
 
 	/**
 	 * Create new A* planner and load parameter values.
+	 *
 	 * @param graph Graph in which paths are searched
 	 */
 	public AStarSingle(@NotNull SimulationGraph graph) {
@@ -60,15 +61,14 @@ public class AStarSingle extends SafeLanes {
 	}
 
 	/**
-	 *
 	 * Create new A* planner with specific parameters.
-	 * @param graph Graph in which paths are searched
 	 *
-	 * @param safeDistance value for safe distance parameter
+	 * @param graph               Graph in which paths are searched
+	 * @param safeDistance        value for safe distance parameter
 	 * @param maximumVertexVisits value for maximum vertex visits parameter
-	 * @param allowAgentStop true if agents are allowed to stop on vertices
-	 * @param maximumPathDelay value for maximum path delay parameter
-	 * @param allowAgentReturn true if agents are allowed to return to last visited vertex
+	 * @param allowAgentStop      true if agents are allowed to stop on vertices
+	 * @param maximumPathDelay    value for maximum path delay parameter
+	 * @param allowAgentReturn    true if agents are allowed to return to last visited vertex
 	 */
 	@TestOnly
 	protected AStarSingle(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
@@ -106,6 +106,30 @@ public class AStarSingle extends SafeLanes {
 		return agent;
 	}
 
+	/**
+	 * Try to find a path for the agent starting at the specified step.
+	 *
+	 * @param agent    Agent to be planned
+	 * @param step     Step when planning started
+	 * @param entryID  ID of entry vertex
+	 * @param exitsIDs IDs of valid exits
+	 * @return Valid path if found, otherwise null
+	 */
+	@Nullable
+	protected List<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs) {
+		return getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
+	}
+
+	/**
+	 * Try to find a path for the agent starting at the specified step while avoiding prohibited transfers.
+	 *
+	 * @param agent       Agent to be planned
+	 * @param step        Step when planning started
+	 * @param entryID     ID of entry vertex
+	 * @param exitsIDs    IDs of valid exits
+	 * @param constraints Constraints on agent movement consisting of map between step and a pair of prohibited transfers
+	 * @return Valid path if found, otherwise null
+	 */
 	@Nullable
 	protected List<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		if ((constraints.containsKey(step) && constraints.get(step).stream().anyMatch(c -> c.getVal1() == entryID)) || (stepOccupiedVertices.containsKey(step) && stepOccupiedVertices.get(step).containsKey(entryID)) || stopped) {
@@ -124,15 +148,33 @@ public class AStarSingle extends SafeLanes {
 		return searchPath(agent, exitsIDs, heuristic, entryID, queue, lastStep, constraints);
 	}
 
+	/**
+	 * @return Step to which agent has to arrive at any exit
+	 */
 	protected long getLastStep(@NotNull Agent agent, @NotNull Set<Integer> exitsIDs, long step) {
 		return step + getMaximumTravelTime(agent, exitsIDs);
 	}
 
+	/**
+	 * @return Maximum number of steps in which the agent can achieve any exit computed from optimal travel
+	 */
 	protected int getMaximumTravelTime(@NotNull Agent agent, @NotNull Set<Integer> exitsIDs) {
 		final int entryID = agent.getEntry();
-		return exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)) + maximumPathDelay)).min().getAsInt();
+		return exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)))).min().getAsInt() + maximumPathDelay;
 	}
 
+	/**
+	 * Try to find the shortest path for agent to any exit according to heuristics.
+	 *
+	 * @param agent       Agent, for whom the path is planned
+	 * @param exitIDs     Ids of valid exits
+	 * @param heuristic   Estimate on distances to nearest exit
+	 * @param entryID     ID of entry vertex
+	 * @param queue       Priority Queue for states
+	 * @param lastStep    Last step when agent can reach exit
+	 * @param constraints Constraints on agent movement consisting of map between step and a pair of prohibited transfers
+	 * @return Valid path if found, otherwise null
+	 */
 	protected @Nullable List<Integer> searchPath(@NotNull Agent agent, @NotNull Set<Integer> exitIDs, @NotNull Map<Integer, Double> heuristic, int entryID, @NotNull PriorityQueue<State> queue, long lastStep, @NotNull Map<Long, Collection<Pair<Integer, Integer>>> constraints) {
 		double agentsPerimeter = agent.getAgentPerimeter();
 
@@ -153,7 +195,7 @@ public class AStarSingle extends SafeLanes {
 			}
 
 			if (state.getStep() < lastStep) {
-				addNeighbours(vertexID, entryID, exitIDs, state, queue, heuristic, agentsPerimeter, lastStep, visitedStates, constraints.get(state.getStep() + 1));
+				addNeighbours(entryID, exitIDs, state, queue, heuristic, agentsPerimeter, lastStep, visitedStates, constraints.get(state.getStep() + 1));
 			}
 		}
 		return null;
@@ -172,7 +214,21 @@ public class AStarSingle extends SafeLanes {
 		return new ArrayList<>(path);
 	}
 
-	protected void addNeighbours(int vertexID, int entryID, @NotNull Set<Integer> exitIDs, @NotNull State state, @NotNull PriorityQueue<State> queue, @NotNull Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @NotNull Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+	/**
+	 * Add all valid neighbour states to the queue.
+	 *
+	 * @param entryID        ID of entry vertex
+	 * @param exitIDs        IDs of exit vertices
+	 * @param state          Last state
+	 * @param queue          Queue of states
+	 * @param heuristic      Estimate to nearest exit
+	 * @param agentPerimeter Perimeter of the agent
+	 * @param lastStep       Maximum step of travel
+	 * @param visitedStates  Processed states
+	 * @param constraints    Constraints on agent movement
+	 */
+	protected void addNeighbours(int entryID, @NotNull Set<Integer> exitIDs, @NotNull State state, @NotNull PriorityQueue<State> queue, @NotNull Map<Integer, Double> heuristic, double agentPerimeter, long lastStep, @NotNull Set<State> visitedStates, @Nullable Collection<Pair<Integer, Integer>> constraints) {
+		final int vertexID = state.getID();
 		final long stateStep = state.getStep();
 		final long neighbourStep = stateStep + 1;
 		for (int neighbourID : state.getVertex().getNeighbourIDs()) {
@@ -198,10 +254,26 @@ public class AStarSingle extends SafeLanes {
 		}
 	}
 
+	/**
+	 * Check parent, constraints and number of vertex visits to determine, if vertex visit is valid.
+	 *
+	 * @param state       Last state
+	 * @param entryID     Ignored
+	 * @param vertexID    ID of the next vertex
+	 * @param constraints Collection of prohibited transfers in the same step
+	 * @return True if the vertex can be visited in next step
+	 */
 	protected boolean canVisitVertex(final @NotNull State state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		return validParent(state, vertexID) && safeConstraints(state, vertexID, constraints) && validVisitCount(state, vertexID, maximumVertexVisits);
 	}
 
+	/**
+	 * Check if parent vertex is not same when returning to last vertex is not allowed.
+	 *
+	 * @param state    Last state
+	 * @param vertexID ID of the next vertex
+	 * @return True if state or its parent contains different vertex, otherwise false
+	 */
 	protected boolean validParent(@NotNull VertexWithDirectionParent state, int vertexID) {
 		return (state.getParent() != null || vertexID != state.getID()) && // agent cannot stop at starting vertex
 			(
@@ -211,6 +283,14 @@ public class AStarSingle extends SafeLanes {
 			);
 	}
 
+	/**
+	 * Check if number of visits of vertex is within limit.
+	 *
+	 * @param state               Last state
+	 * @param vertexID            ID of the next vertex
+	 * @param maximumVertexVisits Maximum allowed number of vertex visits
+	 * @return False if vertex was visited too often, otherwise true
+	 */
 	protected boolean validVisitCount(@NotNull VertexWithDirectionParent state, int vertexID, int maximumVertexVisits) {
 		int visitCount = 0;
 		VertexWithDirectionParent parent = state;
@@ -227,6 +307,14 @@ public class AStarSingle extends SafeLanes {
 		return true;
 	}
 
+	/**
+	 * Check if the transfer between state and new vertex isn't contained in constraint.
+	 *
+	 * @param state       Last state
+	 * @param vertexID    New vertex ID
+	 * @param constraints Collection of prohibited transfers in the same step
+	 * @return True if transfer is not in constraints, otherwise false
+	 */
 	protected boolean safeConstraints(@NotNull VertexWithDirectionParent state, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		return constraints == null || constraints.stream()
 			.allMatch(c -> {
@@ -244,6 +332,9 @@ public class AStarSingle extends SafeLanes {
 		return exitIDs.stream().mapToDouble(exitID -> graph.getDistance(vertexID, exitID)).min().orElse(0);
 	}
 
+	/**
+	 * @return Set of vertex IDs that are valid exits for specified agent
+	 */
 	@NotNull
 	protected Set<Integer> getExitIDs(@NotNull Agent agent) {
 		if (agent.getExit() >= 0) {
@@ -253,37 +344,72 @@ public class AStarSingle extends SafeLanes {
 		}
 	}
 
-	@Nullable
-	protected List<Integer> getPath(@NotNull Agent agent, long step, int entryID, @NotNull Set<Integer> exitsIDs) {
-		return getPath(agent, step, entryID, exitsIDs, Collections.emptyMap());
-	}
-
+	/**
+	 * Class extending {@link VertexWithDirectionParent} containing also number of state step and remembering step of last stop along path to this state.
+	 */
 	protected class State extends VertexWithDirectionParent {
 		private final long step;
 		private final long lastStop;
 
+		/**
+		 * Create new object with specified values, zero distance and null parent.
+		 * Last stop is set to {@code Long.MAX_VALUE}.
+		 *
+		 * @param vertex   Vertex this object is linked to
+		 * @param estimate Estimate to goal
+		 * @param step     Step of the state
+		 */
 		public State(GraphicalVertex vertex, double estimate, long step) {
 			super(vertex, 0, estimate);
 			this.step = step;
 			this.lastStop = Long.MAX_VALUE;
 		}
 
+		/**
+		 * Create new object according to arguments.
+		 * Distance is taken from state adn then add 1.
+		 * Finally, compute step and last stop.
+		 * <p>
+		 * This constructor should be used when agent stays on one vertex.
+		 *
+		 * @param state Last Vertex with safe distance and direction
+		 */
 		public State(@NotNull State state) {
 			super(state, state.getVertex(), 1, state.getEstimate());
 			this.step = state.getStep() + 1;
 			this.lastStop = step;
 		}
 
-		public long getStep() {
-			return step;
-		}
-
+		/**
+		 * Create new object according to arguments.
+		 * Distance is taken from parent and then add distance between vertices from argument.
+		 * Then compute angle from previous vertex to actual and set parent to previous vertex.
+		 * Finally, compute step and last stop.
+		 *
+		 * @param previous Last state with safe distance and direction
+		 * @param actual   New vertex on path
+		 * @param distance Distance between those vertices
+		 * @param estimate Estimate to goal
+		 */
 		public State(@NotNull State previous, GraphicalVertex actual, double distance, double estimate) {
 			super(previous, actual, distance, estimate);
 			this.step = previous.getStep() + 1;
 			this.lastStop = previous.vertex.equals(actual) ? step : previous.lastStop;
 		}
 
+		public long getStep() {
+			return step;
+		}
+
+		/**
+		 * Compare this vertex with argument.
+		 * If the argument is not {@link State}, return false.
+		 * If the argument not equal according to {@link VertexWithDirectionParent}, also return false.
+		 * Else compare parents of the state.
+		 *
+		 * @param o the object to be compared
+		 * @return True if the object represents same state
+		 */
 		@Override
 		public boolean equals(Object o) {
 			if (this == o) return true;
@@ -316,8 +442,12 @@ public class AStarSingle extends SafeLanes {
 		}
 
 		/**
+		 * Compare vertices according to {@link VertexWithDirection}.
+		 * If the comparison is zero, compare step, when the path stopped last time.
+		 * This should cause to path to prefer stopping at latter moment.
+		 *
 		 * @param o the object to be compared.
-		 * @return
+		 * @return Same value as parent if the value is nonzero, otherwise comparison between last stop
 		 */
 		@Override
 		public int compareTo(@NotNull VertexWithDirection o) {

@@ -20,6 +20,10 @@ import java.util.stream.Collectors;
 import static cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped.SIMPLE_STRATEGY_DEF;
 import static cz.cuni.mff.kotal.backend.algorithm.cbs.CBSSingleGrouped.SIMPLE_STRATEGY_NAME;
 
+/**
+ * Implementation of A* algorithm planning group of agents at once.
+ * It uses independence detection improvement.
+ */
 public class AStarSingleGrouped extends AStarSingle {
 	/**
 	 * Parameters names and default values
@@ -44,6 +48,91 @@ public class AStarSingleGrouped extends AStarSingle {
 	protected AStarSingleGrouped(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, long simpleStrategyAfter) {
 		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
 		this.simpleStrategyAfter = simpleStrategyAfter;
+	}
+
+	@NotNull
+	protected static Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> findCollisionGroup(
+		@NotNull Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
+		@NotNull Map<Collection<Agent>, Collection<Collection<Agent>>> resolvedPairs, Set<Agent> group0Agents, @NotNull Set<Agent> conflictAgents,
+		@NotNull Map<Long, Map<Integer, Set<Agent>>> group0IllegalMovesTable, @NotNull Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable
+	) {
+		@Nullable Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet = null;
+
+		for (final @NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group : agentsGroups) {
+			final @NotNull Set<Agent> groupAgents = group.getVal0().keySet();
+			if (groupAgents.equals(group0Agents)) {
+				continue;
+			}
+
+			final Map<Long, Map<Integer, Agent>> groupConflictAvoidanceTable = group.getVal1();
+			if (group1CollisionTriplet == null && !Collections.disjoint(groupAgents, conflictAgents)) {
+				group1CollisionTriplet = group;
+			} else if (resolvedPairs.get(group0Agents).contains(groupAgents)) {
+				mergeConflictAvoidanceTables(group0IllegalMovesTable, groupConflictAvoidanceTable);
+			} else {
+				mergeConflictAvoidanceTables(restGroupsConflictAvoidanceTable, groupConflictAvoidanceTable);
+			}
+		}
+		assert group1CollisionTriplet != null;
+		return group1CollisionTriplet;
+	}
+
+	protected static void mergeIllegalMovesTables(@NotNull Map<Long, Map<Integer, Set<Agent>>> destinationMap, final @NotNull Map<Long, Map<Integer, Set<Agent>>> sourceMap) {
+		for (@NotNull Entry<Long, Map<Integer, Set<Agent>>> sourceMapEntry : sourceMap.entrySet()) {
+			final long step = sourceMapEntry.getKey();
+			@NotNull Map<Integer, Set<Agent>> stepMap = destinationMap.computeIfAbsent(step, k -> new HashMap<>());
+			for (@NotNull Entry<Integer, Set<Agent>> vertexEntry : sourceMapEntry.getValue().entrySet()) {
+				Integer vertexID = vertexEntry.getKey();
+				@NotNull Set<Agent> vertexSet = stepMap.computeIfAbsent(vertexID, k -> new HashSet<>());
+				vertexSet.addAll(vertexEntry.getValue());
+			}
+		}
+	}
+
+	protected static void mergeConflictAvoidanceTables(@NotNull Map<Long, Map<Integer, Set<Agent>>> destinationMap, final @NotNull Map<Long, Map<Integer, Agent>> sourceMap) {
+		for (@NotNull Entry<Long, Map<Integer, Agent>> sourceMapEntry : sourceMap.entrySet()) {
+			final long step = sourceMapEntry.getKey();
+			destinationMap.computeIfAbsent(step, k -> new HashMap<>());
+			Map<Integer, Set<Agent>> destinationStepMap = destinationMap.get(step);
+
+			for (@NotNull Entry<Integer, Agent> sourceEntry : sourceMapEntry.getValue().entrySet()) {
+				final int vertex = sourceEntry.getKey();
+				@NotNull Set<Agent> vertexSet = destinationStepMap.computeIfAbsent(vertex, k -> new HashSet<>());
+				vertexSet.add(sourceEntry.getValue());
+			}
+		}
+	}
+
+	protected static @NotNull Map<Long, Map<Integer, Agent>> getConflictAvoidanceTable(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agents, long step) {
+		@NotNull Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = new HashMap<>();
+		for (@NotNull Agent agent : agents.keySet()) {
+			@NotNull ListIterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedStep()));
+			for (long i = step; it.hasNext(); i++) {
+				int vertexID = it.next();
+				conflictAvoidanceTable.computeIfAbsent(i, k -> new HashMap<>());
+				conflictAvoidanceTable.get(i).put(vertexID, agent);
+			}
+		}
+
+		return conflictAvoidanceTable;
+	}
+
+	private static boolean existsNoneValidNeighbour(int agentsCount, Set<Integer>[] exitsIDs, @NotNull CompositeState state, Set<Integer>[] neighbours) {
+		for (int i = 0; i < agentsCount; i++) {
+			if (neighbours[i].isEmpty() && !exitsIDs[i].contains(state.getStates()[i].getID())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean invalidState(long step, int agentsCount, Set<Integer>[] exitsIDs, int[] maximumDelays, @NotNull CompositeState state, long nextStep) {
+		for (int i = 0; i < agentsCount; i++) {
+			if (nextStep - step > maximumDelays[i] && !exitsIDs[i].contains(state.getStates()[i].getID())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -390,14 +479,14 @@ public class AStarSingleGrouped extends AStarSingle {
 
 
 			// remove colliding neighbours
-			final Map<Integer, Set<Agent>> @NotNull [] neighboursCollisions = filterCollidingNeighbours(illegalMovesTable, conflictAvoidanceTable, agents, state, stateStep, nextStep, neighbours);
+			final Map<Integer, Set<Agent>> @NotNull [] neighboursCollisions = filterCollidingNeighbours(illegalMovesTable, conflictAvoidanceTable, agents, state, stateStep, neighbours);
 
 			// if any traveling agent does not have any valid neighbours, skip generating neighbours states
 			if (existsNoneValidNeighbour(agentsCount, exitsIDs, state, neighbours)) {
 				continue;
 			}
 
-			// for each valid neighbour create vertex object
+			// for each valid neighbour, create a vertex object
 			final VertexWithDirection[] @NotNull [] neighboursVertices = generateVertexObjects(agentsCount, heuristics, state, neighbours);
 
 			// add cartesian product of agents position vertex neighbours to queue
@@ -435,7 +524,7 @@ public class AStarSingleGrouped extends AStarSingle {
 		return neighboursVertices;
 	}
 
-	private Map<Integer, Set<Agent>> @NotNull [] filterCollidingNeighbours(final @NotNull Map<Long, Map<Integer, Set<Agent>>> illegalMovesTable, final @NotNull Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, final Agent @NotNull [] agents, final @NotNull CompositeState state, long stateStep, long nextStep, Set<Integer> @NotNull [] neighbours) {
+	private Map<Integer, Set<Agent>> @NotNull [] filterCollidingNeighbours(final @NotNull Map<Long, Map<Integer, Set<Agent>>> illegalMovesTable, final @NotNull Map<Long, Map<Integer, Set<Agent>>> conflictAvoidanceTable, final Agent @NotNull [] agents, final @NotNull CompositeState state, long stateStep, Set<Integer> @NotNull [] neighbours) {
 		final Map<Integer, Set<Agent>> @NotNull [] neighboursCollisions = new Map[neighbours.length];
 
 		for (int i = 0; i < agents.length; i++) {
@@ -563,6 +652,11 @@ public class AStarSingleGrouped extends AStarSingle {
 		}
 	}
 
+	/**
+	 * @param vertices          Array of states for each agent
+	 * @param collidingVertices Array indexed by vertex ID containing a map from vertex ID to a set of collision agents
+	 * @return Pair of number of collisions and a set with collision agents
+	 */
 	private @NotNull Pair<Integer, Set<Agent>> collisionCount(VertexWithDirection @NotNull [] vertices, Map<Integer, Set<Agent>>[] collidingVertices) {
 		int collisions = 0;
 		@NotNull Set<Agent> collisionAgents = new HashSet<>();
@@ -578,11 +672,37 @@ public class AStarSingleGrouped extends AStarSingle {
 		return new Pair<>(collisions, collisionAgents);
 	}
 
+	/**
+	 * Create cartesian product of states of individual agents.
+	 * Then check if there are no collisions between planned agents.
+	 *
+	 * @param agents         Array of agents
+	 * @param exitsIDs       Array of IDs of valid exits for each agent
+	 * @param collisionPairs Map with cached collision vertex pairs for each pair of agents
+	 * @param previousState  Last state
+	 * @param neighbours     Array of all valid next states for each agent
+	 * @return Set of arrays of collision free states
+	 */
 	private @NotNull Set<VertexWithDirection[]> cartesianProductWithCheck(final Agent @NotNull [] agents, Set<Integer>[] exitsIDs, final Map<Integer, Set<Integer>>[][] collisionPairs, final @NotNull CompositeState previousState, final VertexWithDirection[] @NotNull [] neighbours) {
 		return cartesianProductWithCheck(agents, exitsIDs, collisionPairs, previousState, neighbours, new VertexWithDirection[agents.length], 0);
 	}
 
-	private @NotNull Set<VertexWithDirection[]> cartesianProductWithCheck(final Agent @NotNull [] agents, final Set<Integer>[] exitsIDs, final Map<Integer, Set<Integer>>[][] collisionPairs, final @NotNull CompositeState previousState, final VertexWithDirection[] @NotNull [] neighbours, final VertexWithDirection @NotNull [] constructed, final int addingIndex) {
+	/**
+	 * Create cartesian product of states of individual agents.
+	 * Then check if there are no collisions between planned agents.
+	 * It adds agent one by one.
+	 *
+	 * @param agents         Array of agents
+	 * @param exitsIDs       Array of IDs of valid exits for each agent
+	 * @param collisionPairs Map with cached collision vertex pairs for each pair of agents
+	 * @param previousState  Last state
+	 * @param neighbours     Array of all valid next states for each agent
+	 * @param constructed    Currently created array with valid entries until addingIndex
+	 * @param addingIndex    Index of agent that is currently added
+	 * @return Set of arrays of collision free states
+	 */
+	private @NotNull Set<VertexWithDirection[]> cartesianProductWithCheck(final Agent @NotNull [] agents, final Set<Integer>[] exitsIDs, final Map<Integer, Set<Integer>>[][] collisionPairs, final @NotNull CompositeState previousState,
+																																				final VertexWithDirection[] @NotNull [] neighbours, final VertexWithDirection @NotNull [] constructed, final int addingIndex) {
 		@NotNull Set<VertexWithDirection[]> cartesian = new HashSet<>();
 		final int nextIndex = addingIndex + 1;
 
@@ -604,6 +724,18 @@ public class AStarSingleGrouped extends AStarSingle {
 		return cartesian;
 	}
 
+	/**
+	 * Check if the agent at specified index is in collision with any other agent at lower index.
+	 * Use values for caching results.
+	 *
+	 * @param agents                Array of planned agents
+	 * @param collisionPairs        Map with cached collision vertex pairs for each pair of agents
+	 * @param previousState         Last state
+	 * @param neighboursCombination New states of agents
+	 * @param vertex                Current vertex for specified agent
+	 * @param agentIndex            Index of checked agent
+	 * @return True if the agent at specified index is in collision with any other agent with lower index, otherwise false
+	 */
 	private boolean collisionVertexPair(final Agent @NotNull [] agents, @NotNull final Map<Integer, Set<Integer>>[][] collisionPairs,
 																			final @NotNull CompositeState previousState, final VertexWithDirection[] neighboursCombination,
 																			final int vertex, final int agentIndex) {
@@ -633,6 +765,12 @@ public class AStarSingleGrouped extends AStarSingle {
 		return false;
 	}
 
+	/**
+	 * Create paths to this state by iterating over parent states.
+	 *
+	 * @param state Final state of the paths
+	 * @return Array of list of IDs of vertices for each agent
+	 */
 	private List<Integer> @NotNull [] constructPaths(@NotNull CompositeState state) {
 		final int agents = state.getStates().length;
 		final LinkedList<Integer> @NotNull [] paths = new LinkedList[agents];
@@ -659,6 +797,18 @@ public class AStarSingleGrouped extends AStarSingle {
 		return arrays;
 	}
 
+	/**
+	 * Create first composite state representing starting position for agents.
+	 * Also fill arrays with agents values.
+	 *
+	 * @param agentsEntriesExits Map from agent to its entry and exits represented by their IDs
+	 * @param exitsIDs           Array of all planned agents valid exit IDs, this array is filled with computed values, should be empty with right size
+	 * @param agents             Array of all planned agents, this array is filled with computed values, should be empty with right size
+	 * @param heuristics         Array of heuristics for individual agents, this array is filled with computed values, should be empty with right size
+	 * @param maximumDelays      Array with maximum allowed travel time, this array is filled with computed values, should be empty with right size
+	 * @param step               Actually planned step
+	 * @return Created initial state for search
+	 */
 	private @NotNull CompositeState generateInitialState(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, Set<Integer>[] exitsIDs, Agent @NotNull [] agents, double[][] heuristics, int[] maximumDelays, long step) {
 		final VertexWithDirection @NotNull [] initialStates = new VertexWithDirection[agents.length];
 		final @NotNull Iterator<Entry<Agent, Pair<Integer, Set<Integer>>>> it = agentsEntriesExits.entrySet().iterator();
@@ -678,104 +828,29 @@ public class AStarSingleGrouped extends AStarSingle {
 			heuristics[i] = new double[graph.getVertices().length];
 			heuristics[i][entryID] = startEstimate;
 
-			maximumDelays[i] = exits.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(agent.getEntry(), exitID)) + super.maximumPathDelay)).min().getAsInt();
+			maximumDelays[i] = exits.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(agent.getEntry(), exitID)))).min().getAsInt() + super.maximumPathDelay;
 		}
 
 		return new CompositeState(initialStates, step);
 	}
 
-	@NotNull
-	protected static Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> findCollisionGroup(
-		@NotNull Set<Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>>> agentsGroups,
-		@NotNull Map<Collection<Agent>, Collection<Collection<Agent>>> resolvedPairs, Set<Agent> group0Agents, @NotNull Set<Agent> conflictAgents,
-		@NotNull Map<Long, Map<Integer, Set<Agent>>> group0IllegalMovesTable, @NotNull Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable
-	) {
-		@Nullable Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group1CollisionTriplet = null;
-
-		for (final @NotNull Triplet<Map<Agent, Pair<Integer, Set<Integer>>>, Map<Long, Map<Integer, Agent>>, Set<Agent>> group : agentsGroups) {
-			final @NotNull Set<Agent> groupAgents = group.getVal0().keySet();
-			if (groupAgents.equals(group0Agents)) {
-				continue;
-			}
-
-			final Map<Long, Map<Integer, Agent>> groupConflictAvoidanceTable = group.getVal1();
-			if (group1CollisionTriplet == null && !Collections.disjoint(groupAgents, conflictAgents)) {
-				group1CollisionTriplet = group;
-			} else if (resolvedPairs.get(group0Agents).contains(groupAgents)) {
-				mergeConflictAvoidanceTables(group0IllegalMovesTable, groupConflictAvoidanceTable);
-			} else {
-				mergeConflictAvoidanceTables(restGroupsConflictAvoidanceTable, groupConflictAvoidanceTable);
-			}
-		}
-		assert group1CollisionTriplet != null;
-		return group1CollisionTriplet;
-	}
-
-	protected static void mergeIllegalMovesTables(@NotNull Map<Long, Map<Integer, Set<Agent>>> destinationMap, final @NotNull Map<Long, Map<Integer, Set<Agent>>> sourceMap) {
-		for (@NotNull Entry<Long, Map<Integer, Set<Agent>>> sourceMapEntry : sourceMap.entrySet()) {
-			final long step = sourceMapEntry.getKey();
-			@NotNull Map<Integer, Set<Agent>> stepMap = destinationMap.computeIfAbsent(step, k -> new HashMap<>());
-			for (@NotNull Entry<Integer, Set<Agent>> vertexEntry : sourceMapEntry.getValue().entrySet()) {
-				Integer vertexID = vertexEntry.getKey();
-				@NotNull Set<Agent> vertexSet = stepMap.computeIfAbsent(vertexID, k -> new HashSet<>());
-				vertexSet.addAll(vertexEntry.getValue());
-			}
-		}
-	}
-
-	protected static void mergeConflictAvoidanceTables(@NotNull Map<Long, Map<Integer, Set<Agent>>> destinationMap, final @NotNull Map<Long, Map<Integer, Agent>> sourceMap) {
-		for (@NotNull Entry<Long, Map<Integer, Agent>> sourceMapEntry : sourceMap.entrySet()) {
-			final long step = sourceMapEntry.getKey();
-			destinationMap.computeIfAbsent(step, k -> new HashMap<>());
-			Map<Integer, Set<Agent>> destinationStepMap = destinationMap.get(step);
-
-			for (@NotNull Entry<Integer, Agent> sourceEntry : sourceMapEntry.getValue().entrySet()) {
-				final int vertex = sourceEntry.getKey();
-				@NotNull Set<Agent> vertexSet = destinationStepMap.computeIfAbsent(vertex, k -> new HashSet<>());
-				vertexSet.add(sourceEntry.getValue());
-			}
-		}
-	}
-
-	protected static @NotNull Map<Long, Map<Integer, Agent>> getConflictAvoidanceTable(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agents, long step) {
-		@NotNull Map<Long, Map<Integer, Agent>> conflictAvoidanceTable = new HashMap<>();
-		for (@NotNull Agent agent : agents.keySet()) {
-			@NotNull ListIterator<Integer> it = agent.getPath().listIterator((int) (step - agent.getPlannedStep()));
-			for (long i = step; it.hasNext(); i++) {
-				int vertexID = it.next();
-				conflictAvoidanceTable.computeIfAbsent(i, k -> new HashMap<>());
-				conflictAvoidanceTable.get(i).put(vertexID, agent);
-			}
-		}
-
-		return conflictAvoidanceTable;
-	}
-
-	private static boolean existsNoneValidNeighbour(int agentsCount, Set<Integer>[] exitsIDs, @NotNull CompositeState state, Set<Integer>[] neighbours) {
-		for (int i = 0; i < agentsCount; i++) {
-			if (neighbours[i].isEmpty() && !exitsIDs[i].contains(state.getStates()[i].getID())) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static boolean invalidState(long step, int agentsCount, Set<Integer>[] exitsIDs, int[] maximumDelays, @NotNull CompositeState state, long nextStep) {
-		for (int i = 0; i < agentsCount; i++) {
-			if (nextStep - step > maximumDelays[i] && !exitsIDs[i].contains(state.getStates()[i].getID())) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	protected class CompositeState implements Comparable<CompositeState> {
+	/**
+	 * This class contains state for each agent together with a step, previous state and other agents group collisions.
+	 */
+	protected static class CompositeState implements Comparable<CompositeState> {
 		private final VertexWithDirection[] states;
 		private final long step;
 		private final @Nullable CompositeState parent;
 		private final int collisions;
 		private final @NotNull Set<Agent> collisionAgents;
 
+		/**
+		 * Create a new instance with specified states and step.
+		 * Other values are set to null, zero or default value.
+		 *
+		 * @param states Sub states for each agent
+		 * @param step   Step of this state
+		 */
 		protected CompositeState(VertexWithDirection[] states, long step) {
 			this.states = states;
 			this.step = step;
@@ -784,6 +859,14 @@ public class AStarSingleGrouped extends AStarSingle {
 			this.collisionAgents = new HashSet<>();
 		}
 
+		/**
+		 * Create a new instance with specified parameters.
+		 * Step is taken from parent state.
+		 *
+		 * @param states              Sub states for each agent
+		 * @param parent              Previous state
+		 * @param collisionsAgentPair Pair, where first value is  number of collisions and second is set of collision agents
+		 */
 		protected CompositeState(VertexWithDirection[] states, @NotNull CompositeState parent, @NotNull Pair<Integer, Set<Agent>> collisionsAgentPair) {
 			this.states = states;
 			this.step = parent.step + 1;
@@ -794,6 +877,10 @@ public class AStarSingleGrouped extends AStarSingle {
 			this.collisionAgents = collisionAgentsSet;
 		}
 
+		/**
+		 * @param exitsIDs Set of valid exits
+		 * @return True if every sub state is final
+		 */
 		protected boolean isFinal(Set<Integer>[] exitsIDs) {
 			for (int i = 0; i < states.length; i++) {
 				if (!exitsIDs[i].contains(states[i].getID())) {
@@ -816,6 +903,15 @@ public class AStarSingleGrouped extends AStarSingle {
 			return parent;
 		}
 
+		/**
+		 * Compare sums of estimates and distances of each sub state.
+		 * If equal, compare turn penalties, then number of turns.
+		 * If still equal, compare number of agents with colliding trajectories, then number of total collisions.
+		 * If all of that is equal, compare by distance and then IDs of vertices.
+		 *
+		 * @param compositeState the object to be compared.
+		 * @return True if state are same, otherwise false
+		 */
 		@Override
 		public int compareTo(@NotNull final CompositeState compositeState) {
 			final int heuristicsComparison = Double.compare(getHeuristics(), compositeState.getHeuristics());
@@ -851,6 +947,9 @@ public class AStarSingleGrouped extends AStarSingle {
 			return heuristicsComparison;
 		}
 
+		/**
+		 * @return Sum of distances of each state
+		 */
 		protected double getDistance() {
 			double distance = 0;
 			for (@Nullable VertexWithDirection vertex : states) {
@@ -862,6 +961,9 @@ public class AStarSingleGrouped extends AStarSingle {
 			return distance;
 		}
 
+		/**
+		 * @return Sum of turn penalties of each state
+		 */
 		protected double getTurnPenalty() {
 			double turnPenalty = 0;
 			for (@Nullable VertexWithDirection vertex : states) {
@@ -873,6 +975,9 @@ public class AStarSingleGrouped extends AStarSingle {
 			return turnPenalty;
 		}
 
+		/**
+		 * @return Sum of turns of each state
+		 */
 		protected int getTurns() {
 			int turns = 0;
 			for (@Nullable VertexWithDirection vertex : states) {
@@ -884,6 +989,9 @@ public class AStarSingleGrouped extends AStarSingle {
 			return turns;
 		}
 
+		/**
+		 * @return Sum of estimates and distances of each state
+		 */
 		protected double getHeuristics() {
 			double estimate = 0;
 			for (@Nullable VertexWithDirection vertex : states) {
@@ -902,6 +1010,9 @@ public class AStarSingleGrouped extends AStarSingle {
 			return result;
 		}
 
+		/**
+		 * @return True if states are composed of the same values
+		 */
 		@Override
 		public boolean equals(@Nullable Object o) {
 			if (this == o) return true;
@@ -913,14 +1024,7 @@ public class AStarSingleGrouped extends AStarSingle {
 				return false;
 			}
 
-			// Probably incorrect - comparing Object[] arrays with Arrays.equals
-			final boolean statesEqual = Arrays.equals(states, compositeState.states);
-//			if (!allowAgentReturn && statesEqual && parent != null) {  FIXME
-//				assert compositeState.parent != null;
-//				return Arrays.equals(parent.states, compositeState.parent.states);
-//			}
-
-			return statesEqual;
+			return Arrays.equals(states, compositeState.states);
 		}
 	}
 }
