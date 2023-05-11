@@ -33,13 +33,6 @@ public class CBSAll extends CBSSingleGrouped {
 		replanSteps = AlgorithmMenuTab2.getIntegerParameter(AlgorithmAll.REPLAN_STEPS_NAME, AlgorithmAll.REPLAN_STEPS_DEF);
 	}
 
-	@TestOnly
-	protected CBSAll(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, long simpleStrategyAfter, int maximumPlannedAgents, int replanSteps) {
-		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn, simpleStrategyAfter);
-		this.maximumPlannedAgents = maximumPlannedAgents;
-		this.replanSteps = replanSteps;
-	}
-
 	@Override
 	public @NotNull Collection<Agent> planAgents(@NotNull Map<Agent, Pair<Integer, Set<Integer>>> agentsEntriesExits, long step) {
 		final @NotNull Collection<Agent> validNotFinishedAgents = AlgorithmAll.filterNotFinishedAgents(notFinishedAgents, stepOccupiedVertices, step, maximumPlannedAgents - agentsEntriesExits.size(), replanSteps);
@@ -122,13 +115,6 @@ public class CBSAll extends CBSSingleGrouped {
 		return startingStep + getMaximumTravelTime(agent, exitsIDs);
 	}
 
-	/**
-	 * @param state
-	 * @param entryID
-	 * @param vertexID
-	 * @param constraints
-	 * @return
-	 */
 	@Override
 	protected boolean canVisitVertex(@NotNull State state, int entryID, int vertexID, @Nullable Collection<Pair<Integer, Integer>> constraints) {
 		int maximumVertexVisits = this.maximumVertexVisits;

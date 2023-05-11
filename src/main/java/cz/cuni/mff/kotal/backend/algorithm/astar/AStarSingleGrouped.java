@@ -9,7 +9,6 @@ import cz.cuni.mff.kotal.simulation.graph.SimulationGraph;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -42,12 +41,6 @@ public class AStarSingleGrouped extends AStarSingle {
 		super(graph);
 
 		simpleStrategyAfter = AlgorithmMenuTab2.getLongParameter(SIMPLE_STRATEGY_NAME, SIMPLE_STRATEGY_DEF);
-	}
-
-	@TestOnly
-	protected AStarSingleGrouped(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, long simpleStrategyAfter) {
-		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
-		this.simpleStrategyAfter = simpleStrategyAfter;
 	}
 
 	@NotNull
@@ -828,7 +821,7 @@ public class AStarSingleGrouped extends AStarSingle {
 			heuristics[i] = new double[graph.getVertices().length];
 			heuristics[i][entryID] = startEstimate;
 
-			maximumDelays[i] = exits.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(agent.getEntry(), exitID)))).min().getAsInt() + super.maximumPathDelay;
+			maximumDelays[i] = getMaximumTravelTime(agent,exits);
 		}
 
 		return new CompositeState(initialStates, step);

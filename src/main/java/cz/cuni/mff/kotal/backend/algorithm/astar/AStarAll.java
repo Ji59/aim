@@ -108,19 +108,9 @@ public class AStarAll extends AStarSingleGrouped {
 		@NotNull Map<Long, Map<Integer, Set<Agent>>> restGroupsConflictAvoidanceTable, @NotNull Map<Long, Map<Integer, Set<Agent>>> group1IllegalMovesTable
 	) {
 		boolean groupsMerged = mergeGroups(step, agentsGroups, group0CollisionTriplet, group1CollisionTriplet, restGroupsConflictAvoidanceTable);
-		if (groupsMerged) {
-			final @NotNull Set<Agent> group0Agents = group0CollisionTriplet.getVal0().keySet();
-			final @NotNull Set<Agent> group1Agents = group1CollisionTriplet.getVal0().keySet();
-		}
 		assert groupsMerged || stopped;
 	}
 
-	/**
-	 * @param agents
-	 * @param state
-	 * @param neighbours
-	 * @param neighboursVisited
-	 */
 	@Override
 	protected void filterVisitedNeighbours(Agent @NotNull [] agents, CompositeState state, Set<Integer>[] neighbours, Map<Integer, Integer>[] neighboursVisited) {
 		if (state.getParent() == null && !allowAgentReturn) {

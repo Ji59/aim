@@ -10,7 +10,6 @@ import cz.cuni.mff.kotal.simulation.graph.VertexWithDirection;
 import cz.cuni.mff.kotal.simulation.graph.VertexWithDirectionParent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 import java.util.*;
 
@@ -58,25 +57,6 @@ public class AStarSingle extends SafeLanes {
 		allowAgentStop = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_STOP_NAME, ALLOW_AGENT_STOP_DEF);
 		maximumPathDelay = AlgorithmMenuTab2.getIntegerParameter(MAXIMUM_PATH_DELAY_NAME, MAXIMUM_PATH_DELAY_DEF);
 		allowAgentReturn = AlgorithmMenuTab2.getBooleanParameter(ALLOW_AGENT_RETURN_NAME, ALLOW_AGENT_RETURN_DEF);
-	}
-
-	/**
-	 * Create new A* planner with specific parameters.
-	 *
-	 * @param graph               Graph in which paths are searched
-	 * @param safeDistance        value for safe distance parameter
-	 * @param maximumVertexVisits value for maximum vertex visits parameter
-	 * @param allowAgentStop      true if agents are allowed to stop on vertices
-	 * @param maximumPathDelay    value for maximum path delay parameter
-	 * @param allowAgentReturn    true if agents are allowed to return to last visited vertex
-	 */
-	@TestOnly
-	protected AStarSingle(@NotNull SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn) {
-		super(graph, safeDistance);
-		this.maximumVertexVisits = maximumVertexVisits;
-		this.allowAgentStop = allowAgentStop;
-		this.maximumPathDelay = maximumPathDelay;
-		this.allowAgentReturn = allowAgentReturn;
 	}
 
 	/**
@@ -160,7 +140,8 @@ public class AStarSingle extends SafeLanes {
 	 */
 	protected int getMaximumTravelTime(@NotNull Agent agent, @NotNull Set<Integer> exitsIDs) {
 		final int entryID = agent.getEntry();
-		return exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)))).min().getAsInt() + maximumPathDelay;
+		final int minimalTime = exitsIDs.stream().mapToInt(exitID -> (int) (Math.ceil(graph.getDistance(entryID, exitID)))).min().getAsInt();
+		return Integer.MAX_VALUE - minimalTime > maximumPathDelay ? minimalTime + maximumPathDelay : Integer.MAX_VALUE;
 	}
 
 	/**

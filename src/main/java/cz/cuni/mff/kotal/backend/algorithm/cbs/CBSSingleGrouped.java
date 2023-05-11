@@ -55,18 +55,10 @@ public class CBSSingleGrouped extends AStarSingle {
 		}
 	}
 
-	@TestOnly
-	protected CBSSingleGrouped(SimulationGraph graph, double safeDistance, int maximumVertexVisits, boolean allowAgentStop, int maximumPathDelay, boolean allowAgentReturn, long simpleStrategyAfter) {
-		super(graph, safeDistance, maximumVertexVisits, allowAgentStop, maximumPathDelay, allowAgentReturn);
-		this.simpleStrategyAfter = simpleStrategyAfter;
-
-		createInverseNeighboursList(graph);
-	}
-
 	/**
 	 * @param agents Set of agents to be planned
 	 * @param step   Number of step in which agents should be planned
-	 * @return
+	 * @return Collection of successfully planned agents
 	 */
 	@Override
 	public Collection<Agent> planAgents(@NotNull Collection<Agent> agents, long step) {
