@@ -1,0 +1,37 @@
+\section{Testovací prostředí}\label{sec:testovaci_prostredi}
+
+Plánování bylo testováno v mém simulátoru, který je přiložen k této práci v příloze \textit{simulator}.
+Pro spuštění simulátoru je třeba mít nainstalováno Java JDK verze 17 nebo novější.
+Následně pro Windows OS stačí spustit simulátor z výchozí složky příkazem \textrm{gradlew.bat run}.
+Nemám snadný přístup k jiným operačním systémům, ale postup by pro ně měl být podobný.
+Příloha obsahuje soubor s detailnějším popisem spouštění a ovládání simulátoru.
+Simulátor podporuje všechny výše popsané algoritmy, většinu jsem implementoval já.
+Jedinou výjimkou je \ref{str:sat} řešič, kde jsem využil Sat4j knihovnu (\href{http://www.sat4j.org}{http://www.sat4j.org}).
+Výsledky algoritmů tedy mohou být značně ovlivněny implementací.
+Nejnovější verze simulátoru je taktéž k dispozici na \href{https://github.com/Ji59/aim}{https://github.com/Ji59/aim}.
+
+Simulátor je naprogramován v programovacím jazyce Java a
+běžel na počítači s procesorem Intel® Core™ i7-9700KF a 48GB RAM\@.
+JVM mělo nastaveno max heap size na 42GB,
+avšak ani toto nastavení neumožnilo doběhnout všem variantám algoritmu \nameref{sec:a_star}
+a selhávaly na nedostatek paměti.
+
+Výsledky obsahující data ze simulátoru jsou opět v příloze s názvem \textit{vysledky}.
+Jsou rozděleny do složek podle typu křižovatky, poté podle velikosti a nakonec podle algoritmu.
+Výsledky jednotlivých běhů jsou uloženy ve složce s názvem složeným z částí \textit{NázevAlgoritmu},
+\textit{Omezení}, \textit{MNV} a \textit{MPC} (navíc \textit{MPA} u některých algoritmů).
+Jednotlivé části jsou oddělené podtržítkem.
+\textit{Omezení} obsahuje buďto $s$ značící agenti měli povolené zastavování,
+$r$ značící agenti se mohli vracet na předchozí vrchol, nebo $n$ značící agenti se nesměli vracet ani zastavovat .
+\ref{str:ars_mnv} je nastavení parametru Maximum návštěv vrcholu,
+\ref{str:ars_mpc} je hodnota maximální prodlevy cesty a \ref{str:aoid_mpa} je pouze u \nameref{subsubsec:a_star_aoid},
+\nameref{subsec:cbsoid} a \nameref{subsec:sat_ra} a značí vybranou hodnotu maximálního počtu přeplánovaných agentů.
+\textit{NázevAlgoritmu} má hodnotu podle plánujícího algoritmu.
+Je to teda jedno z možností $as$ pro \ref{str:a_star_ars}, $asg$ pro \ref{str:a_star_arsg},
+$aoid$ pro \nameref{subsubsec:a_star_aoid}, $cbssg$ pro \ref{str:cbs}, $cbsoid$ pro \nameref{subsec:cbsoid},
+$satsg$ pro \nameref{subsec:sat_rsg} a $sata$ pro \nameref{subsec:sat_ra}.
+Výsledky pro \nameref{sec:safe_lanes} jsou ve složce \textit{SafeLanes}, jelikož algoritmus nemá žádné parametry.
+
+Zároveň jsou přiloženy Python skripty, které jsem použil pro vypsání důležitých informací z výsledků.
+Nejpoužívanější z nich je \textit{plannedAgentsData.py}, který počítá porovnávané hodnoty (blíže popsané níže).
+Tento skript lze jednoduše upravit, pokud by někdo měl zájem o dodatečná data, která tu neuvádím.

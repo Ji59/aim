@@ -4,7 +4,6 @@ from queue import PriorityQueue
 import numpy as np
 
 import loadDirectory
-import plotting
 
 
 def steps_planned_agents(last_step: int, agents: [loadDirectory.Agent]) -> (int, [int]):
@@ -150,14 +149,3 @@ if __name__ == "__main__":
 				f"{np.mean(planning_times) / 1000:.2f}, "
 				# f"{np.std(planning_times):.2f}"
 			)
-
-		# travelling_data_times = {}
-		# travelling_data_agents = {}
-		# for subdir, data in agents_data.items():
-		# 	travelling_data_times[subdir + "_t"] = plotting.convolute(data[3], len(data[3]) // 2 ** 6)
-		# 	travelling_data_agents[subdir + "_a"] = plotting.convolute(data[2], len(data[2]) // 2 ** 6)
-		# # travelling_data[subdir] = data[2] + [0] * (last_step - len(data[2]))
-		# # travelling_data[subdir + "_p"] = data[1] + [0] * (last_step - len(data[1]))
-		# #
-		# plotting.plot_ints(travelling_data_times)
-		# plotting.plot_ints(travelling_data_agents)
